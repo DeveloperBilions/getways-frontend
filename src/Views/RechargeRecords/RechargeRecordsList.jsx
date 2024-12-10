@@ -44,6 +44,7 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = () => {
+    console.log("RECHARGE RECORDS RENDERED");
     const [gameData, setGameData] = useState([]);
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedRecord, setSelectedRecord] = useState(null);

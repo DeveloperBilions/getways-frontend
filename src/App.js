@@ -23,8 +23,8 @@ import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 
 function App() {
-  // const { isPending, permissions } = usePermissions();
   // const { identity } = useGetIdentity();
+  // const { permissions } = usePermissions();
   // console.log(identity);
   // console.log(localStorage.getItem("role"));
   return (
@@ -35,13 +35,12 @@ function App() {
       layout={MyLayout}
       theme={MyTheme}
       // requireAuth
-    >
-      <Resource
-        name="users"
-        list={UserList}
-        options={{ label: "User Management" }}
-        icon={PersonIcon}
-      />
+    ><Resource
+          name="users"
+          list={UserList}
+          options={{ label: "User Management" }}
+          icon={PersonIcon}
+        />
       <Resource
         name="redeemRecords"
         recordRepresentation="redeemRecords"
@@ -49,14 +48,13 @@ function App() {
         options={{ label: "Redeem Records" }}
         icon={LocalAtmIcon}
       />
-      {
-        localStorage.getItem("role")!=="Player" && 
+      {permissions => permissions !=='Player' ?
         <Resource
           name="TransactionRecords"
           list={RechargeRecordsList}
           options={{ label: "Recharge Records" }}
           icon={LocalAtmIcon}
-        />
+        /> : null
       }
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />

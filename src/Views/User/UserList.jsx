@@ -10,6 +10,7 @@ import {
   WrapperField,
   useRecordContext,
   useResourceContext,
+  usePermissions
 } from "react-admin";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
@@ -29,6 +30,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const CustomButton = ({ fetchAllUsers }) => {
   // const navigate = useNavigate();
+  const { permissions } = usePermissions();
   const [anchorEl, setAnchorEl] = useState(null);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
@@ -137,6 +139,7 @@ const CustomButton = ({ fetchAllUsers }) => {
 export const UserList = () => {
   const [userData, setUserData] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
+  const { permissions } = usePermissions();
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
@@ -158,7 +161,7 @@ export const UserList = () => {
   const PostListActions = () => (
     <TopToolbar>
       {/* <CreateButton /> */}
-      <Button
+      {permissions !== 'Player' && <Button
         variant="contained"
         color="primary"
         size="small"
@@ -166,7 +169,7 @@ export const UserList = () => {
         onClick={handleCreateUser}
       >
         Add New User
-      </Button>
+      </Button>}
     </TopToolbar>
   );
 
@@ -191,9 +194,9 @@ export const UserList = () => {
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-        <WrapperField label="Actions">
+        {permissions !== 'Player' && <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
-        </WrapperField>
+        </WrapperField>}
       </Datagrid>
       <CreateUserDialog
         open={userCreateDialogOpen}
