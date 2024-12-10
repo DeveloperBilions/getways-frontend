@@ -1,19 +1,20 @@
 import { Parse } from "parse";
-import { parseConfig } from "../parseConfig";
+// import { parseConfig } from "../parseConfig";
+// const Parse = require('parse/node');
 
-// Parse.initialize(
-//   process.env.REACT_APP_APPID,
-//   null,
-//   process.env.REACT_APP_MASTER_KEY
-// );
-// Parse.serverURL = process.env.REACT_APP_URL;
-// Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
+Parse.initialize(
+  process.env.REACT_APP_APPID,
+  process.env.REACT_APP_JAVASCRIPT_KEY,
+  process.env.REACT_APP_MASTER_KEY
+);
+Parse.serverURL = process.env.REACT_APP_URL;
+Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 
-Parse.initialize(parseConfig.APP_ID, null, parseConfig.MASTER_KEY);
-// Parse.initialize(parseConfig.APP_ID);
-Parse.masterKey = parseConfig.MASTER_KEY;
-Parse.serverURL = parseConfig.URL;
+// Parse.initialize(parseConfig.APP_ID, null, parseConfig.MASTER_KEY);
+// // Parse.initialize(parseConfig.APP_ID);
+// Parse.masterKey = parseConfig.MASTER_KEY;
+// Parse.serverURL = parseConfig.URL;
 
 export const dataProvider = {
   // ...userProvider,
@@ -66,54 +67,54 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     const { filter } = params.filter;
 
     var query = null;
     var count = null;
-    const useMasterKey = params.useMasterKey || false;
-
-    if (resource === "users") {
-      query = new Parse.Query(Parse.User);
-      count = await query.count({ useMasterKey: useMasterKey });
-    } else {
-      const Resource = Parse.Object.extend(resource);
-      query = new Parse.Query(Resource);
-      count = await query.count({ useMasterKey: useMasterKey });
-    }
-
-    query.limit(perPage);
-    query.skip((page - 1) * perPage);
-
-    if (order === "DESC") query.descending(field);
-    else if (order === "ASC") query.ascending(field);
-
-    filter && Object.keys(filter).map((f) => query.matches(f, filter[f], "i"));
+    Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
 
     try {
+      if (resource === "users") {
+        query = new Parse.Query(Parse.User);
+        count = await query.count({ useMasterKey: true });
+        // console.log(count);
+      } else {
+        const Resource = Parse.Object.extend(resource);
+        query = new Parse.Query(Resource);
+        count = await query.count();
+      }
+
+      query.limit(perPage);
+      query.skip((page - 1) * perPage);
+      if (order === "DESC") query.descending(field);
+      else if (order === "ASC") query.ascending(field);
+
+      filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+
       const results =
         resource === "users"
-          ? await query.find({ useMasterKey })
+          ? await query.find({ useMasterKey: true })
           : await query.find();
-      return {
-        total: count,
+      const res = {
         data: results.map((o) => ({ id: o.id, ...o.attributes })),
+        total: count,
       };
+      return res;
     } catch (error) {
-      return error;
+      throw error;
     }
   },
   getMany: async (resource, params) => {
     var query = null;
     var results = null;
     if (resource === "users") {
-      results = params.ids.map((id) => new Parse.Query(Parse.User).get(id));
+      results = params.ids.map((id) => (new Parse.Query(Parse.User)).get(id, { useMasterKey: true }));
     } else {
       const Resource = Parse.Object.extend(resource);
-      query = new Resource();
-      results = params.ids.map((id) => new Parse.Query(Resource).get(id));
+      query = new Parse.Query(Resource);
+      results = params.ids.map((id) => (new Parse.Query(Resource)).get(id));
     }
     try {
       const data = await Promise.all(results);
@@ -128,6 +129,7 @@ export const dataProvider = {
   getManyReference: async (resource, params) => {
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
+    console.log(order);
 
     const Resource = Parse.Object.extend(resource);
     var query = null;
@@ -136,7 +138,7 @@ export const dataProvider = {
       query = new Parse.Query(Parse.User);
     } else {
       const Resource = Parse.Object.extend(resource);
-      query = new Resource();
+      query = new Parse.Query(Resource);
     }
 
     query.equalTo(params.target, params.id);
@@ -144,7 +146,7 @@ export const dataProvider = {
     if (perPage) query.limit(perPage);
     if (page) query.skip((page - 1) * perPage);
     if (order === "DESC") query.descending(field);
-    else if (order === "ASEC") query.ascending(field);
+    else if (order === "ASC") query.ascending(field);
 
     try {
       const results = await query.find();
@@ -171,14 +173,11 @@ export const dataProvider = {
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
-        obj = await query.get(params.id);
-        r = await obj.save(data);
+        obj = await query.get(params.id, { useMasterKey: true });
+        r = await obj.save(data, { useMasterKey: true });
       } else {
-        // const Resource = Parse.Object.extend(resource);
-        // query = new Resource();
-
+        const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(resource);
-
         obj = await query.get(params.id);
         r = await obj.save(data);
       }
@@ -202,31 +201,27 @@ export const dataProvider = {
     }
   },
   delete: async (resource, params) => {
-    console.log("***", resource);
-    console.log("$$$", params);
-
-    const userId = params.id;
-
+    var query = null;
+    var result = null;
+    var data = null;
+    console.log("DELETE CALLED")
+    console.log(params);
     try {
       if (resource === "users") {
-        const response = await Parse.Cloud.run("deleteUser", { userId });
-        // console.log("---", response);
-        const data = { data: { id: userId, ...userId.attributes } };
-        // console.log("%%%", data);
-        return data;
-      } else {
-        const Resource = Parse.Object.extend(resource);
-        const query = new Parse.Query(Resource);
-        const obj = await query.get(params.id);
-        const data = { data: { id: obj.id, ...obj.attributes } };
-        console.log("!!!", data);
-
-        await obj.destroy();
-        return data;
+        query = new Parse.Query(Parse.User);
+        result = await query.get(params.id, { useMasterKey: true });
+        data = { data: { id: result.id, ...result.attributes } }
+        await result.destroy({ useMasterKey: true });
       }
+      else {
+        const Resource = Parse.Object.extend(resource);
+        query = new Parse.Query(Resource);
+        result = await query.get(params.id);
+        data = { data: { id: result.id, ...result.attributes } }
+        await result.destroy();
+      }
+      return data;
     } catch (error) {
-      console.log("^^^^^^^^^^", error);
-
       throw Error("Unable to delete");
     }
   },
@@ -243,4 +238,3 @@ export const dataProvider = {
     }
   },
 };
-

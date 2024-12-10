@@ -22,7 +22,6 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     const { identity } = useGetIdentity();
     const { permissions } = usePermissions();
-    console.log("@@@@@", permissions);
 
     // State for form fields (initially empty)
     const [userName, setUserName] = useState("");
@@ -70,14 +69,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
         fetchUsersByRole();
     }, []);
 
-    // Combine parentOptions with identity
-    const combinedOptions = [
-        { id: identity?.objectId, name: identity?.name, role: identity?.role },
-        ...parentOptions,
-    ];
-
-    console.log("=====", combinedOptions);
-
     // Function to create a new user in Parse
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -94,24 +85,38 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             return;
         }
 
-        const data = {
-            username: userName,
-            name,
-            email,
-            password,
-            parentType,
-            userType,
-            userParentId: identity?.objectId,
-            userParentName: identity?.name,
-        };
-
         try {
             if (permissions === "Super-User") {
-                console.log("----- in super user");
-
-
+                if (userType === "Agent") {
+                    await Parse.Cloud.run("createUser", {
+                        roleName: userType,
+                        username: userName,
+                        name,
+                        email,
+                        password,
+                        // balance: parseFloat(balance),
+                        userParentId: identity?.objectId,
+                        userParentName: identity?.name
+                    });
+                    onClose();
+                    fetchAllUsers();
+                    resetFields();
+                } else if (userType === "Player") {
+                    await Parse.Cloud.run("createUser", {
+                        roleName: userType,
+                        username: userName,
+                        name,
+                        email,
+                        password,
+                        // balance: parseFloat(balance),
+                        userParentId: parentType?.id,
+                        userParentName: parentType?.name
+                    });
+                    onClose();
+                    fetchAllUsers();
+                    resetFields();
+                }
             } else if (permissions === "Agent") {
-                console.log("----- in agent");
                 await Parse.Cloud.run("createUser", {
                     roleName: "Player",
                     username: userName,
@@ -126,22 +131,27 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                 fetchAllUsers();
                 resetFields();
             }
-            return
-            await Parse.Cloud.run("createUser", {
-                username: userName,
-                name,
-                email,
-                password,
-                // balance: parseFloat(balance),
-                userParentId: identity?.objectId,
-                userParentName: identity?.name
-            });
-            onClose();
-            fetchAllUsers();
-            resetFields();
         } catch (error) {
             console.error("Error Creating User details", error);
         }
+    };
+
+    // Combine parentOptions with identity
+    const combinedOptions = [
+        { id: identity?.objectId, name: identity?.name, role: identity?.role },
+        ...parentOptions,
+    ];
+
+    const handleParentTypeChange = (e) => {
+        const selectedId = e.target.value;
+        const selectedParent = combinedOptions.find((option) => option.id === selectedId);
+
+
+        setParentType({
+            id: selectedParent?.id || "",
+            name: selectedParent?.name || "",
+            type: selectedParent?.role || "",
+        });
     };
 
     return (
@@ -201,6 +211,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                                             onChange={(e) => setUserType(e.target.value)}
                                             required
                                         >
+                                            <option value="">Select User Type</option>
                                             <option value="Agent">Agent</option>
                                             <option value="Player">Player</option>
                                         </Input>
@@ -216,8 +227,10 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                                             id="exampleSelect"
                                             name="select"
                                             type="select"
-                                            value={parentType}
-                                            onChange={(e) => setParentType(e.target.value)}
+                                            value={parentType.id}
+                                            // onChange={(e) => setParentType(e.target.value)}
+                                            onChange={handleParentTypeChange}
+                                            disabled={userType === "Agent"}
                                             required
                                         >
                                             {combinedOptions.map((user) => (
