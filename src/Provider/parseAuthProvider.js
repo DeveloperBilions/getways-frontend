@@ -58,19 +58,22 @@ export const authProvider = {
         roleQuery.equalTo("users", user);
         const role = await roleQuery.first({useMasterKey: true});
         // console.log(role.get("name"));
+        localStorage.setItem("id", user.id);
+        localStorage.setItem("name", user.get("name"));
+        localStorage.setItem("role", role.get("name"));
         return role.get("name");return {id: user.id, fullName: user.get("name"), role: role.get("name")};
     },
-    async getPermissions () {
-        console.log("GETPERMISSIONS");
-        const user = await Parse.User.current();
-        const roleQuery = new Parse.Query(Parse.Role);
-        roleQuery.equalTo("users", user);
-        const role = await roleQuery.first({useMasterKey: true});
-        // console.log(role.get("name"));
-        return role.get("name");
-    },
-    async canAccess({resource, actions}) {
-        console.log("CANACCESS")
-        return false;
-    },
+    // async getPermissions () {
+    //     console.log("GETPERMISSIONS");
+    //     const user = await Parse.User.current();
+    //     const roleQuery = new Parse.Query(Parse.Role);
+    //     roleQuery.equalTo("users", user);
+    //     const role = await roleQuery.first({useMasterKey: true});
+    //     // console.log(role.get("name"));
+    //     return role.get("name");
+    // },
+    // async canAccess({resource, actions}) {
+    //     console.log("CANACCESS")
+    //     return false;
+    // },
 };

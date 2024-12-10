@@ -1,6 +1,6 @@
 import "./App.css";
 import { Admin, Resource, CustomRoutes } from "react-admin";
-// import { usePermissions, useGetIdentity } from "react-admin";
+import { usePermissions, useGetIdentity } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
@@ -26,6 +26,7 @@ function App() {
   // const { isPending, permissions } = usePermissions();
   // const { identity } = useGetIdentity();
   // console.log(identity);
+  // console.log(localStorage.getItem("role"));
   return (
     <Admin
       dataProvider={dataProvider}
@@ -48,12 +49,15 @@ function App() {
         options={{ label: "Redeem Records" }}
         icon={LocalAtmIcon}
       />
-      <Resource
-        name="TransactionRecords"
-        list={RechargeRecordsList}
-        options={{ label: "Recharge Records" }}
-        icon={LocalAtmIcon}
-      />
+      {
+        localStorage.getItem("role")!=="Player" && 
+        <Resource
+          name="TransactionRecords"
+          list={RechargeRecordsList}
+          options={{ label: "Recharge Records" }}
+          icon={LocalAtmIcon}
+        />
+      }
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-email-sent" element={<EmailSent />} />
