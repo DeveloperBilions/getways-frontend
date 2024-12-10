@@ -17,12 +17,10 @@ import RedeemDialog from "./dialog/RedeemDialog";
 import EditUserDialog from "./dialog/EditUserDialog";
 import CreateUserDialog from "./dialog/CreateUserDialog";
 import DeleteUserDialog from "./dialog/DeleteUserDialog";
-// mui icon 
+// mui icon
 import AddIcon from "@mui/icons-material/Add";
-// mui 
+// mui
 import { Menu, MenuItem, Button } from "@mui/material";
-
-import { usePermissions } from "react-admin";
 
 import { Parse } from "parse";
 // Initialize Parse
@@ -137,9 +135,6 @@ const CustomButton = ({ fetchAllUsers }) => {
 };
 
 export const UserList = () => {
-  const { permissions } = usePermissions();
-  console.log("@@@@@", permissions);
-
   const [userData, setUserData] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
 
@@ -186,25 +181,21 @@ export const UserList = () => {
       sx={{ pt: 1 }}
       actions={<PostListActions />}
     >
-      {permissions === 'Super-User' && (
-        <Datagrid
-          size="small"
-          data={userData}
-          rowClick={false}
-          bulkActionButtons={false}
-        >
-          <TextField source="username" label="User Name" />
-          <TextField source="email" label="Email" />
-          {/* <TextField source="balance" label="Balance" /> */}
-          <DateField source="createdAt" label="Date" showTime />
+      <Datagrid
+        size="small"
+        data={userData}
+        rowClick={false}
+        bulkActionButtons={false}
+      >
+        <TextField source="username" label="User Name" />
+        <TextField source="email" label="Email" />
+        {/* <TextField source="balance" label="Balance" /> */}
+        <DateField source="createdAt" label="Date" showTime />
 
-          <WrapperField label="Actions">
-            <CustomButton fetchAllUsers={fetchAllUsers} />
-          </WrapperField>
-
-        </Datagrid>
-      )
-      }
+        <WrapperField label="Actions">
+          <CustomButton fetchAllUsers={fetchAllUsers} />
+        </WrapperField>
+      </Datagrid>
       <CreateUserDialog
         open={userCreateDialogOpen}
         onClose={() => setUserCreateDialogOpen(false)}

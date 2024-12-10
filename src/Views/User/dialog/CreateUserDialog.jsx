@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Button,
     Modal,
@@ -12,7 +12,8 @@ import {
     Input,
     FormText,
 } from "reactstrap";
-import { useGetIdentity } from 'react-admin';
+
+import { useGetIdentity, usePermissions } from 'react-admin';
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -20,6 +21,8 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     const { identity } = useGetIdentity();
+    const { permissions } = usePermissions();
+    console.log("@@@@@", permissions);
 
     // State for form fields (initially empty)
     const [userName, setUserName] = useState("");
@@ -29,6 +32,9 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [parentOptions, setParentOptions] = useState([]);
+    const [parentType, setParentType] = useState("");
+    const [userType, setUserType] = useState("");
 
     const resetFields = () => {
         setUserName("");
@@ -50,6 +56,28 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
         resetFields();
     };
 
+    const fetchUsersByRole = async () => {
+        try {
+            const users = await Parse.Cloud.run("getUsersByRole", { roleName: "Agent" });
+            setParentOptions(users);
+        } catch (error) {
+            console.error("Error fetching users by role:", error.message);
+            return [];
+        }
+    };
+
+    useEffect(() => {
+        fetchUsersByRole();
+    }, []);
+
+    // Combine parentOptions with identity
+    const combinedOptions = [
+        { id: identity?.objectId, name: identity?.name, role: identity?.role },
+        ...parentOptions,
+    ];
+
+    console.log("=====", combinedOptions);
+
     // Function to create a new user in Parse
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -66,7 +94,39 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             return;
         }
 
+        const data = {
+            username: userName,
+            name,
+            email,
+            password,
+            parentType,
+            userType,
+            userParentId: identity?.objectId,
+            userParentName: identity?.name,
+        };
+
         try {
+            if (permissions === "Super-User") {
+                console.log("----- in super user");
+
+
+            } else if (permissions === "Agent") {
+                console.log("----- in agent");
+                await Parse.Cloud.run("createUser", {
+                    roleName: "Player",
+                    username: userName,
+                    name,
+                    email,
+                    password,
+                    // balance: parseFloat(balance),
+                    userParentId: identity?.objectId,
+                    userParentName: identity?.name
+                });
+                onClose();
+                fetchAllUsers();
+                resetFields();
+            }
+            return
             await Parse.Cloud.run("createUser", {
                 username: userName,
                 name,
@@ -125,6 +185,51 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                                 />
                             </FormGroup>
                         </Col>
+
+                        {permissions === "Super-User" && (
+                            <>
+                                <Col md={12}>
+                                    <FormGroup>
+                                        <Label for="exampleSelect">
+                                            User Type
+                                        </Label>
+                                        <Input
+                                            id="exampleSelect"
+                                            name="select"
+                                            type="select"
+                                            value={userType}
+                                            onChange={(e) => setUserType(e.target.value)}
+                                            required
+                                        >
+                                            <option value="Agent">Agent</option>
+                                            <option value="Player">Player</option>
+                                        </Input>
+                                    </FormGroup>
+                                </Col>
+
+                                <Col md={12}>
+                                    <FormGroup>
+                                        <Label for="exampleSelect">
+                                            Parent Type
+                                        </Label>
+                                        <Input
+                                            id="exampleSelect"
+                                            name="select"
+                                            type="select"
+                                            value={parentType}
+                                            onChange={(e) => setParentType(e.target.value)}
+                                            required
+                                        >
+                                            {combinedOptions.map((user) => (
+                                                <option key={user.id} value={user.id}>
+                                                    {`${user.role}: ${user.name}`}
+                                                </option>
+                                            ))}
+                                        </Input>
+                                    </FormGroup>
+                                </Col>
+                            </>
+                        )}
 
                         <Col md={12}>
                             <FormGroup>

@@ -23,7 +23,7 @@ import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 
 function App() {
-  console.log("i am in App.js")
+  console.log("i am in App.js");
 
   const [userRole, setUserRole] = useState(null);
 
@@ -36,7 +36,6 @@ function App() {
     }
   }, []);
 
-
   return (
     <Admin
       dataProvider={dataProvider}
@@ -45,33 +44,27 @@ function App() {
       layout={MyLayout}
       theme={MyTheme}
     >
-      {["Super-User"].includes(userRole) && (
-        < Resource
-          name="users"
-          list={UserList}
-          options={{ label: "User Management" }}
-          icon={PersonIcon}
-        />
-      )}
+      <Resource
+        name="users"
+        list={UserList}
+        options={{ label: "User Management" }}
+        icon={PersonIcon}
+      />
 
-      {["Super-User", "Agent", "Player"].includes(userRole) && (
-        < Resource
-          name="redeemRecords"
-          recordRepresentation="redeemRecords"
-          list={RedeemRecordsList}
-          options={{ label: "Redeem Records" }}
-          icon={LocalAtmIcon}
-        />
-      )}
+      <Resource
+        name="redeemRecords"
+        recordRepresentation="redeemRecords"
+        list={RedeemRecordsList}
+        options={{ label: "Redeem Records" }}
+        icon={LocalAtmIcon}
+      />
 
-      {["Super-User", "Agent", "Player"].includes(userRole) && (
-        <Resource
-          name="TransactionRecords"
-          list={RechargeRecordsList}
-          options={{ label: "Recharge Records" }}
-          icon={LocalAtmIcon}
-        />
-      )}
+      <Resource
+        name="TransactionRecords"
+        list={RechargeRecordsList}
+        options={{ label: "Recharge Records" }}
+        icon={LocalAtmIcon}
+      />
 
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />
