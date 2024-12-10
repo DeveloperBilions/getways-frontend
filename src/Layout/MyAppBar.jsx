@@ -10,6 +10,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AppBar from "@mui/material/AppBar";
 import { TitlePortal, RefreshIconButton, UserMenu, Logout } from "react-admin";
 import { Title } from "react-admin";
+import { useGetIdentity } from "react-admin";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -17,6 +18,8 @@ const MyUserMenu = React.forwardRef((props, ref) => {
 })
 
 export default function MyAppBar({ props }) {
+    const { data } = useGetIdentity();
+    console.log(data);
     return (
         <AppBar
             sx={{

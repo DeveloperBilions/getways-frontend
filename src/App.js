@@ -1,5 +1,6 @@
 import "./App.css";
 import { Admin, Resource, CustomRoutes } from "react-admin";
+// import { usePermissions, useGetIdentity } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
@@ -22,6 +23,9 @@ import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 
 function App() {
+  // const { isPending, permissions } = usePermissions();
+  // const { identity } = useGetIdentity();
+  // console.log(identity);
   return (
     <Admin
       dataProvider={dataProvider}
@@ -29,6 +33,7 @@ function App() {
       loginPage={LoginPage}
       layout={MyLayout}
       theme={MyTheme}
+      // requireAuth
     >
       <Resource
         name="users"

@@ -1,16 +1,16 @@
 import React from 'react';
-import { usePermissions } from 'react-admin';
+// import { usePermissions } from 'react-admin';
 
 const WithPermission = ({ children, allowedRoles }) => {
-    const { permissions } = usePermissions();
+    // const { permissions } = usePermissions();
 
-    if (!permissions) {
-        return <div>Loading...</div>;
-    }
+    // if (!permissions) {
+    //     return <div>Loading...</div>;
+    // }
 
-    if (allowedRoles?.includes(permissions)) {
-        return <>{children}</>;
-    }
+    // if (allowedRoles?.includes(permissions)) {
+    //     return <>{children}</>;
+    // }
 
     return <><div style={{ display: "none" }}></div></>;
 };
