@@ -67,7 +67,12 @@ export const dataProvider = {
 
     try {
       if (resource === "users") {
+        const role = localStorage.getItem("role");
+        const userid = localStorage.getItem("id");
         query = new Parse.Query(Parse.User);
+        if (role === 'Agent') {
+          query.equalTo("userParentId", userid);
+        }
         count = await query.count({ useMasterKey: true });
       }
       else if (resource === 'redeemRecords') {
