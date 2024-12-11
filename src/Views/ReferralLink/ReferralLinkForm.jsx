@@ -12,6 +12,7 @@ import {
     CardBody,
 } from "reactstrap";
 import { useLocation } from 'react-router-dom';
+import { Button } from "@mui/material";
 
 const ReferralLinkForm = () => {
     const location = useLocation();
@@ -19,10 +20,7 @@ const ReferralLinkForm = () => {
 
     const referral = searchParams.get('referral');
 
-    // console.log("333", id);
-    // console.log("222", location);
-    // console.log("111", searchParams);
-    // console.log("444", referral);
+    const updateUser => {};
 
     return (
         <React.Fragment>
@@ -139,16 +137,16 @@ const ReferralLinkForm = () => {
                                 </Col>
 
 
-                                {/* <Col md={12}>
+                                 <Col md={12}>
                     <div className="d-flex justify-content-end">
-                        <Button className="mx-2" color="success" type="submit">
+                        <Button className="mx-2" variant="outlined" color="primary" type="submit">
                             Confirm
                         </Button>
-                        <Button color="secondary" onClick={handleCancel}>
+                        <Button variant="outlined" color="secondary" >
                             Cancel
                         </Button>
                     </div>
-                </Col> */}
+                </Col> 
                             </Row>
                         </Form>
                     </CardBody>

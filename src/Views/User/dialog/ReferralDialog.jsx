@@ -18,8 +18,8 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const ReferralDialog = ({ open, onClose, fetchAllUsers }) => {
-
+const ReferralDialog = ({ open, onClose, fetchAllUsers, referralCode }) => {
+    var referralLink = `http://localhost:3000/#/create-user?referral=${referralCode}`;
     function generateRandomString() {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
@@ -37,7 +37,7 @@ const ReferralDialog = ({ open, onClose, fetchAllUsers }) => {
                 <Row>
                     <Col md={2}>
                         <FormGroup>
-                            <button>asdfgh</button>
+                            <button onClick={()=> navigator.clipboard.writeText(referralLink)}>copy</button>
                         </FormGroup>
                     </Col>
                     <Col md={10}>
@@ -50,7 +50,7 @@ const ReferralDialog = ({ open, onClose, fetchAllUsers }) => {
                                 name="userName"
                                 type="text"
                                 autoComplete="off"
-                                // value={referral}
+                                value={referralLink}
                                 // onChange={(e) => setUserName(e.target.value)}
                                 required
                                 disabled

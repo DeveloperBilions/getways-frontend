@@ -11,14 +11,19 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const dataProvider = {
   create: async (resource, params) => {
+    console.log("CREATE CALLED");
     try {
       if (resource === "users") {
-        const data = (({ username, name, email, password, balance }) => ({
+        const data = (({ username, name, email, password, balance, signedUp, userParentId, userParentName, userReferralCode }) => ({
           username,
           name,
           email,
           password,
           balance,
+          signedUp,
+          userParentId,
+          userParentName,
+          userReferralCode
         }))(params.data);
         const user = new Parse.User();
         const result = await user.signUp(data);
@@ -32,7 +37,8 @@ export const dataProvider = {
         return { data: { id: result.id, ...result.attributes } };
       }
     } catch (error) {
-      return error;
+      console.log(params);
+      throw error;
     }
   },
   getOne: async (resource, params) => {

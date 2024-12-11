@@ -11,6 +11,7 @@ import {
   useRecordContext,
   useResourceContext,
   useGetIdentity,
+  useCreate
 } from "react-admin";
 import { useNavigate } from 'react-router-dom';
 // dialog
@@ -140,8 +141,11 @@ const CustomButton = ({ fetchAllUsers }) => {
 export const UserList = () => {
   const navigate = useNavigate();
   const { identity } = useGetIdentity();
+  const [create, { isPending, error }] = useCreate();
+
 
   const [userData, setUserData] = useState();
+  const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
 
@@ -159,16 +163,28 @@ export const UserList = () => {
   }
 
   const handleGenerateLink = () => {
-    // setReferralDialogOpen(true);
+    const referralCode = generateRandomString();
+    setReferralDialogOpen(true);
+    setReferralCode(referralCode);
+    const data = {
+      username: referralCode, 
+      password: referralCode,
+      email: 'a@a',
+      userReferralCode: referralCode, 
+      signedUp: false, 
+      userParentId: identity.objectId,
+      userParentName: identity.username 
+    }
+    create('users', { data: data, meta: null});
 
-    const randomString = generateRandomString();
+    // return randomString;
 
-    navigate(
-      {
-        pathname: '/create-user',
-        search: `?referral=${randomString}`,
-      },
-    )
+    // navigate(
+    //   {
+    //     pathname: '/create-user',
+    //     search: `?referral=${randomString}`,
+    //   },
+    // )
   }
 
   const fetchAllUsers = async () => {
@@ -187,7 +203,7 @@ export const UserList = () => {
   const PostListActions = () => (
     <TopToolbar>
       {/* <CreateButton /> */}
-      {/* <Button
+       <Button
         variant="contained"
         color="primary"
         size="small"
@@ -195,7 +211,7 @@ export const UserList = () => {
         onClick={handleGenerateLink}
       >
         Referral Link
-      </Button> */}
+      </Button> 
       <Button
         variant="contained"
         color="primary"
@@ -244,7 +260,8 @@ export const UserList = () => {
       <ReferralDialog
         open={referralDialogOpen}
         onClose={() => setReferralDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers} />
+        fetchAllUsers={fetchAllUsers} 
+        referralCode={referralCode} />
     </List>
   );
 };
