@@ -12,12 +12,14 @@ import {
   useResourceContext,
   useGetIdentity,
 } from "react-admin";
+import { useNavigate } from 'react-router-dom';
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
 import RedeemDialog from "./dialog/RedeemDialog";
 import EditUserDialog from "./dialog/EditUserDialog";
 import CreateUserDialog from "./dialog/CreateUserDialog";
 import DeleteUserDialog from "./dialog/DeleteUserDialog";
+import ReferralDialog from "./dialog/ReferralDialog";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
 // mui
@@ -136,14 +138,38 @@ const CustomButton = ({ fetchAllUsers }) => {
 };
 
 export const UserList = () => {
+  const navigate = useNavigate();
   const { identity } = useGetIdentity();
 
   const [userData, setUserData] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
+  const [referralDialogOpen, setReferralDialogOpen] = useState(false);
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
   };
+
+  function generateRandomString() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+
+  const handleGenerateLink = () => {
+    // setReferralDialogOpen(true);
+
+    const randomString = generateRandomString();
+
+    navigate(
+      {
+        pathname: '/create-user',
+        search: `?referral=${randomString}`,
+      },
+    )
+  }
 
   const fetchAllUsers = async () => {
     try {
@@ -161,6 +187,15 @@ export const UserList = () => {
   const PostListActions = () => (
     <TopToolbar>
       {/* <CreateButton /> */}
+      {/* <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        startIcon={<AddIcon />}
+        onClick={handleGenerateLink}
+      >
+        Referral Link
+      </Button> */}
       <Button
         variant="contained"
         color="primary"
@@ -206,6 +241,10 @@ export const UserList = () => {
         onClose={() => setUserCreateDialogOpen(false)}
         fetchAllUsers={fetchAllUsers}
       />
+      <ReferralDialog
+        open={referralDialogOpen}
+        onClose={() => setReferralDialogOpen(false)}
+        fetchAllUsers={fetchAllUsers} />
     </List>
   );
 };

@@ -11,6 +11,7 @@ import SignUp from "./Views/SignIn/forms/SignUp";
 import PasswordResetEmail from "./Views/SignIn/forms/PasswordResetEmail";
 import ResetPassword from "./Views/SignIn/forms/ResetPassword";
 import EmailSent from "./Views/SignIn/EmailSent";
+import ReferralLinkForm from "./Views/ReferralLink/ReferralLinkForm";
 // provider
 import { authProvider } from "./Provider/parseAuthProvider";
 import { dataProvider } from "./Provider/parseDataProvider";
@@ -62,6 +63,8 @@ function App() {
         <Route path="/reset-email-sent" element={<EmailSent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
+        {/* <Route path="/create-user?referral=123" element={<ReferralLinkForm />} /> */}
+        <Route path="/create-user" element={<ReferralLinkForm />} />
       </CustomRoutes>
     </Admin>
   );
