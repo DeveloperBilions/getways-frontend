@@ -11,9 +11,11 @@ import {
     FilterButton,
     TopToolbar,
     TextInput,
+    usePermissions,
 } from "react-admin";
 // dialog
-import CoinsCreditDialog from "./dialog/CoinsCreditDialog"
+import CoinsCreditDialog from "./dialog/CoinsCreditDialog";
+import RechargeDialog from "./dialog/RechargeDialog";
 // mui
 import {
     Chip,
@@ -31,6 +33,8 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -44,11 +48,13 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = () => {
+    const { permissions } = usePermissions();
+
     const [gameData, setGameData] = useState([]);
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
-
+    const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -128,7 +134,7 @@ export const RechargeRecordsList = () => {
     const handleCoinCredit = async (record) => {
         setSelectedRecord(record);
         setCreditCoinDialogOpen(true);
-    }
+    };
 
     const handleUrlClick = (record) => {
         navigator.clipboard.writeText(record?.referralLink);
@@ -178,6 +184,16 @@ export const RechargeRecordsList = () => {
     const postListActions = (
         <TopToolbar>
             <FilterButton />
+            {permissions === "Player" && (
+                <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<AttachMoneyIcon />}
+                    onClick={() => setRechargeDialogOpen(true)}
+                >
+                    Recharge
+                </Button>
+            )}
             <Button
                 variant="contained"
                 size="small"
@@ -319,6 +335,13 @@ export const RechargeRecordsList = () => {
                 data={selectedRecord}
                 handleRefresh={handleRefresh}
             />
+            {permissions === "Player" && (
+                <RechargeDialog
+                    open={rechargeDialogOpen}
+                    onClose={() => setRechargeDialogOpen(false)}
+                    fetchData={fetchData}
+                />
+            )}
         </List>
     );
 };
