@@ -1,6 +1,4 @@
 import { Parse } from "parse";
-// import { parseConfig } from "../parseConfig";
-// const Parse = require('parse/node');
 
 Parse.initialize(
   process.env.REACT_APP_APPID,
@@ -11,13 +9,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 
-// Parse.initialize(parseConfig.APP_ID, null, parseConfig.MASTER_KEY);
-// // Parse.initialize(parseConfig.APP_ID);
-// Parse.masterKey = parseConfig.MASTER_KEY;
-// Parse.serverURL = parseConfig.URL;
-
 export const dataProvider = {
-  // ...userProvider,
   create: async (resource, params) => {
     try {
       if (resource === "users") {
@@ -43,7 +35,8 @@ export const dataProvider = {
       return error;
     }
   },
-  getOne: async (resource, params) => { //works
+  getOne: async (resource, params) => {
+    //works
     var query = null;
     var result = null;
     try {
@@ -56,9 +49,6 @@ export const dataProvider = {
         query = new Parse.Query(Resource);
         result = await query.get(params.id);
       }
-      console.log("GETONE CALLED");
-      console.log(params);
-      console.log(result, result.attributes);
       return { data: { id: result.id, ...result.attributes } };
     }
     catch (error) {
@@ -69,7 +59,7 @@ export const dataProvider = {
     //works
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
-    const { filter } = params.filter;
+    var { filter } = params.filter;
 
     var query = null;
     var count = null;
@@ -79,8 +69,22 @@ export const dataProvider = {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
         count = await query.count({ useMasterKey: true });
-        // console.log(count);
-      } else {
+      }
+      else if (resource === 'redeemRecords') {
+        const Resource = Parse.Object.extend('TransactionRecords');
+        query = new Parse.Query(Resource);
+        query.equalTo('type', 'redeem');
+        count = await query.count();
+        filter = { type: 'redeem', ...filter };
+      }
+      else if (resource === 'rechargeRecords') {
+        const Resource = Parse.Object.extend('TransactionRecords');
+        query = new Parse.Query(Resource);
+        query.equalTo('type', 'recharge');
+        count = await query.count();
+        filter = { type: 'recharge', ...filter };
+      }
+      else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         count = await query.count();
@@ -94,9 +98,7 @@ export const dataProvider = {
       filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
 
       const results =
-        resource === "users"
-          ? await query.find({ useMasterKey: true })
-          : await query.find();
+        resource === "users" ? await query.find({ useMasterKey: true }) : await query.find();
       const res = {
         data: results.map((o) => ({ id: o.id, ...o.attributes })),
         total: count,
@@ -129,7 +131,6 @@ export const dataProvider = {
   getManyReference: async (resource, params) => {
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
-    console.log(order);
 
     const Resource = Parse.Object.extend(resource);
     var query = null;
@@ -204,8 +205,6 @@ export const dataProvider = {
     var query = null;
     var result = null;
     var data = null;
-    console.log("DELETE CALLED")
-    console.log(params);
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);

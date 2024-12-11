@@ -10,50 +10,40 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const authProvider = {
   async login(params) {
-    console.log("LOGIN");
+    Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
     const { email, password } = params;
     try {
       const user = await Parse.User.logIn(email, password);
       const roleQuery = new Parse.Query(Parse.Role);
       roleQuery.equalTo("users", user);
       const role = await roleQuery.first({ useMasterKey: true });
-      // console.log(role.get("name"));
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
       localStorage.setItem("role", role.get("name"));
-      console.log(localStorage);
     } catch (error) {
-      console.log(error);
       throw Error("Login failed");
-      // return Promise.reject();
     }
   },
   async checkError({ status }) {
-    console.log("CHECKERROR");
     if (status === 401 || status === 403) {
       Parse.User.current().then(() =>
         Parse.User.logOut().then(() => {
           const currentUser = Parse.User.current();
         })
       );
-      // return Promise.reject();
       throw new Error("Session Expired");
     }
-    // return Promise.resolve();
   },
   async checkAuth() {
-    console.log("CHECKAUTH");
     const currentUser = Parse.User.current();
     if (!currentUser) {
       throw new Error("User not authenticated");
-    } //? Promise.resolve() : Promise.reject();
+    }
   },
   async logout() {
-    console.log("LOGOUT");
     localStorage.removeItem("id");
     localStorage.removeItem("name");
     localStorage.removeItem("role");
-    console.log(localStorage);
     //works
     try {
       await Parse.User.logOut();
@@ -63,16 +53,10 @@ export const authProvider = {
     }
   },
   async getIdentity() {
-    console.log("GETIDENTITY");
     const user = Parse.User.current();
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
     const role = await roleQuery.first({ useMasterKey: true });
-    // console.log(role.get("name"));
-    // localStorage.setItem("id", user.id);
-    // localStorage.setItem("name", user.get("name"));
-    // localStorage.setItem("role", role.get("name"));
-    // return role.get("name");
     return {
       objectId: user.id,
       email: user.get("email"),
@@ -82,16 +66,10 @@ export const authProvider = {
     };
   },
   async getPermissions() {
-    console.log("GETPERMISSIONS");
     const user = Parse.User.current();
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
     const role = await roleQuery.first({ useMasterKey: true });
-    // console.log(role.get("name"));
     return role.get("name");
   },
-  // async canAccess({resource, actions}) {
-  //     console.log("CANACCESS")
-  //     return false;
-  // },
 };
