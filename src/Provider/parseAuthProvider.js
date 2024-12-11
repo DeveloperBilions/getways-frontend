@@ -1,112 +1,97 @@
 import Parse from "parse";
+// const Parse = require('parse/node');
 Parse.initialize(
-    process.env.REACT_APP_APPID,
-    process.env.REACT_APP_JAVASCRIPT_KEY,
-    process.env.REACT_APP_MASTER_KEY
+  process.env.REACT_APP_APPID,
+  process.env.REACT_APP_JAVASCRIPT_KEY,
+  process.env.REACT_APP_MASTER_KEY
 );
 Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
-
-
 export const authProvider = {
-    login: async (params) => {
-        //works
-        const { email, password } = params;
-        try {
-            const user = await Parse.User.logIn(email, password);
-
-            // Query roles for the logged-in user
-            const query = new Parse.Query(Parse.Role);
-            query.equalTo("users", user);
-            const roles = await query.find();
-
-            // Extract role names
-            const roleNames = roles.map(role => role.get("name"));
-
-            // Combine user data with roles
-            const userData = {
-                ...user.toJSON(),
-                role: roleNames[0]
-            };
-
-            // Save to localStorage
-            localStorage.setItem("Parse/novaApp/currentUser", JSON.stringify(userData));
-            console.log("User roles stored in localStorage:", userData);
-
-            return Promise.resolve();
-        } catch (error) {
-            console.log("===", error);
-            // throw Error("Wrong username / password");
-            return Promise.reject();
-        }
-    },
-    checkError: async ({ status }) => {
-        if (status === 401 || status === 403) {
-            Parse.User.current().then(() =>
-                Parse.User.logOut().then(() => {
-                    const currentUser = Parse.User.current();
-                })
-            );
-            return Promise.reject();
-        }
-        return Promise.resolve();
-    },
-    checkAuth: async (params) => {
-        return Parse.User.current() ? Promise.resolve() : Promise.reject();
-    },
-    logout: async () => {
-        //works
-        try {
-            await Parse.User.logOut();
-            return Promise.resolve();
-        } catch (error) {
-            throw Error(error.toString());
-        }
-    },
-    // getIdentity: () => {},
-    getPermissions: () => {
-        const storedData = localStorage.getItem("Parse/novaApp/currentUser");
-        if (!storedData) {
-            console.log("No user found in localStorage.");
-            return Promise.reject();
-        }
-        const userObject = JSON.parse(storedData);
-        const userRole = userObject.role;
-        console.log("Fetched user role from localStorage:", userRole)
-        return Promise.resolve(userRole);
-    },
-    // getPermissions: () => {Promise.resolve()},
-
-    getIdentity: async () => {
-        const rawData = localStorage.getItem('Parse/novaApp/currentUser');
-        if (!rawData) {
-            return Promise.reject();
-        }
-
-        const user = JSON.parse(rawData);
-
-        return Promise.resolve({
-            objectId: user.objectId,
-            email: user.email,
-            name: user.name,
-            username: user.username,
-            role: user.role
-        });
-    },
-
-    canAccess: async ({ resource, action }) => {
-        const storedData = localStorage.getItem("Parse/novaApp/currentUser");
-        if (!storedData) {
-            return Promise.reject("No user found");
-        }
-        const user = JSON.parse(storedData);
-        const role = user.role;
-        console.log("111", role);
-
-
-
-
-        return Promise.reject("Role not found");
-    },
+  async login(params) {
+    console.log("LOGIN");
+    const { email, password } = params;
+    try {
+      const user = await Parse.User.logIn(email, password);
+      const roleQuery = new Parse.Query(Parse.Role);
+      roleQuery.equalTo("users", user);
+      const role = await roleQuery.first({ useMasterKey: true });
+      // console.log(role.get("name"));
+      localStorage.setItem("id", user.id);
+      localStorage.setItem("name", user.get("name"));
+      localStorage.setItem("role", role.get("name"));
+      console.log(localStorage);
+    } catch (error) {
+      console.log(error);
+      throw Error("Login failed");
+      // return Promise.reject();
+    }
+  },
+  async checkError({ status }) {
+    console.log("CHECKERROR");
+    if (status === 401 || status === 403) {
+      Parse.User.current().then(() =>
+        Parse.User.logOut().then(() => {
+          const currentUser = Parse.User.current();
+        })
+      );
+      // return Promise.reject();
+      throw new Error("Session Expired");
+    }
+    // return Promise.resolve();
+  },
+  async checkAuth() {
+    console.log("CHECKAUTH");
+    const currentUser = Parse.User.current();
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    } //? Promise.resolve() : Promise.reject();
+  },
+  async logout() {
+    console.log("LOGOUT");
+    localStorage.removeItem("id");
+    localStorage.removeItem("name");
+    localStorage.removeItem("role");
+    console.log(localStorage);
+    //works
+    try {
+      await Parse.User.logOut();
+      // return Promise.resolve();
+    } catch (error) {
+      throw Error(error.toString());
+    }
+  },
+  async getIdentity() {
+    console.log("GETIDENTITY");
+    const user = Parse.User.current();
+    const roleQuery = new Parse.Query(Parse.Role);
+    roleQuery.equalTo("users", user);
+    const role = await roleQuery.first({ useMasterKey: true });
+    // console.log(role.get("name"));
+    // localStorage.setItem("id", user.id);
+    // localStorage.setItem("name", user.get("name"));
+    // localStorage.setItem("role", role.get("name"));
+    // return role.get("name");
+    return {
+      objectId: user.id,
+      email: user.get("email"),
+      name: user.get("name"),
+      username: user.get("username"),
+      role: role.get("name"),
+    };
+  },
+  async getPermissions() {
+    console.log("GETPERMISSIONS");
+    const user = Parse.User.current();
+    const roleQuery = new Parse.Query(Parse.Role);
+    roleQuery.equalTo("users", user);
+    const role = await roleQuery.first({ useMasterKey: true });
+    // console.log(role.get("name"));
+    return role.get("name");
+  },
+  // async canAccess({resource, actions}) {
+  //     console.log("CANACCESS")
+  //     return false;
+  // },
 };

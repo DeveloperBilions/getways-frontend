@@ -23,6 +23,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     const { identity } = useGetIdentity();
     const { permissions } = usePermissions();
 
+
     // State for form fields (initially empty)
     const [userName, setUserName] = useState("");
     const [name, setName] = useState("");
@@ -32,7 +33,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [parentOptions, setParentOptions] = useState([]);
-    const [parentType, setParentType] = useState("");
+    const [parentType, setParentType] = useState({});
     const [userType, setUserType] = useState("");
 
     const resetFields = () => {
@@ -67,7 +68,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
 
     useEffect(() => {
         fetchUsersByRole();
-    }, []);
+        if (identity) {
+            setParentType({
+                id: identity.objectId,
+                name: identity.name,
+                type: identity.role,
+            });
+        }
+    }, [identity]);
 
     // Function to create a new user in Parse
     const handleSubmit = async (event) => {
@@ -148,9 +156,9 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
 
 
         setParentType({
-            id: selectedParent?.id || "",
-            name: selectedParent?.name || "",
-            type: selectedParent?.role || "",
+            id: selectedParent?.id || identity?.objectId,
+            name: selectedParent?.name || identity?.name,
+            type: selectedParent?.role || identity?.role,
         });
     };
 

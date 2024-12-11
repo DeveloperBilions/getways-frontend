@@ -10,6 +10,7 @@ import {
   WrapperField,
   useRecordContext,
   useResourceContext,
+  useGetIdentity,
 } from "react-admin";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
@@ -135,6 +136,8 @@ const CustomButton = ({ fetchAllUsers }) => {
 };
 
 export const UserList = () => {
+  const { identity } = useGetIdentity();
+
   const [userData, setUserData] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
 
@@ -144,7 +147,7 @@ export const UserList = () => {
 
   const fetchAllUsers = async () => {
     try {
-      const response = await Parse.Cloud.run("fetchAllUsers");
+      const response = await Parse.Cloud.run("fetchAllUsers", { identity });
       setUserData(response);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -171,8 +174,10 @@ export const UserList = () => {
   );
 
   useEffect(() => {
-    fetchAllUsers();
-  }, []);
+    if (identity) {
+      fetchAllUsers();
+    }
+  }, [identity]);
 
   return (
     <List
