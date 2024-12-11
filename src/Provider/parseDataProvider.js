@@ -69,7 +69,7 @@ export const dataProvider = {
     //works
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
-    const { filter } = params.filter;
+    var { filter } = params.filter;
 
     var query = null;
     var count = null;
@@ -80,7 +80,22 @@ export const dataProvider = {
         query = new Parse.Query(Parse.User);
         count = await query.count({ useMasterKey: true });
         // console.log(count);
-      } else {
+      } 
+      else if (resource === 'redeemRecords'){
+        const Resource = Parse.Object.extend('TransactionRecords');
+        query = new Parse.Query(Resource);
+        query.equalTo('type', 'redeem');
+        count = await query.count();
+        filter = {type: 'redeem', ...filter};
+      }
+      else if (resource === 'rechargeRecords'){
+        const Resource = Parse.Object.extend('TransactionRecords');
+        query = new Parse.Query(Resource);
+        query.equalTo('type', 'recharge');
+        count = await query.count();
+        filter = {type: 'recharge', ...filter};
+      }
+      else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         count = await query.count();
@@ -94,15 +109,14 @@ export const dataProvider = {
       filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
 
       const results =
-        resource === "users"
-          ? await query.find({ useMasterKey: true })
-          : await query.find();
+        resource === "users"? await query.find({ useMasterKey: true }): await query.find();
       const res = {
         data: results.map((o) => ({ id: o.id, ...o.attributes })),
         total: count,
       };
       return res;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   },

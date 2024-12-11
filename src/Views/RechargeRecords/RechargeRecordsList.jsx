@@ -13,6 +13,7 @@ import {
     TextInput,
 } from "react-admin";
 // dialog
+
 import CoinsCreditDialog from "./dialog/CoinsCreditDialog"
 // mui
 import {
@@ -44,7 +45,6 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = () => {
-    console.log("RECHARGE RECORDS RENDERED");
     const [gameData, setGameData] = useState([]);
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedRecord, setSelectedRecord] = useState(null);
@@ -238,7 +238,7 @@ export const RechargeRecordsList = () => {
             actions={postListActions}
             sx={{ pt: 1 }}
         >
-            <Datagrid size="small" data={gameData} bulkActionButtons={false}>
+            <Datagrid size="small" bulkActionButtons={false}>
                 {/* <TextField source="gameId" label="GameId" /> */}
                 <TextField source="username" label="Account" />
                 <NumberField
@@ -249,24 +249,26 @@ export const RechargeRecordsList = () => {
                 <TextField source="remark" label="Remark" />
                 <FunctionField
                     label="Status"
+                    source="status"
                     render={(record) => {
                         const getColor = (status) => {
                             switch (status) {
-                                case "Coins Credited":
+                                case 3:
                                     return "success";
-                                case "Confirmed":
+                                case 2:
                                     return "primary";
-                                case "Pending Confirmation":
+                                case 1:
                                     return "warning";
-                                case "Pending Referral Link":
+                                case 0:
                                     return "error";
                                 default:
                                     return "default";
                             }
                         };
+                        const statusMessage = {0: "Pending Referral Link", 1: "Pending Confirmation", 2: "Confirmed", 3:"Coins Credited"}[record.status]
                         return (
                             <Chip
-                                label={record.status}
+                                label={statusMessage}
                                 color={getColor(record.status)}
                                 size="small"
                                 variant="outlined"
@@ -278,7 +280,7 @@ export const RechargeRecordsList = () => {
                 <FunctionField
                     label="Action"
                     render={(record) =>
-                        record.status === "Confirmed" ? (
+                        record.status === 2 ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -288,7 +290,7 @@ export const RechargeRecordsList = () => {
                             >
                                 Coins Credit
                             </Button>
-                        ) : record.status === "Pending Confirmation" ? (
+                        ) : record.status === 1 ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -298,7 +300,7 @@ export const RechargeRecordsList = () => {
                             >
                                 Copy Link
                             </Button>
-                        ) : record.status === "Pending Referral Link" ? (
+                        ) : record.status === 0 ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -321,3 +323,21 @@ export const RechargeRecordsList = () => {
         </List>
     );
 };
+
+
+const RechargerecordList = () => (
+    <List>
+        <Datagrid>
+            <TextField source="id" />
+            <TextField source="type" />
+            <TextField source="username" />
+            <NumberField source="transactionAmount" />
+            <TextField source="remark" />
+            <NumberField source="status" />
+            <DateField source="createdAt" />
+            <DateField source="updatedAt" />
+            <TextField source="referralLink" />
+            <DateField source="transactionDate" />
+        </Datagrid>
+    </List>
+);

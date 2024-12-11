@@ -1,5 +1,5 @@
 import "./App.css";
-import { Admin, Resource, CustomRoutes } from "react-admin";
+import { Admin, Resource, CustomRoutes, ListGuesser } from "react-admin";
 import { usePermissions, useGetIdentity } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
@@ -23,10 +23,6 @@ import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 
 function App() {
-  // const { identity } = useGetIdentity();
-  // const { permissions } = usePermissions();
-  // console.log(identity);
-  // console.log(localStorage.getItem("role"));
   return (
     <Admin
       dataProvider={dataProvider}
@@ -34,35 +30,34 @@ function App() {
       loginPage={LoginPage}
       layout={MyLayout}
       theme={MyTheme}
-      // requireAuth
-    ><Resource
+      requireAuth
+    >
+      <Resource
           name="users"
           list={UserList}
           options={{ label: "User Management" }}
           icon={PersonIcon}
-        />
+      />
       <Resource
         name="redeemRecords"
-        recordRepresentation="redeemRecords"
+        // recordRepresentation="redeemRecords"
         list={RedeemRecordsList}
         options={{ label: "Redeem Records" }}
         icon={LocalAtmIcon}
       />
-      {permissions => permissions !=='Player' ?
-        <Resource
-          name="TransactionRecords"
+      <Resource
+          name="rechargeRecords"
           list={RechargeRecordsList}
           options={{ label: "Recharge Records" }}
           icon={LocalAtmIcon}
-        /> : null
-      }
-      <CustomRoutes noLayout>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/reset-email-sent" element={<EmailSent />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/reset-email" element={<PasswordResetEmail />} />
-      </CustomRoutes>
-    </Admin>
+      />
+      //<CustomRoutes noLayout>
+        //<Route path="/signup" element={<SignUp />} />
+        //<Route path="/reset-email-sent" element={<EmailSent />} />
+        //<Route path="/reset-password" element={<ResetPassword />} />
+        //<Route path="/reset-email" element={<PasswordResetEmail />} />
+      //</CustomRoutes>
+      </Admin>
   );
 }
 

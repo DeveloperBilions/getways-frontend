@@ -40,13 +40,13 @@ export const inputValidations = {
     },
     password: {
         required: "Password is required",
-        pattern: {
-            value: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-_()=+<>,{}|;:'"]).{8,}$/,
-            message: "Passwords must be at least eight characters long and contain lower and uppercase letters, numbers and symbols."
-        },
+        // pattern: {
+        //     value: /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-_()=+<>,{}|;:'"]).{8,}$/,
+        //     message: "Passwords must be at least eight characters long and contain lower and uppercase letters, numbers and symbols."
+        // },
         minLength: {
-            value: 8,
-            message: "Should be at least 8 character in length",
+            value: 6,
+            message: "Should be at least 6 character in length",
         },
     },
 };

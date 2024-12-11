@@ -204,7 +204,7 @@ export const RedeemRecordsList = () => {
 
     return (
         <List title="Redeem Records" filters={dataFilters} actions={postListActions} sx={{ pt: 1 }}>
-            <Datagrid size="small" data={gameData} bulkActionButtons={false}>
+            <Datagrid size="small" bulkActionButtons={false}>
                 {/* <TextField source="gameId" label="GameId" /> */}
                 <TextField source="username" label="Account" />
                 <NumberField

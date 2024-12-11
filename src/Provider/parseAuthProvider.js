@@ -11,6 +11,7 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 export const authProvider = {
     async login (params) {
         console.log("LOGIN");
+        Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
         const { email, password } = params;
         try {
             const user = await Parse.User.logIn(email, password);
@@ -21,7 +22,7 @@ export const authProvider = {
             localStorage.setItem("id", user.id);
             localStorage.setItem("name", user.get("name"));
             localStorage.setItem("role", role.get("name"));
-            console.log(localStorage);
+            // console.log(localStorage);
         } catch (error) {
             console.log(error);
             throw Error("Login failed");
