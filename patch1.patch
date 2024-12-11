@@ -1,0 +1,367 @@
+diff --git a/package.json b/package.json
+index 69709f1..d04f398 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "game-admin-portal",
++  "name": "gateways-frontend",
+   "version": "0.1.0",
+   "private": true,
+   "dependencies": {
+@@ -7,6 +7,7 @@
+     "@testing-library/jest-dom": "^5.17.0",
+     "@testing-library/react": "^13.4.0",
+     "@testing-library/user-event": "^13.5.0",
++    "@babel/plugin-proposal-private-property-in-object": "latest",
+     "axios": "^1.7.7",
+     "bootstrap": "^5.3.3",
+     "echarts": "^5.5.1",
+
+diff --git a/src/Views/SignIn/forms/LoginPage.jsx b/src/Views/SignIn/forms/LoginPage.jsx
+index ef0fa77..4b4365b 100644
+--- a/src/Views/SignIn/forms/LoginPage.jsx
++++ b/src/Views/SignIn/forms/LoginPage.jsx
+@@ -22,12 +22,6 @@ import { inputValidations } from '../validations';
+ 
+ import { useForm } from 'react-hook-form';
+ 
+-import { Parse } from "parse";
+-
+-// Initialize Parse
+-Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+-Parse.serverURL = process.env.REACT_APP_URL;
+-
+ // const defaultTheme = createTheme();
+ 
+ const LoginPage = () => {
+@@ -37,25 +31,12 @@ const LoginPage = () => {
+   const login = useLogin();
+   const notify = useNotify();
+ 
+-  const onSubmit = async (data) => {
++  const onSubmit = (data) => {
+     // event.preventDefault();
+     // console.log(data);
+     const email = data?.email;
+     const password = data?.password;
+-
+-    try {
+-      const response = await Parse.Cloud.run("checkUserType", { email, password });
+-
+-      if (response.userType === 1) {
+-        login({ email, password }).catch(err => notify(err?.message));
+-      }
+-      else {
+-        notify("Please provide Agent Login")
+-      }
+-
+-    } catch (error) {
+-      console.error("Error Transaction Status", error);
+-    }
++    login({ email, password }).catch(err => notify(err?.message));
+   };
+ 
+   const [showPassword, setShowPassword] = useState(false);
+diff --git a/src/Views/User/UserList.jsx b/src/Views/User/UserList.jsx
+index f8d9efd..419e8ab 100644
+--- a/src/Views/User/UserList.jsx
++++ b/src/Views/User/UserList.jsx
+@@ -10,7 +10,7 @@ import {
+   WrapperField,
+   useRecordContext,
+   useResourceContext,
+-  useGetIdentity,
++  usePermissions
+ } from "react-admin";
+ // dialog
+ import RechargeDialog from "./dialog/RechargeDialog";
+@@ -18,9 +18,9 @@ import RedeemDialog from "./dialog/RedeemDialog";
+ import EditUserDialog from "./dialog/EditUserDialog";
+ import CreateUserDialog from "./dialog/CreateUserDialog";
+ import DeleteUserDialog from "./dialog/DeleteUserDialog";
+-// mui icon
++// mui icon 
+ import AddIcon from "@mui/icons-material/Add";
+-// mui
++// mui 
+ import { Menu, MenuItem, Button } from "@mui/material";
+ 
+ import { Parse } from "parse";
+@@ -30,6 +30,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
+ 
+ const CustomButton = ({ fetchAllUsers }) => {
+   // const navigate = useNavigate();
++  const { permissions } = usePermissions();
+   const [anchorEl, setAnchorEl] = useState(null);
+   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
+@@ -136,10 +137,9 @@ const CustomButton = ({ fetchAllUsers }) => {
+ };
+ 
+ export const UserList = () => {
+-  const { identity } = useGetIdentity();
+-
+   const [userData, setUserData] = useState();
+   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
++  const { permissions } = usePermissions();
+ 
+   const handleCreateUser = () => {
+     setUserCreateDialogOpen(true);
+@@ -147,7 +147,7 @@ export const UserList = () => {
+ 
+   const fetchAllUsers = async () => {
+     try {
+-      const response = await Parse.Cloud.run("fetchAllUsers", { identity });
++      const response = await Parse.Cloud.run("fetchAllUsers");
+       setUserData(response);
+     } catch (error) {
+       console.error("Error fetching users:", error);
+@@ -161,7 +161,7 @@ export const UserList = () => {
+   const PostListActions = () => (
+     <TopToolbar>
+       {/* <CreateButton /> */}
+-      <Button
++      {permissions !== 'Player' && <Button
+         variant="contained"
+         color="primary"
+         size="small"
+@@ -169,15 +169,13 @@ export const UserList = () => {
+         onClick={handleCreateUser}
+       >
+         Add New User
+-      </Button>
++      </Button>}
+     </TopToolbar>
+   );
+ 
+   useEffect(() => {
+-    if (identity) {
+-      fetchAllUsers();
+-    }
+-  }, [identity]);
++    fetchAllUsers();
++  }, []);
+ 
+   return (
+     <List
+@@ -196,10 +194,9 @@ export const UserList = () => {
+         <TextField source="email" label="Email" />
+         {/* <TextField source="balance" label="Balance" /> */}
+         <DateField source="createdAt" label="Date" showTime />
+-
+-        <WrapperField label="Actions">
++        {permissions !== 'Player' && <WrapperField label="Actions">
+           <CustomButton fetchAllUsers={fetchAllUsers} />
+-        </WrapperField>
++        </WrapperField>}
+       </Datagrid>
+       <CreateUserDialog
+         open={userCreateDialogOpen}
+diff --git a/src/Views/User/dialog/CreateUserDialog.jsx b/src/Views/User/dialog/CreateUserDialog.jsx
+index e2cff61..5a638fc 100644
+--- a/src/Views/User/dialog/CreateUserDialog.jsx
++++ b/src/Views/User/dialog/CreateUserDialog.jsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useEffect } from "react";
++import React, { useState } from "react";
+ import {
+     Button,
+     Modal,
+@@ -12,18 +12,12 @@ import {
+     Input,
+     FormText,
+ } from "reactstrap";
+-
+-import { useGetIdentity, usePermissions } from 'react-admin';
+ import { Parse } from "parse";
+ // Initialize Parse
+ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+ Parse.serverURL = process.env.REACT_APP_URL;
+ 
+ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+-    const { identity } = useGetIdentity();
+-    const { permissions } = usePermissions();
+-
+-
+     // State for form fields (initially empty)
+     const [userName, setUserName] = useState("");
+     const [name, setName] = useState("");
+@@ -32,9 +26,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+     const [password, setPassword] = useState("");
+     const [confirmPassword, setConfirmPassword] = useState("");
+     const [errorMessage, setErrorMessage] = useState("");
+-    const [parentOptions, setParentOptions] = useState([]);
+-    const [parentType, setParentType] = useState({});
+-    const [userType, setUserType] = useState("");
+ 
+     const resetFields = () => {
+         setUserName("");
+@@ -56,27 +47,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+         resetFields();
+     };
+ 
+-    const fetchUsersByRole = async () => {
+-        try {
+-            const users = await Parse.Cloud.run("getUsersByRole", { roleName: "Agent" });
+-            setParentOptions(users);
+-        } catch (error) {
+-            console.error("Error fetching users by role:", error.message);
+-            return [];
+-        }
+-    };
+-
+-    useEffect(() => {
+-        fetchUsersByRole();
+-        if (identity) {
+-            setParentType({
+-                id: identity.objectId,
+-                name: identity.name,
+-                type: identity.role,
+-            });
+-        }
+-    }, [identity]);
+-
+     // Function to create a new user in Parse
+     const handleSubmit = async (event) => {
+         event.preventDefault();
+@@ -94,74 +64,21 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+         }
+ 
+         try {
+-            if (permissions === "Super-User") {
+-                if (userType === "Agent") {
+-                    await Parse.Cloud.run("createUser", {
+-                        roleName: userType,
+-                        username: userName,
+-                        name,
+-                        email,
+-                        password,
+-                        // balance: parseFloat(balance),
+-                        userParentId: identity?.objectId,
+-                        userParentName: identity?.name
+-                    });
+-                    onClose();
+-                    fetchAllUsers();
+-                    resetFields();
+-                } else if (userType === "Player") {
+-                    await Parse.Cloud.run("createUser", {
+-                        roleName: userType,
+-                        username: userName,
+-                        name,
+-                        email,
+-                        password,
+-                        // balance: parseFloat(balance),
+-                        userParentId: parentType?.id,
+-                        userParentName: parentType?.name
+-                    });
+-                    onClose();
+-                    fetchAllUsers();
+-                    resetFields();
+-                }
+-            } else if (permissions === "Agent") {
+-                await Parse.Cloud.run("createUser", {
+-                    roleName: "Player",
+-                    username: userName,
+-                    name,
+-                    email,
+-                    password,
+-                    // balance: parseFloat(balance),
+-                    userParentId: identity?.objectId,
+-                    userParentName: identity?.name
+-                });
+-                onClose();
+-                fetchAllUsers();
+-                resetFields();
+-            }
++            await Parse.Cloud.run("createUser", {
++                username: userName,
++                name,
++                email,
++                password,
++                // balance: parseFloat(balance),
++            });
++            onClose();
++            fetchAllUsers();
++            resetFields();
+         } catch (error) {
+             console.error("Error Creating User details", error);
+         }
+     };
+ 
+-    // Combine parentOptions with identity
+-    const combinedOptions = [
+-        { id: identity?.objectId, name: identity?.name, role: identity?.role },
+-        ...parentOptions,
+-    ];
+-
+-    const handleParentTypeChange = (e) => {
+-        const selectedId = e.target.value;
+-        const selectedParent = combinedOptions.find((option) => option.id === selectedId);
+-
+-
+-        setParentType({
+-            id: selectedParent?.id || identity?.objectId,
+-            name: selectedParent?.name || identity?.name,
+-            type: selectedParent?.role || identity?.role,
+-        });
+-    };
+-
+     return (
+         <Modal isOpen={open} toggle={handleCancel} size="md" centered>
+             <ModalHeader toggle={handleCancel} className="border-bottom-0">
+@@ -204,54 +121,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+                             </FormGroup>
+                         </Col>
+ 
+-                        {permissions === "Super-User" && (
+-                            <>
+-                                <Col md={12}>
+-                                    <FormGroup>
+-                                        <Label for="exampleSelect">
+-                                            User Type
+-                                        </Label>
+-                                        <Input
+-                                            id="exampleSelect"
+-                                            name="select"
+-                                            type="select"
+-                                            value={userType}
+-                                            onChange={(e) => setUserType(e.target.value)}
+-                                            required
+-                                        >
+-                                            <option value="">Select User Type</option>
+-                                            <option value="Agent">Agent</option>
+-                                            <option value="Player">Player</option>
+-                                        </Input>
+-                                    </FormGroup>
+-                                </Col>
+-
+-                                <Col md={12}>
+-                                    <FormGroup>
+-                                        <Label for="exampleSelect">
+-                                            Parent Type
+-                                        </Label>
+-                                        <Input
+-                                            id="exampleSelect"
+-                                            name="select"
+-                                            type="select"
+-                                            value={parentType.id}
+-                                            // onChange={(e) => setParentType(e.target.value)}
+-                                            onChange={handleParentTypeChange}
+-                                            disabled={userType === "Agent"}
+-                                            required
+-                                        >
+-                                            {combinedOptions.map((user) => (
+-                                                <option key={user.id} value={user.id}>
+-                                                    {`${user.role}: ${user.name}`}
+-                                                </option>
+-                                            ))}
+-                                        </Input>
+-                                    </FormGroup>
+-                                </Col>
+-                            </>
+-                        )}
+-
+                         <Col md={12}>
+                             <FormGroup>
+                                 <Label for="email" className="pb-0 mb-0">

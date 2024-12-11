@@ -53,9 +53,6 @@ export const MyTheme = {
                     textOverflow: "ellipsis",
                     paddingLeft: "0.5",
                     fontSize: "0.75em",
-                },
-                head: { //TBC
-                    backgroundColor: "red"
                 }
             }
         },
@@ -73,9 +70,9 @@ export const MyTheme = {
                 //         backgroundColor: "red",
                 //     }),
                 // }),
-                ".overlayFormBox": {
-                    backgroundColor: "green",
-                }
+                // ".overlayFormBox": {
+                //     backgroundColor: "green",
+                // }
             },
         },
         RaLayout: {
