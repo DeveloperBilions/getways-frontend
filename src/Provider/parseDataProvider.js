@@ -77,7 +77,10 @@ export const dataProvider = {
 
     try {
       if (resource === "users") {
+        const role = localStorage.getItem("role");
+        const userid = localStorage.getItem("id");
         query = new Parse.Query(Parse.User);
+        role === 'Agent'?query.equalTo("userParentId", userid):null;
         count = await query.count({ useMasterKey: true });
         // console.log(count);
       } 
