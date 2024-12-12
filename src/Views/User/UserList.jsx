@@ -162,20 +162,31 @@ export const UserList = () => {
     return result;
   }
 
-  const handleGenerateLink = () => {
+  const handleGenerateLink = async () => {
     const referralCode = generateRandomString();
     setReferralDialogOpen(true);
     setReferralCode(referralCode);
-    const data = {
-      username: referralCode, 
+    // const data = {
+    //   username: referralCode,
+    //   password: referralCode,
+    //   email: `${referralCode}@invalid`,
+    //   userReferralCode: referralCode,
+    //   signedUp: false,
+    //   userParentId: identity.objectId,
+    //   userParentName: identity.username
+    // }
+    // create('users', { data: data, meta: null });
+
+    await Parse.Cloud.run("createUser", {
+      roleName: "Player",
+      username: referralCode,
       password: referralCode,
       email: `${referralCode}@invalid`,
-      userReferralCode: referralCode, 
-      signedUp: false, 
+      userReferralCode: referralCode,
+      signedUp: false,
       userParentId: identity.objectId,
-      userParentName: identity.username 
-    }
-    create('users', { data: data, meta: null});
+      userParentName: identity.username
+    });
 
     // return randomString;
 
@@ -204,7 +215,7 @@ export const UserList = () => {
   const PostListActions = () => (
     <TopToolbar>
       {/* <CreateButton /> */}
-       <Button
+      <Button
         variant="contained"
         color="primary"
         size="small"
@@ -212,7 +223,7 @@ export const UserList = () => {
         onClick={handleGenerateLink}
       >
         Referral Link
-      </Button> 
+      </Button>
       <Button
         variant="contained"
         color="primary"
@@ -250,7 +261,7 @@ export const UserList = () => {
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-        {identity.role=='Super-User' && <TextField source="roleName" label="User Type" />}
+        {/* {identity.role=='Super-User' && <TextField source="roleName" label="User Type" />} */}
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>
@@ -263,7 +274,7 @@ export const UserList = () => {
       <ReferralDialog
         open={referralDialogOpen}
         onClose={() => setReferralDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers} 
+        fetchAllUsers={fetchAllUsers}
         referralCode={referralCode} />
     </List>
   );
