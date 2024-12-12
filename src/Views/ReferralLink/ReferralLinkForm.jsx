@@ -20,8 +20,6 @@ const ReferralLinkForm = () => {
 
     const referral = searchParams.get('referral');
 
-    const updateUser => {};
-
     return (
         <React.Fragment>
             <h1 class="p-3 mb-2 bg-dark text-white text-center">GETWAYS</h1>

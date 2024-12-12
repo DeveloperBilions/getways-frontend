@@ -70,6 +70,6 @@ export const authProvider = {
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
     const role = await roleQuery.first({ useMasterKey: true });
-    return role.get("name");
+    return role?role.get("name"):"";
   },
 };

@@ -169,7 +169,7 @@ export const UserList = () => {
     const data = {
       username: referralCode, 
       password: referralCode,
-      email: 'a@a',
+      email: `${referralCode}@invalid`,
       userReferralCode: referralCode, 
       signedUp: false, 
       userParentId: identity.objectId,
@@ -191,6 +191,7 @@ export const UserList = () => {
     try {
       const response = await Parse.Cloud.run("fetchAllUsers", { identity });
       setUserData(response);
+      // setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
