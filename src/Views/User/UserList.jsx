@@ -21,6 +21,7 @@ import EditUserDialog from "./dialog/EditUserDialog";
 import CreateUserDialog from "./dialog/CreateUserDialog";
 import DeleteUserDialog from "./dialog/DeleteUserDialog";
 import ReferralDialog from "./dialog/ReferralDialog";
+import RedeemServiceDialog from "./dialog/RedeemService";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
 // mui
@@ -36,6 +37,7 @@ const CustomButton = ({ fetchAllUsers }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
+  const [redeemServiceDialogOpen, setRedeemServiceDialogOpen] = useState(false);
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
 
@@ -56,6 +58,11 @@ const CustomButton = ({ fetchAllUsers }) => {
   const handleRedeem = () => {
     handleClose();
     setRedeemDialogOpen(true);
+  };
+
+  const handleRedeemService = () => {
+    handleClose();
+    setRedeemServiceDialogOpen(true);
   };
 
   const handleRecharge = () => {
@@ -102,6 +109,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         }}
       >
         <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
+        {record?.roleName === "Agent" && (<MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>)}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
@@ -109,6 +117,13 @@ const CustomButton = ({ fetchAllUsers }) => {
       <RedeemDialog
         open={redeemDialogOpen}
         onClose={() => setRedeemDialogOpen(false)}
+        record={record}
+        resource={resource}
+        fetchAllUsers={fetchAllUsers}
+      />
+      <RedeemServiceDialog
+        open={redeemServiceDialogOpen}
+        onClose={() => setRedeemServiceDialogOpen(false)}
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
@@ -166,17 +181,6 @@ export const UserList = () => {
     const referralCode = generateRandomString();
     setReferralDialogOpen(true);
     setReferralCode(referralCode);
-    // const data = {
-    //   username: referralCode,
-    //   password: referralCode,
-    //   email: `${referralCode}@invalid`,
-    //   userReferralCode: referralCode,
-    //   signedUp: false,
-    //   userParentId: identity.objectId,
-    //   userParentName: identity.username
-    // }
-    // create('users', { data: data, meta: null });
-
     await Parse.Cloud.run("createUser", {
       roleName: "Player",
       username: referralCode,
@@ -187,22 +191,11 @@ export const UserList = () => {
       userParentId: identity.objectId,
       userParentName: identity.username
     });
-
-    // return randomString;
-
-    // navigate(
-    //   {
-    //     pathname: '/create-user',
-    //     search: `?referral=${randomString}`,
-    //   },
-    // )
   }
 
   const fetchAllUsers = async () => {
     try {
-      const response = await Parse.Cloud.run("fetchAllUsers", { identity });
-      // setUserData(response);
-      // setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
+      await Parse.Cloud.run("fetchAllUsers", { identity });
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -236,11 +229,18 @@ export const UserList = () => {
     </TopToolbar>
   );
 
+  // useEffect(() => {
+  //   if (identity) {
+  //     fetchAllUsers();
+  //   }
+  // }, [identity]);
+
   useEffect(() => {
-    if (identity) {
-      fetchAllUsers();
-    }
-  }, [identity]);
+
+    fetchAllUsers();
+
+  }, []);
+
 
   return (
     <List
@@ -261,7 +261,7 @@ export const UserList = () => {
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-        {/* {identity.role=='Super-User' && <TextField source="roleName" label="User Type" />} */}
+        {identity?.role === 'Super-User' && <TextField source="roleName" label="User Type" />}
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>

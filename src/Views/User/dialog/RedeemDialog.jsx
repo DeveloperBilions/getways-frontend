@@ -17,12 +17,15 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
+
   const [userName, setUserName] = useState("");
   const [balance, setBalance] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
   const [remark, setRemark] = useState();
+  const [redeemFees, setredeemFees] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redeemPercentage, setRedeemPercentage] = useState();
 
   const resetFields = () => {
     setUserName("");
@@ -36,17 +39,27 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
       // Populate fields when modal opens
       setUserName(record.username || "");
       setBalance(record.balance || "");
+      setredeemFees(record?.redeemService || "");
     } else {
       // Reset fields when modal closes
       resetFields();
     }
   }, [record, open]);
 
+  const calculateRedeemedAmount = () => {
+    if (redeemAmount && redeemFees) {
+      const calculatedAmount = redeemAmount - (redeemAmount * (redeemFees / 100));
+      setRedeemPercentage(calculatedAmount.toFixed(2));
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     const rawData = {
       ...record,
       transactionAmount: redeemAmount,
+      percentageAmount: redeemPercentage,
       remark,
       type: "redeem",
     };
@@ -127,11 +140,22 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
                   name="redeemAmount"
                   type="number"
                   autoComplete="off"
+                  min="0"
                   onChange={(e) => setRedeemAmount(e.target.value)}
+                  onBlur={calculateRedeemedAmount}
                   required
                 />
               </FormGroup>
             </Col>
+
+            <p className="mb-0"><small>Redeem Service Fee @ {redeemFees}%</small></p>
+            {redeemPercentage && (
+              <p className="mb-1">
+                <small>
+                  Total amount to be redeemed = ${redeemPercentage}
+                </small>
+              </p>
+            )}
 
             <Col md={12}>
               <FormGroup>
