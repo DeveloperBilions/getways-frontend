@@ -251,7 +251,7 @@ export const UserList = () => {
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-        {true && <TextField source="roleName" label="User Type" />}
+        {identity.role=='Super-User' && <TextField source="roleName" label="User Type" />}
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>
