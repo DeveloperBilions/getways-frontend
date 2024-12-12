@@ -190,8 +190,8 @@ export const UserList = () => {
   const fetchAllUsers = async () => {
     try {
       const response = await Parse.Cloud.run("fetchAllUsers", { identity });
-      setUserData(response);
-      // setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
+      // setUserData(response);
+      setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -237,6 +237,8 @@ export const UserList = () => {
       // filters={dataFilters}
       sx={{ pt: 1 }}
       actions={<PostListActions />}
+      empty={false}
+
     >
       <Datagrid
         size="small"
