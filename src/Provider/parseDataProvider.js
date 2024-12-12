@@ -63,18 +63,62 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
+    console.log("GETLIST");
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var { filter } = params.filter;
 
-    var query = null;
+    var query = new Parse.Query(Parse.Object);
     var count = null;
-    Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
 
+    Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
+    const role = localStorage.getItem("role");
+    const userid = localStorage.getItem("id");
+
+    /* const setAuthBasedFilters = (query) => {
+       try{
+         if(role==='Player'){
+           filter = {userId: userid, ...filter};
+           filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+         }
+         else if (role==='Agent'){
+           // console.log("AGENT FLOW");
+           const fetchUsers = async () => { 
+             var usrQuery = new Parse.Query(Parse.User);
+             usrQuery.equalTo("userParentId", userid);
+             usrQuery.select("objectId");
+             var result = await usrQuery.find({useMasterKey: true});
+             var ids = result.map(r => r.id);
+             ids.push(userid);
+             console.log("FETCH USERS", ids);
+             return {ids: ids};
+           };
+           var { ids } = fetchUsers();
+           query.containedIn("objectId", ids);
+           filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+           console.log(JSON.stringify(query._where));
+           return query;
+         }
+       }
+       catch (error) {
+         console.log(error);
+         throw error;
+       }
+     } */
+
+    const fetchUsers = async () => {
+      // console.log(userid) 
+      var usrQuery = new Parse.Query(Parse.User);
+      usrQuery.equalTo("userParentId", userid);
+      usrQuery.select("objectId");
+      var result = await usrQuery.find({ useMasterKey: true });
+      var ids = result.map(r => r.id);
+      ids.push(userid);
+      console.log({ ids: ids })
+      return { ids: ids };
+    };
     try {
       if (resource === "users") {
-        const role = localStorage.getItem("role");
-        const userid = localStorage.getItem("id");
         query = new Parse.Query(Parse.User);
         if (role === 'Agent') {
           query.equalTo("userParentId", userid);
@@ -84,20 +128,41 @@ export const dataProvider = {
       else if (resource === 'redeemRecords') {
         const Resource = Parse.Object.extend('TransactionRecords');
         query = new Parse.Query(Resource);
-        query.equalTo('type', 'redeem');
-        count = await query.count();
+        // query.equalTo('type', 'redeem');
         filter = { type: 'redeem', ...filter };
+        if (role === 'Player') {
+          filter = { userId: userid, ...filter };
+          filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+        }
+        else if (role === 'Agent') {
+          filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+          count = await query.count();
+        }
       }
       else if (resource === 'rechargeRecords') {
         const Resource = Parse.Object.extend('TransactionRecords');
         query = new Parse.Query(Resource);
-        query.equalTo('type', 'recharge');
-        count = await query.count();
+        // query.equalTo('type', 'recharge');
         filter = { type: 'recharge', ...filter };
+        if (role === 'Player') {
+          filter = { userId: userid, ...filter };
+          filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+        }
+        else if (role === 'Agent') {
+          filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+          count = await query.count();
+        }
       }
       else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
+        filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+        var { ids } = await fetchUsers();
+        query.containedIn("userId", ids);
         count = await query.count();
       }
 

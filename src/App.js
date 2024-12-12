@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Admin, Resource, CustomRoutes } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
@@ -44,7 +44,7 @@ function App() {
       }
 
       <Resource
-        name="TransactionRecords"
+        name="rechargeRecords"
         list={RechargeRecordsList}
         options={{ label: "Recharge Records" }}
         icon={LocalAtmIcon}
