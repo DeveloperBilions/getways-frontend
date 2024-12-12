@@ -191,7 +191,8 @@ export const UserList = () => {
     try {
       const response = await Parse.Cloud.run("fetchAllUsers", { identity });
       // setUserData(response);
-      setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
+      // setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
+      console.log(response);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -250,7 +251,7 @@ export const UserList = () => {
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-
+        {true && <TextField source="roleName" label="User Type" />}
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>
