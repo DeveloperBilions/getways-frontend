@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Row,
     Col,
@@ -10,23 +10,79 @@ import {
     Card,
     Container,
     CardBody,
+    Button,
 } from "reactstrap";
-import { useLocation } from 'react-router-dom';
-import { Button } from "@mui/material";
+import { useLocation } from "react-router-dom";
+import { useNotify } from "react-admin";
+
+import { Parse } from "parse";
+// Initialize Parse
+Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+Parse.serverURL = process.env.REACT_APP_URL;
 
 const ReferralLinkForm = () => {
+    const notify = useNotify();
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
 
-    const referral = searchParams.get('referral');
+    const referral = searchParams.get("referral");
+
+    const [userName, setUserName] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const validatePassword = (password) => {
+        const passwordRegex = /^.{6,}$/;
+        return passwordRegex.test(password);
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (!validatePassword(password)) {
+            setErrorMessage("Password must be at least 6 characters long.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setErrorMessage("Passwords do not match.");
+            return;
+        }
+
+        setErrorMessage("");
+
+        const rawData = {
+            userReferralCode: referral,
+            username: userName,
+            name,
+            email,
+            password,
+        };
+
+        try {
+            const response = await Parse.Cloud.run("referralUserUpdate", rawData);
+
+            if (response.status === "error") {
+                notify(response.message, { type: "error" });
+            }
+            if (response.status === "success") {
+                notify(response.message, { type: "success" });
+            }
+        } catch (error) {
+            console.error("Error Creating User details", error);
+        }
+    };
 
     return (
         <React.Fragment>
-            <h1 class="p-3 mb-2 bg-dark text-white text-center">GETWAYS</h1>
+            <h1 className="p-3 mb-2 bg-dark text-white text-center">GETWAYS</h1>
             <Container className="w-50">
                 <Card className="mt-5">
                     <CardBody>
-                        <Form>
+                        <Form onSubmit={handleSubmit}>
                             <Row>
                                 <Col md={12}>
                                     <FormGroup>
@@ -39,7 +95,6 @@ const ReferralLinkForm = () => {
                                             type="text"
                                             autoComplete="off"
                                             value={referral}
-                                            // onChange={(e) => setUserName(e.target.value)}
                                             required
                                             disabled
                                         />
@@ -56,8 +111,8 @@ const ReferralLinkForm = () => {
                                             name="userName"
                                             type="text"
                                             autoComplete="off"
-                                            // value={userName}
-                                            // onChange={(e) => setUserName(e.target.value)}
+                                            value={userName}
+                                            onChange={(e) => setUserName(e.target.value)}
                                             required
                                         />
                                     </FormGroup>
@@ -73,8 +128,8 @@ const ReferralLinkForm = () => {
                                             name="name"
                                             type="text"
                                             autoComplete="off"
-                                            // value={name}
-                                            // onChange={(e) => setName(e.target.value)}
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
                                             required
                                         />
                                     </FormGroup>
@@ -90,8 +145,8 @@ const ReferralLinkForm = () => {
                                             name="email"
                                             type="email"
                                             autoComplete="off"
-                                            // value={email}
-                                            // onChange={(e) => setEmail(e.target.value)}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             required
                                         />
                                     </FormGroup>
@@ -107,8 +162,8 @@ const ReferralLinkForm = () => {
                                             name="password"
                                             type="text"
                                             autoComplete="off"
-                                            // value={password}
-                                            // onChange={(e) => setPassword(e.target.value)}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
                                             required
                                         />
                                         <FormText>
@@ -127,31 +182,40 @@ const ReferralLinkForm = () => {
                                             name="confirmPassword"
                                             type="text"
                                             autoComplete="off"
-                                            // value={confirmPassword}
-                                            // onChange={(e) => setConfirmPassword(e.target.value)}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
                                             required
                                         />
                                     </FormGroup>
                                 </Col>
 
+                                {errorMessage && (
+                                    <Col sm={12}>
+                                        <Label
+                                            for="errorResponse"
+                                            invalid={true}
+                                            className="text-danger mb-2"
+                                        >
+                                            {errorMessage}
+                                        </Label>
+                                    </Col>
+                                )}
 
-                                 <Col md={12}>
-                    <div className="d-flex justify-content-end">
-                        <Button className="mx-2" variant="outlined" color="primary" type="submit">
-                            Confirm
-                        </Button>
-                        <Button variant="outlined" color="secondary" >
-                            Cancel
-                        </Button>
-                    </div>
-                </Col> 
+                                <Col md={12}>
+                                    <div className="d-flex justify-content-end">
+                                        <Button className="mx-2" color="success" type="submit">
+                                            Confirm
+                                        </Button>
+                                        {/* <Button color="secondary">Cancel</Button> */}
+                                    </div>
+                                </Col>
                             </Row>
                         </Form>
                     </CardBody>
                 </Card>
             </Container>
         </React.Fragment>
-    )
+    );
 };
 
 export default ReferralLinkForm;

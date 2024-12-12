@@ -192,7 +192,6 @@ export const UserList = () => {
       const response = await Parse.Cloud.run("fetchAllUsers", { identity });
       // setUserData(response);
       // setUserData(response.filter(obj => !obj.email.endsWith("@invalid")));
-      console.log(response);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
