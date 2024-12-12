@@ -68,6 +68,7 @@ export const RedeemRecordsList = () => {
                 ipaddress: record.get("ipaddress"),
                 remark: record.get("remark"),
                 status: mapStatus(record.get("status")),
+                responseMessage: record.get("responseMessage"),
             }));
             setGameData(transactions);
         } catch (error) {
@@ -86,6 +87,10 @@ export const RedeemRecordsList = () => {
                 return "Confirmed";
             case 3:
                 return "Coins Credited";
+            case 4:
+                return "Success";
+            case 5:
+                return "Fail";
             default:
                 return "Unknown Status";
         }
@@ -95,6 +100,8 @@ export const RedeemRecordsList = () => {
     // 1: "Pending Confirmation"
     // 2: "Confirmed" - btn dispaly "Coins Credit"
     // 3: "Coins Credited" for status
+    // 4: "Redeem Success"
+    // 5: "Redeem Faile"
 
     useEffect(() => {
         fetchData();
@@ -237,6 +244,10 @@ export const RedeemRecordsList = () => {
                                     return "warning";
                                 case "Pending Referral Link":
                                     return "error";
+                                case "Success":
+                                    return "success";
+                                case "Fail":
+                                    return "error";
                                 default:
                                     return "default";
                             }
@@ -253,6 +264,7 @@ export const RedeemRecordsList = () => {
                     }}
                 />
                 <DateField source="transactionDate" label="RedeemDate" showTime />
+                <TextField source="responseMessage" label="Message" />
             </Datagrid>
         </List>
     );
