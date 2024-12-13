@@ -14,7 +14,7 @@ import {
 } from "reactstrap";
 import { useLocation } from "react-router-dom";
 import { useNotify } from "react-admin";
-
+import { useNavigate } from 'react-router-dom';
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -22,10 +22,13 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const ReferralLinkForm = () => {
     const notify = useNotify();
+    const navigate = useNavigate();
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
 
     const referral = searchParams.get("referral");
+
+    const [disableButtonState, setDisableButtonState] = useState(false);
 
     const [userName, setUserName] = useState("");
     const [name, setName] = useState("");
@@ -41,6 +44,8 @@ const ReferralLinkForm = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        
 
         if (!validatePassword(password)) {
             setErrorMessage("Password must be at least 6 characters long.");
@@ -63,16 +68,24 @@ const ReferralLinkForm = () => {
         };
 
         try {
+
+            setDisableButtonState(true);
+
             const response = await Parse.Cloud.run("referralUserUpdate", rawData);
 
             if (response.status === "error") {
                 notify(response.message, { type: "error" });
+                //navigate(`/users`);
             }
             if (response.status === "success") {
                 notify(response.message, { type: "success" });
+                navigate(`/users`);
             }
         } catch (error) {
             console.error("Error Creating User details", error);
+        }
+        finally {
+            setDisableButtonState(false);
         }
     };
 

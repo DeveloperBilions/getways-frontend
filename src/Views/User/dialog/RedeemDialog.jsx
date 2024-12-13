@@ -11,6 +11,9 @@ import {
   Form,
   Input,
 } from "reactstrap";
+import {
+  useGetIdentity
+} from "react-admin";
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -26,6 +29,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
+  const { identity } = useGetIdentity();
 
   const resetFields = () => {
     setUserName("");
@@ -39,7 +43,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
       // Populate fields when modal opens
       setUserName(record.username || "");
       setBalance(record.balance || "");
-      setredeemFees(record?.redeemService || "");
+      setredeemFees(identity.redeemService || "");
     } else {
       // Reset fields when modal closes
       resetFields();

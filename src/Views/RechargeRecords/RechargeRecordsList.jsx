@@ -11,8 +11,11 @@ import {
     FilterButton,
     TopToolbar,
     TextInput,
+    usePermissions,
+    useGetIdentity,
 } from "react-admin";
 // dialog
+import RechargeDialog from "./dialog/RechargeDialog";
 import CoinsCreditDialog from "./dialog/CoinsCreditDialog"
 // mui
 import {
@@ -31,6 +34,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -44,11 +48,15 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = () => {
+    const { permissions } = usePermissions();
     const [gameData, setGameData] = useState([]);
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
+    const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+    const { identity } = useGetIdentity();
 
+    console.log("Identity:"+ identity);
 
     const fetchData = async () => {
         try {
@@ -178,6 +186,16 @@ export const RechargeRecordsList = () => {
     const postListActions = (
         <TopToolbar>
             <FilterButton />
+            {permissions === "Player" && (
+                <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<AttachMoneyIcon />}
+                    onClick={() => setRechargeDialogOpen(true)}
+                >
+                    Recharge
+                </Button>
+            )}
             <Button
                 variant="contained"
                 size="small"
@@ -238,8 +256,9 @@ export const RechargeRecordsList = () => {
             filters={dataFilters}
             actions={postListActions}
             sx={{ pt: 1 }}
+            empty={false}
         >
-            <Datagrid size="small" data={gameData} bulkActionButtons={false}>
+            <Datagrid size="small" bulkActionButtons={false}>
                 {/* <TextField source="gameId" label="GameId" /> */}
                 <TextField source="username" label="Account" />
                 <NumberField
@@ -250,25 +269,26 @@ export const RechargeRecordsList = () => {
                 <TextField source="remark" label="Remark" />
                 <FunctionField
                     label="Status"
+                    source="status"
                     render={(record) => {
-                        console.log(record)
                         const getColor = (status) => {
                             switch (status) {
-                                case "Coins Credited":
+                                case 3:
                                     return "success";
-                                case "Confirmed":
+                                case 2:
                                     return "primary";
-                                case "Pending Confirmation":
+                                case 1:
                                     return "warning";
-                                case "Pending Referral Link":
+                                case 0:
                                     return "error";
                                 default:
                                     return "default";
                             }
                         };
+                        const statusMessage = {0: "Pending Referral Link", 1: "Pending Confirmation", 2: "Confirmed", 3:"Coins Credited"}[record.status]
                         return (
                             <Chip
-                                label={record.status}
+                                label={statusMessage}
                                 color={getColor(record.status)}
                                 size="small"
                                 variant="outlined"
@@ -280,7 +300,7 @@ export const RechargeRecordsList = () => {
                 <FunctionField
                     label="Action"
                     render={(record) =>
-                        record.status === "Confirmed" ? (
+                        record.status === 2 && identity.role!=="Player" ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -290,7 +310,7 @@ export const RechargeRecordsList = () => {
                             >
                                 Coins Credit
                             </Button>
-                        ) : record.status === "Pending Confirmation" ? (
+                        ) : record.status === 1 ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -300,7 +320,7 @@ export const RechargeRecordsList = () => {
                             >
                                 Copy Link
                             </Button>
-                        ) : record.status === "Pending Referral Link" ? (
+                        ) : record.status === 0 ? (
                             <Button
                                 variant="outlined"
                                 color="primary"
@@ -320,6 +340,13 @@ export const RechargeRecordsList = () => {
                 data={selectedRecord}
                 handleRefresh={handleRefresh}
             />
+            {permissions === "Player" && (
+                <RechargeDialog
+                    open={rechargeDialogOpen}
+                    onClose={() => setRechargeDialogOpen(false)}
+                    fetchData={fetchData}
+                />
+            )}
         </List>
     );
 };

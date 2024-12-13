@@ -44,6 +44,7 @@ const LoginPage = () => {
     const password = data?.password;
 
     try {
+      /*
       const response = await Parse.Cloud.run("checkUserType", { email, password });
 
       if (response.userType === 1) {
@@ -52,6 +53,8 @@ const LoginPage = () => {
       else {
         notify("Please provide Agent Login")
       }
+        */
+      login({ email, password }).catch(err => notify(err?.message));
 
     } catch (error) {
       console.error("Error Transaction Status", error);

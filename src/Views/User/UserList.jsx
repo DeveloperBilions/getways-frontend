@@ -195,7 +195,9 @@ export const UserList = () => {
 
   const fetchAllUsers = async () => {
     try {
-      await Parse.Cloud.run("fetchAllUsers", { identity });
+       //var response = await Parse.Cloud.run("fetchAllUsers", { identity });
+      //console.log(response[0]);
+      //setUserData(response.filter( r => !r.email.includes("@invalid")));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -249,11 +251,10 @@ export const UserList = () => {
       sx={{ pt: 1 }}
       actions={<PostListActions />}
       empty={false}
-
     >
       <Datagrid
         size="small"
-        data={userData}
+        
         rowClick={false}
         bulkActionButtons={false}
       >
