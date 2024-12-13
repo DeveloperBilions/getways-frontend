@@ -63,48 +63,17 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-    console.log("GETLIST");
+    // console.log("GETLIST");
+    // console.log(params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
-    var { filter } = params.filter;
-
+    var filter  = params.filter;
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
     Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
     const role = localStorage.getItem("role");
     const userid = localStorage.getItem("id");
-
-    /* const setAuthBasedFilters = (query) => {
-       try{
-         if(role==='Player'){
-           filter = {userId: userid, ...filter};
-           filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
-         }
-         else if (role==='Agent'){
-           // console.log("AGENT FLOW");
-           const fetchUsers = async () => { 
-             var usrQuery = new Parse.Query(Parse.User);
-             usrQuery.equalTo("userParentId", userid);
-             usrQuery.select("objectId");
-             var result = await usrQuery.find({useMasterKey: true});
-             var ids = result.map(r => r.id);
-             ids.push(userid);
-             console.log("FETCH USERS", ids);
-             return {ids: ids};
-           };
-           var { ids } = fetchUsers();
-           query.containedIn("objectId", ids);
-           filter && Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
-           console.log(JSON.stringify(query._where));
-           return query;
-         }
-       }
-       catch (error) {
-         console.log(error);
-         throw error;
-       }
-     } */
 
     const fetchUsers = async () => {
       // console.log(userid) 
@@ -177,6 +146,7 @@ export const dataProvider = {
         resource === "users" ? await query.find({ useMasterKey: true }) : await query.find();
       const res = {
         data: results.map((o) => ({ id: o.id, ...o.attributes })),
+        // data: [],
         total: count,
       };
       return res;
