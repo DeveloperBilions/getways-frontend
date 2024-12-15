@@ -14,7 +14,7 @@ export const dataProvider = {
     console.log("CREATE CALLED");
     try {
       if (resource === "users") {
-        const data = (({ username, name, email, password, balance, signedUp, userParentId, userParentName, userReferralCode }) => ({
+        const data = (({ username, name, email, password, balance, signedUp, userParentId, userParentName, roleName, userReferralCode }) => ({
           username,
           name,
           email,
@@ -23,10 +23,25 @@ export const dataProvider = {
           signedUp,
           userParentId,
           userParentName,
+          roleName,
           userReferralCode
         }))(params.data);
         const user = new Parse.User();
         const result = await user.signUp(data);
+
+        // Query the Role class to find the desired role
+        const query = new Parse.Query(Parse.Role);
+        query.equalTo("name", data.roleName);
+        const role = await query.first({ useMasterKey: true });
+
+        if (!role) {
+            throw new Parse.Error(404, "Role not found");
+        }
+
+        // Add the user to the role
+        const relation = role.relation("users");
+        relation.add(user);
+        await role.save(null, { useMasterKey: true });
 
         return { data: { id: result.id, ...result.attributes } };
       } else {
