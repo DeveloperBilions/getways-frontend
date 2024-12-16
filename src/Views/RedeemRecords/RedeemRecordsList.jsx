@@ -270,7 +270,9 @@ export const RedeemRecordsList = () => {
     alignItems: 'center'
   }}
 >
-    <Typography className="mt-2">Total Redeemed Amount: <b>${totalTransactionAmount}</b></Typography>
+    {identity?.role !== "Player" ? <Typography className="mt-2">
+      Total Redeemed Amount: <b>${totalTransactionAmount}</b>
+    </Typography> : <div></div>}
     {identity?.role === "Player" && (
         <Typography
           noWrap

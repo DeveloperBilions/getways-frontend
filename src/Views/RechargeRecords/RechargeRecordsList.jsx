@@ -277,14 +277,14 @@ export const RechargeRecordsList = () => {
     <>
 <Box
   sx={{
-    display: 'flex', 
+    display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center'
   }}
 >
-  <Typography className="mt-2">
+  {identity?.role !== "Player" ? <Typography className="mt-2">
     Total Recharged Amount: <b>${totalTransactionAmount}</b>
-  </Typography>
+  </Typography> : <div></div>}
   {identity?.role === "Player" && (
     <Typography
       noWrap
