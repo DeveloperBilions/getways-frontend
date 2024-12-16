@@ -88,10 +88,10 @@ export const authProvider = {
   },
   async getPermissions() {
     console.log("GETPERMISSIONS CALLED");
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-    sleep(10000).then(() => { console.log('GETPERMISSIONS called'); });
+    // function sleep(ms) {
+    //   return new Promise(resolve => setTimeout(resolve, ms));
+    // }
+    // sleep(10000).then(() => { console.log('GETPERMISSIONS called'); });
     const user = Parse.User.current();
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
