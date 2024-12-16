@@ -98,7 +98,7 @@ export const dataProvider = {
       var result = await usrQuery.find({ useMasterKey: true });
       var ids = result.map(r => r.id);
       ids.push(userid);
-      console.log({ ids: ids })
+      // console.log({ ids: ids })
       return { ids: ids };
     };
     try {

@@ -12,7 +12,7 @@ import InputLabel from "@mui/material/InputLabel";
 import FormHelperText from '@mui/material/FormHelperText';
 import { useForm } from 'react-hook-form';
 import { inputValidations } from '../validations';
- console.log(inputValidations.email);
+ // console.log(inputValidations.email);
 
 export default function PasswordResetEmail() {
   const {register, handleSubmit, formState: {errors}} = useForm();
@@ -20,9 +20,9 @@ export default function PasswordResetEmail() {
   const onSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-    });
+    // console.log({
+    //   email: data.get('email'),
+    // });
   };
 
 

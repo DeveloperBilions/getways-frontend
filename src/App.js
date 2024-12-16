@@ -33,7 +33,7 @@ function App() {
       theme={MyTheme}
     >
       {(permissions) =>
-        permissions !== "Player" ? (
+        permissions && permissions !== "Player" ? (
           <Resource
             name="users"
             list={UserList}

@@ -10,7 +10,7 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const authProvider = {
   async login(params) {
-    // console.log("LOGIN CALLED")
+    console.log("LOGIN CALLED");
     Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
     const { email, password } = params;
     try {
@@ -33,7 +33,7 @@ export const authProvider = {
     }
   },
   async checkError({ status }) {
-    // console.log("CHECKERROR CALLED")
+    console.log("CHECKERROR CALLED");
     if (status === 401 || status === 403) {
       Parse.User.current().then(() =>
         Parse.User.logOut().then(() => {
@@ -44,7 +44,7 @@ export const authProvider = {
     }
   },
   async checkAuth() {
-    // console.log("CHECKAUTH CALLED")
+    console.log("CHECKAUTH CALLED");
     const currentUser = Parse.User.current();
     if (!currentUser) {
       //works
@@ -58,7 +58,7 @@ export const authProvider = {
     }
   },
   async logout() {
-    // console.log("LOGOUT CALLED")
+    console.log("LOGOUT CALLED");
     localStorage.removeItem("id");
     localStorage.removeItem("name");
     localStorage.removeItem("role");
@@ -71,7 +71,7 @@ export const authProvider = {
     }
   },
   async getIdentity() {
-    // console.log("GETIDENTITY CALLED")
+    console.log("GETIDENTITY CALLED");
     const user = Parse.User.current();
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
@@ -87,11 +87,15 @@ export const authProvider = {
     };
   },
   async getPermissions() {
-    // console.log("GETPERMISSIONS CALLED")
+    console.log("GETPERMISSIONS CALLED");
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    sleep(10000).then(() => { console.log('GETPERMISSIONS called'); });
     const user = Parse.User.current();
     const roleQuery = new Parse.Query(Parse.Role);
     roleQuery.equalTo("users", user);
     const role = await roleQuery.first({ useMasterKey: true });
-    return role?role.get("name"):"";
+    return role?role.get("name"):null;
   },
 };

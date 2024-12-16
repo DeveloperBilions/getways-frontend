@@ -283,7 +283,7 @@ export const RechargeRecordsList = () => {
   }}
 >
   <Typography className="mt-2">
-    Total Rechanged Amount: <b>${totalTransactionAmount}</b>
+    Total Recharged Amount: <b>${totalTransactionAmount}</b>
   </Typography>
   {identity?.role === "Player" && (
     <Typography
