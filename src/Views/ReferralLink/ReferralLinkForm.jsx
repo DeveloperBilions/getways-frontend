@@ -48,11 +48,13 @@ const ReferralLinkForm = () => {
 
         if (!validatePassword(password)) {
             setErrorMessage("Password must be at least 6 characters long.");
+            setDisableButtonState(false);
             return;
         }
 
         if (password !== confirmPassword) {
             setErrorMessage("Passwords do not match.");
+            setDisableButtonState(false);
             return;
         }
 
@@ -71,13 +73,12 @@ const ReferralLinkForm = () => {
             const response = await Parse.Cloud.run("referralUserUpdate", rawData);
 
             if (response.status === "error") {
-                console.log(response);
-                notify(response.message, { type: "error", autoHideDuration: 5000 });
-                //navigate(`/users`);
+                navigate('/login');
+                // notify(response.message, { type: "error", autoHideDuration: 5000 });
             }
             if (response.status === "success") {
-                notify(response.message, { type: "success", autoHideDuration: 5000  });
-                navigate('/users');
+                notify(response.message, { type: "success", autoHideDuration: 5000 });
+                navigate('/login');
             }
         } catch (error) {
             console.error("Error Creating User details", error);
@@ -214,17 +215,17 @@ const ReferralLinkForm = () => {
 
                                 <Col md={12}>
                                     <div className="d-flex justify-content-end">
-                                        <Button 
-                                        className="mx-2" 
-                                        disabled={disableButtonState}
-                                        type="submit"
-                                        color="primary"
+                                        <Button
+                                            className="mx-2"
+                                            disabled={disableButtonState}
+                                            type="submit"
+                                            color="primary"
                                         >
                                             Confirm
                                         </Button>
                                         {/*<Button color="secondary">Cancel</Button>*/}
                                     </div>
-                                </Col> 
+                                </Col>
                             </Row>
                         </Form>
                     </CardBody>
