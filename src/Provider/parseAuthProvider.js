@@ -82,6 +82,7 @@ export const authProvider = {
       name: user.get("name"),
       username: user.get("username"),
       redeemService: user.get("redeemService"),
+      userParentName: user.get("userParentName"),
       role: role.get("name"),
     };
   },

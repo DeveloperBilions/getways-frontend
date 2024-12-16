@@ -11,9 +11,10 @@ import {
   useRecordContext,
   useResourceContext,
   useGetIdentity,
-  useCreate
+  useCreate,
+  SortButton
 } from "react-admin";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
 import RedeemDialog from "./dialog/RedeemDialog";
@@ -109,7 +110,9 @@ const CustomButton = ({ fetchAllUsers }) => {
         }}
       >
         <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
-        {record?.roleName === "Agent" && (<MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>)}
+        {record?.roleName === "Agent" && (
+          <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
+        )}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
@@ -158,6 +161,11 @@ export const UserList = () => {
   const { identity } = useGetIdentity();
   const [create, { isPending, error }] = useCreate();
 
+  const role = localStorage.getItem("role");
+
+  if (!role) {
+    navigate("/login");
+  }
 
   const [userData, setUserData] = useState();
   const [referralCode, setReferralCode] = useState();
@@ -169,10 +177,13 @@ export const UserList = () => {
   };
 
   function generateRandomString() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
     for (let i = 0; i < 6; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
     }
     return result;
   }
@@ -189,27 +200,26 @@ export const UserList = () => {
       userReferralCode: referralCode,
       signedUp: false,
       userParentId: identity.objectId,
-      userParentName: identity.username
+      userParentName: identity.username,
     });
-  }
+  };
 
   const fetchAllUsers = async () => {
     try {
       var response = await Parse.Cloud.run("fetchAllUsers", { identity });
-      console.log(response[0]);
-      setUserData(response.filter(r => !r.email.includes("@invalid")));
+      setUserData(response.filter((r) => !r.email.includes("@invalid")));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
   const dataFilters = [
-    <SearchInput source="q" alwaysOn resettable variant="outlined" />,
+    <SearchInput source="username" alwaysOn resettable variant="outlined" />,
   ];
 
   const PostListActions = () => (
     <TopToolbar>
-      {/* <CreateButton /> */}
+      <SortButton fields={['username','email','createdAt']} />
       <Button
         variant="contained"
         color="primary"
@@ -238,31 +248,26 @@ export const UserList = () => {
   // }, [identity]);
 
   useEffect(() => {
-
     fetchAllUsers();
-
   }, []);
-
 
   return (
     <List
       title="User Management"
-      // filters={dataFilters}
+      filters={dataFilters}
       sx={{ pt: 1 }}
       actions={<PostListActions />}
       empty={false}
       filter={{ userReferralCode: null }}
     >
-      <Datagrid
-        size="small"
-        rowClick={false}
-        bulkActionButtons={false}
-      >
+      <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
         <TextField source="username" label="User Name" />
         <TextField source="email" label="Email" />
         {/* <TextField source="balance" label="Balance" /> */}
         <DateField source="createdAt" label="Date" showTime />
-        {identity?.role === 'Super-User' && <TextField source="roleName" label="User Type" />}
+        {identity?.role === "Super-User" && (
+          <TextField source="roleName" label="User Type" />
+        )}
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>
@@ -276,7 +281,8 @@ export const UserList = () => {
         open={referralDialogOpen}
         onClose={() => setReferralDialogOpen(false)}
         fetchAllUsers={fetchAllUsers}
-        referralCode={referralCode} />
+        referralCode={referralCode}
+      />
     </List>
   );
 };
