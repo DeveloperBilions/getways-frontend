@@ -350,7 +350,7 @@ export const RechargeRecordsList = () => {
         <FunctionField
           label="Action"
           render={(record) =>
-            record.status === 2 && identity.role !== "Player" ? (
+            record?.status === 2 && identity?.role !== "Player" ? (
               <Button
                 variant="outlined"
                 color="primary"

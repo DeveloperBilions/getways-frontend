@@ -72,7 +72,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             setParentType({
                 id: identity.objectId,
                 name: identity.name,
-                type: identity.role,
+                type: identity?.role,
             });
         }
     }, [identity]);
