@@ -14,9 +14,9 @@ import {
   useGetIdentity,
   Filter,
   SortButton,
-  useGetList 
+  useGetList,
 } from "react-admin";
-import { useNavigate, } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 // mui
 import {
   Chip,
@@ -57,12 +57,9 @@ export const RedeemRecordsList = () => {
     navigate("/login");
   }
 
-  const { data } = useGetList(
-    'redeemRecords',
-    { 
-        pagination: { page: 1, perPage: 10 },
-    }
-);
+  const { data } = useGetList("redeemRecords", {
+    pagination: { page: 1, perPage: 10 },
+  });
 
   const fetchData = async () => {
     try {
@@ -136,7 +133,6 @@ export const RedeemRecordsList = () => {
   // 4: "Redeem Success"
   // 5: "Redeem Faile"
 
-    
   useEffect(() => {
     fetchData();
     // Set up interval to fetch data every 1 minute
@@ -147,9 +143,11 @@ export const RedeemRecordsList = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const totalTransactionAmount = data&&data
-  .filter((item) => item.status === 4)
-  .reduce((sum, item) => sum + item.transactionAmount, 0);
+  const totalTransactionAmount =
+    data &&
+    data
+      .filter((item) => item.status === 4)
+      .reduce((sum, item) => sum + item.transactionAmount, 0);
 
   const handleRefresh = async () => {
     try {
@@ -206,7 +204,9 @@ export const RedeemRecordsList = () => {
   const postListActions = (
     <TopToolbar>
       {/* <FilterButton /> */}
-      <SortButton fields={['username','status','transactionAmount','transactionDate']} />
+      <SortButton
+        fields={["username", "status", "transactionAmount", "transactionDate"]}
+      />
       <Button
         variant="contained"
         size="small"
@@ -263,79 +263,83 @@ export const RedeemRecordsList = () => {
 
   return (
     <>
-    <Box
-  sx={{
-    display: 'flex', 
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  }}
->
-    {identity?.role !== "Player" ? <Typography className="mt-2">
-      Total Redeemed Amount: <b>${totalTransactionAmount}</b>
-    </Typography> : <div></div>}
-    {identity?.role === "Player" && (
-        <Typography
-          noWrap
-          variant="subtitle2"
-          sx={{ color: "text.secondary", fontWeight: 500 }}
-        >
-          Agent: <b>{identity?.userParentName}</b>
-        </Typography>
-      )}
-    </Box>
-    <List
-      title="Redeem Records"
-      filters={dataFilters}
-      actions={postListActions}
-      sx={{ pt: 1 }}
-      empty={false} 
-    >
-      {/* <Datagrid size="small" data={gameData} bulkActionButtons={false}> */}
-      <Datagrid size="small" bulkActionButtons={false}>
-        {/* <TextField source="gameId" label="GameId" /> */}
-        <TextField source="username" label="Account" />
-        <NumberField
-          source="transactionAmount"
-          label="Redeemed"
-          textAlign="left"
-        />
-        <TextField source="remark" label="Remark" />
-        <FunctionField
-          label="Status"
-          render={(record) => {
-            // const getColor = (status) => {
-            //     switch (status) {
-            //         case "Coins Credited":
-            //             return "success";
-            //         case "Confirmed":
-            //             return "primary";
-            //         case "Pending Confirmation":
-            //             return "warning";
-            //         case "Pending Referral Link":
-            //             return "error";
-            //         case "Success":
-            //             return "success";
-            //         case "Fail":
-            //             return "error";
-            //         default:
-            //             return "default";
-            //     }
-            // };
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {identity?.role !== "Player" ? (
+          <Typography className="mt-2">
+            Total Redeemed Amount: <b>${totalTransactionAmount}</b>
+          </Typography>
+        ) : (
+          <div></div>
+        )}
+        {identity?.role === "Player" && (
+          <Typography
+            noWrap
+            variant="subtitle2"
+            sx={{ color: "text.secondary", fontWeight: 500 }}
+          >
+            Agent: <b>{identity?.userParentName}</b>
+          </Typography>
+        )}
+      </Box>
+      <List
+        title="Redeem Records"
+        filters={dataFilters}
+        actions={postListActions}
+        sx={{ pt: 1 }}
+        empty={false}
+      >
+        {/* <Datagrid size="small" data={gameData} bulkActionButtons={false}> */}
+        <Datagrid size="small" bulkActionButtons={false}>
+          {/* <TextField source="gameId" label="GameId" /> */}
+          <TextField source="username" label="Account" />
+          <NumberField
+            source="transactionAmount"
+            label="Redeemed"
+            textAlign="left"
+          />
+          <TextField source="remark" label="Remark" />
+          <FunctionField
+            label="Status"
+            render={(record) => {
+              // const getColor = (status) => {
+              //     switch (status) {
+              //         case "Coins Credited":
+              //             return "success";
+              //         case "Confirmed":
+              //             return "primary";
+              //         case "Pending Confirmation":
+              //             return "warning";
+              //         case "Pending Referral Link":
+              //             return "error";
+              //         case "Success":
+              //             return "success";
+              //         case "Fail":
+              //             return "error";
+              //         default:
+              //             return "default";
+              //     }
+              // };
 
-            return (
-              <Chip
-                label={mapStatus(record.status)}
-                color={getColor(record.status)}
-                size="small"
-                variant="outlined"
-              />
-            );
-          }}
-        />
-        <DateField source="transactionDate" label="RedeemDate" showTime />
-        <TextField source="responseMessage" label="Message" />
-      </Datagrid>
-    </List>
+              return (
+                <Chip
+                  label={mapStatus(record.status)}
+                  color={getColor(record.status)}
+                  size="small"
+                  variant="outlined"
+                />
+              );
+            }}
+          />
+          <DateField source="transactionDate" label="RedeemDate" showTime />
+          <TextField source="responseMessage" label="Message" />
+        </Datagrid>
+      </List>
     </>
   );
 };

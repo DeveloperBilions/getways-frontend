@@ -33,6 +33,7 @@ export default function MyAppBar({ props }) {
         alignItems: "center",
         paddingRight: "1em",
         backgroundColor: "white",
+        // backgroundColor: "#272E35",
         position: "fixed",
         left: "15em",
         top: 0,
@@ -40,6 +41,7 @@ export default function MyAppBar({ props }) {
         width: "calc(100% - 15em)",
         height: "4em",
         color: "black",
+        // color: "white",
       }}
     >
       <TitlePortal variant="h5" component="h3" sx={{ paddingLeft: 3 }} />
