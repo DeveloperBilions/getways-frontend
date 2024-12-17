@@ -1,10 +1,11 @@
 import "./App.css";
 import React from "react";
-import { Admin, Resource, CustomRoutes, ListGuesser } from "react-admin";
+import { Admin, Resource, CustomRoutes } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
+import SummarizeIcon from "@mui/icons-material/Summarize";
 // pages
 import LoginPage from "./Views/SignIn/forms/LoginPage";
 import SignUp from "./Views/SignIn/forms/SignUp";
@@ -22,6 +23,7 @@ import { MyTheme } from "./Layout/MyDefaultTheme";
 import { UserList } from "./Views/User/UserList";
 import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList";
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
+import { SummaryList } from "./Views/Summary/SummaryList";
 
 function App() {
   return (
@@ -34,12 +36,21 @@ function App() {
     >
       {(permissions) =>
         permissions && permissions !== "Player" ? (
-          <Resource
-            name="users"
-            list={UserList}
-            options={{ label: "User Management" }}
-            icon={PersonIcon}
-          />
+          <>
+            <Resource
+              name="users"
+              list={UserList}
+              options={{ label: "User Management" }}
+              icon={PersonIcon}
+            />
+
+            <Resource
+              name="summary"
+              list={SummaryList}
+              options={{ label: "Summary" }}
+              icon={SummarizeIcon}
+            />
+          </>
         ) : null
       }
 

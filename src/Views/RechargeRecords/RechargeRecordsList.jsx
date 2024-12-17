@@ -397,10 +397,14 @@ export const RechargeRecordsList = () => {
                       variant="outlined"
                       color="primary"
                       size="small"
+                      sx={{
+                        pr: 2,
+                        pl: 2,
+                      }}
                       startIcon={<LanguageIcon />}
                       onClick={() => handleUrlRedirect(record)}
                     >
-                      Redirect
+                      Recharge
                     </Button>
                   )}
                 </Box>
