@@ -235,14 +235,17 @@ export const RechargeRecordsList = () => {
       >
         Refresh
       </Button>
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<GetAppIcon />}
-        onClick={handleMenuOpen}
-      >
-        Export
-      </Button>
+      {permissions != "Player" && (
+         <Button
+         variant="contained"
+         size="small"
+         startIcon={<GetAppIcon />}
+         onClick={handleMenuOpen}
+       >
+         Export
+       </Button>
+      )}
+     
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}

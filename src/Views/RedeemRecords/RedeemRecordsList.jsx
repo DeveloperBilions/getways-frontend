@@ -11,6 +11,7 @@ import {
   FilterButton,
   TopToolbar,
   TextInput,
+  usePermissions,
   useGetIdentity,
   Filter,
   SortButton,
@@ -47,6 +48,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 export const RedeemRecordsList = () => {
   const navigate = useNavigate();
   const { identity, isLoading } = useGetIdentity();
+  const { permissions } = usePermissions();
 
   const [gameData, setGameData] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -215,14 +217,17 @@ export const RedeemRecordsList = () => {
       >
         Refresh
       </Button>
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<GetAppIcon />}
-        onClick={handleMenuOpen}
-      >
-        Export
-      </Button>
+      {permissions != "Player" && (
+         <Button
+         variant="contained"
+         size="small"
+         startIcon={<GetAppIcon />}
+         onClick={handleMenuOpen}
+       >
+         Export
+       </Button>
+      )}
+     
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}

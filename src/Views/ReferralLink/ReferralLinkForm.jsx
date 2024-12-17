@@ -266,13 +266,13 @@ const ReferralLinkForm = () => {
             className="testimonial-image"
           />
           <div className="testimonial-text">
-            <span>
+            {/* <span>
               This is a realistic program for anyone looking for site to invest.
               Paid to me regularly, keep up good work!
             </span>
             <ul>
               <li>Lucy Smith (USA)</li>
-            </ul>
+            </ul> */}
           </div>
         </div>
 
