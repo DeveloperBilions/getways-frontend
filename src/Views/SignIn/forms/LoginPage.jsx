@@ -77,7 +77,7 @@ const LoginPage = () => {
         sm={4}
         md={7}
         sx={{
-          backgroundImage: "url(/assets/login.svg)",
+          backgroundImage: "url(/assets/login.jpg)",
           backgroundRepeat: "no-repeat",
           backgroundColor: (t) =>
             t.palette.mode === "light"

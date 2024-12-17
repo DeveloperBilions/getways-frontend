@@ -261,7 +261,7 @@ const ReferralLinkForm = () => {
         {/* Left Side: Image and Text */}
         <div className="left-section">
           <img
-            src="/assets/referral_link.svg"
+            src="/assets/referral_link.jpg"
             alt="Testimonial"
             className="testimonial-image"
           />
