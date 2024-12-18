@@ -122,6 +122,7 @@ export const dataProvider = {
         query = new Parse.Query(Resource);
         // query.equalTo('type', 'redeem');
         filter = { type: "redeem", ...filter };
+
         if (role === "Player") {
           filter = { userId: userid, status: 5, ...filter };
           filter &&
@@ -131,13 +132,14 @@ export const dataProvider = {
             Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
-          count = await query.count();
         }
+        count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         // query.equalTo('type', 'recharge');
         filter = { type: "recharge", ...filter };
+
         if (role === "Player") {
           filter = { userId: userid, status: 1, ...filter };
           filter &&
@@ -147,8 +149,8 @@ export const dataProvider = {
             Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
-          count = await query.count();
         }
+        count = await query.count();
       } else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
