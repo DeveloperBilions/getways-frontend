@@ -45,9 +45,9 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-export const RedeemRecordsList = () => {
+export const RedeemRecordsList = (props) => {
   const navigate = useNavigate();
-  const { identity, isLoading } = useGetIdentity();
+  const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
 
   const [gameData, setGameData] = useState([]);
@@ -218,16 +218,16 @@ export const RedeemRecordsList = () => {
         Refresh
       </Button>
       {permissions != "Player" && (
-         <Button
-         variant="contained"
-         size="small"
-         startIcon={<GetAppIcon />}
-         onClick={handleMenuOpen}
-       >
-         Export
-       </Button>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<GetAppIcon />}
+          onClick={handleMenuOpen}
+        >
+          Export
+        </Button>
       )}
-     
+
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -298,10 +298,10 @@ export const RedeemRecordsList = () => {
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
+        {...props}
+        sort={{ field: "transactionDate", order: "DESC" }}
       >
-        {/* <Datagrid size="small" data={gameData} bulkActionButtons={false}> */}
         <Datagrid size="small" bulkActionButtons={false}>
-          {/* <TextField source="gameId" label="GameId" /> */}
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -312,25 +312,6 @@ export const RedeemRecordsList = () => {
           <FunctionField
             label="Status"
             render={(record) => {
-              // const getColor = (status) => {
-              //     switch (status) {
-              //         case "Coins Credited":
-              //             return "success";
-              //         case "Confirmed":
-              //             return "primary";
-              //         case "Pending Confirmation":
-              //             return "warning";
-              //         case "Pending Referral Link":
-              //             return "error";
-              //         case "Success":
-              //             return "success";
-              //         case "Fail":
-              //             return "error";
-              //         default:
-              //             return "default";
-              //     }
-              // };
-
               return (
                 <Chip
                   label={mapStatus(record.status)}
@@ -341,7 +322,12 @@ export const RedeemRecordsList = () => {
               );
             }}
           />
-          <DateField source="transactionDate" label="RedeemDate" showTime />
+          <DateField
+            source="transactionDate"
+            label="RedeemDate"
+            locales="fr-FR"
+            showTime
+          />
           <TextField source="responseMessage" label="Message" />
         </Datagrid>
       </List>

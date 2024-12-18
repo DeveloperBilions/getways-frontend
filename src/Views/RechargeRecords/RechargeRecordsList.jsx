@@ -52,7 +52,7 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-export const RechargeRecordsList = () => {
+export const RechargeRecordsList = (props) => {
   const navigate = useNavigate();
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
@@ -236,16 +236,16 @@ export const RechargeRecordsList = () => {
         Refresh
       </Button>
       {permissions != "Player" && (
-         <Button
-         variant="contained"
-         size="small"
-         startIcon={<GetAppIcon />}
-         onClick={handleMenuOpen}
-       >
-         Export
-       </Button>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<GetAppIcon />}
+          onClick={handleMenuOpen}
+        >
+          Export
+        </Button>
       )}
-     
+
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -317,9 +317,10 @@ export const RechargeRecordsList = () => {
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
+        {...props}
+        sort={{ field: "transactionDate", order: "DESC" }}
       >
         <Datagrid size="small" bulkActionButtons={false}>
-          {/* <TextField source="gameId" label="GameId" /> */}
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -361,7 +362,12 @@ export const RechargeRecordsList = () => {
               );
             }}
           />
-          <DateField source="transactionDate" label="RechargeDate" showTime />
+          <DateField
+            source="transactionDate"
+            label="RechargeDate"
+            locales="fr-FR"
+            showTime
+          />
           <FunctionField
             label="Action"
             render={(record) =>

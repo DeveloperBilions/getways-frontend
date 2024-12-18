@@ -12,7 +12,7 @@ import {
   useResourceContext,
   useGetIdentity,
   useCreate,
-  SortButton
+  SortButton,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -156,7 +156,7 @@ const CustomButton = ({ fetchAllUsers }) => {
   );
 };
 
-export const UserList = () => {
+export const UserList = (props) => {
   const navigate = useNavigate();
   const { identity } = useGetIdentity();
   const [create, { isPending, error }] = useCreate();
@@ -219,7 +219,7 @@ export const UserList = () => {
 
   const PostListActions = () => (
     <TopToolbar>
-      <SortButton fields={['username','email','createdAt']} />
+      <SortButton fields={["username", "email", "createdAt"]} />
       <Button
         variant="contained"
         color="primary"
@@ -241,11 +241,11 @@ export const UserList = () => {
     </TopToolbar>
   );
 
-  // useEffect(() => {
-  //   if (identity) {
-  //     fetchAllUsers();
-  //   }
-  // }, [identity]);
+  useEffect(() => {
+    if (identity) {
+      fetchAllUsers();
+    }
+  }, [identity]);
 
   useEffect(() => {
     fetchAllUsers();
@@ -259,12 +259,13 @@ export const UserList = () => {
       actions={<PostListActions />}
       empty={false}
       filter={{ userReferralCode: null }}
+      {...props}
+      sort={{ field: "createdAt", order: "DESC" }}
     >
       <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
         <TextField source="username" label="User Name" />
         <TextField source="email" label="Email" />
-        {/* <TextField source="balance" label="Balance" /> */}
-        <DateField source="createdAt" label="Date" showTime />
+        <DateField source="createdAt" label="Date" locales="fr-FR" showTime />
         {identity?.role === "Super-User" && (
           <TextField source="roleName" label="User Type" />
         )}
