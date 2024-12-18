@@ -143,7 +143,7 @@ export const RechargeRecordsList = () => {
   const totalTransactionAmount =
     data &&
     data
-      .filter((item) => item.status === 2)
+      .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
   const handleRefresh = async () => {
