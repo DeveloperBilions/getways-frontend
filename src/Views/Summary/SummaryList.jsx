@@ -71,10 +71,14 @@ export const SummaryList = () => {
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const totalPendingRecharge =
-    data.rechargeRecords?.filter((item) => item.status === 1).length || 0;
+    data.rechargeRecords
+      ?.filter((item) => item.status === 1)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const totalFailRedeem =
-    data.redeemRecords?.filter((item) => item.status === 5).length || 0;
+    data.redeemRecords
+      ?.filter((item) => item.status === 5)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const finalData = [
     {
@@ -112,7 +116,7 @@ export const SummaryList = () => {
     {
       id: 5,
       name: "Pending Recharges",
-      value: totalPendingRecharge,
+      value: "$" + totalPendingRecharge,
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
       icon: <WarningIcon color="warning" />,
@@ -120,7 +124,7 @@ export const SummaryList = () => {
     {
       id: 6,
       name: "Failed Redeems",
-      value: totalFailRedeem,
+      value: "$" + totalFailRedeem,
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,

@@ -15,6 +15,7 @@ import {
   useGetIdentity,
   SortButton,
   useGetList,
+  useRefresh,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -54,6 +55,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
   const navigate = useNavigate();
+  const refresh = useRefresh();
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
 
@@ -70,8 +72,7 @@ export const RechargeRecordsList = (props) => {
   }
 
   const { data } = useGetList("rechargeRecords", {
-    pagination: { page: 1, perPage: 10 },
-    sort: { field: "published_at", order: "DESC" },
+    pagination: { page: 1, perPage: 100 },
   });
 
   const fetchData = async () => {
@@ -147,12 +148,12 @@ export const RechargeRecordsList = (props) => {
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
   const handleRefresh = async () => {
-    try {
-      await Parse.Cloud.run("checkTransactionStatus");
-      fetchData();
-    } catch (error) {
-      console.error("Error Transaction Status", error);
-    }
+    refresh();
+    // try {
+    //   await Parse.Cloud.run("checkTransactionStatus");
+    // } catch (error) {
+    //   console.error("Error Transaction Status", error);
+    // }
   };
 
   const handleCoinCredit = async (record) => {

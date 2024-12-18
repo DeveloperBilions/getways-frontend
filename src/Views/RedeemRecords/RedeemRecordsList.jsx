@@ -60,7 +60,7 @@ export const RedeemRecordsList = (props) => {
   }
 
   const { data } = useGetList("redeemRecords", {
-    pagination: { page: 1, perPage: 10 },
+    pagination: { page: 1, perPage: 100 },
   });
 
   const fetchData = async () => {
@@ -150,6 +150,8 @@ export const RedeemRecordsList = (props) => {
     data
       .filter((item) => item.status === 4)
       .reduce((sum, item) => sum + item.transactionAmount, 0);
+
+  console.log("===", totalTransactionAmount);
 
   const handleRefresh = async () => {
     try {

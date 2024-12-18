@@ -123,7 +123,7 @@ export const dataProvider = {
         // query.equalTo('type', 'redeem');
         filter = { type: "redeem", ...filter };
         if (role === "Player") {
-          filter = { userId: userid, ...filter };
+          filter = { userId: userid, status: 5, ...filter };
           filter &&
             Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
         } else if (role === "Agent") {
@@ -139,7 +139,7 @@ export const dataProvider = {
         // query.equalTo('type', 'recharge');
         filter = { type: "recharge", ...filter };
         if (role === "Player") {
-          filter = { userId: userid, ...filter };
+          filter = { userId: userid, status: 1, ...filter };
           filter &&
             Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
         } else if (role === "Agent") {
