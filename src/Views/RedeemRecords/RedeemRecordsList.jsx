@@ -151,8 +151,6 @@ export const RedeemRecordsList = (props) => {
       .filter((item) => item.status === 4)
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
-  console.log("===", totalTransactionAmount);
-
   const handleRefresh = async () => {
     try {
       await Parse.Cloud.run("checkTransactionStatus");
@@ -167,7 +165,7 @@ export const RedeemRecordsList = (props) => {
     doc.text("Redeem Records", 10, 10);
     doc.autoTable({
       head: [["Game ID", "Username", "Amount", "Remark", "Status", "Date"]],
-      body: gameData.map((row) => [
+      body: data.map((row) => [
         row.gameId,
         row.username,
         row.transactionAmount,
@@ -180,7 +178,7 @@ export const RedeemRecordsList = (props) => {
   };
 
   const handleExportXLS = () => {
-    const worksheet = XLSX.utils.json_to_sheet(gameData);
+    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Redeem Records");
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });

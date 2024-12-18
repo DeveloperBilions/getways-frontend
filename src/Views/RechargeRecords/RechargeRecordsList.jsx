@@ -176,7 +176,7 @@ export const RechargeRecordsList = (props) => {
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
       head: [["Game ID", "Username", "Amount", "Remark", "Status", "Date"]],
-      body: gameData.map((row) => [
+      body: data.map((row) => [
         row.gameId,
         row.username,
         row.transactionAmount,
@@ -189,7 +189,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportXLS = () => {
-    const worksheet = XLSX.utils.json_to_sheet(gameData);
+    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
