@@ -86,11 +86,12 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-    // console.log("GETLIST");
-    // console.log(params);
+    console.log("GETLIST");
+    console.log(params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
+    console.log(filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
