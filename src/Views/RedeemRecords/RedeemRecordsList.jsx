@@ -15,6 +15,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  FilterLiveSearch,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -181,7 +182,8 @@ export const RedeemRecordsList = (props) => {
   };
 
   const dataFilters = [
-    <TextInput source="username" label="Name" alwaysOn resettable />,
+    <SearchInput source="username" alwaysOn resettable />,
+    // <TextInput source="username" label="Name" alwaysOn resettable />,
     <SelectInput
       label="Status"
       source="status"
@@ -192,8 +194,6 @@ export const RedeemRecordsList = (props) => {
         { id: 5, name: "Failed" },
       ]}
     />,
-    // <TextInput label="Search" source="username" alwaysOn key="search" />,
-    // <TextInput source="status" />,
   ];
 
   const postListActions = (

@@ -202,7 +202,8 @@ export const RechargeRecordsList = (props) => {
   };
 
   const dataFilters = [
-    <TextInput source="username" label="Name" alwaysOn resettable />,
+    <SearchInput source="username" alwaysOn resettable />,
+    // <TextInput source="username" label="Name" alwaysOn resettable />,
     <SelectInput
       label="Status"
       source="status"

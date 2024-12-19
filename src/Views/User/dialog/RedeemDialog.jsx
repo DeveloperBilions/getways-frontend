@@ -56,9 +56,11 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
   }, [record, open]);
 
   const calculateRedeemedAmount = () => {
-    if (redeemAmount && redeemFees) {
+    if (redeemAmount && redeemFees !== 0) {
       const calculatedAmount = redeemAmount - redeemAmount * (redeemFees / 100);
       setRedeemPercentage(calculatedAmount.toFixed(2));
+    } else {
+      setRedeemPercentage(redeemAmount);
     }
   };
 
@@ -72,7 +74,6 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
       remark,
       type: "redeem",
     };
-
     setLoading(true);
     try {
       const response = await Parse.Cloud.run("redeemRedords", rawData);
@@ -163,7 +164,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
             <p className="mb-0">
               <small>Redeem Service Fee @ {redeemFees}%</small>
             </p>
-            {redeemPercentage && (
+            {redeemPercentage !== null && redeemPercentage !== undefined && (
               <p className="mb-1">
                 <small>Total amount to be redeemed = ${redeemPercentage}</small>
               </p>

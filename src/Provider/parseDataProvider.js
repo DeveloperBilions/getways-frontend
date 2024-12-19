@@ -87,11 +87,11 @@ export const dataProvider = {
   getList: async (resource, params) => {
     //works
     console.log("GETLIST");
-    console.log(params);
+    console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
-    console.log(filter);
+    console.log("=====", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -125,11 +125,29 @@ export const dataProvider = {
 
         if (role === "Player") {
           filter = { userId: userid, status: 5, ...filter };
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           filter &&
-            Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
         } else if (role === "Agent") {
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           filter &&
-            Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
@@ -141,12 +159,30 @@ export const dataProvider = {
         filter = { type: "recharge", ...filter };
 
         if (role === "Player") {
-          filter = { userId: userid, status: 1, ...filter };
+          filter = { userId: userid, ...filter };
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           filter &&
-            Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
         } else if (role === "Agent") {
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
           filter &&
-            Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
@@ -166,8 +202,18 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
+      // filter &&
+      //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+
       filter &&
-        Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+        Object.keys(filter).map((f) => {
+          if (f === "username") {
+            // Use regex for fuzzy matching
+            query.matches(f, filter[f], "i");
+          } else {
+            query.equalTo(f, filter[f]);
+          }
+        });
 
       const results =
         resource === "users"
