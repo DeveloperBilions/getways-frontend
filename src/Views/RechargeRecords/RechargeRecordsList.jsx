@@ -8,12 +8,9 @@ import {
   DateField,
   NumberField,
   FunctionField,
-  FilterButton,
   TopToolbar,
-  TextInput,
   usePermissions,
   useGetIdentity,
-  SortButton,
   useGetList,
   useRefresh,
 } from "react-admin";
@@ -209,15 +206,10 @@ export const RechargeRecordsList = (props) => {
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable variant="outlined" />,
-    // <TextInput source="status" />,
   ];
 
   const postListActions = (
     <TopToolbar>
-      {/* <FilterButton /> */}
-      <SortButton
-        fields={["username", "status", "transactionAmount", "transactionDate"]}
-      />
       {permissions === "Player" && (
         <Button
           variant="contained"
@@ -363,12 +355,7 @@ export const RechargeRecordsList = (props) => {
               );
             }}
           />
-          <DateField
-            source="transactionDate"
-            label="RechargeDate"
-            locales="fr-FR"
-            showTime
-          />
+          <DateField source="transactionDate" label="RechargeDate" showTime />
           <FunctionField
             label="Action"
             render={(record) =>

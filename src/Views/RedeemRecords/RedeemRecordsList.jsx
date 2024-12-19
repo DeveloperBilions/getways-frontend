@@ -8,13 +8,9 @@ import {
   DateField,
   NumberField,
   FunctionField,
-  FilterButton,
   TopToolbar,
-  TextInput,
   usePermissions,
   useGetIdentity,
-  Filter,
-  SortButton,
   useGetList,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
@@ -117,17 +113,6 @@ export const RedeemRecordsList = (props) => {
     }
   };
 
-  const getColor = (status) => {
-    switch (status) {
-      case 4:
-        return "success";
-      case 5:
-        return "error";
-      default:
-        return "Unknown Status";
-    }
-  };
-
   // 0: "Pending Referral Link"
   // 1: "Pending Confirmation"
   // 2: "Confirmed" - btn dispaly "Coins Credit"
@@ -198,17 +183,10 @@ export const RedeemRecordsList = (props) => {
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable variant="outlined" />,
-    // <TextInput label="Status" source="status" defaultValue="Fail" />
-    // <TextInput label="Search" source="username" alwaysOn key="search" />,
-    // <TextInput source="status" />,
   ];
 
   const postListActions = (
     <TopToolbar>
-      {/* <FilterButton /> */}
-      <SortButton
-        fields={["username", "status", "transactionAmount", "transactionDate"]}
-      />
       <Button
         variant="contained"
         size="small"
@@ -311,10 +289,25 @@ export const RedeemRecordsList = (props) => {
           <TextField source="remark" label="Remark" />
           <FunctionField
             label="Status"
+            source="status"
             render={(record) => {
+              const getColor = (status) => {
+                switch (status) {
+                  case 4:
+                    return "success";
+                  case 5:
+                    return "error";
+                  default:
+                    return "default";
+                }
+              };
+              const statusMessage = {
+                4: "Success",
+                5: "Fail",
+              }[record.status];
               return (
                 <Chip
-                  label={mapStatus(record.status)}
+                  label={statusMessage}
                   color={getColor(record.status)}
                   size="small"
                   variant="outlined"
@@ -322,12 +315,7 @@ export const RedeemRecordsList = (props) => {
               );
             }}
           />
-          <DateField
-            source="transactionDate"
-            label="RedeemDate"
-            locales="fr-FR"
-            showTime
-          />
+          <DateField source="transactionDate" label="RedeemDate" showTime />
           <TextField source="responseMessage" label="Message" />
         </Datagrid>
       </List>

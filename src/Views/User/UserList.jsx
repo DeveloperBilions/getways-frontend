@@ -12,8 +12,6 @@ import {
   useResourceContext,
   useGetIdentity,
   useCreate,
-  SortButton,
-  useRefresh,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -220,7 +218,6 @@ export const UserList = (props) => {
 
   const PostListActions = () => (
     <TopToolbar>
-      <SortButton fields={["username", "email", "createdAt"]} />
       <Button
         variant="contained"
         color="primary"
@@ -266,7 +263,7 @@ export const UserList = (props) => {
       <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
         <TextField source="username" label="User Name" />
         <TextField source="email" label="Email" />
-        <DateField source="createdAt" label="Date" locales="fr-FR" showTime />
+        <DateField source="createdAt" label="Date" showTime />
         {identity?.role === "Super-User" && (
           <TextField source="roleName" label="User Type" />
         )}
