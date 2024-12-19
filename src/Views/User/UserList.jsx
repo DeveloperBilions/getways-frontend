@@ -4,7 +4,6 @@ import {
   Datagrid,
   List,
   TextField,
-  SearchInput,
   TopToolbar,
   DateField,
   WrapperField,
@@ -12,8 +11,6 @@ import {
   useResourceContext,
   useGetIdentity,
   useCreate,
-  SortButton,
-  useRefresh,
   TextInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
@@ -76,17 +73,11 @@ const CustomButton = ({ fetchAllUsers }) => {
   const handleEdit = () => {
     handleClose();
     setEditUserDialogOpen(true);
-    // handleClose();
-    // navigate(`/users/${record.id}`);
   };
 
   const handleDelete = async () => {
     handleClose();
     setDeleteUserDialogOpen(true);
-    // const userId = record.id;
-    // handleClose();
-    // await Parse.Cloud.run("deleteUser", { userId });
-    // fetchAllUsers();
   };
 
   return (
@@ -217,7 +208,6 @@ export const UserList = (props) => {
 
   const dataFilters = [
     <TextInput source="username" label="Name" alwaysOn resettable />,
-    // <TextInput source="email" label="Email" type="email" alwaysOn resettable />,
   ];
 
   const PostListActions = () => (
@@ -267,6 +257,9 @@ export const UserList = (props) => {
       <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
         <TextField source="username" label="User Name" />
         <TextField source="email" label="Email" />
+        {identity?.role === "Super-User" && (
+          <TextField source="userParentName" label="Parent User" />
+        )}
         <DateField source="createdAt" label="Date" showTime />
         {identity?.role === "Super-User" && (
           <TextField source="roleName" label="User Type" />
