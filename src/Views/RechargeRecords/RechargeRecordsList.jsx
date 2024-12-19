@@ -16,6 +16,7 @@ import {
   SortButton,
   useGetList,
   useRefresh,
+  SelectInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -208,8 +209,16 @@ export const RechargeRecordsList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable variant="outlined" />,
-    // <TextInput source="status" />,
+    <TextInput source="username" label="Name" alwaysOn resettable />,
+    <SelectInput label="Status" source="status" alwaysOn emptyText="All"
+    choices={[
+      {id: 0, name: "Pending Referral Link"},
+      {id: 1, name: "Pending Confirmation"},
+      {id: 2, name: "Confirmed"},
+      {id: 3, name: "Coins Credited"},
+      {id: 3, name: "Status Unknown"}
+    ]}
+    />
   ];
 
   const postListActions = (
