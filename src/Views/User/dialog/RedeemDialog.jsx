@@ -12,7 +12,6 @@ import {
   Input,
   FormText,
 } from "reactstrap";
-import { useGetIdentity } from "react-admin";
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -27,7 +26,6 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
-  const { identity } = useGetIdentity();
 
   const resetFields = () => {
     setUserName("");
@@ -36,14 +34,23 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
     setRemark("");
   };
 
+  const parentServiceFee = async () => {
+    try {
+      const response = await Parse.Cloud.run("redeemParentServiceFee", {
+        userId: record?.userParentId,
+      });
+      setredeemFees(response?.redeemService || 0);
+    } catch (error) {
+      console.error("Error fetching parent service fee:", error);
+    }
+  };
+
   useEffect(() => {
     if (record && open) {
-      // Populate fields when modal opens
+      parentServiceFee();
       setUserName(record.username || "");
       setBalance(record.balance || "");
-      setredeemFees(identity.redeemService || "");
     } else {
-      // Reset fields when modal closes
       resetFields();
     }
   }, [record, open]);
