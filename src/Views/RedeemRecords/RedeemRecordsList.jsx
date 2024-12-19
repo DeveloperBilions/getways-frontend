@@ -13,6 +13,7 @@ import {
   usePermissions,
   useGetIdentity,
   useGetList,
+  useRefresh,
   SelectInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +46,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
   const navigate = useNavigate();
+  const refresh = useRefresh();
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
 
@@ -139,12 +141,7 @@ export const RedeemRecordsList = (props) => {
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
   const handleRefresh = async () => {
-    try {
-      await Parse.Cloud.run("checkTransactionStatus");
-      fetchData();
-    } catch (error) {
-      console.error("Error Transaction Status", error);
-    }
+    refresh();
   };
 
   const handleExportPDF = () => {

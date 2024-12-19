@@ -148,11 +148,6 @@ export const RechargeRecordsList = (props) => {
 
   const handleRefresh = async () => {
     refresh();
-    // try {
-    //   await Parse.Cloud.run("checkTransactionStatus");
-    // } catch (error) {
-    //   console.error("Error Transaction Status", error);
-    // }
   };
 
   const handleCoinCredit = async (record) => {
@@ -444,7 +439,7 @@ export const RechargeRecordsList = (props) => {
           <RechargeDialog
             open={rechargeDialogOpen}
             onClose={() => setRechargeDialogOpen(false)}
-            fetchData={fetchData}
+            handleRefresh={handleRefresh}
           />
         )}
       </List>
