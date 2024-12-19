@@ -12,6 +12,9 @@ import {
   useResourceContext,
   useGetIdentity,
   useCreate,
+  SortButton,
+  useRefresh,
+  TextInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -213,7 +216,8 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable variant="outlined" />,
+    <TextInput source="username" label="Name" alwaysOn resettable />,
+    // <TextInput source="email" label="Email" type="email" alwaysOn resettable />,
   ];
 
   const PostListActions = () => (
