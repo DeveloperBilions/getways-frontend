@@ -5,6 +5,7 @@ import {
   List,
   TextField,
   SearchInput,
+  TextInput,
   DateField,
   NumberField,
   FunctionField,
@@ -12,7 +13,7 @@ import {
   usePermissions,
   useGetIdentity,
   useGetList,
-  SelectInput
+  SelectInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -184,18 +185,23 @@ export const RedeemRecordsList = (props) => {
 
   const dataFilters = [
     <TextInput source="username" label="Name" alwaysOn resettable />,
-    <SelectInput label="Status" source="status" alwaysOn emptyText="All"
-    choices={[
-      {id: 4, name: "Success"},
-      {id: 5, name: "Failed"}
-    ]}
-    />
+    <SelectInput
+      label="Status"
+      source="status"
+      alwaysOn
+      emptyText="All"
+      choices={[
+        { id: 4, name: "Success" },
+        { id: 5, name: "Failed" },
+      ]}
+    />,
     // <TextInput label="Search" source="username" alwaysOn key="search" />,
     // <TextInput source="status" />,
   ];
 
   const postListActions = (
     <TopToolbar>
+      <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
       <Button
         variant="contained"
         size="small"

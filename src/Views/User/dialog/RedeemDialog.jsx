@@ -10,17 +10,15 @@ import {
   Label,
   Form,
   Input,
+  FormText,
 } from "reactstrap";
-import {
-  useGetIdentity
-} from "react-admin";
+import { useGetIdentity } from "react-admin";
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
-
   const [userName, setUserName] = useState("");
   const [balance, setBalance] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
@@ -52,7 +50,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
   const calculateRedeemedAmount = () => {
     if (redeemAmount && redeemFees) {
-      const calculatedAmount = redeemAmount - (redeemAmount * (redeemFees / 100));
+      const calculatedAmount = redeemAmount - redeemAmount * (redeemFees / 100);
       setRedeemPercentage(calculatedAmount.toFixed(2));
     }
   };
@@ -88,10 +86,13 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
   return (
     <Modal isOpen={open} toggle={onClose} size="md" centered>
-      <ModalHeader toggle={onClose} className="border-bottom-0">
+      <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
         Redeem Amount
       </ModalHeader>
       <ModalBody>
+        <FormText className="font-weight-bold">
+          Redeems may take up to 2 hours
+        </FormText>
         <Form onSubmit={handleSubmit}>
           <Row>
             <Col md={12}>
@@ -152,12 +153,12 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
               </FormGroup>
             </Col>
 
-            <p className="mb-0"><small>Redeem Service Fee @ {redeemFees}%</small></p>
+            <p className="mb-0">
+              <small>Redeem Service Fee @ {redeemFees}%</small>
+            </p>
             {redeemPercentage && (
               <p className="mb-1">
-                <small>
-                  Total amount to be redeemed = ${redeemPercentage}
-                </small>
+                <small>Total amount to be redeemed = ${redeemPercentage}</small>
               </p>
             )}
 
