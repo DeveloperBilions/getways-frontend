@@ -131,7 +131,21 @@ export const MyTheme = {
                 }
             }
         },
+        RaFilterForm: {
+            styleOverrides: {
+                root: {
+                    // backgroundColor: "red",
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "nowrap",
+                    justifyContent: "flex-start",
+                    alignItems: "baseline",
+                    minHeight: "fit-content !important",
+                },
+            },
+        },
 
     }
 }
+
 //appbar position: fixed left: 15em
