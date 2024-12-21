@@ -1,23 +1,133 @@
 import React, { useEffect, useState } from "react";
-import { useDataProvider, useGetIdentity, Loading } from "react-admin";
+import {
+  useDataProvider,
+  useGetIdentity,
+  Loading,
+  SearchInput,
+  List,
+  TextInput,
+  SimpleForm,
+  TextField,
+  SimpleShowLayout,
+  useListContext,
+  ListContextProvider,
+  useListController,
+  ListBase,
+  FilterForm,
+} from "react-admin";
 // mui
-import { Typography, Card, CardContent, Grid, Box } from "@mui/material";
+import {
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+} from "@mui/material";
 // mui icons
 import PersonIcon from "@mui/icons-material/Person";
 import PaidIcon from "@mui/icons-material/Paid";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 
+import { Parse } from "parse";
+// Initialize Parse
+Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+Parse.serverURL = process.env.REACT_APP_URL;
+
+export const Aside = () => {
+  const { data, isPending, filterValues, setFilters, resource, perPage } =
+    useListContext();
+
+  setFilters({ username: "dhyan" });
+  console.log("=====", filterValues);
+  console.log("=====", resource);
+
+  const totalUsers =
+    data?.filter(
+      (ele) =>
+        ele.roleName === "Super-User" ||
+        ele.roleName === "Agent" ||
+        ele.roleName === "Player"
+    ).length || 1;
+
+  const totalAgents =
+    data?.filter((ele) => ele.roleName === "Agent").length || 1;
+
+  const totalRechargeAmount =
+    data
+      ?.filter((item) => item.status === 2 || item.status === 3)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+
+  const totalRedeemAmount =
+    data
+      ?.filter((item) => item.status === 4)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+
+  const totalPendingRecharge =
+    data
+      ?.filter((item) => item.status === 1)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+
+  const totalFailRedeem =
+    data
+      ?.filter((item) => item.status === 5)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+
+  if (isPending) return null;
+  return (
+    <div>
+      <div>Total Users:{totalUsers}</div>
+      <div>Total Agent:{totalAgents}</div>
+      <div>Total Recharges:{totalRechargeAmount}</div>
+      <div>Total Redeems:{totalRedeemAmount}</div>
+      <div>Pending Recharges:{totalPendingRecharge}</div>
+      <div>Failed Redeems:{totalFailRedeem}</div>
+    </div>
+  );
+};
+
 export const SummaryList = () => {
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
+
+  const [sumaryData, setSumaryData] = useState({});
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState("");
 
   const [data, setData] = useState({
     rechargeRecords: [],
     redeemRecords: [],
     userRecords: [],
   });
-  const [loading, setLoading] = useState(true);
+
+  const summaryData = async () => {
+    try {
+      const response = await Parse.Cloud.run("summaryFilter", {
+        role: identity?.role,
+        id: identity?.objectId,
+      });
+      setSumaryData(response);
+    } catch (error) {
+      console.error("Error fetching summary", error.message);
+    }
+  };
+
+  const readableUsersData = sumaryData?.data?.users.map((user) =>
+    user.toJSON()
+  );
+  const readableTransactionData =
+    sumaryData?.data?.transactions &&
+    sumaryData?.data?.transactions.map((user) => user.toJSON());
+
+  useEffect(() => {
+    summaryData();
+  }, [identity]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -58,25 +168,25 @@ export const SummaryList = () => {
   }, [dataProvider]);
 
   const totalAgents =
-    data.userRecords?.filter((user) => user.roleName === "Agent").length || 0;
+    readableUsersData?.filter((ele) => ele.roleName === "Agent").length || 1;
 
   const totalRechargeAmount =
-    data.rechargeRecords
+    readableTransactionData
       ?.filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const totalRedeemAmount =
-    data.redeemRecords
+    readableTransactionData
       ?.filter((item) => item.status === 4)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const totalPendingRecharge =
-    data.rechargeRecords
+    readableTransactionData
       ?.filter((item) => item.status === 1)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
   const totalFailRedeem =
-    data.redeemRecords
+    readableTransactionData
       ?.filter((item) => item.status === 5)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
@@ -84,7 +194,7 @@ export const SummaryList = () => {
     {
       id: 1,
       name: "Total User",
-      value: data.userRecords?.length,
+      value: readableUsersData?.length,
       bgColor: "#E3F2FD",
       borderColor: "#7EB9FB",
       icon: <PersonIcon color="primary" />,
@@ -131,6 +241,28 @@ export const SummaryList = () => {
     },
   ];
 
+  const handleSubmit = async () => {
+    // Find the selected user from the data
+    const selectedUserObj = data.userRecords?.find(
+      (user) => user.username === selectedUser
+    );
+    console.log("Selected User Data: ", selectedUserObj);
+    try {
+      const response = await Parse.Cloud.run("summaryFilter", {
+        role: selectedUserObj?.roleName,
+        id: selectedUserObj?.id,
+      });
+      setSumaryData(response);
+      // console.log("*****", response);
+    } catch (error) {
+      console.error("Error fetching summary", error.message);
+    }
+  };
+
+  useEffect(() => {
+    summaryData();
+  }, [identity]);
+
   if (loading) {
     // React-admin Loading component
     return (
@@ -145,42 +277,78 @@ export const SummaryList = () => {
     );
   }
 
+  const dataFilters = [<SearchInput source="username" alwaysOn resettable />];
+
+  const ListToolbar = () => <FilterForm filters={dataFilters} />;
+
   return (
-    <Grid container spacing={2} mt>
-      {finalData
-        .filter((item) => {
-          if (item.name === "Total Agent" && identity?.role !== "Super-User") {
-            return false;
-          }
-          return true;
-        })
-        .map((item) => (
-          <Grid item xs={12} md={4} key={item?.id}>
-            <Card
-              sx={{
-                backgroundColor: item?.bgColor,
-                border: 2,
-                borderColor: item?.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
+    <React.Fragment>
+      <ListBase>
+        {/* <ListToolbar /> */}
+        <Aside />
+        {/* <Box sx={{ mt: 2 }}>
+        <FormControl sx={{ minWidth: 410 }}>
+          <InputLabel id="demo-simple-select-label">User Name</InputLabel>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            label="User Name"
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+          >
+            {data.userRecords?.map((user) => (
+              <MenuItem key={user?.id} value={user.username}>
+                {user.username} - {user.roleName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+      <Box mt={2}>
+        <Button variant="contained" color="primary" onClick={handleSubmit}>
+          Submit
+        </Button>
+      </Box> */}
+        <Grid container spacing={2} mt>
+          {finalData
+            .filter((item) => {
+              if (
+                item.name === "Total Agent" &&
+                identity?.role !== "Super-User"
+              ) {
+                return false;
+              }
+              return true;
+            })
+            .map((item) => (
+              <Grid item xs={12} md={4} key={item?.id}>
+                <Card
+                  sx={{
+                    backgroundColor: item?.bgColor,
+                    border: 2,
+                    borderColor: item?.borderColor,
+                    borderRadius: 0,
+                    boxShadow: 0,
+                  }}
                 >
-                  {item?.icon}
-                  &nbsp;{item?.name}
-                </Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {item?.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-    </Grid>
+                  <CardContent>
+                    <Typography
+                      variant="subtitle1"
+                      display="flex"
+                      alignItems="center"
+                    >
+                      {item?.icon}
+                      &nbsp;{item?.name}
+                    </Typography>
+                    <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
+                      {item?.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+        </Grid>
+      </ListBase>
+    </React.Fragment>
   );
 };
