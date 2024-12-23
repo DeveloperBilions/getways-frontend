@@ -10,7 +10,7 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const dataProvider = {
   create: async (resource, params) => {
-    // console.log("CREATE CALLED");
+    console.log("CREATE CALLED");
     try {
       if (resource === "users") {
         const data = (({
@@ -62,7 +62,7 @@ export const dataProvider = {
         return { data: { id: result.id, ...result.attributes } };
       }
     } catch (error) {
-      // console.log(params);
+      console.log(params);
       throw error;
     }
   },
@@ -86,12 +86,12 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-    // console.log("GETLIST");
-    // console.log("*****", params);
+    console.log("GETLIST");
+    console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
-    // console.log("=====", filter);
+    console.log("=====", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -187,33 +187,6 @@ export const dataProvider = {
           query.containedIn("userId", ids);
         }
         count = await query.count();
-      } else if (resource === "summary") {
-        if (role === "Super-User") {
-          //users
-          const userQuery = new Parse.Query(Parse.User);
-          const responseUser = await userQuery.find({ useMasterKey: true });
-          const resOne = responseUser.map((o) => ({
-            id: o.id,
-            ...o.attributes,
-          }));
-
-          //transaction
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          const responseTest = await transactionQuery.find({
-            useMasterKey: true,
-          });
-          const resTwo = responseTest.map((o) => ({
-            id: o.id,
-            ...o.attributes,
-          }));
-
-          const rawData = [...resOne, ...resTwo];
-
-          const test = { data: rawData, total: count };
-          // const test = { data: rawData, total: count };
-          // const test = { resOne, resTwo };
-          return test;
-        }
       } else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
