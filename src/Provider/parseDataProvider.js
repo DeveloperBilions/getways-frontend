@@ -91,9 +91,7 @@ export const dataProvider = {
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
-    var q  = filter.q;
-    delete filter.q;
-    console.log("=====", filter);
+    // console.log("=====", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -119,40 +117,72 @@ export const dataProvider = {
           query.equalTo("userParentId", userid);
         }
         count = await query.count({ useMasterKey: true });
-      } 
-      else if (resource === "redeemRecords") {
+      } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);;
+        query = new Parse.Query(Resource);
+        // query.equalTo('type', 'redeem');
         filter = { type: "redeem", ...filter };
+
         if (role === "Player") {
           filter = { userId: userid, status: 5, ...filter };
-          filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
-          }); 
-        } 
-        else if (role === "Agent") {
-          filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
-          });
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
+        } else if (role === "Agent") {
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
         count = await query.count();
-      } 
-      else if (resource === "rechargeRecords") {
+      } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
+        // query.equalTo('type', 'recharge');
         filter = { type: "recharge", ...filter };
+
         if (role === "Player") {
-          filter = { userId: userid, status: 5, ...filter };
-          filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
-          }); 
-        } 
-        else if (role === "Agent") {
-          filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
-          });
+          filter = { userId: userid, ...filter };
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
+        } else if (role === "Agent") {
+          // filter &&
+          //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") {
+                // Use regex for fuzzy matching
+                query.matches(f, filter[f], "i");
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
@@ -184,8 +214,7 @@ export const dataProvider = {
           // const test = { resOne, resTwo };
           return test;
         }
-      } 
-      else {
+      } else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         filter &&
@@ -200,7 +229,10 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      /*filter &&
+      // filter &&
+      //   Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+
+      filter &&
         Object.keys(filter).map((f) => {
           if (f === "username") {
             // Use regex for fuzzy matching
@@ -208,7 +240,7 @@ export const dataProvider = {
           } else {
             query.equalTo(f, filter[f]);
           }
-        }); */
+        });
 
       const results =
         resource === "users"

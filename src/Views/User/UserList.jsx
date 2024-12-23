@@ -208,7 +208,7 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput source="q" alwaysOn resettable />,
+    <SearchInput source="username" alwaysOn resettable />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
 
