@@ -322,6 +322,7 @@ export const RechargeRecordsList = (props) => {
         sx={{ pt: 1 }}
         empty={false}
         {...props}
+        filter={{type: "recharge"}}
         sort={{ field: "transactionDate", order: "DESC" }}
       >
         <Datagrid size="small" bulkActionButtons={false}>

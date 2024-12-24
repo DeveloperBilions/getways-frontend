@@ -1,10 +1,12 @@
 import React from "react";
 import {
   useGetIdentity,
+  useGetList,
   Loading,
   SearchInput,
   List,
   TextInput,
+  SelectInput,
   SimpleForm,
   TextField,
   SimpleShowLayout,
@@ -34,7 +36,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 const Summary = () => {
   const { data, isPending } = useListContext();
   if (isPending) return null;
-  console.log(data);
+  // console.log(data);
   const totalUsers = data[0]?.users.length - 1; //excluding self
 
   const totalAgents = data[0]?.users
@@ -71,9 +73,38 @@ const Summary = () => {
     </>);
 }
 
-export const DataSummary = () => {
+const SearchSelectUsersFilter = () => {
+  const { data, isPending } = useGetList('users');
+  // console.log(data);
+  // if (isPending) return null;
+  return (<SelectInput 
+    label="username" 
+    source="username" 
+    choices={data}
+    optionText="username"
+    optionValue="id"
+    alwaysOn 
+    resettable 
+    emptyText="All"
+  />);
+}
 
-  const dataFilters = [<SearchInput source="username" alwaysOn resettable />];
+export const DataSummary = () => {
+  const { data, isPending } = useGetList('users');
+
+  const dataFilters = [
+      <SelectInput 
+      label="username" 
+      source="username" 
+      choices={data}
+      optionText="username"
+      optionValue="id"
+      alwaysOn 
+      resettable 
+      emptyText="All"
+    />
+    // <SearchSelectUsersFilter />,
+  ];
 
   return (
     <React.Fragment>

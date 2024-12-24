@@ -26,6 +26,7 @@ export const authProvider = {
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
       localStorage.setItem("role", role.get("name"));
+      localStorage.setItem("user", user);
     } catch (error) {
       throw Error(error.message);
     }

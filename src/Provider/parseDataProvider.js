@@ -93,7 +93,7 @@ export const dataProvider = {
     var filter = params.filter;
     var q  = filter.q;
     delete filter.q;
-    console.log("=====", filter);
+    // console.log("=====", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -101,16 +101,20 @@ export const dataProvider = {
     const role = localStorage.getItem("role");
     const userid = localStorage.getItem("id");
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (selectedUser) => {
       // console.log(userid)
-      var usrQuery = new Parse.Query(Parse.User);
-      usrQuery.equalTo("userParentId", userid);
-      usrQuery.select("objectId");
-      var result = await usrQuery.find({ useMasterKey: true });
-      var ids = result.map((r) => r.id);
-      ids.push(userid);
-      // console.log({ ids: ids })
-      return { ids: ids };
+      const user = selectedUser?selectedUser:localStorage.getItem("user");
+      
+      const usrQuery = new Parse.Query(Parse.User);
+      usrQuery.equalTo("userParentId", user.id);
+      
+      var results = await usrQuery.find({ useMasterKey: true });
+      results.push(user);
+      var ids = results.map((r) => r.id);
+      ids.push(user.id);
+      const data = results.map((o) => ({ id: o.id, ...o.attributes }));
+      
+      return { ids: ids, data: data};
     };
     try {
       if (resource === "users") {
@@ -125,14 +129,14 @@ export const dataProvider = {
         query = new Parse.Query(Resource);;
         filter = { type: "redeem", ...filter };
         if (role === "Player") {
-          filter = { userId: userid, status: 5, ...filter };
+          filter = { userId: userid, ...filter };
           filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
+              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
           }); 
         } 
         else if (role === "Agent") {
           filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
+              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
           });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
@@ -144,46 +148,73 @@ export const dataProvider = {
         query = new Parse.Query(Resource);
         filter = { type: "recharge", ...filter };
         if (role === "Player") {
-          filter = { userId: userid, status: 5, ...filter };
+          filter = { userId: userid, ...filter };
           filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
+              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
           }); 
         } 
         else if (role === "Agent") {
           filter && Object.keys(filter).map((f) => {
-              f === "username"?query.matches(f, filter[f], "i"):query.equalTo(f, filter[f]);
+              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
           });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
+        // console.log(query);
         count = await query.count();
-      } else if (resource === "summary") {
+      } 
+      else if (resource === "summary") {
+        var result = null;
         if (role === "Super-User") {
           //users
           const userQuery = new Parse.Query(Parse.User);
-          const responseUser = await userQuery.find({ useMasterKey: true });
-          const resOne = responseUser.map((o) => ({
-            id: o.id,
-            ...o.attributes,
-          }));
+          userQuery.select("objectId", "name", "roleName");
+          // filter && {
+          //   filters.username && {
+          //     var { ids, data  } = fetchUsers(username);
+          //     a
+          //   }
+          // } 
+          var results = await userQuery.find({ useMasterKey: true });
+          const users = results.map((o) => ({ id: o.id, ...o.attributes }));
+          users.push({id: userid, roleName: role, name: localStorage.getItem("name")});
 
           //transaction
           const transactionQuery = new Parse.Query("TransactionRecords");
-          const responseTest = await transactionQuery.find({
+          // filters && {
+          //   const {data} = fetchUsers()
+          // };
+          transactionQuery.select("userId", "status", "transactionAmount", "type");
+          results = await transactionQuery.find({
             useMasterKey: true,
           });
-          const resTwo = responseTest.map((o) => ({
-            id: o.id,
-            ...o.attributes,
-          }));
-
-          const rawData = [...resOne, ...resTwo];
-
-          const test = { data: rawData, total: count };
-          // const test = { data: rawData, total: count };
-          // const test = { resOne, resTwo };
-          return test;
+          
+          result = {
+            data: [{id: 0, users: users,
+              transactions: results.map((o) => ({ id: o.id, ...o.attributes }))
+            }],
+            total: null,
+          };
         }
+        if (role === "Agent"){
+          //users
+          const { ids, data } = await fetchUsers();
+          
+          //transactions
+          const transactionQuery = new Parse.Query("TransactionRecords");
+          transactionQuery.select("userId", "status", "transactionAmount", "type");
+          transactionQuery.containedIn("userId", ids);
+          results = await transactionQuery.find();
+          
+          result = {
+            data: [{id: 0,
+              users: data,
+              transactions: results.map((o) => ({ id: o.id, ...o.attributes }))
+            }],
+            total: null,
+          };
+        }
+          return result;
       } 
       else {
         const Resource = Parse.Object.extend(resource);
@@ -200,17 +231,11 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      /*filter &&
-        Object.keys(filter).map((f) => {
-          if (f === "username") {
-            // Use regex for fuzzy matching
-            query.matches(f, filter[f], "i");
-          } else {
-            query.equalTo(f, filter[f]);
-          }
-        }); */
+      filter && Object.keys(filter).map((f) => {
+          if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
+      });
 
-      const results =
+      results =
         resource === "users"
           ? await query.find({ useMasterKey: true })
           : await query.find();

@@ -285,6 +285,7 @@ export const RedeemRecordsList = (props) => {
       <List
         title="Redeem Records"
         filters={dataFilters}
+        filter={{type: "redeem"}}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
