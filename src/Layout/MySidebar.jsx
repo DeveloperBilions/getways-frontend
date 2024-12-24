@@ -1,5 +1,10 @@
 import * as React from "react";
-import { SidebarClasses, useLocales, useSidebarState } from "react-admin";
+import {
+  SidebarClasses,
+  useLocales,
+  useSidebarState,
+  useGetIdentity,
+} from "react-admin";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -15,9 +20,15 @@ import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 
-const drawerWidth = "15em";
-
 export const MySidebar = ({ children }) => {
+  const { identity } = useGetIdentity();
+
+  if (!identity) {
+    return null;
+  }
+
+  const drawerWidth = identity?.role === "Player" ? "0em" : "15em";
+
   return (
     <Drawer
       variant="permanent"
@@ -26,11 +37,13 @@ export const MySidebar = ({ children }) => {
         width: drawerWidth,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
+          position: "static",
           width: drawerWidth,
           boxSizing: "border-box",
+          // backgroundColor: "blue",
           backgroundColor: "#272E3E",
-          //   backgroundColor: "#272E3E",
           overflow: "hidden",
+          marginTop: "5px",
         },
         "& .MuiMenuItem-root": {
           color: "#c0c7d8",
@@ -52,10 +65,10 @@ export const MySidebar = ({ children }) => {
         // }
       }}
     >
-      <Toolbar>
+      {/* <Toolbar>
         <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
 
-        {/* <Typography
+        <Typography
           variant="h4"
           component="div"
           align="center"
@@ -67,9 +80,9 @@ export const MySidebar = ({ children }) => {
           }}
         >
           GETWAYS
-        </Typography> */}
-      </Toolbar>
-      <Divider sx={{ borderColor: "#45516e" }} />
+        </Typography>
+      </Toolbar> */}
+      {/* <Divider sx={{ borderColor: "#45516e" }} /> */}
       {children}
     </Drawer>
   );

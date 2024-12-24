@@ -32,18 +32,22 @@ export default function MyAppBar({ props }) {
         gap: 1,
         alignItems: "center",
         paddingRight: "1em",
-        backgroundColor: "white",
-        // backgroundColor: "#272E35",
+        // backgroundColor: "white",
+        backgroundColor: "#272E35",
         position: "fixed",
-        left: "15em",
+        // left: "15em",
         top: 0,
         right: 0,
-        width: "calc(100% - 15em)",
-        height: "4em",
+        width: "100%",
+        height: "3.5em",
         color: "black",
-        // color: "white",
+        color: "white",
       }}
     >
+      <Toolbar sx={{ width: "15em" }}>
+        <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
+      </Toolbar>
+
       <TitlePortal variant="h5" component="h3" sx={{ paddingLeft: 3 }} />
       {/* <RefreshIconButton /> */}
       {/* <NotificationsNoneIcon /> */}

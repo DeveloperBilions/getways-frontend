@@ -13,6 +13,7 @@ import {
   useCreate,
   TextInput,
   SearchInput,
+  useRefresh,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -34,6 +35,7 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const CustomButton = ({ fetchAllUsers }) => {
+  const refresh = useRefresh();
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -54,6 +56,10 @@ const CustomButton = ({ fetchAllUsers }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleRefresh = async () => {
+    refresh();
   };
 
   const handleRedeem = () => {
@@ -117,6 +123,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
       <RedeemServiceDialog
         open={redeemServiceDialogOpen}

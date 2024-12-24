@@ -40,6 +40,8 @@ import BackupTableIcon from "@mui/icons-material/BackupTable";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -301,17 +303,26 @@ export const RechargeRecordsList = (props) => {
           <Typography sx={{ mt: 2 }}>
             Total Recharged Amount: <b>${totalTransactionAmount}</b>
           </Typography>
-        ) : (
-          <div></div>
-        )}
+        ) : null}
         {identity?.role === "Player" && (
-          <Typography
-            noWrap
-            variant="subtitle2"
-            sx={{ color: "text.secondary", fontWeight: 500, mt: 2 }}
-          >
-            Agent: <b>{identity?.userParentName}</b>
-          </Typography>
+          <>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ mt: 2 }}
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate("/playerDashboard")}
+            >
+              Back
+            </Button>
+            <Typography
+              noWrap
+              variant="subtitle2"
+              sx={{ color: "text.secondary", fontWeight: 500, mt: 2 }}
+            >
+              Agent: <b>{identity?.userParentName}</b>
+            </Typography>
+          </>
         )}
       </Box>
 

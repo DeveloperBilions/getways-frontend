@@ -17,7 +17,7 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
+const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [balance, setBalance] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
@@ -32,6 +32,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
     setBalance("");
     setRedeemAmount("");
     setRemark("");
+    setRedeemPercentage("");
   };
 
   const parentServiceFee = async () => {
@@ -81,9 +82,9 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
         setResponseData(response?.message);
       } else {
         onClose();
-        fetchAllUsers();
         setRedeemAmount("");
         setRemark("");
+        handleRefresh();
       }
     } catch (error) {
       console.error("Error Redeem Record details:", error);
@@ -92,9 +93,15 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
     }
   };
 
+  const handleClose = () => {
+    onClose();
+    handleRefresh();
+    resetFields();
+  };
+
   return (
-    <Modal isOpen={open} toggle={onClose} size="md" centered>
-      <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
+    <Modal isOpen={open} toggle={handleClose} size="md" centered>
+      <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
         Redeem Amount
       </ModalHeader>
       <ModalBody>
@@ -166,7 +173,9 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
             </p>
             {redeemPercentage !== null && redeemPercentage !== undefined && (
               <p className="mb-1">
-                <small>Total amount to be redeemed = ${redeemPercentage}</small>
+                <small>
+                  Total amount to be redeemed = ${redeemPercentage || 0}
+                </small>
               </p>
             )}
 
@@ -205,7 +214,7 @@ const RedeemDialog = ({ open, onClose, record, fetchAllUsers }) => {
                 >
                   {loading ? "Processing..." : "Confirm"}
                 </Button>
-                <Button color="secondary" onClick={onClose}>
+                <Button color="secondary" onClick={handleClose}>
                   Cancel
                 </Button>
               </div>

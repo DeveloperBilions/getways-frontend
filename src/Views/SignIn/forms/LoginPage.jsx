@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLogin, useNotify, Notification } from "react-admin";
+import { useLogin, useNotify, Notification, useRedirect } from "react-admin";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
@@ -31,6 +31,8 @@ Parse.serverURL = process.env.REACT_APP_URL;
 // const defaultTheme = createTheme();
 
 const LoginPage = () => {
+  const redirect = useRedirect();
+
   const {
     register,
     handleSubmit,
@@ -42,25 +44,19 @@ const LoginPage = () => {
   const notify = useNotify();
 
   const onSubmit = async (data) => {
-    // event.preventDefault();
-    // console.log(data);
     const email = data?.email;
     const password = data?.password;
 
     try {
-      /*
-      const response = await Parse.Cloud.run("checkUserType", { email, password });
+      const response = await login({ email, password });
 
-      if (response.userType === 1) {
-        login({ email, password }).catch(err => notify(err?.message));
+      if (response?.role === "Player") {
+        redirect("/playerDashboard");
       }
-      else {
-        notify("Please provide Agent Login")
-      }
-        */
-      login({ email, password }).catch((err) => notify(err?.message));
+      console.log("Login successful:", response);
     } catch (error) {
       console.error("Error Transaction Status", error);
+      notify(error?.message || "Login failed. Please try again.");
     }
   };
 
@@ -198,7 +194,7 @@ const LoginPage = () => {
               variant="contained"
               sx={{ mt: 3, mb: 1 }}
             >
-             Sign in
+              Sign in
             </Button>
             {/* <Typography variant="body1" align='center'>OR</Typography>
             <Button

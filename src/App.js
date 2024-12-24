@@ -1,11 +1,12 @@
 import "./App.css";
 import React from "react";
-import { Admin, Resource, CustomRoutes, ListGuesser } from "react-admin";
+import { Admin, Resource, CustomRoutes } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import GridViewIcon from "@mui/icons-material/GridView";
 // pages
 import LoginPage from "./Views/SignIn/forms/LoginPage";
 import SignUp from "./Views/SignIn/forms/SignUp";
@@ -23,7 +24,8 @@ import { MyTheme } from "./Layout/MyDefaultTheme";
 import { UserList } from "./Views/User/UserList";
 import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList";
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
-import { DataSummary } from "./Views/Summary/DataSummary";
+import { SummaryList } from "./Views/Summary/SummaryList copy";
+import { PlayerList } from "./Views/Player/PlayerList";
 
 function App() {
   return (
@@ -38,6 +40,13 @@ function App() {
         permissions && permissions !== "Player" ? (
           <>
             <Resource
+              name="summary"
+              list={SummaryList}
+              options={{ label: "Summary" }}
+              icon={SummarizeIcon}
+            />
+
+            <Resource
               name="users"
               list={UserList}
               options={{ label: "User Management" }}
@@ -45,29 +54,24 @@ function App() {
             />
 
             <Resource
-              name="summary"
-              list={DataSummary}
-              options={{ label: "Summary" }}
-              icon={SummarizeIcon}
+              name="rechargeRecords"
+              list={RechargeRecordsList}
+              options={{ label: "Recharge Records" }}
+              icon={LocalAtmIcon}
+            />
+
+            <Resource
+              name="redeemRecords"
+              recordRepresentation="redeemRecords"
+              list={RedeemRecordsList}
+              options={{ label: "Redeem Records" }}
+              icon={LocalAtmIcon}
             />
           </>
-        ) : null
+        ) : (
+          <></>
+        )
       }
-
-      <Resource
-        name="rechargeRecords"
-        list={RechargeRecordsList}
-        options={{ label: "Recharge Records" }}
-        icon={LocalAtmIcon}
-      />
-
-      <Resource
-        name="redeemRecords"
-        recordRepresentation="redeemRecords"
-        list={RedeemRecordsList}
-        options={{ label: "Redeem Records" }}
-        icon={LocalAtmIcon}
-      />
 
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />
@@ -76,6 +80,21 @@ function App() {
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         {/* <Route path="/create-user?referral=123" element={<ReferralLinkForm />} /> */}
         <Route path="/create-user" element={<ReferralLinkForm />} />
+      </CustomRoutes>
+
+      <CustomRoutes>
+        <Route
+          path="/playerDashboard"
+          element={<PlayerList resource="playerDashboard" />}
+        />
+        <Route
+          path="/rechargeRecords"
+          element={<RechargeRecordsList resource="rechargeRecords" />}
+        />
+        <Route
+          path="/redeemRecords"
+          element={<RedeemRecordsList resource="redeemRecords" />}
+        />
       </CustomRoutes>
     </Admin>
   );

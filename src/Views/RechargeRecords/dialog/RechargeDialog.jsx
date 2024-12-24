@@ -54,7 +54,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
     };
     setLoading(true);
     try {
-      await Parse.Cloud.run("userTransaction", rawData);
+      const response = await Parse.Cloud.run("userTransaction", rawData);
+      if (identity?.role === "Player") {
+        window.open(response?.apiResponse?.redirect_url, "_blank");
+      }
       onClose();
       handleRefresh();
       setRechargeAmount("");

@@ -33,6 +33,8 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -124,6 +126,8 @@ export const RedeemRecordsList = (props) => {
   // 3: "Coins Credited" for status
   // 4: "Redeem Success"
   // 5: "Redeem Faile"
+  // 6: "Pending Approval"
+  // 7: "Rejected" -  Redeem Request Rejected
 
   useEffect(() => {
     fetchData();
@@ -266,20 +270,29 @@ export const RedeemRecordsList = (props) => {
         }}
       >
         {identity?.role !== "Player" ? (
-          <Typography className="mt-2">
+          <Typography sx={{ mt: 2 }}>
             Total Redeemed Amount: <b>${totalTransactionAmount}</b>
           </Typography>
-        ) : (
-          <div></div>
-        )}
+        ) : null}
         {identity?.role === "Player" && (
-          <Typography
-            noWrap
-            variant="subtitle2"
-            sx={{ color: "text.secondary", fontWeight: 500 }}
-          >
-            Agent: <b>{identity?.userParentName}</b>
-          </Typography>
+          <>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ mt: 2 }}
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate("/playerDashboard")}
+            >
+              Back
+            </Button>
+            <Typography
+              noWrap
+              variant="subtitle2"
+              sx={{ color: "text.secondary", fontWeight: 500, mt: 2 }}
+            >
+              Agent: <b>{identity?.userParentName}</b>
+            </Typography>
+          </>
         )}
       </Box>
       <List

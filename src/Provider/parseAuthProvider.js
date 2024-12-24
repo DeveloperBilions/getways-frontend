@@ -7,7 +7,6 @@ Parse.initialize(
 );
 Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
-
 export const authProvider = {
   async login(params) {
     Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
@@ -26,6 +25,10 @@ export const authProvider = {
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
       localStorage.setItem("role", role.get("name"));
+
+      return {
+        role: role.get("name"),
+      };
       localStorage.setItem("user", user);
     } catch (error) {
       throw Error(error.message);
@@ -78,6 +81,7 @@ export const authProvider = {
       username: user.get("username"),
       redeemService: user.get("redeemService"),
       userParentName: user.get("userParentName"),
+      userParentId: user.get("userParentId"),
       role: role.get("name"),
     };
   },
