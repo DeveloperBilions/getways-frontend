@@ -87,7 +87,7 @@ export const dataProvider = {
   getList: async (resource, params) => {
     //works
     // console.log("GETLIST");
-    // console.log("*****", params);
+    console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
@@ -102,14 +102,15 @@ export const dataProvider = {
     const userid = localStorage.getItem("id");
 
     const fetchUsers = async (selectedUser) => {
-      // console.log(userid)
-      const user = selectedUser?selectedUser:localStorage.getItem("user");
+      const user = selectedUser?selectedUser:(await Parse.User.current());
+      console.log("INSIDE FETCH");
       
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
       
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
+      console.log(results);
       var ids = results.map((r) => r.id);
       ids.push(user.id);
       const data = results.map((o) => ({ id: o.id, ...o.attributes }));
@@ -165,45 +166,58 @@ export const dataProvider = {
       } 
       else if (resource === "summary") {
         var result = null;
+        console.log("Summary");
         if (role === "Super-User") {
           //users
-          const userQuery = new Parse.Query(Parse.User);
-          userQuery.select("objectId", "name", "roleName");
-          // filter && {
-          //   filters.username && {
-          //     var { ids, data  } = fetchUsers(username);
-          //     a
-          //   }
-          // } 
-          var results = await userQuery.find({ useMasterKey: true });
-          const users = results.map((o) => ({ id: o.id, ...o.attributes }));
-          users.push({id: userid, roleName: role, name: localStorage.getItem("name")});
-
-          //transaction
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          // filters && {
-          //   const {data} = fetchUsers()
-          // };
-          transactionQuery.select("userId", "status", "transactionAmount", "type");
-          results = await transactionQuery.find({
-            useMasterKey: true,
-          });
+          console.log("SU", filter);
           
+          if (filter?.username){
+            console.log("IN IF")
+            var userQuery = new Parse.Query(Parse.User);
+            var selectedUser = await userQuery.get(filter.username, {useMasterKey: true});
+            var { ids, data } = await fetchUsers(selectedUser);
+
+            const transactionQuery = new Parse.Query("TransactionRecords");
+            transactionQuery.select("userId", "status", "transactionAmount", "type");
+            transactionQuery.containedIn("userId", ids);
+            var results = await transactionQuery.find();
+          }
+
+          else {
+            var userQuery = new Parse.Query(Parse.User);
+            var results = await userQuery.find({ useMasterKey: true });
+            var data = results.map((o) => ({ id: o.id, ...o.attributes }));
+            const currentUser = await Parse.User.current();
+            data.push({id: userid, ...currentUser.attributes});
+
+            //transaction
+            const transactionQuery = new Parse.Query("TransactionRecords");
+            transactionQuery.select("userId", "status", "transactionAmount", "type");
+            var results = await transactionQuery.find();
+          }
           result = {
-            data: [{id: 0, users: users,
+            data: [{id: 0, users: data,
               transactions: results.map((o) => ({ id: o.id, ...o.attributes }))
             }],
             total: null,
           };
         }
         if (role === "Agent"){
+          console.log("Agent");
           //users
-          const { ids, data } = await fetchUsers();
-          
+          const selectedUser = filter&&filter.username?await (new Parse.Query(Parse.User)).get(filter.username, {useMasterKey: true}):null;
+          console.log("selected user:", selectedUser);
+          const { ids, data } = await fetchUsers(selectedUser);
+          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
+          console.log("fetchUsers", data);
           //transactions
           const transactionQuery = new Parse.Query("TransactionRecords");
           transactionQuery.select("userId", "status", "transactionAmount", "type");
           transactionQuery.containedIn("userId", ids);
+          /*filter && Object.keys(filter).map((f) => {
+              if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
+              else transactionQuery.equalTo(f, filter[f]);
+          });*/
           results = await transactionQuery.find();
           
           result = {
@@ -213,6 +227,7 @@ export const dataProvider = {
             }],
             total: null,
           };
+          console.log("Summary List ", result);
         }
           return result;
       } 

@@ -94,7 +94,7 @@ export const DataSummary = () => {
 
   const dataFilters = [
       <SelectInput 
-      label="username" 
+      label="User" 
       source="username" 
       choices={data}
       optionText="username"

@@ -25,6 +25,7 @@ import { UserList } from "./Views/User/UserList";
 import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList";
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 import { SummaryList } from "./Views/Summary/SummaryList copy";
+import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
 
 function App() {
@@ -39,9 +40,15 @@ function App() {
       {(permissions) =>
         permissions && permissions !== "Player" ? (
           <>
-            <Resource
+            {/*<Resource
               name="summary"
               list={SummaryList}
+              options={{ label: "Summary" }}
+              icon={SummarizeIcon}
+            /> */}
+            <Resource
+              name="summary"
+              list={DataSummary}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />
@@ -75,7 +82,7 @@ function App() {
 
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/reset-email-sent" element={<EmailSent />} />
+                <Route path="/reset-email-sent" element={<EmailSent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         {/* <Route path="/create-user?referral=123" element={<ReferralLinkForm />} /> */}

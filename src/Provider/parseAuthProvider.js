@@ -29,7 +29,6 @@ export const authProvider = {
       return {
         role: role.get("name"),
       };
-      localStorage.setItem("user", user);
     } catch (error) {
       throw Error(error.message);
     }

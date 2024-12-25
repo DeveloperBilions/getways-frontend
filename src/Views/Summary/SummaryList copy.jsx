@@ -15,8 +15,8 @@ import PaidIcon from "@mui/icons-material/Paid";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 // date picker
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 
 export const SummaryList = () => {
   const { identity } = useGetIdentity();
