@@ -108,6 +108,7 @@ export const dataProvider = {
 
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
+      usrQuery.limit(10000);
 
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
@@ -176,7 +177,7 @@ export const dataProvider = {
           console.log("SU", filter);
 
           if (filter?.username) {
-            console.log("IN IF");
+            // console.log("IN IF");
             var userQuery = new Parse.Query(Parse.User);
             var selectedUser = await userQuery.get(filter.username, {
               useMasterKey: true,
@@ -191,9 +192,11 @@ export const dataProvider = {
               "type"
             );
             transactionQuery.containedIn("userId", ids);
+            transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
+            userQuery.limit(10000);
             var results = await userQuery.find({ useMasterKey: true });
             var data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
@@ -207,6 +210,7 @@ export const dataProvider = {
               "transactionAmount",
               "type"
             );
+            transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           }
           result = {
@@ -222,6 +226,7 @@ export const dataProvider = {
             ],
             total: null,
           };
+          console.log("count ", result.data[0].users.length, result.data[0].transactions.length)
         }
         if (role === "Agent") {
           console.log("Agent");
