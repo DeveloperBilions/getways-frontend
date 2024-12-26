@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  useDataProvider,
   useGetIdentity,
   useRefresh,
   useRedirect,
+  useGetList,
 } from "react-admin";
 // mui
 import {
@@ -16,18 +16,23 @@ import {
   Box,
 } from "@mui/material";
 // mui icons
-import PaidIcon from "@mui/icons-material/Paid";
+import NumbersIcon from "@mui/icons-material/Numbers";
 // icons
-import MoneyReciveIcon from "../../Assets/icons/money-recive.svg";
-import MoneySendIcon from "../../Assets/icons/money-send.svg";
+import MoneyReciveLightIcon from "../../Assets/icons/money-recive-light.svg";
+import MoneySendLightIcon from "../../Assets/icons/money-send-light.svg";
+import MoneyReciveDarkIcon from "../../Assets/icons/money-recive-dark.svg";
+import MoneySendDarkIcon from "../../Assets/icons/money-send-dark.svg";
 // dialog
 import RechargeDialog from "../RechargeRecords/dialog/RechargeDialog";
 import RedeemDialog from "./dialog/PlayerRedeemDialog";
+// loader
+import { Loader } from "../Loader";
 
 export const PlayerList = () => {
+  const { data, isLoading } = useGetList("playerDashboard");
+
   const redirect = useRedirect();
   const refresh = useRefresh();
-  const dataProvider = useDataProvider();
   const { identity } = useGetIdentity();
 
   const transformedIdentity = {
@@ -37,98 +42,57 @@ export const PlayerList = () => {
 
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
-  const [rawData, setRawData] = useState({
-    rechargeRecords: [],
-    redeemRecords: [],
-  });
 
-  const fetchAllData = async () => {
-    try {
-      const fetchAll = async (resource) => {
-        let page = 1;
-        let allData = [];
-        let shouldFetch = true;
+  if (isLoading || !data) {
+    return <Loader />;
+  }
 
-        while (shouldFetch) {
-          const response = await dataProvider.getList(resource, {
-            pagination: { page, perPage: 100 },
-            sort: { field: "id", order: "ASC" },
-            filter: {},
-          });
+  const totalRecharges =
+    data?.filter((item) => item.type === "recharge").length || "---";
 
-          allData = [...allData, ...response.data];
+  const totalRedeems =
+    data
+      ?.filter((item) => item.type === "redeem")
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || "---";
 
-          if (response.total <= allData.length) {
-            shouldFetch = false;
-          } else {
-            page += 1;
-          }
-        }
+  const pendingRecharges =
+    data
+      ?.filter((item) => item.status === 0 || item.status === 1)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || "---";
 
-        return allData;
-      };
-
-      const [rechargeRecords, redeemRecords] = await Promise.all([
-        fetchAll("rechargeRecords"),
-        fetchAll("redeemRecords"),
-      ]);
-
-      setRawData({
-        rechargeRecords,
-        redeemRecords,
-      });
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAllData();
-  }, [dataProvider]);
-
-  const totalSuccessRecharge =
-    rawData?.rechargeRecords?.filter(
-      (item) => item.status === 2 || item.status === 3
-    ).length || 0;
-
-  const totalPendingRecharge =
-    rawData?.rechargeRecords?.filter(
-      (item) => item.status === 0 || item.status === 1
-    ).length || 0;
-
-  const totalSuccessRedeem =
-    rawData?.redeemRecords?.filter((item) => item.status === 4).length || 0;
-
-  const totalFailRedeem =
-    rawData?.redeemRecords?.filter((item) => item.status === 5).length || 0;
+  const redeemRequests =
+    data?.filter((item) => item.status === 6).length || "---";
 
   const finalData = [
     {
       id: 1,
-      name: "Total Recharges(count)",
-      value: totalSuccessRecharge,
+      name: "Total Recharges",
+      value: totalRecharges,
+      icon: NumbersIcon,
     },
     {
       id: 2,
-      name: "Total Redeems(Amount)",
-      value: totalSuccessRedeem,
+      name: "Total Redeems",
+      value: "$" + totalRedeems,
+      icon: MoneyReciveDarkIcon,
     },
     {
       id: 3,
-      name: "Pending Recharges(Amount)",
-      value: totalPendingRecharge,
+      name: "Pending Recharges",
+      value: "$" + pendingRecharges,
+      icon: MoneySendDarkIcon,
       url: "rechargeRecords",
     },
     {
       id: 4,
-      name: "Redeem Requests(count)",
-      value: totalFailRedeem,
+      name: "Redeem Requests",
+      value: redeemRequests,
+      icon: NumbersIcon,
       url: "redeemRecords",
     },
   ];
 
   const handleRefresh = async () => {
-    await fetchAllData();
     refresh();
   };
 
@@ -181,7 +145,21 @@ export const PlayerList = () => {
                         justifyContent="space-between"
                         mb={1}
                       >
-                        <PaidIcon sx={{ fontSize: 20, mr: 1 }} />
+                        {item.icon ? (
+                          typeof item.icon === "string" ? (
+                            <img
+                              src={item?.icon}
+                              alt={item.name}
+                              style={{ width: 24, height: 24, marginRight: 8 }}
+                            />
+                          ) : (
+                            <item.icon
+                              style={{ fontSize: 24, marginRight: 8 }}
+                            />
+                          )
+                        ) : (
+                          <span>No Icon</span>
+                        )}
                         <Typography
                           variant="body2"
                           sx={{
@@ -223,7 +201,7 @@ export const PlayerList = () => {
                 }}
                 startIcon={
                   <img
-                    src={MoneySendIcon}
+                    src={MoneySendLightIcon}
                     alt="Money Recive Icon"
                     style={{ width: 24, height: 24 }}
                   />
@@ -247,7 +225,7 @@ export const PlayerList = () => {
                 }}
                 startIcon={
                   <img
-                    src={MoneyReciveIcon}
+                    src={MoneyReciveLightIcon}
                     alt="Money Recive Icon"
                     style={{ width: 24, height: 24 }}
                   />

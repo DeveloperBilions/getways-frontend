@@ -35,7 +35,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 
 const Summary = () => {
   const { data, isPending } = useListContext();
-  
+
   if (isPending) {
     return (
       <Box
@@ -50,9 +50,9 @@ const Summary = () => {
   }
 
   const totalUsers = data[0]?.users.length - 1; //excluding self
-  const totalAgents = data[0]?.users
-    ?.filter(item => item.roleName === 'Agent')
-    .length;
+  const totalAgents = data[0]?.users?.filter(
+    (item) => item.roleName === "Agent"
+  ).length;
   const totalRechargeAmount =
     data[0]?.transactions
       ?.filter((item) => item.status === 2 || item.status === 3)
@@ -121,37 +121,37 @@ const Summary = () => {
     },
   ];
 
-
-  return <Grid container spacing={2} mt>
-        {finalData
-          .map((item) => (
-            <Grid item xs={12} md={4} key={item?.id}>
-              <Card
-                sx={{
-                  backgroundColor: item?.bgColor,
-                  border: 2,
-                  borderColor: item?.borderColor,
-                  borderRadius: 0,
-                  boxShadow: 0,
-                }}
+  return (
+    <Grid container spacing={2} mt>
+      {finalData?.map((item) => (
+        <Grid item xs={12} md={4} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
               >
-                <CardContent>
-                  <Typography
-                    variant="subtitle1"
-                    display="flex"
-                    alignItems="center"
-                  >
-                    {item?.icon}
-                    &nbsp;{item?.name}
-                  </Typography>
-                  <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                    {item?.value}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-      </Grid>;
+                {item?.icon}
+                &nbsp;{item?.name}
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
 
   /*return (<>
       <div>Number of users: {totalUsers} </div>
@@ -161,47 +161,55 @@ const Summary = () => {
       <div>Pending Recharge: {totalPendingRechargeAmount} </div>
       <div>Failed Redeem: {totalFailRedeemAmount} </div>
     </>); */
-}
+};
 
 const SearchSelectUsersFilter = () => {
-  const { data, isPending } = useGetList('users');
+  const { data, isPending } = useGetList("users");
   // console.log(data);
   // if (isPending) return null;
-  return (<SelectInput 
-    label="username" 
-    source="username" 
-    choices={data}
-    optionText="username"
-    optionValue="id"
-    alwaysOn 
-    resettable 
-    emptyText="All"
-  />);
-}
-
-export const DataSummary = () => {
-  const { data, isPending } = useGetList('users');
-
-  const newData = data.map(item => ({...item, optionName: "Role: ".concat(item.roleName, " - ", item.name)}))
-
-  const dataFilters = [
-      <SelectInput 
-      label="User" 
-      source="username" 
-      choices={newData}
-      optionText="optionName"
+  return (
+    <SelectInput
+      label="username"
+      source="username"
+      choices={data}
+      optionText="username"
       optionValue="id"
-      alwaysOn 
-      resettable 
+      alwaysOn
+      resettable
       emptyText="All"
     />
+  );
+};
+
+export const DataSummary = () => {
+  const { data, isPending } = useGetList("users");
+
+  const newData = data?.map((item) => ({
+    ...item,
+    optionName: "Role: ".concat(item.roleName, " - ", item.name),
+  }));
+
+  const dataFilters = [
+    // <SelectInput
+    //   label="User"
+    //   source="username"
+    //   choices={newData}
+    //   optionText="optionName"
+    //   optionValue="id"
+    //   alwaysOn
+    //   resettable
+    //   emptyText="All"
+    // />,
     // <SearchSelectUsersFilter />,
   ];
 
   return (
     <React.Fragment>
       <ListBase>
-        <FilterForm filters={dataFilters} sx={{flex: "0 2 auto", padding: "4px 0 px 0"}}/>
+        {/* <FilterForm
+          filters={dataFilters}
+          sx={{ flex: "0 2 auto", padding: "4px 0 px 0" }}
+        /> */}
         <Summary />
       </ListBase>
     </React.Fragment>

@@ -64,6 +64,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
     const rawData = {
       ...record,
+      orderId: record?.id,
       transactionAmount: redeemAmount,
       percentageAmount:
         redeemAmount - redeemAmount * (redeemFees / 100).toFixed(2),
@@ -71,19 +72,13 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       type: "redeem",
     };
 
-    // console.log("00000", rawData);
-
-    // return;
     setLoading(true);
     try {
-      const response = await Parse.Cloud.run("redeemRedords", rawData);
-      if (response?.status === "error") {
-        setResponseData(response?.message);
-      } else {
-        onClose();
-        setLoading(false);
-        handleRefresh();
-      }
+      await Parse.Cloud.run("agentApproveRedeemRedords", rawData);
+
+      onClose();
+      setLoading(false);
+      handleRefresh();
     } catch (error) {
       console.error("Error Redeem Record details:", error);
     } finally {

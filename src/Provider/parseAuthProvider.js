@@ -24,6 +24,7 @@ export const authProvider = {
       const role = await roleQuery.first({ useMasterKey: true });
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
+      localStorage.setItem("username", user.get("username"));
       localStorage.setItem("role", role.get("name"));
 
       return {

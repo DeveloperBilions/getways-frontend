@@ -87,11 +87,11 @@ export const dataProvider = {
   getList: async (resource, params) => {
     //works
     // console.log("GETLIST");
-    console.log("*****", params);
+    // console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
-    var q  = filter.q;
+    var q = filter.q;
     delete filter.q;
     // console.log("=====", filter);
     var query = new Parse.Query(Parse.Object);
@@ -100,22 +100,23 @@ export const dataProvider = {
     Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
     const role = localStorage.getItem("role");
     const userid = localStorage.getItem("id");
+    const username = localStorage.getItem("username");
 
     const fetchUsers = async (selectedUser) => {
-      const user = selectedUser?selectedUser:(await Parse.User.current());
+      const user = selectedUser ? selectedUser : await Parse.User.current();
       console.log("INSIDE FETCH");
-      
+
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
-      
+
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
       console.log(results);
       var ids = results.map((r) => r.id);
       ids.push(user.id);
       const data = results.map((o) => ({ id: o.id, ...o.attributes }));
-      
-      return { ids: ids, data: data};
+
+      return { ids: ids, data: data };
     };
     try {
       if (resource === "users") {
@@ -124,114 +125,166 @@ export const dataProvider = {
           query.equalTo("userParentId", userid);
         }
         count = await query.count({ useMasterKey: true });
-      } 
-      else if (resource === "redeemRecords") {
+      } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);;
+        query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
         if (role === "Player") {
           filter = { userId: userid, ...filter };
-          filter && Object.keys(filter).map((f) => {
-              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
-          }); 
-        } 
-        else if (role === "Agent") {
-          filter && Object.keys(filter).map((f) => {
-              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
-          });
-          // var { ids } = await fetchUsers();
-          // query.containedIn("userId", ids);
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+        } else if (role === "Agent") {
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
         }
         count = await query.count();
-      } 
-      else if (resource === "rechargeRecords") {
+      } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "recharge", ...filter };
         if (role === "Player") {
           filter = { userId: userid, ...filter };
-          filter && Object.keys(filter).map((f) => {
-              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
-          }); 
-        } 
-        else if (role === "Agent") {
-          filter && Object.keys(filter).map((f) => {
-              if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
-          });
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+        } else if (role === "Agent") {
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
         // console.log(query);
         count = await query.count();
-      } 
-      else if (resource === "summary") {
+      } else if (resource === "summary") {
         var result = null;
         console.log("Summary");
         if (role === "Super-User") {
           //users
           console.log("SU", filter);
-          
-          if (filter?.username){
-            console.log("IN IF")
+
+          if (filter?.username) {
+            console.log("IN IF");
             var userQuery = new Parse.Query(Parse.User);
-            var selectedUser = await userQuery.get(filter.username, {useMasterKey: true});
+            var selectedUser = await userQuery.get(filter.username, {
+              useMasterKey: true,
+            });
             var { ids, data } = await fetchUsers(selectedUser);
 
             const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select("userId", "status", "transactionAmount", "type");
+            transactionQuery.select(
+              "userId",
+              "status",
+              "transactionAmount",
+              "type"
+            );
             transactionQuery.containedIn("userId", ids);
             var results = await transactionQuery.find();
-          }
-
-          else {
+          } else {
             var userQuery = new Parse.Query(Parse.User);
             var results = await userQuery.find({ useMasterKey: true });
             var data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
-            data.push({id: userid, ...currentUser.attributes});
+            data.push({ id: userid, ...currentUser.attributes });
 
             //transaction
             const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select("userId", "status", "transactionAmount", "type");
+            transactionQuery.select(
+              "userId",
+              "status",
+              "transactionAmount",
+              "type"
+            );
             var results = await transactionQuery.find();
           }
           result = {
-            data: [{id: 0, users: data,
-              transactions: results.map((o) => ({ id: o.id, ...o.attributes }))
-            }],
+            data: [
+              {
+                id: 0,
+                users: data,
+                transactions: results.map((o) => ({
+                  id: o.id,
+                  ...o.attributes,
+                })),
+              },
+            ],
             total: null,
           };
         }
-        if (role === "Agent"){
+        if (role === "Agent") {
           console.log("Agent");
           //users
-          const selectedUser = filter&&filter.username?await (new Parse.Query(Parse.User)).get(filter.username, {useMasterKey: true}):null;
+          const selectedUser =
+            filter && filter.username
+              ? await new Parse.Query(Parse.User).get(filter.username, {
+                  useMasterKey: true,
+                })
+              : null;
           console.log("selected user:", selectedUser);
           const { ids, data } = await fetchUsers(selectedUser);
           // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
           console.log("fetchUsers", data);
           //transactions
           const transactionQuery = new Parse.Query("TransactionRecords");
-          transactionQuery.select("userId", "status", "transactionAmount", "type");
+          transactionQuery.select(
+            "userId",
+            "status",
+            "transactionAmount",
+            "type"
+          );
           transactionQuery.containedIn("userId", ids);
           /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
           results = await transactionQuery.find();
-          
+
           result = {
-            data: [{id: 0,
-              users: data,
-              transactions: results.map((o) => ({ id: o.id, ...o.attributes }))
-            }],
+            data: [
+              {
+                id: 0,
+                users: data,
+                transactions: results.map((o) => ({
+                  id: o.id,
+                  ...o.attributes,
+                })),
+              },
+            ],
             total: null,
           };
           console.log("Summary List ", result);
         }
-          return result;
-      } 
-      else {
+        return result;
+      } else if (resource === "playerDashboard") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { username: username };
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+        return res;
+      } else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         filter &&
@@ -246,9 +299,11 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      filter && Object.keys(filter).map((f) => {
-          if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
-      });
+      filter &&
+        Object.keys(filter).map((f) => {
+          if (f === "username") query.matches(f, filter[f], "i");
+          else query.equalTo(f, filter[f]);
+        });
 
       results =
         resource === "users"

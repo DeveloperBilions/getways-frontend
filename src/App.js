@@ -46,12 +46,6 @@ function App() {
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             /> */}
-            <Resource
-              name="summary"
-              list={DataSummary}
-              options={{ label: "Summary" }}
-              icon={SummarizeIcon}
-            />
 
             <Resource
               name="users"
@@ -74,6 +68,12 @@ function App() {
               options={{ label: "Redeem Records" }}
               icon={LocalAtmIcon}
             />
+            <Resource
+              name="summary"
+              list={DataSummary}
+              options={{ label: "Summary" }}
+              icon={SummarizeIcon}
+            />
           </>
         ) : (
           <></>
@@ -82,7 +82,7 @@ function App() {
 
       <CustomRoutes noLayout>
         <Route path="/signup" element={<SignUp />} />
-                <Route path="/reset-email-sent" element={<EmailSent />} />
+        <Route path="/reset-email-sent" element={<EmailSent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         {/* <Route path="/create-user?referral=123" element={<ReferralLinkForm />} /> */}

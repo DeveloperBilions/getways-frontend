@@ -26,7 +26,7 @@ const RejectRedeemDialog = ({
     event.preventDefault();
 
     const rawData = {
-      userId: selectedRecord?.id,
+      orderId: selectedRecord?.id,
     };
     setLoading(true);
     try {
@@ -60,7 +60,10 @@ const RejectRedeemDialog = ({
           <ModalBody>
             <Form onSubmit={handleSubmit}>
               <Label for="rechargeAmount">
-                Are you sure you wish to reject the redeem amount? <br />
+                Are you sure you wish to reject the{" "}
+                <b>${selectedRecord?.transactionAmount}</b> redeem request of{" "}
+                <b>{selectedRecord?.username}</b> ?
+                <br />
                 This action cannot be undone.
               </Label>
 

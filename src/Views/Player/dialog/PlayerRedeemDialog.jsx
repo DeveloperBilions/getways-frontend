@@ -83,7 +83,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       ) : (
         <Modal isOpen={open} toggle={handleClose} size="md" centered>
           <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
-            Redeem Amount
+            Redeem Request Amount
           </ModalHeader>
           <ModalBody>
             <FormText className="font-weight-bold">
