@@ -194,10 +194,8 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
-    <SelectInput
+  const SelectUserInput = () => {
+    return permissions!="Player"? <SelectInput
       label="Status"
       source="status"
       alwaysOn
@@ -208,7 +206,13 @@ export const RedeemRecordsList = (props) => {
         { id: 6, name: "Pending Approval" },
         { id: 7, name: "Rejected" },
       ]}
-    />,
+    /> : null;
+  };
+
+  const dataFilters = [
+    <SearchInput source="username" alwaysOn resettable />,
+    // <TextInput source="username" label="Name" alwaysOn resettable />,
+    <SelectUserInput />
   ];
 
   const postListActions = (
@@ -309,7 +313,7 @@ export const RedeemRecordsList = (props) => {
       <List
         title="Redeem Records"
         filters={dataFilters}
-        filter={{ type: "redeem" }}
+        filter={identity?.role !== "Player" ? { type: "redeem" } : { type: "redeem", status: 6 }}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}

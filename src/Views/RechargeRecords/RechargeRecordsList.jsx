@@ -203,10 +203,8 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
-    <SelectInput
+  const SelectUserInput = () => {
+    return permissions != "Player" ? <SelectInput
       label="Status"
       source="status"
       alwaysOn
@@ -218,7 +216,13 @@ export const RechargeRecordsList = (props) => {
         { id: 3, name: "Coins Credited" },
         { id: 3, name: "Status Unknown" },
       ]}
-    />,
+    /> : null;
+  };
+
+  const dataFilters = [
+    <SearchInput source="username" alwaysOn resettable />,
+    // <TextInput source="username" label="Name" alwaysOn resettable />,
+    <SelectUserInput />
   ];
 
   const postListActions = (
@@ -333,7 +337,7 @@ export const RechargeRecordsList = (props) => {
         sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={{type: "recharge"}}
+        filter={identity?.role !== "Player" ? {type: "recharge"} : {type: "recharge", status: 1}}
         sort={{ field: "transactionDate", order: "DESC" }}
       >
         <Datagrid size="small" bulkActionButtons={false}>

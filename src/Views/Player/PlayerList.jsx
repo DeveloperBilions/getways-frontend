@@ -48,20 +48,20 @@ export const PlayerList = () => {
   }
 
   const totalRecharges =
-    data?.filter((item) => item.type === "recharge").length || "---";
+    data?.filter((item) => item.type === "recharge").length || " ---";
 
   const totalRedeems =
     data
-      ?.filter((item) => item.type === "redeem")
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || "---";
+      ?.filter((item) => item.type === "redeem" && item.status===4)
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || " ---";
 
   const pendingRecharges =
     data
       ?.filter((item) => item.status === 0 || item.status === 1)
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || "---";
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || " ---";
 
   const redeemRequests =
-    data?.filter((item) => item.status === 6).length || "---";
+    data?.filter((item) => item.status === 6).length || " ---";
 
   const finalData = [
     {
