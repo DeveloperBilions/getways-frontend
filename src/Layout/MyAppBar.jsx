@@ -2,6 +2,7 @@ import * as React from "react";
 import { Toolbar, Typography, Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -9,7 +10,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import AppBar from "@mui/material/AppBar";
 import {
   TitlePortal,
-  RefreshIconButton,
+  RefreshButton,
   UserMenu,
   Logout,
   useGetIdentity,
@@ -70,6 +71,7 @@ export default function MyAppBar({ props }) {
           </Typography>
         )} */}
       </Box>
+      <RefreshButton label="" icon={<RefreshIcon sx={{fontSize: "24px !important", marginRight: "-6px"}} />}  sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end"}}/>
       <UserMenu>
         <Logout />
       </UserMenu>

@@ -195,7 +195,7 @@ export const RedeemRecordsList = (props) => {
   };
 
   const SelectUserInput = () => {
-    return permissions!="Player"? <SelectInput
+    return permissions!=="Player"? <SelectInput
       label="Status"
       source="status"
       alwaysOn
@@ -226,7 +226,7 @@ export const RedeemRecordsList = (props) => {
       >
         Refresh
       </Button>
-      {permissions != "Player" && (
+      {permissions !== "Player" && (
         <Button
           variant="contained"
           size="small"
