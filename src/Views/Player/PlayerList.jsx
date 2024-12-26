@@ -17,9 +17,12 @@ import {
 } from "@mui/material";
 // mui icons
 import PaidIcon from "@mui/icons-material/Paid";
+// icons
+import MoneyReciveIcon from "../../Assets/icons/money-recive.svg";
+import MoneySendIcon from "../../Assets/icons/money-send.svg";
 // dialog
 import RechargeDialog from "../RechargeRecords/dialog/RechargeDialog";
-import RedeemDialog from "../User/dialog/RedeemDialog";
+import RedeemDialog from "./dialog/PlayerRedeemDialog";
 
 export const PlayerList = () => {
   const redirect = useRedirect();
@@ -218,7 +221,13 @@ export const PlayerList = () => {
                   textTransform: "capitalize",
                   fontSize: "18px",
                 }}
-                startIcon={<PaidIcon />}
+                startIcon={
+                  <img
+                    src={MoneySendIcon}
+                    alt="Money Recive Icon"
+                    style={{ width: 24, height: 24 }}
+                  />
+                }
                 onClick={() => setRechargeDialogOpen(true)}
                 fullWidth
               >
@@ -236,9 +245,14 @@ export const PlayerList = () => {
                   textTransform: "capitalize",
                   fontSize: "18px",
                 }}
-                startIcon={<PaidIcon />}
+                startIcon={
+                  <img
+                    src={MoneyReciveIcon}
+                    alt="Money Recive Icon"
+                    style={{ width: 24, height: 24 }}
+                  />
+                }
                 onClick={() => setRedeemDialogOpen(true)}
-                // disabled
                 fullWidth
               >
                 Redeem Request

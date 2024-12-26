@@ -10,8 +10,8 @@ import {
   Label,
   Form,
   Input,
+  FormText,
 } from "reactstrap";
-import { useGetIdentity } from "react-admin";
 // loader
 import { Loader } from "../../Loader";
 
@@ -20,56 +20,60 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const RechargeDialog = ({ open, onClose, handleRefresh }) => {
-  const { identity } = useGetIdentity();
-
+const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
-  const [rechargeAmount, setRechargeAmount] = useState();
+  const [redeemAmount, setRedeemAmount] = useState();
   const [remark, setRemark] = useState();
+  const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
 
   const resetFields = () => {
     setUserName("");
-    setRechargeAmount("");
+    setRedeemAmount("");
     setRemark("");
   };
 
   useEffect(() => {
-    if (identity && open) {
-      // Populate fields when modal opens
-      setUserName(identity.username || "");
+    if (record && open) {
+      setUserName(record.username || "");
     } else {
-      // Reset fields when modal closes
       resetFields();
     }
-  }, [identity, open]);
+  }, [record, open]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const rawData = {
-      id: identity.objectId,
-      type: "recharge",
-      username: identity.username,
-      transactionAmount: rechargeAmount,
+      ...record,
+      transactionAmount: redeemAmount,
       remark,
+      type: "redeem",
     };
+
     setLoading(true);
     try {
-      const response = await Parse.Cloud.run("userTransaction", rawData);
-      if (identity?.role === "Player") {
-        window.open(response?.apiResponse?.redirect_url, "_blank");
+      const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
+      if (response?.status === "error") {
+        setResponseData(response?.message);
+      } else {
+        onClose();
+        setLoading(false);
+        setRedeemAmount("");
+        setRemark("");
+        handleRefresh();
       }
-      onClose();
-      handleRefresh();
-      setLoading(false);
-      setRechargeAmount("");
-      setRemark("");
     } catch (error) {
-      console.error("Error Recharge Record details:", error);
+      console.error("Error Redeem Record details:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClose = () => {
+    onClose();
+    handleRefresh();
+    resetFields();
   };
 
   return (
@@ -77,17 +81,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal
-          isOpen={open}
-          toggle={onClose}
-          size="md"
-          centered
-          className="overflow-visible"
-        >
-          <ModalHeader toggle={onClose} className="border-bottom-0">
-            Recharge Amount
+        <Modal isOpen={open} toggle={handleClose} size="md" centered>
+          <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
+            Redeem Amount
           </ModalHeader>
           <ModalBody>
+            <FormText className="font-weight-bold">
+              Redeems may take up to 2 hours
+            </FormText>
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>
@@ -106,13 +107,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="rechargeAmount">Recharge Amount</Label>
+                    <Label for="redeemAmount">Redeem Amount</Label>
                     <Input
-                      id="rechargeAmount"
-                      name="rechargeAmount"
+                      id="redeemAmount"
+                      name="redeemAmount"
                       type="number"
                       autoComplete="off"
-                      onChange={(e) => setRechargeAmount(e.target.value)}
+                      min="0"
+                      onChange={(e) => setRedeemAmount(e.target.value)}
                       required
                     />
                   </FormGroup>
@@ -131,6 +133,18 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
+                {responseData && (
+                  <Col sm={12}>
+                    <Label
+                      for="errorResponse"
+                      invalid={true}
+                      className="text-danger mb-2"
+                    >
+                      {responseData}
+                    </Label>
+                  </Col>
+                )}
+
                 <Col md={12}>
                   <div className="d-flex justify-content-end">
                     <Button
@@ -141,7 +155,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
-                    <Button color="secondary" onClick={onClose}>
+                    <Button color="secondary" onClick={handleClose}>
                       Cancel
                     </Button>
                   </div>
@@ -155,4 +169,4 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   );
 };
 
-export default RechargeDialog;
+export default PlayerRedeemDialog;

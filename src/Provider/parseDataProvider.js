@@ -139,8 +139,8 @@ export const dataProvider = {
           filter && Object.keys(filter).map((f) => {
               if(f === "username") query.matches(f, filter[f], "i"); else query.equalTo(f, filter[f]);
           });
-          var { ids } = await fetchUsers();
-          query.containedIn("userId", ids);
+          // var { ids } = await fetchUsers();
+          // query.containedIn("userId", ids);
         }
         count = await query.count();
       } 

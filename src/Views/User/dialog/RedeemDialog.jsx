@@ -27,6 +27,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
 
+  console.log("===== record", record);
+
   const resetFields = () => {
     setUserName("");
     setBalance("");

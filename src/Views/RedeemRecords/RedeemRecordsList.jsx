@@ -34,7 +34,9 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-
+// dialog
+import RejectRedeemDialog from "./dialog/RejectRedeemDialog";
+import ApproveRedeemDialog from "./dialog/ApproveRedeemDialog";
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -55,6 +57,9 @@ export const RedeemRecordsList = (props) => {
 
   const [gameData, setGameData] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
 
   const role = localStorage.getItem("role");
 
@@ -115,6 +120,10 @@ export const RedeemRecordsList = (props) => {
         return "Success";
       case 5:
         return "Fail";
+      case 6:
+        return "Pending Approval";
+      case 7:
+        return "Rejected";
       default:
         return "Unknown Status";
     }
@@ -196,6 +205,8 @@ export const RedeemRecordsList = (props) => {
       choices={[
         { id: 4, name: "Success" },
         { id: 5, name: "Failed" },
+        { id: 6, name: "Pending Approval" },
+        { id: 7, name: "Rejected" },
       ]}
     />,
   ];
@@ -298,7 +309,7 @@ export const RedeemRecordsList = (props) => {
       <List
         title="Redeem Records"
         filters={dataFilters}
-        filter={{type: "redeem"}}
+        filter={{ type: "redeem" }}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
@@ -323,6 +334,10 @@ export const RedeemRecordsList = (props) => {
                     return "success";
                   case 5:
                     return "error";
+                  case 6:
+                    return "warning";
+                  case 7:
+                    return "error";
                   default:
                     return "default";
                 }
@@ -330,6 +345,8 @@ export const RedeemRecordsList = (props) => {
               const statusMessage = {
                 4: "Success",
                 5: "Fail",
+                6: "Pending Approval",
+                7: "Rejected",
               }[record.status];
               return (
                 <Chip
@@ -343,8 +360,67 @@ export const RedeemRecordsList = (props) => {
           />
           <DateField source="transactionDate" label="RedeemDate" showTime />
           <TextField source="responseMessage" label="Message" />
+          <FunctionField
+            label="Action"
+            render={(record) =>
+              record?.status === 6 && identity?.role === "Agent" ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    size="small"
+                    sx={{
+                      mr: 1,
+                    }}
+                    onClick={() => {
+                      setSelectedRecord({
+                        ...record,
+                        userParentId: identity?.objectId,
+                      });
+                      setRedeemDialogOpen(true);
+                    }}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => {
+                      setSelectedRecord(record);
+                      setRejectDialogOpen(true);
+                    }}
+                  >
+                    Reject
+                  </Button>
+                </Box>
+              ) : null
+            }
+          />
         </Datagrid>
       </List>
+      {permissions === "Agent" && (
+        <>
+          <RejectRedeemDialog
+            open={rejectDialogOpen}
+            onClose={() => setRejectDialogOpen(false)}
+            handleRefresh={handleRefresh}
+            selectedRecord={selectedRecord}
+          />
+          <ApproveRedeemDialog
+            open={redeemDialogOpen}
+            onClose={() => setRedeemDialogOpen(false)}
+            handleRefresh={handleRefresh}
+            record={selectedRecord}
+          />
+        </>
+      )}
     </>
   );
 };
