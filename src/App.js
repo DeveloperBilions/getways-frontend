@@ -1,6 +1,6 @@
 import "./App.css";
 import React from "react";
-import { Admin, Resource, CustomRoutes } from "react-admin";
+import { Admin, Resource, CustomRoutes, Authenticated } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
@@ -40,13 +40,6 @@ function App() {
       {(permissions) =>
         permissions && permissions !== "Player" ? (
           <>
-            {/*<Resource
-              name="summary"
-              list={SummaryList}
-              options={{ label: "Summary" }}
-              icon={SummarizeIcon}
-            /> */}
-
             <Resource
               name="users"
               list={UserList}
@@ -76,7 +69,40 @@ function App() {
             />
           </>
         ) : (
-          <></>
+          <>
+            <Resource
+              name="playerDashboard"
+              list={PlayerList}
+              options={{ label: "playerDashboard" }}
+              icon={SummarizeIcon}
+            />
+            <CustomRoutes>
+              <Route
+                path="/playerDashboard"
+                element={
+                  <Authenticated>
+                    <PlayerList resource="playerDashboard" />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path="/rechargeRecords"
+                element={
+                  <Authenticated>
+                    <RechargeRecordsList resource="rechargeRecords" />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path="/redeemRecords"
+                element={
+                  <Authenticated>
+                    <RedeemRecordsList resource="redeemRecords" />
+                  </Authenticated>
+                }
+              />
+            </CustomRoutes>
+          </>
         )
       }
 
@@ -85,24 +111,35 @@ function App() {
         <Route path="/reset-email-sent" element={<EmailSent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
-        {/* <Route path="/create-user?referral=123" element={<ReferralLinkForm />} /> */}
         <Route path="/create-user" element={<ReferralLinkForm />} />
       </CustomRoutes>
 
-      <CustomRoutes>
+      {/* <CustomRoutes>
         <Route
           path="/playerDashboard"
-          element={<PlayerList resource="playerDashboard" />}
+          element={
+            <Authenticated>
+              <PlayerList resource="playerDashboard" />
+            </Authenticated>
+          }
         />
         <Route
           path="/rechargeRecords"
-          element={<RechargeRecordsList resource="rechargeRecords" />}
+          element={
+            <Authenticated>
+              <RechargeRecordsList resource="rechargeRecords" />
+            </Authenticated>
+          }
         />
         <Route
           path="/redeemRecords"
-          element={<RedeemRecordsList resource="redeemRecords" />}
+          element={
+            <Authenticated>
+              <RedeemRecordsList resource="redeemRecords" />
+            </Authenticated>
+          }
         />
-      </CustomRoutes>
+      </CustomRoutes> */}
     </Admin>
   );
 }

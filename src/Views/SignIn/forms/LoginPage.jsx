@@ -53,7 +53,6 @@ const LoginPage = () => {
       if (response?.role === "Player") {
         redirect("/playerDashboard");
       }
-      console.log("Login successful:", response);
     } catch (error) {
       console.error("Error Transaction Status", error);
       notify(error?.message || "Login failed. Please try again.");

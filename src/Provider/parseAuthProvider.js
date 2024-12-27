@@ -45,17 +45,27 @@ export const authProvider = {
     }
   },
   async checkAuth() {
-    const currentUser = Parse.User.current();
-    if (!currentUser) {
-      //works
-      try {
-        await Parse.User.logOut();
-        // return Promise.resolve();
-      } catch (error) {
-        throw Error(error.toString());
-      }
-      //throw new Error("User not authenticated");
+    const currentUserData = localStorage.getItem(
+      `Parse/${process.env.REACT_APP_APPID}/currentUser`
+    );
+    const roleName = JSON.parse(currentUserData).roleName;
+    if (!roleName) {
+      const error = new Error();
+      error.redirectTo = "/login";
+      throw new Error("login.required");
     }
+
+    // const currentUser = Parse.User.current();
+    // if (!currentUser) {
+    //   //works
+    //   try {
+    //     await Parse.User.logOut();
+    //     // return Promise.resolve();
+    //   } catch (error) {
+    //     throw Error(error.toString());
+    //   }
+    //   //throw new Error("User not authenticated");
+    // }
   },
   async logout() {
     localStorage.removeItem("id");

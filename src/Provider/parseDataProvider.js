@@ -125,6 +125,11 @@ export const dataProvider = {
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
         }
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
         count = await query.count({ useMasterKey: true });
       } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -146,6 +151,11 @@ export const dataProvider = {
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -167,7 +177,12 @@ export const dataProvider = {
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
         }
-        // console.log(query);
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
         count = await query.count();
       } else if (resource === "summary") {
         var result = null;
@@ -226,7 +241,11 @@ export const dataProvider = {
             ],
             total: null,
           };
-          console.log("count ", result.data[0].users.length, result.data[0].transactions.length)
+          console.log(
+            "count ",
+            result.data[0].users.length,
+            result.data[0].transactions.length
+          );
         }
         if (role === "Agent") {
           console.log("Agent");

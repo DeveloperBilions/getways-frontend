@@ -215,7 +215,7 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput source="q" alwaysOn resettable />,
+    <SearchInput source="username" alwaysOn resettable />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
 
@@ -259,7 +259,7 @@ export const UserList = (props) => {
       sx={{ pt: 1 }}
       actions={<PostListActions />}
       empty={false}
-      filter={{ userReferralCode: null }}
+      // filter={{ userReferralCode: null }}
       {...props}
       sort={{ field: "createdAt", order: "DESC" }}
     >

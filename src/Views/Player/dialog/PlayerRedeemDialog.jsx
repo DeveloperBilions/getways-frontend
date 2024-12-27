@@ -23,6 +23,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
+  const [redeemFees, setredeemFees] = useState();
   const [remark, setRemark] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,8 +34,20 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setRemark("");
   };
 
+  const parentServiceFee = async () => {
+    try {
+      const response = await Parse.Cloud.run("redeemParentServiceFee", {
+        userId: record?.userParentId,
+      });
+      setredeemFees(response?.redeemService || 0);
+    } catch (error) {
+      console.error("Error fetching parent service fee:", error);
+    }
+  };
+
   useEffect(() => {
     if (record && open) {
+      parentServiceFee();
       setUserName(record.username || "");
     } else {
       resetFields();
@@ -46,6 +59,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
     const rawData = {
       ...record,
+      redeemServiceFee: redeemFees,
       transactionAmount: redeemAmount,
       remark,
       type: "redeem",

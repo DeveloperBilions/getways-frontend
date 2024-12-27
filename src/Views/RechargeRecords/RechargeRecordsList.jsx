@@ -73,7 +73,7 @@ export const RechargeRecordsList = (props) => {
   }
 
   const { data } = useGetList("rechargeRecords", {
-    pagination: { page: 1, perPage: 100 },
+    // pagination: { page: 1, perPage: 100 },
   });
 
   const fetchData = async () => {
@@ -122,6 +122,14 @@ export const RechargeRecordsList = (props) => {
         return "Confirmed";
       case 3:
         return "Coins Credited";
+      case 4:
+        return "Success";
+      case 5:
+        return "Fail";
+      case 6:
+        return "Pending Approval";
+      case 7:
+        return "Rejected";
       default:
         return "Unknown Status";
     }
@@ -131,6 +139,10 @@ export const RechargeRecordsList = (props) => {
   // 1: "Pending Confirmation"
   // 2: "Confirmed" - btn dispaly "Coins Credit"
   // 3: "Coins Credited" for status
+  // 4: "Redeem Success"
+  // 5: "Redeem Faile"
+  // 6: "Pending Approval"
+  // 7: "Rejected" -  Redeem Request Rejected
 
   useEffect(() => {
     fetchData();
@@ -171,13 +183,12 @@ export const RechargeRecordsList = (props) => {
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
-      head: [["Game ID", "Username", "Amount", "Remark", "Status", "Date"]],
+      head: [["Name", "Amount($)", "Remark", "Status", "Date"]],
       body: data.map((row) => [
-        row.gameId,
         row.username,
         row.transactionAmount,
         row.remark,
-        row.status,
+        mapStatus(row.status),
         new Date(row.transactionDate).toLocaleDateString(),
       ]),
     });
@@ -185,7 +196,15 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportXLS = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
+    const selectedFields = data.map((item) => ({
+      Name: item.username,
+      "Amount($)": item.transactionAmount,
+      Remark: item.remark,
+      Status: mapStatus(item.status),
+      Date: new Date(item.transactionDate).toLocaleDateString(),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
@@ -204,25 +223,27 @@ export const RechargeRecordsList = (props) => {
   };
 
   const SelectUserInput = () => {
-    return permissions != "Player" ? <SelectInput
-      label="Status"
-      source="status"
-      alwaysOn
-      emptyText="All"
-      choices={[
-        { id: 0, name: "Pending Referral Link" },
-        { id: 1, name: "Pending Confirmation" },
-        { id: 2, name: "Confirmed" },
-        { id: 3, name: "Coins Credited" },
-        { id: 3, name: "Status Unknown" },
-      ]}
-    /> : null;
+    return permissions != "Player" ? (
+      <SelectInput
+        label="Status"
+        source="status"
+        alwaysOn
+        emptyText="All"
+        choices={[
+          { id: 0, name: "Pending Referral Link" },
+          { id: 1, name: "Pending Confirmation" },
+          { id: 2, name: "Confirmed" },
+          { id: 3, name: "Coins Credited" },
+          { id: 3, name: "Status Unknown" },
+        ]}
+      />
+    ) : null;
   };
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
-    <SelectUserInput />
+    <SelectUserInput />,
   ];
 
   const postListActions = (
@@ -337,7 +358,11 @@ export const RechargeRecordsList = (props) => {
         sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={identity?.role !== "Player" ? {type: "recharge"} : {type: "recharge", status: 1}}
+        filter={
+          identity?.role !== "Player"
+            ? { type: "recharge" }
+            : { type: "recharge", status: 1 }
+        }
         sort={{ field: "transactionDate", order: "DESC" }}
       >
         <Datagrid size="small" bulkActionButtons={false}>

@@ -27,8 +27,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
 
-  console.log("===== record", record);
-
   const resetFields = () => {
     setUserName("");
     setBalance("");
@@ -72,12 +70,15 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
     const rawData = {
       ...record,
+      redeemServiceFee: redeemFees,
       transactionAmount: redeemAmount,
       percentageAmount: redeemPercentage,
       remark,
       type: "redeem",
     };
+
     setLoading(true);
+
     try {
       const response = await Parse.Cloud.run("redeemRedords", rawData);
       if (response?.status === "error") {

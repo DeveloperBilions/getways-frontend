@@ -5,6 +5,7 @@ import {
   useRedirect,
   useGetList,
 } from "react-admin";
+import { useNavigate } from "react-router-dom";
 // mui
 import {
   Card,
@@ -30,7 +31,7 @@ import { Loader } from "../Loader";
 
 export const PlayerList = () => {
   const { data, isLoading } = useGetList("playerDashboard");
-
+  const navigate = useNavigate();
   const redirect = useRedirect();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
@@ -43,6 +44,12 @@ export const PlayerList = () => {
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
 
+  const role = localStorage.getItem("role");
+
+  if (!role) {
+    navigate("/login");
+  }
+
   if (isLoading || !data) {
     return <Loader />;
   }
@@ -52,7 +59,7 @@ export const PlayerList = () => {
 
   const totalRedeems =
     data
-      ?.filter((item) => item.type === "redeem" && item.status===4)
+      ?.filter((item) => item.type === "redeem" && item.status === 4)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || " ---";
 
   const pendingRecharges =
@@ -123,7 +130,7 @@ export const PlayerList = () => {
 
           <Grid container spacing={2}>
             {finalData?.map((item) => (
-              <Grid item xs={6} key={item?.id}>
+              <Grid item xs={12} sm={6} md={6} key={item?.id}>
                 <Card
                   variant="outlined"
                   sx={{
@@ -188,7 +195,7 @@ export const PlayerList = () => {
           </Grid>
 
           <Grid container spacing={2}>
-            <Grid item xs={6} md={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <Button
                 variant="contained"
                 color="success"
@@ -212,7 +219,7 @@ export const PlayerList = () => {
                 Recharge
               </Button>
             </Grid>
-            <Grid item xs={6} md={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <Button
                 variant="contained"
                 color="secondary"

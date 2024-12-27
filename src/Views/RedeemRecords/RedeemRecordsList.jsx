@@ -68,7 +68,7 @@ export const RedeemRecordsList = (props) => {
   }
 
   const { data } = useGetList("redeemRecords", {
-    pagination: { page: 1, perPage: 100 },
+    // pagination: { page: 1, perPage: 100 },
   });
 
   const fetchData = async () => {
@@ -162,13 +162,13 @@ export const RedeemRecordsList = (props) => {
     const doc = new jsPDF();
     doc.text("Redeem Records", 10, 10);
     doc.autoTable({
-      head: [["Game ID", "Username", "Amount", "Remark", "Status", "Date"]],
+      head: [["Name", "Amount($)", "Remark", "Status", "Message", "Date"]],
       body: data.map((row) => [
-        row.gameId,
         row.username,
         row.transactionAmount,
         row.remark,
-        row.status,
+        mapStatus(row.status),
+        row.responseMessage,
         new Date(row.transactionDate).toLocaleDateString(),
       ]),
     });
@@ -176,7 +176,16 @@ export const RedeemRecordsList = (props) => {
   };
 
   const handleExportXLS = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
+    const selectedFields = data.map((item) => ({
+      Name: item.username,
+      "Amount($)": item.transactionAmount,
+      Remark: item.remark,
+      Status: mapStatus(item.status),
+      Message: item.responseMessage,
+      Date: new Date(item.transactionDate).toLocaleDateString(),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Redeem Records");
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
@@ -195,24 +204,26 @@ export const RedeemRecordsList = (props) => {
   };
 
   const SelectUserInput = () => {
-    return permissions!=="Player"? <SelectInput
-      label="Status"
-      source="status"
-      alwaysOn
-      emptyText="All"
-      choices={[
-        { id: 4, name: "Success" },
-        { id: 5, name: "Failed" },
-        { id: 6, name: "Pending Approval" },
-        { id: 7, name: "Rejected" },
-      ]}
-    /> : null;
+    return permissions !== "Player" ? (
+      <SelectInput
+        label="Status"
+        source="status"
+        alwaysOn
+        emptyText="All"
+        choices={[
+          { id: 4, name: "Success" },
+          { id: 5, name: "Failed" },
+          { id: 6, name: "Pending Approval" },
+          { id: 7, name: "Rejected" },
+        ]}
+      />
+    ) : null;
   };
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
-    <SelectUserInput />
+    <SelectUserInput />,
   ];
 
   const postListActions = (
@@ -313,7 +324,11 @@ export const RedeemRecordsList = (props) => {
       <List
         title="Redeem Records"
         filters={dataFilters}
-        filter={identity?.role !== "Player" ? { type: "redeem" } : { type: "redeem", status: 6 }}
+        filter={
+          identity?.role !== "Player"
+            ? { type: "redeem" }
+            : { type: "redeem", status: 6 }
+        }
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
@@ -326,6 +341,13 @@ export const RedeemRecordsList = (props) => {
             source="transactionAmount"
             label="Redeemed"
             textAlign="left"
+          />
+          <FunctionField
+            source="redeemServiceFee"
+            label="ServiceFee"
+            render={(record) =>
+              record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
+            }
           />
           <TextField source="remark" label="Remark" />
           <FunctionField
@@ -366,6 +388,7 @@ export const RedeemRecordsList = (props) => {
           <TextField source="responseMessage" label="Message" />
           <FunctionField
             label="Action"
+            source="action"
             render={(record) =>
               record?.status === 6 && identity?.role === "Agent" ? (
                 <Box
