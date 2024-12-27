@@ -24,7 +24,7 @@ import { MyTheme } from "./Layout/MyDefaultTheme";
 import { UserList } from "./Views/User/UserList";
 import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList";
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
-import { SummaryList } from "./Views/Summary/SummaryList copy";
+import { SummaryList } from "./Views/Summary/SummaryList ";
 import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
 
@@ -63,7 +63,7 @@ function App() {
             />
             <Resource
               name="summary"
-              list={DataSummary}
+              list={SummaryList}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />
