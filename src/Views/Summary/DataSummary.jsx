@@ -206,10 +206,10 @@ export const DataSummary = () => {
   return (
     <React.Fragment>
       <ListBase>
-         <FilterForm
+         {/* <FilterForm
           filters={dataFilters}
-          // sx={{ flex: "0 2 auto", padding: "4px 0 px 0" }}
-        /> 
+          sx={{ flex: "0 2 auto", padding: "4px 0 px 0" }}
+        />  */}
         <Summary />
       </ListBase>
     </React.Fragment>
