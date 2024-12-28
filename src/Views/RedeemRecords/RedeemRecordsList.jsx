@@ -64,8 +64,8 @@ export const RedeemRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending } = useGetList("redeemRecords", {
-    // pagination: { page: 1, perPage: 100 },
+  const { data, isPending } = useGetList("redeemRecordsExport", {
+    sort: { field: "transactionDate", order: "DESC" },
   });
 
   // Map numeric status to corresponding string message

@@ -308,6 +308,57 @@ export const dataProvider = {
           total: count,
         };
         return res;
+      } else if (resource === "rechargeRecordsExport") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "recharge", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+        } else if (role === "Agent") {
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+
+        query.descending(field);
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+
+        return res;
+      } else if (resource === "redeemRecordsExport") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "redeem", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+        } else if (role === "Agent") {
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+
+        query.descending(field);
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+        return res;
       } else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);

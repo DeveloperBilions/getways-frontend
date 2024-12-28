@@ -71,8 +71,8 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending } = useGetList("rechargeRecords", {
-    // pagination: { page: 1, perPage: 100 },
+  const { data, isPending } = useGetList("rechargeRecordsExport", {
+    sort: { field: "transactionDate", order: "DESC" },
   });
 
   // Map numeric status to corresponding string message
