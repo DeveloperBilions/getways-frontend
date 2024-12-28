@@ -14,6 +14,8 @@ import {
 import { useLocation } from "react-router-dom";
 import { useNotify } from "react-admin";
 import { useNavigate } from "react-router-dom";
+// loader
+import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
 import { Parse } from "parse";
 // Initialize Parse
@@ -88,19 +90,23 @@ const ReferralLinkForm = () => {
       password,
     };
 
+    setLoading(true);
+
     try {
       const response = await Parse.Cloud.run("referralUserUpdate", rawData);
-
       if (response.status === "error") {
+        setLoading(false);
         navigate("/login");
       }
       if (response.status === "success") {
+        setLoading(false);
         notify(response.message, { type: "success", autoHideDuration: 5000 });
         navigate("/login");
       }
     } catch (error) {
       console.error("Error Creating User details", error);
     } finally {
+      setLoading(false);
       setDisableButtonState(false);
     }
   };
@@ -111,158 +117,162 @@ const ReferralLinkForm = () => {
 
   return (
     <React.Fragment>
-      <div className="container123">
-        {/* Left Side: Image and Text */}
-        <div className="left-section">
-          <img
-            src="/assets/referral_link.jpg"
-            alt="Testimonial"
-            className="testimonial-image"
-          />
-          <div className="testimonial-text"></div>
-        </div>
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className="container123">
+          {/* Left Side: Image and Text */}
+          <div className="left-section">
+            <img
+              src="/assets/referral_link.jpg"
+              alt="Testimonial"
+              className="testimonial-image"
+            />
+            <div className="testimonial-text"></div>
+          </div>
 
-        <div className="right-section">
-          <Card className="mt-5 card-overrid">
-            <CardBody>
-              <Form onSubmit={handleSubmit}>
-                <Row>
-                  <Label className="fs-3 fw-normal">Get Stated</Label>
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="userName" className="pb-0 mb-0">
-                        Referral
-                      </Label>
-                      <Input
-                        id="userName"
-                        name="userName"
-                        type="text"
-                        autoComplete="off"
-                        value={referral}
-                        required
-                        disabled
-                      />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="userName" className="pb-0 mb-0">
-                        User Name
-                      </Label>
-                      <Input
-                        id="userName"
-                        name="userName"
-                        type="text"
-                        autoComplete="off"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        required
-                      />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="name" className="pb-0 mb-0">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        autoComplete="off"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                      />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="email" className="pb-0 mb-0">
-                        Email
-                      </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="off"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="password" className="pb-0 mb-0">
-                        Password
-                      </Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autoComplete="off"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                      <FormText>
-                        Password must be at least 6 characters long.
-                      </FormText>
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="confirmPassword" className="pb-0 mb-0">
-                        Confirm Password
-                      </Label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        autoComplete="off"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </FormGroup>
-                  </Col>
-
-                  {errorMessage && (
-                    <Col sm={12}>
-                      <Label
-                        for="errorResponse"
-                        invalid={true}
-                        className="text-danger mb-2"
-                      >
-                        {errorMessage}
-                      </Label>
+          <div className="right-section">
+            <Card className="mt-5 card-overrid">
+              <CardBody>
+                <Form onSubmit={handleSubmit}>
+                  <Row>
+                    <Label className="fs-3 fw-normal">Get Stated</Label>
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="userName" className="pb-0 mb-0">
+                          Referral
+                        </Label>
+                        <Input
+                          id="userName"
+                          name="userName"
+                          type="text"
+                          autoComplete="off"
+                          value={referral}
+                          required
+                          disabled
+                        />
+                      </FormGroup>
                     </Col>
-                  )}
 
-                  <Col md={12}>
-                    <div className="d-flex justify-content-end">
-                      <Button
-                        className="w-100"
-                        disabled={disableButtonState}
-                        type="submit"
-                        color="primary"
-                      >
-                        Create Account
-                      </Button>
-                    </div>
-                  </Col>
-                </Row>
-              </Form>
-            </CardBody>
-          </Card>
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="userName" className="pb-0 mb-0">
+                          User Name
+                        </Label>
+                        <Input
+                          id="userName"
+                          name="userName"
+                          type="text"
+                          autoComplete="off"
+                          value={userName}
+                          onChange={(e) => setUserName(e.target.value)}
+                          required
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="name" className="pb-0 mb-0">
+                          Name
+                        </Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          type="text"
+                          autoComplete="off"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="email" className="pb-0 mb-0">
+                          Email
+                        </Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          autoComplete="off"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="password" className="pb-0 mb-0">
+                          Password
+                        </Label>
+                        <Input
+                          id="password"
+                          name="password"
+                          type="password"
+                          autoComplete="off"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+                        <FormText>
+                          Password must be at least 6 characters long.
+                        </FormText>
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="confirmPassword" className="pb-0 mb-0">
+                          Confirm Password
+                        </Label>
+                        <Input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          autoComplete="off"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    {errorMessage && (
+                      <Col sm={12}>
+                        <Label
+                          for="errorResponse"
+                          invalid={true}
+                          className="text-danger mb-2"
+                        >
+                          {errorMessage}
+                        </Label>
+                      </Col>
+                    )}
+
+                    <Col md={12}>
+                      <div className="d-flex justify-content-end">
+                        <Button
+                          className="w-100"
+                          disabled={disableButtonState}
+                          type="submit"
+                          color="primary"
+                        >
+                          Create Account
+                        </Button>
+                      </div>
+                    </Col>
+                  </Row>
+                </Form>
+              </CardBody>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
     </React.Fragment>
   );
 };

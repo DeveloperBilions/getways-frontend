@@ -12,7 +12,8 @@ import {
   Input,
   FormText,
 } from "reactstrap";
-
+// loader
+import { Loader } from "../../Loader";
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -21,6 +22,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
   const [serviceFee, setServiceFee] = useState();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const resetFields = () => {
     setServiceFee();
@@ -73,13 +75,17 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       redeemService: serviceFee,
     };
 
+    setLoading(true);
     try {
       await Parse.Cloud.run("redeemServiceFee", rawData);
       onClose();
+      setLoading(false);
       fetchAllUsers();
       resetFields();
     } catch (error) {
       console.error("Error in User Redeem Fees Update", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,50 +95,56 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={handleCancel} size="sm" centered>
-      <ModalHeader toggle={handleCancel} className="border-bottom-0">
-        Redeem Service Fee
-      </ModalHeader>
-      <ModalBody>
-        <Form onSubmit={handleSubmit}>
-          <Row>
-            <Label for="userName">Redeem Service Fee (%)</Label>
+    <React.Fragment>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Modal isOpen={open} toggle={handleCancel} size="sm" centered>
+          <ModalHeader toggle={handleCancel} className="border-bottom-0">
+            Redeem Service Fee
+          </ModalHeader>
+          <ModalBody>
+            <Form onSubmit={handleSubmit}>
+              <Row>
+                <Label for="userName">Redeem Service Fee (%)</Label>
 
-            <Col md={4}>
-              <FormGroup>
-                <Input
-                  id="userName"
-                  name="userName"
-                  type="text"
-                  autoComplete="off"
-                  value={serviceFee}
-                  onChange={handleServiceFeeChange}
-                  maxLength={2}
-                  required
-                />
-              </FormGroup>
-            </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <Input
+                      id="userName"
+                      name="userName"
+                      type="text"
+                      autoComplete="off"
+                      value={serviceFee}
+                      onChange={handleServiceFeeChange}
+                      maxLength={2}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
 
-            {error && (
-              <FormText color="danger" className="mb-2 mt-0">
-                {error}
-              </FormText>
-            )}
+                {error && (
+                  <FormText color="danger" className="mb-2 mt-0">
+                    {error}
+                  </FormText>
+                )}
 
-            <Col md={12}>
-              <div className="d-flex justify-content-end">
-                <Button className="mx-2" color="success" type="submit">
-                  Confirm
-                </Button>
-                <Button color="secondary" onClick={handleCancel}>
-                  Cancel
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Form>
-      </ModalBody>
-    </Modal>
+                <Col md={12}>
+                  <div className="d-flex justify-content-end">
+                    <Button className="mx-2" color="success" type="submit">
+                      Confirm
+                    </Button>
+                    <Button color="secondary" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Form>
+          </ModalBody>
+        </Modal>
+      )}
+    </React.Fragment>
   );
 };
 

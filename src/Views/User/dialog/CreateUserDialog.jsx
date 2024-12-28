@@ -12,8 +12,11 @@ import {
   Input,
   FormText,
 } from "reactstrap";
-
+//react admin
 import { useGetIdentity, usePermissions, useRefresh } from "react-admin";
+// loader
+import { Loader } from "../../Loader";
+
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -35,12 +38,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   const [parentOptions, setParentOptions] = useState([]);
   const [parentType, setParentType] = useState({});
   const [userType, setUserType] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const resetFields = () => {
     setUserName("");
     setName("");
     setEmail("");
-    // setBalance("");
     setPassword("");
     setConfirmPassword("");
     setErrorMessage("");
@@ -93,6 +96,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
       return;
     }
 
+    setLoading(true);
     try {
       if (permissions === "Super-User") {
         if (userType === "Agent") {
@@ -102,7 +106,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             name,
             email,
             password,
-            // balance: parseFloat(balance),
             userParentId: identity?.objectId,
             userParentName: identity?.name,
           });
@@ -110,6 +113,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           fetchAllUsers();
           resetFields();
           refresh();
+          setLoading(false);
         } else if (userType === "Player") {
           await Parse.Cloud.run("createUser", {
             roleName: userType,
@@ -117,7 +121,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             name,
             email,
             password,
-            // balance: parseFloat(balance),
             userParentId: parentType?.id,
             userParentName: parentType?.name,
           });
@@ -125,6 +128,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           fetchAllUsers();
           resetFields();
           refresh();
+          setLoading(false);
         }
       } else if (permissions === "Agent") {
         await Parse.Cloud.run("createUser", {
@@ -133,7 +137,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           name,
           email,
           password,
-          // balance: parseFloat(balance),
           userParentId: identity?.objectId,
           userParentName: identity?.name,
         });
@@ -141,6 +144,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
         fetchAllUsers();
         resetFields();
         refresh();
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error Creating User details", error);
@@ -167,188 +171,176 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={handleCancel} size="md" centered>
-      <ModalHeader toggle={handleCancel} className="border-bottom-0">
-        Add New user
-      </ModalHeader>
-      <ModalBody>
-        <Form onSubmit={handleSubmit}>
-          <Row>
-            <Col md={12}>
-              <FormGroup>
-                <Label for="userName" className="pb-0 mb-0">
-                  User Name
-                </Label>
-                <Input
-                  id="userName"
-                  name="userName"
-                  type="text"
-                  autoComplete="off"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  required
-                />
-              </FormGroup>
-            </Col>
-
-            <Col md={12}>
-              <FormGroup>
-                <Label for="name" className="pb-0 mb-0">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="off"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </FormGroup>
-            </Col>
-
-            {permissions === "Super-User" && (
-              <>
+    <React.Fragment>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Modal isOpen={open} toggle={handleCancel} size="md" centered>
+          <ModalHeader toggle={handleCancel} className="border-bottom-0">
+            Add New user
+          </ModalHeader>
+          <ModalBody>
+            <Form onSubmit={handleSubmit}>
+              <Row>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="exampleSelect">User Type</Label>
+                    <Label for="userName" className="pb-0 mb-0">
+                      User Name
+                    </Label>
                     <Input
-                      id="exampleSelect"
-                      name="select"
-                      type="select"
-                      value={userType}
-                      onChange={(e) => setUserType(e.target.value)}
+                      id="userName"
+                      name="userName"
+                      type="text"
+                      autoComplete="off"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
                       required
-                    >
-                      <option value="">Select User Type</option>
-                      <option value="Agent">Agent</option>
-                      <option value="Player">Player</option>
-                    </Input>
+                    />
                   </FormGroup>
                 </Col>
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="exampleSelect">Parent Type</Label>
+                    <Label for="name" className="pb-0 mb-0">
+                      Name
+                    </Label>
                     <Input
-                      id="exampleSelect"
-                      name="select"
-                      type="select"
-                      value={parentType.id}
-                      // onChange={(e) => setParentType(e.target.value)}
-                      onChange={handleParentTypeChange}
-                      disabled={userType === "Agent"}
+                      id="name"
+                      name="name"
+                      type="text"
+                      autoComplete="off"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       required
-                    >
-                      {combinedOptions.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {`${user.role}: ${user.name}`}
-                        </option>
-                      ))}
-                    </Input>
+                    />
                   </FormGroup>
                 </Col>
-              </>
-            )}
 
-            <Col md={12}>
-              <FormGroup>
-                <Label for="email" className="pb-0 mb-0">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="off"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </FormGroup>
-            </Col>
+                {permissions === "Super-User" && (
+                  <>
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="exampleSelect">User Type</Label>
+                        <Input
+                          id="exampleSelect"
+                          name="select"
+                          type="select"
+                          value={userType}
+                          onChange={(e) => setUserType(e.target.value)}
+                          required
+                        >
+                          <option value="">Select User Type</option>
+                          <option value="Agent">Agent</option>
+                          <option value="Player">Player</option>
+                        </Input>
+                      </FormGroup>
+                    </Col>
 
-            {/* <Col md={12}>
-                            <FormGroup>
-                                <Label for="balance" className="pb-0 mb-0">
-                                    Balance
-                                </Label>
-                                <Input
-                                    id="balance"
-                                    name="balance"
-                                    type="number"
-                                    autoComplete="off"
-                                    value={balance}
-                                    onChange={(e) => setBalance(e.target.value)}
-                                    required
-                                />
-                            </FormGroup>
-                        </Col> */}
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="exampleSelect">Parent Type</Label>
+                        <Input
+                          id="exampleSelect"
+                          name="select"
+                          type="select"
+                          value={parentType.id}
+                          onChange={handleParentTypeChange}
+                          disabled={userType === "Agent"}
+                          required
+                        >
+                          {combinedOptions.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {`${user.role}: ${user.name}`}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </Col>
+                  </>
+                )}
 
-            <Col md={12}>
-              <FormGroup>
-                <Label for="password" className="pb-0 mb-0">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="text"
-                  autoComplete="off"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <FormText>
-                  Password must be at least 6 characters long.
-                </FormText>
-              </FormGroup>
-            </Col>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="email" className="pb-0 mb-0">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="off"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
 
-            <Col md={12}>
-              <FormGroup>
-                <Label for="confirmPassword" className="pb-0 mb-0">
-                  Confirm Password
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="text"
-                  autoComplete="off"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </FormGroup>
-            </Col>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="password" className="pb-0 mb-0">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="text"
+                      autoComplete="off"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <FormText>
+                      Password must be at least 6 characters long.
+                    </FormText>
+                  </FormGroup>
+                </Col>
 
-            {errorMessage && (
-              <Col sm={12}>
-                <Label
-                  for="errorResponse"
-                  invalid={true}
-                  className="text-danger mb-2"
-                >
-                  {errorMessage}
-                </Label>
-              </Col>
-            )}
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="confirmPassword" className="pb-0 mb-0">
+                      Confirm Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="text"
+                      autoComplete="off"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
 
-            <Col md={12}>
-              <div className="d-flex justify-content-end">
-                <Button className="mx-2" color="success" type="submit">
-                  Confirm
-                </Button>
-                <Button color="secondary" onClick={handleCancel}>
-                  Cancel
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Form>
-      </ModalBody>
-    </Modal>
+                {errorMessage && (
+                  <Col sm={12}>
+                    <Label
+                      for="errorResponse"
+                      invalid={true}
+                      className="text-danger mb-2"
+                    >
+                      {errorMessage}
+                    </Label>
+                  </Col>
+                )}
+
+                <Col md={12}>
+                  <div className="d-flex justify-content-end">
+                    <Button className="mx-2" color="success" type="submit">
+                      Confirm
+                    </Button>
+                    <Button color="secondary" onClick={handleCancel}>
+                      Cancel
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Form>
+          </ModalBody>
+        </Modal>
+      )}
+    </React.Fragment>
   );
 };
 

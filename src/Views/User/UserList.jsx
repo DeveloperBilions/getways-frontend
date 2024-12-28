@@ -145,6 +145,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
       <DeleteUserDialog
         open={deleteUserDialogOpen}
@@ -152,6 +153,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
     </React.Fragment>
   );
