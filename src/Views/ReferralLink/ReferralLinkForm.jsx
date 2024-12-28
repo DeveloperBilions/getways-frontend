@@ -38,7 +38,8 @@ const ReferralLinkForm = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchReferral = async () => {
@@ -49,7 +50,7 @@ const ReferralLinkForm = () => {
         if (response?.status === "error") {
           navigate("/login");
         } else {
-          setLoading(false);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error Fetching Referral Code", error);
@@ -111,7 +112,7 @@ const ReferralLinkForm = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return null;
   }
 

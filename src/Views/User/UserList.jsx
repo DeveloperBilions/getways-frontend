@@ -12,6 +12,7 @@ import {
   useGetIdentity,
   useCreate,
   TextInput,
+  useGetList,
   SearchInput,
   useRefresh,
 } from "react-admin";
@@ -28,7 +29,8 @@ import RedeemServiceDialog from "./dialog/RedeemService";
 import AddIcon from "@mui/icons-material/Add";
 // mui
 import { Menu, MenuItem, Button } from "@mui/material";
-
+// loader
+import { Loader } from "../Loader";
 import { Parse } from "parse";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -162,13 +164,17 @@ const CustomButton = ({ fetchAllUsers }) => {
 export const UserList = (props) => {
   const navigate = useNavigate();
   const { identity } = useGetIdentity();
-  const [create, { isPending, error }] = useCreate();
+  // const [create, { isPending, error }] = useCreate();
 
   const role = localStorage.getItem("role");
 
   if (!role) {
     navigate("/login");
   }
+
+  const { data, isPending } = useGetList("users", {
+    // pagination: { page: 1, perPage: 100 },
+  });
 
   const [userData, setUserData] = useState();
   const [referralCode, setReferralCode] = useState();
@@ -253,6 +259,10 @@ export const UserList = (props) => {
   useEffect(() => {
     fetchAllUsers();
   }, []);
+
+  if (isPending) {
+    return <Loader />;
+  }
 
   return (
     <List

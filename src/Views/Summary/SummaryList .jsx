@@ -7,6 +7,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import PaidIcon from "@mui/icons-material/Paid";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
+// loader
+import { Loader } from "../Loader";
 
 export const SummaryList = () => {
   const { identity } = useGetIdentity();
@@ -41,7 +43,7 @@ export const SummaryList = () => {
               filter: {},
             }),
           ]);
-
+        setLoading(false);
         setData({
           userRecords: usersResponse.data,
           rechargeRecords: rechargeResponse.data,
@@ -131,18 +133,22 @@ export const SummaryList = () => {
     },
   ];
 
+  // if (loading) {
+  //   // React-admin Loading component
+  //   return (
+  //     <Box
+  //       display="flex"
+  //       justifyContent="center"
+  //       alignItems="center"
+  //       minHeight="50vh"
+  //     >
+  //       <Loading />
+  //     </Box>
+  //   );
+  // }
+
   if (loading) {
-    // React-admin Loading component
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <Loading />
-      </Box>
-    );
+    return <Loader />;
   }
 
   return (

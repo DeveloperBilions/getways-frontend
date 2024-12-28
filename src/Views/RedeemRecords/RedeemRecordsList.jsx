@@ -40,9 +40,9 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
+// loader
+import { Loader } from "../Loader";
 import { Parse } from "parse";
-
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -64,7 +64,7 @@ export const RedeemRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data } = useGetList("redeemRecords", {
+  const { data, isPending } = useGetList("redeemRecords", {
     // pagination: { page: 1, perPage: 100 },
   });
 
@@ -240,6 +240,10 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
+
+  if (isPending) {
+    return <Loader />;
+  }
 
   return (
     <>

@@ -21,7 +21,8 @@ import PasswordResetEmail from "./PasswordResetEmail";
 import { inputValidations } from "../validations";
 
 import { useForm } from "react-hook-form";
-
+// loader
+import { Loader } from "../../Loader";
 import { Parse } from "parse";
 
 // Initialize Parse
@@ -43,19 +44,23 @@ const LoginPage = () => {
   const login = useLogin();
   const notify = useNotify();
 
+  const [loading, setLoading] = useState(false);
+
   const onSubmit = async (data) => {
     const email = data?.email;
     const password = data?.password;
 
+    setLoading(true);
     try {
       const response = await login({ email, password });
-
+      setLoading(false);
       if (response?.role === "Player") {
         redirect("/playerDashboard");
       }
     } catch (error) {
-      console.error("Error Transaction Status", error);
       notify(error?.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,6 +68,9 @@ const LoginPage = () => {
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (evt) => evt.preventDefault();
 
+  if (loading) {
+    return <Loader />;
+  }
   return (
     <Grid container component="main" sx={{ height: "100vh" }}>
       <CssBaseline />

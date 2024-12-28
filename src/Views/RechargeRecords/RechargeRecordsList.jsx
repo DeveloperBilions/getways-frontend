@@ -40,12 +40,13 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+// loader
+import { Loader } from "../Loader";
 
 import { Parse } from "parse";
 
@@ -70,7 +71,7 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data } = useGetList("rechargeRecords", {
+  const { data, isPending } = useGetList("rechargeRecords", {
     // pagination: { page: 1, perPage: 100 },
   });
 
@@ -267,6 +268,10 @@ export const RechargeRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
+
+  if (isPending) {
+    return <Loader />;
+  }
 
   return (
     <>
