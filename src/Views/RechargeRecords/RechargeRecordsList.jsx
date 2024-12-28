@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 // react admin
 import {
   Datagrid,
   List,
   TextField,
   SearchInput,
-  TextInput,
   DateField,
   NumberField,
   FunctionField,
@@ -60,7 +59,6 @@ export const RechargeRecordsList = (props) => {
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
 
-  const [gameData, setGameData] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
@@ -75,41 +73,6 @@ export const RechargeRecordsList = (props) => {
   const { data } = useGetList("rechargeRecords", {
     // pagination: { page: 1, perPage: 100 },
   });
-
-  const fetchData = async () => {
-    try {
-      const TransactionRecords = Parse.Object.extend("TransactionRecords");
-      const query = new Parse.Query(TransactionRecords);
-
-      // Add a constraint to filter by type
-      query.equalTo("type", "recharge");
-
-      // Order by a field
-      query.descending("createdAt");
-
-      // Execute the query
-      const results = await query.find();
-
-      // Map the results to extract data
-      const transactions = results.map((record) => ({
-        transactionId: record.id,
-        gameId: record.get("gameId"),
-        username: record.get("username"),
-        transactionDate: record.get("transactionDate"),
-        beforeTransaction: record.get("beforeTransaction"),
-        afterTransaction: record.get("afterTransaction"),
-        transactionAmount: record.get("transactionAmount"),
-        ipaddress: record.get("ipaddress"),
-        remark: record.get("remark"),
-        referralLink: record.get("referralLink"),
-        status: mapStatus(record.get("status")),
-      }));
-
-      setGameData(transactions);
-    } catch (error) {
-      console.error("Error while fetching data:", error);
-    }
-  };
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -144,16 +107,6 @@ export const RechargeRecordsList = (props) => {
   // 6: "Pending Approval"
   // 7: "Rejected" -  Redeem Request Rejected
 
-  useEffect(() => {
-    fetchData();
-    // Set up interval to fetch data every 1 minute
-    const intervalId = setInterval(() => {
-      fetchData();
-    }, 60000);
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   const totalTransactionAmount =
     data &&
     data
@@ -183,8 +136,9 @@ export const RechargeRecordsList = (props) => {
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
-      head: [["Name", "Amount($)", "Remark", "Status", "Date"]],
-      body: data.map((row) => [
+      head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+      body: data.map((row, index) => [
+        index + 1,
         row.username,
         row.transactionAmount,
         row.remark,
@@ -242,7 +196,6 @@ export const RechargeRecordsList = (props) => {
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
     <SelectUserInput />,
   ];
 

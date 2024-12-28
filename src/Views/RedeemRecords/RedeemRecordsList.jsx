@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 // react admin
 import {
   Datagrid,
   List,
   TextField,
   SearchInput,
-  TextInput,
   DateField,
   NumberField,
   FunctionField,
@@ -15,7 +14,6 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
-  FilterLiveSearch,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -55,7 +53,6 @@ export const RedeemRecordsList = (props) => {
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
 
-  const [gameData, setGameData] = useState([]);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -70,40 +67,6 @@ export const RedeemRecordsList = (props) => {
   const { data } = useGetList("redeemRecords", {
     // pagination: { page: 1, perPage: 100 },
   });
-
-  const fetchData = async () => {
-    try {
-      const TransactionRecords = Parse.Object.extend("TransactionRecords");
-      const query = new Parse.Query(TransactionRecords);
-
-      // Add a constraint to filter by type
-      query.equalTo("type", "redeem");
-
-      // Order by a field
-      query.descending("transactionDate");
-
-      // Execute the query
-      const results = await query.find();
-
-      // Map the results to extract data
-      const transactions = results.map((record) => ({
-        transactionId: record.id,
-        gameId: record.get("gameId"),
-        username: record.get("username"),
-        transactionDate: record.get("transactionDate"),
-        beforeTransaction: record.get("beforeTransaction"),
-        afterTransaction: record.get("afterTransaction"),
-        transactionAmount: record.get("transactionAmount"),
-        ipaddress: record.get("ipaddress"),
-        remark: record.get("remark"),
-        status: mapStatus(record.get("status")),
-        responseMessage: record.get("responseMessage"),
-      }));
-      setGameData(transactions);
-    } catch (error) {
-      console.error("Error while fetching data:", error);
-    }
-  };
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -138,16 +101,6 @@ export const RedeemRecordsList = (props) => {
   // 6: "Pending Approval"
   // 7: "Rejected" -  Redeem Request Rejected
 
-  useEffect(() => {
-    fetchData();
-    // Set up interval to fetch data every 1 minute
-    const intervalId = setInterval(() => {
-      fetchData();
-    }, 60000);
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   const totalTransactionAmount =
     data &&
     data
@@ -162,8 +115,11 @@ export const RedeemRecordsList = (props) => {
     const doc = new jsPDF();
     doc.text("Redeem Records", 10, 10);
     doc.autoTable({
-      head: [["Name", "Amount($)", "Remark", "Status", "Message", "Date"]],
-      body: data.map((row) => [
+      head: [
+        ["No", "Name", "Amount($)", "Remark", "Status", "Message", "Date"],
+      ],
+      body: data.map((row, index) => [
+        index + 1,
         row.username,
         row.transactionAmount,
         row.remark,
@@ -222,7 +178,6 @@ export const RedeemRecordsList = (props) => {
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
     <SelectUserInput />,
   ];
 
