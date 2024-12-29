@@ -1,6 +1,6 @@
 import "./App.css";
 import React from "react";
-import { Admin, Resource, CustomRoutes, Authenticated } from "react-admin";
+import { Admin, Resource, CustomRoutes, Authenticated, ListGuesser } from "react-admin";
 import { Route } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
@@ -63,7 +63,7 @@ function App() {
             />
             <Resource
               name="summary"
-              list={SummaryList}
+              list={DataSummary}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />

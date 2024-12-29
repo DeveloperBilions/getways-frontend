@@ -86,14 +86,14 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-    // console.log("GETLIST");
+    console.log("GETLIST");
     // console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
     var q = filter.q;
     delete filter.q;
-    // console.log("=====", filter);
+    console.log("==== =", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -104,8 +104,7 @@ export const dataProvider = {
 
     const fetchUsers = async (selectedUser) => {
       const user = selectedUser ? selectedUser : await Parse.User.current();
-      console.log("INSIDE FETCH");
-
+      
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
       usrQuery.limit(10000);
@@ -184,6 +183,7 @@ export const dataProvider = {
             else query.equalTo(f, filter[f]);
           });
         count = await query.count();
+
       } else if (resource === "summary") {
         var result = null;
         console.log("Summary");
@@ -207,9 +207,12 @@ export const dataProvider = {
               "type"
             );
             transactionQuery.containedIn("userId", ids);
+            filter.startdate && transactionQuery.greaterThanOrEqualTo("transactionDate", new Date(filter.startdate + " 00:00:00"));
+            filter.enddate && transactionQuery.lessThanOrEqualTo("transactionDate", new Date(filter.enddate + " 23:59:59"))
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
-          } else {
+          } 
+          else {
             var userQuery = new Parse.Query(Parse.User);
             userQuery.limit(10000);
             var results = await userQuery.find({ useMasterKey: true });
@@ -225,6 +228,8 @@ export const dataProvider = {
               "transactionAmount",
               "type"
             );
+            filter.startdate && transactionQuery.greaterThanOrEqualTo("transactionDate", new Date(filter.startdate + " 00:00:00"));
+            filter.enddate && transactionQuery.lessThanOrEqualTo("transactionDate", new Date(filter.enddate + " 23:59:59"))
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           }
@@ -269,6 +274,8 @@ export const dataProvider = {
             "type"
           );
           transactionQuery.containedIn("userId", ids);
+          filter.startdate && transactionQuery.greaterThanOrEqualTo("transactionDate", new Date(filter.startdate + " 00:00:00"));
+          filter.enddate && transactionQuery.lessThanOrEqualTo("transactionDate", new Date(filter.enddate + " 23:59:59"))
           /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);

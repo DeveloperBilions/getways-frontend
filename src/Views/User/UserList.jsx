@@ -281,10 +281,10 @@ export const UserList = (props) => {
         {identity?.role === "Super-User" && (
           <TextField source="userParentName" label="Parent User" />
         )}
-        <DateField source="createdAt" label="Date" showTime />
         {identity?.role === "Super-User" && (
           <TextField source="roleName" label="User Type" />
         )}
+        <DateField source="createdAt" label="Date" showTime />
         <WrapperField label="Actions">
           <CustomButton fetchAllUsers={fetchAllUsers} />
         </WrapperField>

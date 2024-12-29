@@ -178,26 +178,24 @@ export const RechargeRecordsList = (props) => {
   };
 
   const SelectUserInput = () => {
-    return permissions != "Player" ? (
-      <SelectInput
+    console.log("ROLE", permissions);
+    return permissions != "Player" ? <SelectInput
         label="Status"
         source="status"
-        alwaysOn
         emptyText="All"
         choices={[
           { id: 0, name: "Pending Referral Link" },
           { id: 1, name: "Pending Confirmation" },
           { id: 2, name: "Confirmed" },
           { id: 3, name: "Coins Credited" },
-          { id: 3, name: "Status Unknown" },
+          { id: 4, name: "Status Unknown" },
         ]}
-      />
-    ) : null;
+      /> : null;
   };
 
   const dataFilters = [
     <SearchInput source="username" alwaysOn resettable />,
-    <SelectUserInput />,
+    <SelectUserInput alwaysOn resettable/>,
   ];
 
   const postListActions = (
@@ -282,11 +280,11 @@ export const RechargeRecordsList = (props) => {
           alignItems: "center",
         }}
       >
-        {identity?.role !== "Player" ? (
+        {/* {identity?.role !== "Player" ? (
           <Typography sx={{ mt: 2 }}>
             Total Recharged Amount: <b>${totalTransactionAmount}</b>
           </Typography>
-        ) : null}
+        ) : null} */}
         {identity?.role === "Player" && (
           <>
             <Button

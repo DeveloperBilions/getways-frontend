@@ -7,13 +7,17 @@ import {
   List,
   TextInput,
   SelectInput,
+  DateInput,
   SimpleForm,
   TextField,
   SimpleShowLayout,
   useListContext,
   ListBase,
-  FilterForm,
+  FilterForm, minValue, maxValue
 } from "react-admin";
+
+import { Loader } from "../Loader";
+
 // mui
 import {
   Typography,
@@ -34,7 +38,8 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 
 const Summary = () => {
-  const { data, isPending } = useListContext();
+  const { data, isPending, isFetching } = useListContext();
+  const { identity } = useGetIdentity();
 
   if (isPending) {
     return (
@@ -49,9 +54,9 @@ const Summary = () => {
     );
   }
 
-  const totalUsers = data[0]?.users.length - 1; //excluding self
+  const totalRegisteredUsers = data[0]?.users.filter(item => item.userReferralCode===null).length; //excluding self
   const totalAgents = data[0]?.users?.filter(
-    (item) => item.roleName === "Agent"
+    (item) => item.roleName === "Agent" && item.username!==identity.username
   ).length;
   const totalRechargeAmount =
     data[0]?.transactions
@@ -74,7 +79,7 @@ const Summary = () => {
     {
       id: 1,
       name: "Total User",
-      value: totalUsers,
+      value: totalRegisteredUsers,
       bgColor: "#E3F2FD",
       borderColor: "#7EB9FB",
       icon: <PersonIcon color="primary" />,
@@ -120,6 +125,9 @@ const Summary = () => {
       icon: <ErrorIcon color="error" />,
     },
   ];
+
+  identity.role==="Agent" && finalData.splice(1, 1);
+  console.log(finalData);
 
   return (
     <Grid container spacing={2} mt>
@@ -167,6 +175,11 @@ const SearchSelectUsersFilter = () => {
   const { data, isPending } = useGetList("users");
   // console.log(data);
   // if (isPending) return null;
+
+  if (isPending) {
+    return <Loader />;
+  }
+
   return (
     <SelectInput
       label="username"
@@ -186,8 +199,13 @@ export const DataSummary = () => {
 
   const newData = data?.map((item) => ({
     ...item,
-    optionName: "Role: ".concat(item.roleName, " - ", item.name),
+    optionName: "".concat(item.roleName, " - ", item.name),
   }));
+
+  const currentDate = new Date().toLocaleDateString('es-CL');
+  const prevYearDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toLocaleDateString('es-CL');
+  const nextYearDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-CL');
+  
 
   const dataFilters = [
     <SelectInput
@@ -200,16 +218,19 @@ export const DataSummary = () => {
       resettable
       emptyText="All"
     />,
+    <DateInput label="Start date" source="startdate" alwaysOn resettable validate={maxValue(currentDate)}/>,
+    <DateInput label="End date" source="enddate" alwaysOn resettable validate={maxValue(currentDate)}/>
+
     // <SearchSelectUsersFilter />,
   ];
 
   return (
     <React.Fragment>
       <ListBase>
-         {/* <FilterForm
+          <FilterForm
           filters={dataFilters}
-          sx={{ flex: "0 2 auto", padding: "4px 0 px 0" }}
-        />  */}
+          sx={{ flex: "0 2 auto !important", padding: "0px 0px 0px 0px !important" }}
+        />  
         <Summary />
       </ListBase>
     </React.Fragment>
