@@ -108,7 +108,7 @@ export const dataProvider = {
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
       usrQuery.limit(10000);
-
+      usrQuery.select("objectId", "userParentId", "userParentName", "roleName", "userType", "name", "username", "userReferralCode", "email");
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
       console.log(results);

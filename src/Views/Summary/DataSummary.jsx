@@ -54,7 +54,7 @@ const Summary = () => {
     );
   }
 
-  const totalRegisteredUsers = data[0]?.users.filter(item => item.userReferralCode===null).length; //excluding self
+  const totalRegisteredUsers = data[0]?.users.filter(item => item.userReferralCode==null).length; //excluding self
   const totalAgents = data[0]?.users?.filter(
     (item) => item.roleName === "Agent" && item.username!==identity.username
   ).length;
@@ -172,7 +172,11 @@ const Summary = () => {
 };
 
 const SearchSelectUsersFilter = () => {
-  const { data, isPending } = useGetList("users");
+  const { data, isPending } = useGetList("users", { 
+            pagination: { page: 1, perPage: 10000 },
+            sort: { field: 'roleName', order: 'ASC' },
+            filter: { userReferralCode: null }
+        });
   // console.log(data);
   // if (isPending) return null;
 
@@ -195,7 +199,11 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
-  const { data, isPending } = useGetList("users");
+  const { data, isPending } = useGetList("users", { 
+      pagination: { page: 1, perPage: 10000 },
+      sort: { field: 'roleName', order: 'ASC' },
+      filter: { userReferralCode: null }
+  });
 
   const newData = data?.map((item) => ({
     ...item,

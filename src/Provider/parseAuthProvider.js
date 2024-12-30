@@ -16,6 +16,7 @@ export const authProvider = {
         "caseInsensitiveLogin",
         { email, password }
       );
+      console.log("LOGGED IN");
       // Set the current user session using the session token
       const currentUser = await Parse.User.become(sessionToken);
 
