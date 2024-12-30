@@ -17,7 +17,7 @@ import {
   FilterForm, minValue, maxValue
 } from "react-admin";
 
-import { Loader } from "../Loader";
+import { Loader, KPILoader } from "../Loader";
 
 // mui
 import {
@@ -53,6 +53,10 @@ const Summary = () => {
         <Loading />
       </Box>
     );
+  }
+
+  if (isFetching) {
+    return <KPILoader />;
   }
 
   const totalRegisteredUsers = data[0]?.users.filter(item => item.userReferralCode==null).length; //excluding self

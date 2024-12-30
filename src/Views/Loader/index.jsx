@@ -13,3 +13,11 @@ export const Loader = () => {
     </React.Fragment>
   );
 };
+
+export const KPILoader = () => {
+  return (
+    <React.Fragment>
+      <div className="kpi-loading-container" tabIndex="1" />
+    </React.Fragment>
+  );
+};
