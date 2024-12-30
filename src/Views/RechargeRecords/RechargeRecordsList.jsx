@@ -177,12 +177,38 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const SelectUserInput = () => {
-    console.log("ROLE", permissions);
-    return permissions != "Player" ? <SelectInput
+  // const SelectUserInput = () => {
+  //   console.log("ROLE", permissions);
+  //   return permissions != "Player" ? (
+  // <SelectInput
+  //   label="Status"
+  //   source="status"
+  //   emptyText="All"
+  //   choices={[
+  //     { id: 0, name: "Pending Referral Link" },
+  //     { id: 1, name: "Pending Confirmation" },
+  //     { id: 2, name: "Confirmed" },
+  //     { id: 3, name: "Coins Credited" },
+  //     { id: 4, name: "Status Unknown" },
+  //   ]}
+  // />;
+  //   ) : null;
+  // };
+
+  // const dataFilters = [
+  //   <SearchInput source="username" alwaysOn resettable />,
+  //   <SelectUserInput alwaysOn resettable />,
+  // ];
+
+  const dataFilters = [
+    <SearchInput source="username" alwaysOn resettable />,
+    permissions !== "Player" && (
+      <SelectInput
         label="Status"
         source="status"
         emptyText="All"
+        alwaysOn
+        resettable
         choices={[
           { id: 0, name: "Pending Referral Link" },
           { id: 1, name: "Pending Confirmation" },
@@ -190,13 +216,9 @@ export const RechargeRecordsList = (props) => {
           { id: 3, name: "Coins Credited" },
           { id: 4, name: "Status Unknown" },
         ]}
-      /> : null;
-  };
-
-  const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
-    <SelectUserInput alwaysOn resettable/>,
-  ];
+      />
+    ),
+  ].filter(Boolean);
 
   const postListActions = (
     <TopToolbar>
@@ -280,11 +302,6 @@ export const RechargeRecordsList = (props) => {
           alignItems: "center",
         }}
       >
-        {/* {identity?.role !== "Player" ? (
-          <Typography sx={{ mt: 2 }}>
-            Total Recharged Amount: <b>${totalTransactionAmount}</b>
-          </Typography>
-        ) : null} */}
         {identity?.role === "Player" && (
           <>
             <Button

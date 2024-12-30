@@ -104,7 +104,7 @@ export const RedeemRecordsList = (props) => {
   const totalTransactionAmount =
     data &&
     data
-      .filter((item) => item.status === 4 && item.type=== "redeem")
+      .filter((item) => item.status === 4 && item.type === "redeem")
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
   const handleRefresh = async () => {
@@ -159,27 +159,46 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const SelectUserInput = () => {
-    return permissions !== "Player" ? (
+  // const SelectUserInput = () => {
+  //   return permissions !== "Player" ? (
+  //     <SelectInput
+  //       label="Status"
+  //       source="status"
+  //       emptyText="All"
+  //       choices={[
+  //         { id: 4, name: "Success" },
+  //         { id: 5, name: "Failed" },
+  //         { id: 6, name: "Pending Approval" },
+  //         { id: 7, name: "Rejected" },
+  //       ]}
+  //       sx={{ width: 48, backgroundColor: "red" }}
+  //     />
+  //   ) : null;
+  // };
+
+  // const dataFilters = [
+  //   <SearchInput source="username" alwaysOn resettable />,
+  //   <SelectUserInput alwaysOn resettable />,
+  // ];
+
+  const dataFilters = [
+    <SearchInput source="username" alwaysOn resettable />,
+    permissions !== "Player" && (
       <SelectInput
         label="Status"
         source="status"
         emptyText="All"
+        alwaysOn
+        resettable
         choices={[
           { id: 4, name: "Success" },
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
           { id: 7, name: "Rejected" },
         ]}
-        sx={{width: 48, backgroundColor: "red"}}
       />
-    ) : null;
-  };
-
-  const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
-    <SelectUserInput alwaysOn resettable/>,
-  ];
+    ),
+  ].filter(Boolean);
 
   const postListActions = (
     <TopToolbar>
@@ -269,11 +288,11 @@ export const RedeemRecordsList = (props) => {
           }}
         >
           {identity?.role !== "Player" ? (
-           <></> 
-           /*<Typography sx={{ mt: 2 }}>
+            <></>
+          ) : (
+            /*<Typography sx={{ mt: 2 }}>
               Total Redeemed Amount: <b>${totalTransactionAmount}</b>
             </Typography> */
-          ) :  (
             <>
               <Button
                 variant="contained"
