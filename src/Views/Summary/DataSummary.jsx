@@ -7,6 +7,7 @@ import {
   List,
   TextInput,
   SelectInput,
+  AutocompleteInput,
   DateInput,
   SimpleForm,
   TextField,
@@ -127,7 +128,6 @@ const Summary = () => {
   ];
 
   identity.role==="Agent" && finalData.splice(1, 1);
-  console.log(finalData);
 
   return (
     <Grid container spacing={2} mt>
@@ -216,7 +216,7 @@ export const DataSummary = () => {
   
 
   const dataFilters = [
-    <SelectInput
+    <AutocompleteInput
       label="User"
       source="username"
       choices={newData}
@@ -237,7 +237,7 @@ export const DataSummary = () => {
       <ListBase>
           <FilterForm
           filters={dataFilters}
-          sx={{ flex: "0 2 auto !important", padding: "0px 0px 0px 0px !important" }}
+          sx={{ flex: "0 2 auto !important", padding: "0px 0px 0px 0px !important", alignItems: "flex-start" }}
         />  
         <Summary />
       </ListBase>

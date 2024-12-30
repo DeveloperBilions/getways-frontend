@@ -111,7 +111,7 @@ export const dataProvider = {
       usrQuery.select("objectId", "userParentId", "userParentName", "roleName", "userType", "name", "username", "userReferralCode", "email");
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
-      console.log(results);
+      // console.log(results);
       var ids = results.map((r) => r.id);
       ids.push(user.id);
       const data = results.map((o) => ({ id: o.id, ...o.attributes }));
@@ -264,7 +264,7 @@ export const dataProvider = {
           console.log("selected user:", selectedUser);
           const { ids, data } = await fetchUsers(selectedUser);
           // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          console.log("fetchUsers", data);
+          // console.log("fetchUsers", data);
           //transactions
           const transactionQuery = new Parse.Query("TransactionRecords");
           transactionQuery.select(
@@ -295,7 +295,7 @@ export const dataProvider = {
             ],
             total: null,
           };
-          console.log("Summary List ", result);
+          // console.log("Summary List ", result);
         }
         return result;
       } else if (resource === "playerDashboard") {
