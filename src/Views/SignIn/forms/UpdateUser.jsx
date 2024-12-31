@@ -78,7 +78,7 @@ const LoginPage = () => {
 
       if (response.success) {
         const loginresponse = await login({
-          emailPhone: emailPhoneParams,
+          email: emailPhoneParams,
           password,
         });
         setLoading(false);
