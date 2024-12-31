@@ -1,47 +1,43 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { useLogin, useNotify, useRedirect } from "react-admin";
-// mui
-import {
-  Button,
-  CssBaseline,
-  Paper,
-  Box,
-  Grid,
-  Typography,
-  FormHelperText,
-  OutlinedInput,
-  InputAdornment,
-  FormControlLabel,
-  IconButton,
-  Checkbox,
-} from "@mui/material";
-// mui icon
+import { useState } from "react";
+import { useLogin, useNotify, Notification, useRedirect } from "react-admin";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Link from "@mui/material/Link";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import FormHelperText from "@mui/material/FormHelperText";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-// validation
+
+import PasswordResetEmail from "./PasswordResetEmail";
 import { inputValidations } from "../validations";
-// hook form
+
 import { useForm } from "react-hook-form";
 // loader
 import { Loader } from "../../Loader";
-
 import { Parse } from "parse";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
+// const defaultTheme = createTheme();
+
 const LoginPage = () => {
   const redirect = useRedirect();
-  const location = useLocation();
-
-  const searchParams = new URLSearchParams(location.search);
-  const emailPhoneParams = searchParams.get("emailPhone");
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm();
 
@@ -51,11 +47,12 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
+    const email = data?.email;
     const password = data?.password;
 
     setLoading(true);
     try {
-      const response = await login({ emailPhone: emailPhoneParams, password });
+      const response = await login({ email, password });
       setLoading(false);
       if (response?.role === "Player") {
         redirect("/playerDashboard");
@@ -119,30 +116,45 @@ const LoginPage = () => {
             padding: 3,
           }}
         >
+          {/* <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar> */}
           <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
+            {/* <Typography component="h1" variant="h5"> */}
             Sign in
           </Typography>
+          {/* <Grid container>
+            <Grid item>
+              <Typography variant="body2">Don't have an account?
+                <Link href="#/signup" variant="body2">
+                  {" Sign up now"}
+                </Link>
+              </Typography>
+            </Grid>
+          </Grid> */}
           <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-            <Typography htmlFor="email" sx={{ mb: 0, mt: 1 }}>
-              Email / Phone
-            </Typography>
+            <label htmlFor="email" sx={{ mb: 0, mt: 1 }}>
+              Email
+            </label>
             <OutlinedInput
               margin="normal"
               required
               fullWidth
-              label="emailPhone"
-              type="text"
-              name="emailPhone"
-              id="emailPhone"
-              autoComplete="off"
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
               sx={{ mt: 0 }}
-              disabled
-              value={emailPhoneParams}
+              {...register("email", inputValidations["email"])}
             />
+            {errors.email && (
+              <FormHelperText>{errors.email.message}</FormHelperText>
+            )}
 
-            <Typography htmlFor="password" sx={{ mb: 0 }}>
+            <label htmlFor="password" sx={{ mb: 0 }}>
               Password
-            </Typography>
+            </label>
             <OutlinedInput
               margin="normal"
               required
@@ -177,6 +189,11 @@ const LoginPage = () => {
                   label="Remember me"
                 />
               </Grid>
+              {/* <Grid item xs={5}>
+                <Link href="#/reset-email" variant="body2">
+                  Forgot password?
+                </Link>
+              </Grid> */}
             </Grid>
             <Button
               type="submit"
@@ -195,6 +212,14 @@ const LoginPage = () => {
             >
               Back
             </Button>
+            {/* <Typography variant="body1" align='center'>OR</Typography>
+            <Button
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 1 }}
+            >
+              Login with Google
+            </Button> */}
           </Box>
         </Box>
       </Grid>

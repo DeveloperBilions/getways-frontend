@@ -10,11 +10,12 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 export const authProvider = {
   async login(params) {
     Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
-    const { email, password } = params;
+
+    const { emailPhone, password } = params;
     try {
       const { sessionToken, user } = await Parse.Cloud.run(
         "caseInsensitiveLogin",
-        { email, password }
+        { emailPhone, password }
       );
       console.log("LOGGED IN");
       // Set the current user session using the session token

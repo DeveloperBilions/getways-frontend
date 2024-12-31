@@ -14,7 +14,9 @@ import {
   SimpleShowLayout,
   useListContext,
   ListBase,
-  FilterForm, minValue, maxValue
+  FilterForm,
+  minValue,
+  maxValue,
 } from "react-admin";
 
 import { Loader, KPILoader } from "../Loader";
@@ -55,13 +57,15 @@ const Summary = () => {
     );
   }
 
-  if (isFetching) {
-    return <KPILoader />;
-  }
+  // if (isPending) {
+  //   return <Loader />;
+  // }
 
-  const totalRegisteredUsers = data[0]?.users.filter(item => item.userReferralCode==null).length; //excluding self
+  const totalRegisteredUsers = data[0]?.users.filter(
+    (item) => item.userReferralCode == null
+  ).length; //excluding self
   const totalAgents = data[0]?.users?.filter(
-    (item) => item.roleName === "Agent" && item.username!==identity.username
+    (item) => item.roleName === "Agent" && item.username !== identity.username
   ).length;
   const totalRechargeAmount =
     data[0]?.transactions
@@ -131,7 +135,7 @@ const Summary = () => {
     },
   ];
 
-  identity.role==="Agent" && finalData.splice(1, 1);
+  identity.role === "Agent" && finalData.splice(1, 1);
 
   return (
     <Grid container spacing={2} mt>
@@ -176,11 +180,11 @@ const Summary = () => {
 };
 
 const SearchSelectUsersFilter = () => {
-  const { data, isPending } = useGetList("users", { 
-            pagination: { page: 1, perPage: 10000 },
-            sort: { field: 'roleName', order: 'ASC' },
-            filter: { userReferralCode: null }
-        });
+  const { data, isPending } = useGetList("users", {
+    pagination: { page: 1, perPage: 10000 },
+    sort: { field: "roleName", order: "ASC" },
+    filter: { userReferralCode: null },
+  });
   // console.log(data);
   // if (isPending) return null;
 
@@ -203,10 +207,10 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
-  const { data, isPending } = useGetList("users", { 
-      pagination: { page: 1, perPage: 10000 },
-      sort: { field: 'roleName', order: 'ASC' },
-      filter: { userReferralCode: null }
+  const { data, isPending } = useGetList("users", {
+    pagination: { page: 1, perPage: 10000 },
+    sort: { field: "roleName", order: "ASC" },
+    filter: { userReferralCode: null },
   });
 
   const newData = data?.map((item) => ({
@@ -214,10 +218,13 @@ export const DataSummary = () => {
     optionName: "".concat(item.roleName, " - ", item.name),
   }));
 
-  const currentDate = new Date().toLocaleDateString('es-CL');
-  const prevYearDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toLocaleDateString('es-CL');
-  const nextYearDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-CL');
-  
+  const currentDate = new Date().toLocaleDateString("es-CL");
+  const prevYearDate = new Date(
+    new Date().setFullYear(new Date().getFullYear() - 1)
+  ).toLocaleDateString("es-CL");
+  const nextYearDate = new Date(
+    new Date().setFullYear(new Date().getFullYear() + 1)
+  ).toLocaleDateString("es-CL");
 
   const dataFilters = [
     <AutocompleteInput
@@ -230,8 +237,20 @@ export const DataSummary = () => {
       resettable
       emptyText="All"
     />,
-    <DateInput label="Start date" source="startdate" alwaysOn resettable validate={maxValue(currentDate)}/>,
-    <DateInput label="End date" source="enddate" alwaysOn resettable validate={maxValue(currentDate)}/>
+    <DateInput
+      label="Start date"
+      source="startdate"
+      alwaysOn
+      resettable
+      validate={maxValue(currentDate)}
+    />,
+    <DateInput
+      label="End date"
+      source="enddate"
+      alwaysOn
+      resettable
+      validate={maxValue(currentDate)}
+    />,
 
     // <SearchSelectUsersFilter />,
   ];
@@ -239,10 +258,14 @@ export const DataSummary = () => {
   return (
     <React.Fragment>
       <ListBase>
-          <FilterForm
+        <FilterForm
           filters={dataFilters}
-          sx={{ flex: "0 2 auto !important", padding: "0px 0px 0px 0px !important", alignItems: "flex-start" }}
-        />  
+          sx={{
+            flex: "0 2 auto !important",
+            padding: "0px 0px 0px 0px !important",
+            alignItems: "flex-start",
+          }}
+        />
         <Summary />
       </ListBase>
     </React.Fragment>
