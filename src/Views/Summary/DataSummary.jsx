@@ -210,7 +210,7 @@ export const DataSummary = () => {
   const { data, isPending } = useGetList("users", {
     pagination: { page: 1, perPage: 10000 },
     sort: { field: "roleName", order: "ASC" },
-    filter: { userReferralCode: null },
+    filter: { userReferralCode: "" },
   });
 
   const newData = data?.map((item) => ({

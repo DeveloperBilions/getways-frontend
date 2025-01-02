@@ -71,8 +71,8 @@ function App() {
               icon={LocalAtmIcon}
             />
             <Resource
-              name="summary"
-              list={DataSummary}
+              name="summaryData"
+              list={Summary}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />

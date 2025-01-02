@@ -68,8 +68,8 @@ const LoginPage = () => {
     const password = data?.password;
 
     const rawData = {
+      ...data,
       emailPhone: emailPhoneParams,
-      password: data?.password,
     };
 
     setLoading(true);
@@ -129,7 +129,7 @@ const LoginPage = () => {
       >
         <Box
           sx={{
-            my: 10,
+            my: 1,
             mx: 8,
             display: "flex",
             justifyContent: "center",
@@ -145,7 +145,7 @@ const LoginPage = () => {
             Register User
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-            <Typography sx={{ mt: 1 }}>Email / Phone</Typography>
+            <Typography sx={{ mt: 1 }}>Phone</Typography>
             <OutlinedInput
               required
               fullWidth
@@ -159,6 +159,38 @@ const LoginPage = () => {
               value={emailPhoneParams}
             />
 
+            <Typography sx={{ mt: 1 }}>Email</Typography>
+            <OutlinedInput
+              required
+              fullWidth
+              name="email"
+              label="email"
+              type="email"
+              id="email"
+              autoComplete="off"
+              sx={{ mt: 0 }}
+              {...register("email", inputValidations["email"])}
+            />
+            {errors.email && (
+              <FormHelperText>{errors.email.message}</FormHelperText>
+            )}
+
+            <Typography sx={{ mt: 1 }}>User Name</Typography>
+            <OutlinedInput
+              required
+              fullWidth
+              name="username"
+              label="username"
+              type="text"
+              id="username"
+              autoComplete="off"
+              sx={{ mt: 0 }}
+              {...register("username", inputValidations["username"])}
+            />
+            {errors.username && (
+              <FormHelperText>{errors.username.message}</FormHelperText>
+            )}
+
             <Typography sx={{ mt: 1 }}>Name</Typography>
             <OutlinedInput
               required
@@ -169,23 +201,11 @@ const LoginPage = () => {
               id="name"
               autoComplete="off"
               sx={{ mt: 0 }}
-              disabled
-              value={nameParams}
+              {...register("name", inputValidations["name"])}
             />
-
-            {/* <Typography sx={{ mt: 1 }}>User Name</Typography>
-            <OutlinedInput
-              required
-              fullWidth
-              name="username"
-              label="username"
-              type="text"
-              id="username"
-              autoComplete="off"
-              sx={{ mt: 0 }}
-              disabled
-              value={usernameParams}
-            /> */}
+            {errors.name && (
+              <FormHelperText>{errors.name.message}</FormHelperText>
+            )}
 
             <Typography sx={{ mt: 1 }}>Password</Typography>
             <OutlinedInput

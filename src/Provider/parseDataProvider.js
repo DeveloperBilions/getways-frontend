@@ -86,14 +86,14 @@ export const dataProvider = {
   },
   getList: async (resource, params) => {
     //works
-    console.log("GETLIST");
+    // console.log("GETLIST");
     // console.log("*****", params);
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
     var q = filter.q;
     delete filter.q;
-    console.log("==== =", filter);
+    // console.log("==== =", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -330,6 +330,35 @@ export const dataProvider = {
           // console.log("Summary List ", result);
         }
         return result;
+      } else if (resource === "summaryData") {
+        var result = null;
+
+        const rawFilter = {
+          userId: filter?.username || userid,
+          endDate: filter?.enddate,
+          startDate: filter?.startdate,
+        };
+
+        console.log("&&&&&", rawFilter);
+
+        const response = await Parse.Cloud.run("summaryFilter", rawFilter);
+
+        console.log(response);
+
+        const array = Object.entries(response?.data).map(
+          ([key, value], index) => ({
+            id: index + 1,
+            key,
+            value,
+          })
+        );
+
+        const res = {
+          data: array,
+          total: count,
+        };
+
+        return res;
       } else if (resource === "playerDashboard") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);

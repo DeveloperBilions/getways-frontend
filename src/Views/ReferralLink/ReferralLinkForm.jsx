@@ -108,6 +108,7 @@ const ReferralLinkForm = () => {
       }
     } catch (error) {
       console.error("Error Creating User details", error);
+      notify(error?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
       setDisableButtonState(false);
