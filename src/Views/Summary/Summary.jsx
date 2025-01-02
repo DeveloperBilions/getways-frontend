@@ -48,7 +48,7 @@ const Test = () => {
   }
 
   if (isFetching) {
-    return <Loader />;
+    return <Loading />;
   }
 
   // Convert the array into an object
@@ -147,7 +147,7 @@ export const Summary = () => {
     userId: "",
   });
 
-  const { data } = useGetList("users", {
+  const { data , isFetching } = useGetList("users", {
     pagination: { page: 1, perPage: 10000 },
     sort: { field: "roleName", order: "DEC" },
     filter: { userReferralCode: "" },
@@ -214,7 +214,14 @@ export const Summary = () => {
             alignItems: "flex-start",
           }}
         />
-        <Test />
+          {isFetching ? <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Loading />
+      </Box> :  <Test />}
       </ListBase>
     </React.Fragment>
   );
