@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   useGetIdentity,
   useGetList,
@@ -18,7 +18,6 @@ import {
   minValue,
   maxValue,
 } from "react-admin";
-
 import { Loader, KPILoader } from "../Loader";
 
 // mui
@@ -41,10 +40,10 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 
 const Summary = () => {
-  const { data, isPending, isFetching } = useListContext();
+  const { data , isFetching } = useListContext();
   const { identity } = useGetIdentity();
 
-  if (isPending) {
+  if (isFetching) {
     return (
       <Box
         display="flex"
@@ -207,10 +206,13 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
-  const { data, isPending } = useGetList("users", {
+  const { data, isFetching } = useGetList("users", {
     pagination: { page: 1, perPage: 10000 },
     sort: { field: "roleName", order: "ASC" },
     filter: { userReferralCode: "" },
+  },{
+    refetchOnWindowFocus: false, // Prevent refetch on focus
+    refetchOnReconnect: false,
   });
 
   const newData = data?.map((item) => ({
@@ -225,7 +227,6 @@ export const DataSummary = () => {
   const nextYearDate = new Date(
     new Date().setFullYear(new Date().getFullYear() + 1)
   ).toLocaleDateString("es-CL");
-
   const dataFilters = [
     <AutocompleteInput
       label="User"
@@ -266,7 +267,14 @@ export const DataSummary = () => {
             alignItems: "flex-start",
           }}
         />
-        <Summary />
+        {isFetching ? <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Loading />
+      </Box> :  <Summary />}
       </ListBase>
     </React.Fragment>
   );
