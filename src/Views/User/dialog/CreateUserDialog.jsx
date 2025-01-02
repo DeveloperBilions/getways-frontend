@@ -30,8 +30,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   // State for form fields (initially empty)
   const [userName, setUserName] = useState("");
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
-  // const [balance, setBalance] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -104,6 +104,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             roleName: userType,
             username: userName,
             name,
+            phoneNumber,
             email,
             password,
             userParentId: identity?.objectId,
@@ -119,6 +120,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             roleName: userType,
             username: userName,
             name,
+            phoneNumber,
             email,
             password,
             userParentId: parentType?.id,
@@ -135,6 +137,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           roleName: "Player",
           username: userName,
           name,
+          phoneNumber,
           email,
           password,
           userParentId: identity?.objectId,
@@ -182,7 +185,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           <ModalBody>
             <Form onSubmit={handleSubmit}>
               <Row>
-                <Col md={12}>
+                <Col md={6}>
                   <FormGroup>
                     <Label for="userName" className="pb-0 mb-0">
                       User Name
@@ -199,7 +202,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                   </FormGroup>
                 </Col>
 
-                <Col md={12}>
+                <Col md={6}>
                   <FormGroup>
                     <Label for="name" className="pb-0 mb-0">
                       Name
@@ -216,9 +219,43 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                   </FormGroup>
                 </Col>
 
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="phoneNumber" className="pb-0 mb-0">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      type="text"
+                      autoComplete="off"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="email" className="pb-0 mb-0">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="off"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+
                 {permissions === "Super-User" && (
                   <>
-                    <Col md={12}>
+                    <Col md={6}>
                       <FormGroup>
                         <Label for="exampleSelect">User Type</Label>
                         <Input
@@ -236,7 +273,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                       </FormGroup>
                     </Col>
 
-                    <Col md={12}>
+                    <Col md={6}>
                       <FormGroup>
                         <Label for="exampleSelect">Parent Type</Label>
                         <Input
@@ -258,23 +295,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                     </Col>
                   </>
                 )}
-
-                <Col md={12}>
-                  <FormGroup>
-                    <Label for="email" className="pb-0 mb-0">
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="off"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </FormGroup>
-                </Col>
 
                 <Col md={12}>
                   <FormGroup>

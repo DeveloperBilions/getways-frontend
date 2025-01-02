@@ -34,6 +34,7 @@ const ReferralLinkForm = () => {
 
   const [userName, setUserName] = useState("");
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -87,6 +88,7 @@ const ReferralLinkForm = () => {
       userReferralCode: referral,
       username: userName,
       name,
+      phoneNumber,
       email,
       password,
     };
@@ -184,6 +186,23 @@ const ReferralLinkForm = () => {
                           autoComplete="off"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
+                          required
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label for="phoneNumber" className="pb-0 mb-0">
+                          Phone Number
+                        </Label>
+                        <Input
+                          id="phoneNumber"
+                          name="phoneNumber"
+                          type="text"
+                          autoComplete="off"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
                           required
                         />
                       </FormGroup>
