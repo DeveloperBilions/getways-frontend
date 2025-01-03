@@ -36,6 +36,8 @@ import { SummaryList } from "./Views/Summary/SummaryList ";
 import { Summary } from "./Views/Summary/Summary";
 import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
+import { Stripe } from "./Views/Stripe/Stripe";
+import { Success } from "./Views/Stripe/Success";
 
 function App() {
   return (
@@ -76,6 +78,13 @@ function App() {
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />
+            {/* <Resource
+              name="StripeForm"
+              list={Stripe}
+              options={{ label: "StripeForm" }}
+              icon={SummarizeIcon}
+            /> */}
+            <Route path="/success" element={<Success />} />
           </>
         ) : (
           <>
@@ -114,7 +123,17 @@ function App() {
           </>
         )
       }
-
+      <CustomRoutes>
+        {" "}
+        <Route
+          path="/success"
+          element={
+            <Authenticated>
+              <Success />{" "}
+            </Authenticated>
+          }
+        />
+      </CustomRoutes>
       <CustomRoutes noLayout>
         <Route path="/loginEmail" element={<LoginEmailPage />} />
         <Route path="/updateUser" element={<UpdateUser />} />

@@ -14,6 +14,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { dataProvider } from "../../../Provider/parseDataProvider";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -42,13 +43,13 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
     event.preventDefault();
     const rawData = {
       ...record,
-      transactionAmount: rechargeAmount,
+      transactionAmount: rechargeAmount * 100,
       remark,
       type: "recharge",
     };
     setLoading(true);
     try {
-      await Parse.Cloud.run("userTransaction", rawData);
+      await dataProvider.userTransaction(rawData);
       onClose();
       fetchAllUsers();
       setLoading(false);

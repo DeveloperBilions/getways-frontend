@@ -16,6 +16,7 @@ import { useGetIdentity } from "react-admin";
 import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
+import { dataProvider } from "../../../Provider/parseDataProvider";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -51,14 +52,27 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
       id: identity.objectId,
       type: "recharge",
       username: identity.username,
-      transactionAmount: rechargeAmount,
+      transactionAmount: rechargeAmount * 100,
       remark,
     };
     setLoading(true);
     try {
-      const response = await Parse.Cloud.run("userTransaction", rawData);
-      if (identity?.role === "Player") {
-        window.open(response?.apiResponse?.redirect_url, "_blank");
+
+      const response = await dataProvider.userTransaction(rawData);
+      if (response?.success) { // Ensure the response indicates success
+        if (identity?.role === "Player") {
+          const paymentUrl = response?.apiResponse?.url;
+          if (paymentUrl) {
+            // Open the URL in a new tab
+            window.open(paymentUrl, "_blank");
+          } else {
+            console.error("Payment URL is missing from the response");
+            // Optionally, notify the user about the missing URL
+          }
+        }
+      } else {
+        console.error("Transaction failed:", response?.message || "Unknown error");
+        // Optionally, show a user-friendly error message
       }
       onClose();
       handleRefresh();
