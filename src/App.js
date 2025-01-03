@@ -128,9 +128,7 @@ function App() {
         <Route
           path="/success"
           element={
-            <Authenticated>
-              <Success />{" "}
-            </Authenticated>
+              <Success />
           }
         />
       </CustomRoutes>
