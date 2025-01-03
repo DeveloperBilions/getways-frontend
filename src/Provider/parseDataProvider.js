@@ -408,7 +408,7 @@ export const dataProvider = {
       try {
         // Create a Checkout Session
         const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"], // Accept card payments
+          payment_method_types: ["card","cashapp"], // Accept card payments
           mode: "payment", // One-time payment
           success_url: "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your success URL
           cancel_url: "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your cancel URL
