@@ -70,9 +70,15 @@ function App() {
               options={{ label: "Redeem Records" }}
               icon={LocalAtmIcon}
             />
-            <Resource
+            {/*<Resource
               name="summaryData"
               list={Summary}
+              options={{ label: "Summary" }}
+              icon={SummarizeIcon}
+            /> */}
+            <Resource
+              name="summary"
+              list={DataSummary}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />

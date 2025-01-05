@@ -58,6 +58,7 @@ const LoginPage = () => {
       const response = await login({ email: emailPhoneParams, password });
       setLoading(false);
       if (response?.role === "Player") {
+        console.log("LOGIN: ", response);
         redirect("/playerDashboard");
       }
     } catch (error) {

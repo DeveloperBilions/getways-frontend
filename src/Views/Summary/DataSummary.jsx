@@ -60,7 +60,7 @@ const Summary = () => {
   // if (isPending) {
   //   return <Loader />;
   // }
-
+  /*
   const totalRegisteredUsers = data[0]?.users.filter(
     (item) => item.userReferralCode == null
   ).length; //excluding self
@@ -83,12 +83,13 @@ const Summary = () => {
     data[0]?.transactions
       ?.filter((item) => item.status === 5)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+  */
 
   const finalData = [
     {
       id: 1,
       name: "Total User",
-      value: totalRegisteredUsers,
+      value: data[0].totalRegisteredUsers,
       bgColor: "#E3F2FD",
       borderColor: "#7EB9FB",
       icon: <PersonIcon color="primary" />,
@@ -96,7 +97,7 @@ const Summary = () => {
     {
       id: 2,
       name: "Total Agent",
-      value: totalAgents,
+      value: data[0].totalAgents,
       bgColor: "#dedede",
       borderColor: "#adb5bd",
       icon: <PersonIcon color="info" />,
@@ -104,7 +105,7 @@ const Summary = () => {
     {
       id: 3,
       name: "Total Recharges",
-      value: "$" + totalRechargeAmount,
+      value: "$" + data[0].totalRechargeAmount,
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
       icon: <PaidIcon color="success" />,
@@ -112,7 +113,7 @@ const Summary = () => {
     {
       id: 4,
       name: "Total Redeems",
-      value: "$" + totalRedeemAmount,
+      value: "$" + data[0].totalRedeemAmount,
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
       icon: <PaidIcon color="secondary" />,
@@ -120,7 +121,7 @@ const Summary = () => {
     {
       id: 5,
       name: "Pending Recharges",
-      value: "$" + totalPendingRechargeAmount,
+      value: "$" + data[0].totalPendingRechargeAmount,
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
       icon: <WarningIcon color="warning" />,
@@ -128,7 +129,7 @@ const Summary = () => {
     {
       id: 6,
       name: "Failed Redeems",
-      value: "$" + totalFailRedeemAmount,
+      value: "$" + data[0].totalFailRedeemAmount,
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
@@ -207,15 +208,16 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
+  const { identity } = useGetIdentity();
   const { data, isPending } = useGetList("users", {
     pagination: { page: 1, perPage: 10000 },
     sort: { field: "roleName", order: "ASC" },
     filter: { userReferralCode: "" },
   });
-
-  const newData = data?.map((item) => ({
+  console.log("USERS", data)
+  const newData = data?.map((item) => (item.id!== identity.objectId && {
     ...item,
-    optionName: "".concat(item.roleName, " - ", item.name),
+    optionName: "".concat(item.name, " (", item.roleName, ")"),
   }));
 
   const currentDate = new Date().toLocaleDateString("es-CL");
@@ -242,14 +244,14 @@ export const DataSummary = () => {
       source="startdate"
       alwaysOn
       resettable
-      validate={maxValue(currentDate)}
+      // validate={maxValue(currentDate)}
     />,
     <DateInput
       label="End date"
       source="enddate"
       alwaysOn
       resettable
-      validate={maxValue(currentDate)}
+      // validate={maxValue(currentDate)}
     />,
 
     // <SearchSelectUsersFilter />,

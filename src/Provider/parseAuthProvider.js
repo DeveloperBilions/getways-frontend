@@ -9,7 +9,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 export const authProvider = {
   async login(params) {
-    Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
+    Parse.masterKey = process.env.REACT_APP_MASTER_KEY; 
 
     const { email, password } = params;
     try {

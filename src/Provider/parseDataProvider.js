@@ -1,4 +1,5 @@
 import { Parse } from "parse";
+import { calculateDataSummaries } from '../utils';
 
 Parse.initialize(
   process.env.REACT_APP_APPID,
@@ -140,7 +141,8 @@ export const dataProvider = {
             else query.equalTo(f, filter[f]);
           });
         count = await query.count({ useMasterKey: true });
-      } else if (resource === "redeemRecords") {
+      } 
+      else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -257,7 +259,10 @@ export const dataProvider = {
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           }
-          result = {
+          result = calculateDataSummaries({id: 0, users: data, 
+            transactions: results.map((o) => ({id: o.id, ...o.attributes,}))
+          });
+          /*result = {
             data: [
               {
                 id: 0,
@@ -269,12 +274,8 @@ export const dataProvider = {
               },
             ],
             total: null,
-          };
-          console.log(
-            "count ",
-            result.data[0].users.length,
-            result.data[0].transactions.length
-          );
+          }; */
+          console.log("SUMMARY", result);
         }
         if (role === "Agent") {
           console.log("Agent");
@@ -312,9 +313,12 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
+          transactionQuery.limit(10000);
           results = await transactionQuery.find();
-
-          result = {
+          result = calculateDataSummaries({id: 0, users: data, 
+            transactions: results.map((o) => ({id: o.id, ...o.attributes,}))
+          });
+          /*result = {
             data: [
               {
                 id: 0,
@@ -326,8 +330,8 @@ export const dataProvider = {
               },
             ],
             total: null,
-          };
-          // console.log("Summary List ", result);
+          };*/
+          console.log("Summary ", filter, results, data);
         }
         return result;
       } else if (resource === "summaryData") {
@@ -429,7 +433,8 @@ export const dataProvider = {
           total: count,
         };
         return res;
-      } else {
+      } 
+      else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         filter &&
