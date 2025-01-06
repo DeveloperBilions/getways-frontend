@@ -43,6 +43,8 @@ import { saveAs } from "file-saver";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
+import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
+import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -57,7 +59,8 @@ export const RedeemRecordsList = (props) => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
-
+  const [finalrejectDialogOpen, setFinalRejectDialogOpen] = useState(false);
+  const [finalredeemDialogOpen, setFinalRedeemDialogOpen] = useState(false);
   const role = localStorage.getItem("role");
 
   if (!role) {
@@ -87,6 +90,8 @@ export const RedeemRecordsList = (props) => {
         return "Pending Approval";
       case 7:
         return "Rejected";
+      case 8:
+        return "Review";        
       default:
         return "Unknown Status";
     }
@@ -351,6 +356,7 @@ export const RedeemRecordsList = (props) => {
                 5: "Fail",
                 6: "Pending Approval",
                 7: "Rejected",
+                8: "Review"
               }[record.status];
               return (
                 <Chip
@@ -405,6 +411,43 @@ export const RedeemRecordsList = (props) => {
                     Reject
                   </Button>
                 </Box>
+              ) : record?.status === 8 && identity?.role === "Super-User" ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    color="success"
+                    size="small"
+                    sx={{
+                      mr: 1,
+                    }}
+                    onClick={() => {
+                      setSelectedRecord({
+                        ...record,
+                        userParentId: identity?.objectId,
+                      });
+                      setFinalRedeemDialogOpen(true);
+                    }}
+                  >
+                    Success
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => {
+                      setSelectedRecord(record);
+                      setFinalRejectDialogOpen(true);
+                    }}
+                  >
+                    Reject
+                  </Button>
+                </Box>
               ) : null
             }
           />
@@ -421,6 +464,22 @@ export const RedeemRecordsList = (props) => {
           <ApproveRedeemDialog
             open={redeemDialogOpen}
             onClose={() => setRedeemDialogOpen(false)}
+            handleRefresh={handleRefresh}
+            record={selectedRecord}
+          />
+        </>
+      )}
+      {permissions === "Super-User" && (
+        <>
+          <FinalRejectRedeemDialog
+            open={finalrejectDialogOpen}
+            onClose={() => setFinalRejectDialogOpen(false)}
+            handleRefresh={handleRefresh}
+            selectedRecord={selectedRecord}
+          />
+          <FinalApproveRedeemDialog
+            open={finalredeemDialogOpen}
+            onClose={() => setFinalRedeemDialogOpen(false)}
             handleRefresh={handleRefresh}
             record={selectedRecord}
           />

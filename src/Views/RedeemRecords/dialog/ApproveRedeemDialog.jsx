@@ -27,6 +27,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
+  const [cashAppId,setCashAppId] = useState("")
 
   //   console.log("===== record", record);
 
@@ -54,6 +55,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setUserName(record.username || "");
       setRedeemAmount(record?.transactionAmount || "");
       setRemark(record?.remark || "");
+      setCashAppId(record?.cashAppId || "")
     } else {
       resetFields();
     }
@@ -114,6 +116,19 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="userName"
                       type="text"
                       value={userName}
+                      required
+                      disabled
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="userName">Cash App Id:</Label>
+                    <Input
+                      id="cashAppId"
+                      name="cashAppId"
+                      type="text"
+                      value={cashAppId}
                       required
                       disabled
                     />

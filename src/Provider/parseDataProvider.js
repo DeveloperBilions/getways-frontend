@@ -649,6 +649,43 @@ export const dataProvider = {
 
     throw new Error("Unsupported resource for getLink");
   },
+  finalApprove: async (orderId) => {
+    try {
+      const TransactionRecords = Parse.Object.extend("TransactionRecords");
+      const query = new Parse.Query(TransactionRecords);
+      query.equalTo("objectId", orderId);
+      let transaction = await query.first();
+    
+      if (transaction && transaction.get("status") === 8) {
+        transaction.set("status", 4);
+        await transaction.save(null);
+        return { success: true, data: transaction.toJSON() };
+      } else {
+        return { success: false, error: "Invalid status Approve" };
+      }
+    } catch (error) {
+      console.error("Final approval error:", error);
+      throw error;
+    }
+  },  
+  finalReject: async (orderId) => {
+    try {
+      const TransactionRecords = Parse.Object.extend("TransactionRecords");
+      const query = new Parse.Query(TransactionRecords);
+      query.equalTo("objectId", orderId);
+      let transaction = await query.first();  
+      if (transaction && transaction.get("status") === 8) {
+        transaction.set("status", 5); 
+        await transaction.save(null, { useMasterKey: true });
+        return { success: true, data: transaction.toJSON() };
+      } else {
+        return { success: false, error: "Invalid status for rejection" }; 
+      }
+    } catch (error) {
+      console.error("Final rejection error:", error);
+      throw error;
+    }
+  },  
   retrieveCheckoutSession: async (sessionId) => {
     try {
       // Fetch the Checkout Session from Stripe
@@ -730,7 +767,7 @@ export const dataProvider = {
       const transactionId = transactionDetails.id;
 
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"], // Accept card payments,
+        payment_method_types: ["card","cashapp"], // Accept card payments,
         mode: "payment", // One-time payment
         success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL from environment variable
         cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL from environment variable
@@ -772,4 +809,122 @@ export const dataProvider = {
       };
     }
   },
+  // refundTransaction: async (params) => {
+  //   const { sessionId, amount, remark, redeemServiceFee } = params; // Include additional parameters if needed
+  
+  //   try {
+  //     // Fetch the Checkout Session from Stripe
+  //     const session = await stripe.checkout.sessions.retrieve(sessionId);
+  
+  //     if (!session || !session.payment_intent) {
+  //       throw new Error("Invalid session ID or payment intent not found.");
+  //     }
+  
+  //     // Validate refund amount (must be less than or equal to the original payment)
+  //     if (amount > session.amount_total) {
+  //       throw new Error("Refund amount exceeds the original transaction amount.");
+  //     }
+  
+  //     // Create a refund for the specified amount
+  //     const refund = await stripe.refunds.create({
+  //       payment_intent: session.payment_intent,
+  //       amount: amount, // Specify the amount to refund in the smallest currency unit
+  //     });
+  
+  //     // Retrieve the corresponding transaction record
+  //     const TransactionRecords = Parse.Object.extend("TransactionRecords");
+  //     const query = new Parse.Query(TransactionRecords);
+  //     query.equalTo("transactionIdFromStripe", sessionId);
+  
+  //     const transaction = await query.first();
+  
+  //     if (!transaction) {
+  //       throw new Error(`Transaction record not found for session ID: ${sessionId}`);
+  //     }
+  
+  //     // Update the transaction record with refund details
+  //     transaction.set("status", 3); // Assuming 3 represents 'refunded'
+  //     transaction.set("refundId", refund.id);
+  //     transaction.set("refundAmount", refund.amount / 100); // Save refunded amount
+  //     transaction.set("refundDate", new Date());
+  //     transaction.set("remark", remark); // Add remark
+  //     transaction.set("redeemServiceFee", redeemServiceFee); // Service fee if applicable
+  //     await transaction.save(null, { useMasterKey: true });
+  
+  //     return {
+  //       success: true,
+  //       message: "Partial refund processed successfully.",
+  //       refundDetails: refund,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error processing refund:", error.message);
+  
+  //     if (error instanceof Parse.Error) {
+  //       return {
+  //         success: false,
+  //         code: error.code,
+  //         message: error.message,
+  //       };
+  //     } else {
+  //       return {
+  //         success: false,
+  //         code: 500,
+  //         message: "An unexpected error occurred during the refund process.",
+  //       };
+  //     }
+  //   }
+  // },
+  // refundTransactionOlder: async (params) => {
+  //   const { sessionId, amount } = params; // sessionId and amount to refund
+  
+  //   try {
+  //     // Fetch the Checkout Session from Stripe
+  //     const session = await stripe.checkout.sessions.retrieve(sessionId);
+  
+  //     if (!session || !session.payment_intent) {
+  //       throw new Error("Invalid session ID or payment intent not found.");
+  //     }
+  
+  //     // Validate refund amount (must be less than or equal to the original payment)
+  //     if (amount > session.amount_total) {
+  //       throw new Error("Refund amount exceeds the original transaction amount.");
+  //     }
+  
+  //     // Create a refund for the specified amount
+  //     const refund = await stripe.refunds.create({
+  //       payment_intent: session.payment_intent,
+  //       amount: amount, // Specify the amount to refund in the smallest currency unit
+  //     });
+  
+  //     // Retrieve the corresponding transaction record
+  //     const TransactionRecords = Parse.Object.extend("TransactionRecords");
+  //     const query = new Parse.Query(TransactionRecords);
+  //     query.equalTo("transactionIdFromStripe", sessionId);
+  
+  //     const transaction = await query.first();
+  
+  //     if (!transaction) {
+  //       throw new Error(`Transaction record not found for session ID: ${sessionId}`);
+  //     }
+  
+  //     // Update the transaction record with refund details
+  //     transaction.set("status", 3); // Assuming 3 represents 'refunded'
+  //     transaction.set("refundId", refund.id);
+  //     transaction.set("refundAmount", refund.amount / 100); // Save refunded amount
+  //     transaction.set("refundDate", new Date());
+  //     await transaction.save(null);
+  
+  //     return {
+  //       success: true,
+  //       message: "Partial refund processed successfully.",
+  //       refundDetails: refund,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error processing refund:", error.message);
+  //     return {
+  //       success: false,
+  //       message: error.message || "An unexpected error occurred during the refund process.",
+  //     };
+  //   }
+  // }  
 };

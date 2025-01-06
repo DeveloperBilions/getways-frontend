@@ -14,25 +14,29 @@ import {
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
-
 import { Parse } from "parse";
+import { dataProvider } from "../../../Provider/parseDataProvider";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
+const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
-  const [redeemFees, setredeemFees] = useState();
   const [remark, setRemark] = useState();
+  const [redeemFees, setredeemFees] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redeemPercentage, setRedeemPercentage] = useState();
   const [cashAppId,setCashAppId] = useState("")
+
+  //   console.log("===== record", record);
 
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
     setRemark("");
+    setRedeemPercentage("");
   };
 
   const parentServiceFee = async () => {
@@ -50,6 +54,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     if (record && open) {
       parentServiceFee();
       setUserName(record.username || "");
+      setRedeemAmount(record?.transactionAmount || "");
+      setRemark(record?.remark || "");
+      setCashAppId(record?.cashAppId || "")
     } else {
       resetFields();
     }
@@ -58,27 +65,14 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const rawData = {
-      ...record,
-      redeemServiceFee: redeemFees,
-      transactionAmount: redeemAmount,
-      remark,
-      type: "redeem",
-      cashAppId:cashAppId
-    };
-
     setLoading(true);
     try {
-      const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
-      if (response?.status === "error") {
-        setResponseData(response?.message);
-      } else {
-        onClose();
-        setLoading(false);
-        setRedeemAmount("");
-        setRemark("");
-        handleRefresh();
-      }
+       
+     await dataProvider.finalApprove(record?.id); // Use the correct function or method call
+
+      onClose();
+      setLoading(false);
+      handleRefresh();
     } catch (error) {
       console.error("Error Redeem Record details:", error);
     } finally {
@@ -91,7 +85,6 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     handleRefresh();
     resetFields();
   };
-
   return (
     <React.Fragment>
       {loading ? (
@@ -99,7 +92,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       ) : (
         <Modal isOpen={open} toggle={handleClose} size="md" centered>
           <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
-            Redeem Request Amount
+            Redeem Amount
           </ModalHeader>
           <ModalBody>
             <FormText className="font-weight-bold">
@@ -120,19 +113,16 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
-
                 <Col md={12}>
                   <FormGroup>
                     <Label for="userName">Cash App Id:</Label>
                     <Input
-                      id="cashAppid"
-                      name="cashAppid"
+                      id="cashAppId"
+                      name="cashAppId"
                       type="text"
                       value={cashAppId}
-                      onChange={(e) =>{
-                        setCashAppId(e.target.value)
-                      }}
                       required
+                      disabled
                     />
                   </FormGroup>
                 </Col>
@@ -145,12 +135,24 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="redeemAmount"
                       type="number"
                       autoComplete="off"
-                      min="0"
-                      onChange={(e) => setRedeemAmount(e.target.value)}
-                      required
+                      value={redeemAmount}
+                      disabled
                     />
                   </FormGroup>
                 </Col>
+
+                <p className="mb-0">
+                  <small>Redeem Service Fee @ {redeemFees}%</small>
+                </p>
+                {redeemPercentage !== null &&
+                  redeemPercentage !== undefined && (
+                    <p className="mb-1">
+                      <small>
+                        Total amount to be redeemed = $
+                        {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
+                      </small>
+                    </p>
+                  )}
 
                 <Col md={12}>
                   <FormGroup>
@@ -160,7 +162,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="remark"
                       type="textarea"
                       autoComplete="off"
-                      onChange={(e) => setRemark(e.target.value)}
+                      value={remark}
+                      disabled
                     />
                   </FormGroup>
                 </Col>
@@ -201,4 +204,4 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   );
 };
 
-export default PlayerRedeemDialog;
+export default FinalApproveRedeemDialog;
