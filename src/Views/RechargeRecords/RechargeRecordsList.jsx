@@ -71,7 +71,7 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending } = useGetList("rechargeRecordsExport", {
+  const { data, isPending, isFetching } = useGetList("rechargeRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
   });
 
@@ -293,6 +293,9 @@ export const RechargeRecordsList = (props) => {
     return <Loader />;
   }
 
+  if (isFetching) {
+    return <Loader />;
+  }
   return (
     <>
       <Box

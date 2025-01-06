@@ -48,81 +48,94 @@ function App() {
       layout={MyLayout}
       theme={MyTheme}
     >
-      {(permissions) =>
-        permissions && permissions !== "Player" ? (
-          <>
-            <Resource
-              name="users"
-              list={UserList}
-              options={{ label: "User Management" }}
-              icon={PersonIcon}
-            />
+      {(permissions) => {
+        if (permissions && permissions !== "Player") {
+          return (
+            <>
+              <Resource
+                name="users"
+                list={UserList}
+                options={{ label: "User Management" }}
+                icon={PersonIcon}
+              />
+              <Resource
+                name="rechargeRecords"
+                list={RechargeRecordsList}
+                options={{ label: "Recharge Records" }}
+                icon={LocalAtmIcon}
+              />
+              <Resource
+                name="redeemRecords"
+                recordRepresentation="redeemRecords"
+                list={RedeemRecordsList}
+                options={{ label: "Redeem Records" }}
+                icon={LocalAtmIcon}
+              />
+              <Resource
+                name="summary"
+                list={DataSummary}
+                options={{ label: "Summary" }}
+                icon={SummarizeIcon}
+              />
+              {/* Uncomment if needed
+        <Resource
+          name="StripeForm"
+          list={Stripe}
+          options={{ label: "StripeForm" }}
+          icon={SummarizeIcon}
+        />
+        */}
+              <Route path="/success" element={<Success />} />
+            </>
+          );
+        } else if (permissions && permissions === "Player") {
+          return (
+            <>
+              <Resource
+                name="playerDashboard"
+                list={PlayerList}
+                options={{ label: "playerDashboard" }}
+                icon={SummarizeIcon}
+              />
+              <CustomRoutes>
+                <Route
+                  path="/playerDashboard"
+                  element={
+                    <Authenticated>
+                      <PlayerList resource="playerDashboard" />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/rechargeRecords"
+                  element={
+                    <Authenticated>
+                      <RechargeRecordsList resource="rechargeRecords" />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/redeemRecords"
+                  element={
+                    <Authenticated>
+                      <RedeemRecordsList resource="redeemRecords" />
+                    </Authenticated>
+                  }
+                />
+              </CustomRoutes>
+            </>
+          );
+        }
+        return (
+          <Resource
+            name="users"
+            list={UserList}
+            options={{ label: "User Management" }}
+            icon={PersonIcon}
+          />
+        );
+      }}
 
-            <Resource
-              name="rechargeRecords"
-              list={RechargeRecordsList}
-              options={{ label: "Recharge Records" }}
-              icon={LocalAtmIcon}
-            />
-
-            <Resource
-              name="redeemRecords"
-              recordRepresentation="redeemRecords"
-              list={RedeemRecordsList}
-              options={{ label: "Redeem Records" }}
-              icon={LocalAtmIcon}
-            />
-            <Resource
-              name="summary"
-              list={DataSummary}
-              options={{ label: "Summary" }}
-              icon={SummarizeIcon}
-            />
-            {/* <Resource
-              name="StripeForm"
-              list={Stripe}
-              options={{ label: "StripeForm" }}
-              icon={SummarizeIcon}
-            /> */}
-            <Route path="/success" element={<Success />} />
-          </>
-        ) : (
-          <>
-            <Resource
-              name="playerDashboard"
-              list={PlayerList}
-              options={{ label: "playerDashboard" }}
-              icon={SummarizeIcon}
-            />
-            <CustomRoutes>
-              <Route
-                path="/playerDashboard"
-                element={
-                  <Authenticated>
-                    <PlayerList resource="playerDashboard" />
-                  </Authenticated>
-                }
-              />
-              <Route
-                path="/rechargeRecords"
-                element={
-                  <Authenticated>
-                    <RechargeRecordsList resource="rechargeRecords" />
-                  </Authenticated>
-                }
-              />
-              <Route
-                path="/redeemRecords"
-                element={
-                  <Authenticated>
-                    <RedeemRecordsList resource="redeemRecords" />
-                  </Authenticated>
-                }
-              />
-            </CustomRoutes>
-          </>
-        )
-      }
       <CustomRoutes>
         {" "}
         <Route path="/success" element={<Success />} />

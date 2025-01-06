@@ -67,7 +67,7 @@ export const RedeemRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending } = useGetList("redeemRecordsExport", {
+  const { data, isPending, isFetching } = useGetList("redeemRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
   });
 
@@ -269,6 +269,9 @@ export const RedeemRecordsList = (props) => {
     return <Loader />;
   }
 
+  if (isFetching) {
+    return <Loader />;
+  }
   return (
     <>
       <List

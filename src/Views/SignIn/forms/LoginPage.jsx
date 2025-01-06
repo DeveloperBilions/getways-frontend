@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useLogin, useNotify, useRedirect } from "react-admin";
+import {
+  useLogin,
+  useNotify,
+  useRedirect,
+  useRefresh,
+  usePermissions,
+} from "react-admin";
 // mui
 import {
   Button,
@@ -33,6 +39,9 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
+  const { permissions, refetch } = usePermissions();
+
+  const refresh = useRefresh();
   const redirect = useRedirect();
   const location = useLocation();
 
@@ -50,12 +59,17 @@ const LoginPage = () => {
 
   const [loading, setLoading] = useState(false);
 
+  refresh();
+
   const onSubmit = async (data) => {
     const password = data?.password;
 
     setLoading(true);
     try {
       const response = await login({ email: emailPhoneParams, password });
+      await refetch();
+      refresh();
+
       setLoading(false);
       if (response?.role === "Player") {
         redirect("/playerDashboard");
