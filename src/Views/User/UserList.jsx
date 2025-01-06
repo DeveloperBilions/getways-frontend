@@ -271,7 +271,10 @@ export const UserList = (props) => {
       sx={{ pt: 1 }}
       actions={<PostListActions />}
       empty={false}
-      filter={{ userReferralCode: "" }}
+      // filter={{ userReferralCode: "" }}
+      filter={{
+        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+      }}
       {...props}
       sort={{ field: "createdAt", order: "DESC" }}
     >

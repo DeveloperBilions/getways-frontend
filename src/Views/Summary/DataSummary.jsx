@@ -40,7 +40,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 
 const Summary = () => {
-  const { data , isFetching } = useListContext();
+  const { data, isFetching } = useListContext();
   const { identity } = useGetIdentity();
 
   if (isFetching) {
@@ -61,7 +61,7 @@ const Summary = () => {
   // }
 
   const totalRegisteredUsers = data[0]?.users.filter(
-    (item) => item.userReferralCode == null
+    (item) => item.userReferralCode == "" || null
   ).length; //excluding self
   const totalAgents = data[0]?.users?.filter(
     (item) => item.roleName === "Agent" && item.username !== identity.username
@@ -206,14 +206,21 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
-  const { data, isFetching } = useGetList("users", {
-    pagination: { page: 1, perPage: 10000 },
-    sort: { field: "roleName", order: "ASC" },
-    filter: { userReferralCode: "" },
-  },{
-    refetchOnWindowFocus: false, // Prevent refetch on focus
-    refetchOnReconnect: false,
-  });
+  const { data, isFetching } = useGetList(
+    "users",
+    {
+      pagination: { page: 1, perPage: 10000 },
+      sort: { field: "roleName", order: "ASC" },
+      // filter: { userReferralCode: "" },
+      filter: {
+        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+      },
+    },
+    {
+      refetchOnWindowFocus: false, // Prevent refetch on focus
+      refetchOnReconnect: false,
+    }
+  );
 
   const newData = data?.map((item) => ({
     ...item,
@@ -267,14 +274,18 @@ export const DataSummary = () => {
             alignItems: "flex-start",
           }}
         />
-        {isFetching ? <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <Loading />
-      </Box> :  <Summary />}
+        {isFetching ? (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight="50vh"
+          >
+            <Loading />
+          </Box>
+        ) : (
+          <Summary />
+        )}
       </ListBase>
     </React.Fragment>
   );

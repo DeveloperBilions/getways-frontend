@@ -73,8 +73,8 @@ function App() {
               icon={LocalAtmIcon}
             />
             <Resource
-              name="summaryData"
-              list={Summary}
+              name="summary"
+              list={DataSummary}
               options={{ label: "Summary" }}
               icon={SummarizeIcon}
             />
@@ -125,12 +125,7 @@ function App() {
       }
       <CustomRoutes>
         {" "}
-        <Route
-          path="/success"
-          element={
-              <Success />
-          }
-        />
+        <Route path="/success" element={<Success />} />
       </CustomRoutes>
       <CustomRoutes noLayout>
         <Route path="/loginEmail" element={<LoginEmailPage />} />

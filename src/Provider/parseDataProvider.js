@@ -1,5 +1,5 @@
 import { Parse } from "parse";
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -88,83 +88,129 @@ export const dataProvider = {
     }
   },
   getList: async (resource, params) => {
+    //works
+    // console.log("GETLIST");
+    // console.log("*****", params);
+    const { page, perPage } = params.pagination;
+    const { field, order } = params.sort;
+    var filter = params.filter;
+    var q = filter.q;
+    delete filter.q;
+    console.log("==== =", filter);
+    var query = new Parse.Query(Parse.Object);
+    var count = null;
+
+    Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
+    const role = localStorage.getItem("role");
+    const userid = localStorage.getItem("id");
+    const username = localStorage.getItem("username");
+
+    const fetchUsers = async (selectedUser) => {
+      const user = selectedUser ? selectedUser : await Parse.User.current();
+
+      const usrQuery = new Parse.Query(Parse.User);
+      usrQuery.equalTo("userParentId", user.id);
+      usrQuery.limit(10000);
+      usrQuery.select(
+        "objectId",
+        "userParentId",
+        "userParentName",
+        "roleName",
+        "userType",
+        "name",
+        "username",
+        "userReferralCode",
+        "email"
+      );
+      var results = await usrQuery.find({ useMasterKey: true });
+      results.push(user);
+      // console.log(results);
+      var ids = results.map((r) => r.id);
+      ids.push(user.id);
+      const data = results.map((o) => ({ id: o.id, ...o.attributes }));
+
+      return { ids: ids, data: data };
+    };
     try {
-      const { page, perPage } = params.pagination;
-      const { field, order } = params.sort;
-      const { q, ...filter } = params.filter;
-      const role = localStorage.getItem("role");
-      const userid = localStorage.getItem("id");
-      const username = localStorage.getItem("username");
-  
-      Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
-  
-      const createFilterQuery = (query, filter) => {
-        Object.entries(filter).forEach(([key, value]) => {
-          if (key === "username") query.matches(key, value, "i");
-          else query.equalTo(key, value);
-        });
-      };
-  
-      const fetchUsers = async (selectedUser) => {
-        const user = selectedUser || (await Parse.User.current());
-        const usrQuery = new Parse.Query(Parse.User);
-        usrQuery.equalTo("userParentId", user.id);
-        usrQuery.limit(10000);
-        usrQuery.select(
-          "objectId",
-          "userParentId",
-          "userParentName",
-          "roleName",
-          "userType",
-          "name",
-          "username",
-          "userReferralCode",
-          "email"
-        );
-  
-        const results = await usrQuery.find({ useMasterKey: true });
-        results.push(user);
-  
-        const ids = results.map((r) => r.id);
-        return { ids, data: results.map((o) => ({ id: o.id, ...o.attributes })) };
-      };
-  
-      let query, count;
-  
-      switch (resource) {
-        case "users":
-          query = new Parse.Query(Parse.User);
-          if (role === "Agent") query.equalTo("userParentId", userid);
-          createFilterQuery(query, filter);
-          count = await query.count({ useMasterKey: true });
-          break;
-  
-        case "redeemRecords":
-        case "rechargeRecords":
-          const type = resource === "redeemRecords" ? "redeem" : "recharge";
-          const Resource = Parse.Object.extend("TransactionRecords");
-          query = new Parse.Query(Resource);
-          filter.type = type;
-  
-          if (role === "Player") filter.userId = userid;
-          else if (role === "Agent") {
-            const { ids } = await fetchUsers();
-            query.containedIn("userId", ids);
-          }
-  
-          createFilterQuery(query, filter);
-          count = await query.count();
-          break;
-  
-        case "summary":
-          if (role === "Super-User" || role === "Agent") {
-            const selectedUser =
-              filter.username &&
-              (await new Parse.Query(Parse.User).get(filter.username, {
-                useMasterKey: true,
-              }));
-            const { ids, data: users } = await fetchUsers(selectedUser);
-  
+      if (resource === "users") {
+        query = new Parse.Query(Parse.User);
+        if (role === "Agent") {
+          query.equalTo("userParentId", userid);
+        }
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+        count = await query.count({ useMasterKey: true });
+      } else if (resource === "redeemRecords") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "redeem", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+        } else if (role === "Agent") {
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+        count = await query.count();
+      } else if (resource === "rechargeRecords") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "recharge", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+        } else if (role === "Agent") {
+          filter &&
+            Object.keys(filter).map((f) => {
+              if (f === "username") query.matches(f, filter[f], "i");
+              else query.equalTo(f, filter[f]);
+            });
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+        count = await query.count();
+      } else if (resource === "summary") {
+        var result = null;
+        console.log("Summary");
+        if (role === "Super-User") {
+          //users
+          console.log("SU", filter);
+
+          if (filter?.username) {
+            // console.log("IN IF");
+            var userQuery = new Parse.Query(Parse.User);
+            var selectedUser = await userQuery.get(filter.username, {
+              useMasterKey: true,
+            });
+            var { ids, data } = await fetchUsers(selectedUser);
+
             const transactionQuery = new Parse.Query("TransactionRecords");
             transactionQuery.select(
               "userId",
@@ -173,101 +219,251 @@ export const dataProvider = {
               "type"
             );
             transactionQuery.containedIn("userId", ids);
-            if (filter.startdate) {
+            filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(`${filter.startdate} 00:00:00`)
+                new Date(filter.startdate + " 00:00:00")
               );
-            }
-            if (filter.enddate) {
+            filter.enddate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(`${filter.enddate} 23:59:59`)
+                new Date(filter.enddate + " 23:59:59")
               );
-            }
-            const transactions = await transactionQuery.find();
-            return {
-              data: [
-                {
-                  id: 0,
-                  users,
-                  transactions: transactions.map((o) => ({
-                    id: o.id,
-                    ...o.attributes,
-                  })),
-                },
-              ],
-              total: null,
-            };
+            transactionQuery.limit(10000);
+            var results = await transactionQuery.find();
+          } else {
+            var userQuery = new Parse.Query(Parse.User);
+            userQuery.limit(10000);
+            var results = await userQuery.find({ useMasterKey: true });
+            var data = results.map((o) => ({ id: o.id, ...o.attributes }));
+            const currentUser = await Parse.User.current();
+            data.push({ id: userid, ...currentUser.attributes });
+
+            //transaction
+            const transactionQuery = new Parse.Query("TransactionRecords");
+            transactionQuery.select(
+              "userId",
+              "status",
+              "transactionAmount",
+              "type"
+            );
+            filter.startdate &&
+              transactionQuery.greaterThanOrEqualTo(
+                "transactionDate",
+                new Date(filter.startdate + " 00:00:00")
+              );
+            filter.enddate &&
+              transactionQuery.lessThanOrEqualTo(
+                "transactionDate",
+                new Date(filter.enddate + " 23:59:59")
+              );
+            transactionQuery.limit(10000);
+            var results = await transactionQuery.find();
           }
-          break;
-  
-        case "summaryData":
-          const rawFilter = {
-            userId: filter.username || userid,
-            startDate: filter.startdate,
-            endDate: filter.enddate,
-          };
-          const summaryResponse = await Parse.Cloud.run("summaryFilter", rawFilter);
-          return {
-            data: Object.entries(summaryResponse?.data).map(([key, value], index) => ({
-              id: index + 1,
-              key,
-              value,
-            })),
+          result = {
+            data: [
+              {
+                id: 0,
+                users: data,
+                transactions: results.map((o) => ({
+                  id: o.id,
+                  ...o.attributes,
+                })),
+              },
+            ],
             total: null,
           };
-  
-        case "playerDashboard":
-          query = new Parse.Query(Parse.Object.extend("TransactionRecords"));
-          query.equalTo("username", username);
-          createFilterQuery(query, filter);
-          const playerData = await query.find();
-          return {
-            data: playerData.map((o) => ({ id: o.id, ...o.attributes })),
-            total: count,
+          console.log(
+            "count ",
+            result.data[0].users.length,
+            result.data[0].transactions.length
+          );
+        }
+        if (role === "Agent") {
+          console.log("Agent");
+          //users
+          const selectedUser =
+            filter && filter.username
+              ? await new Parse.Query(Parse.User).get(filter.username, {
+                  useMasterKey: true,
+                })
+              : null;
+          console.log("selected user:", selectedUser);
+          const { ids, data } = await fetchUsers(selectedUser);
+          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
+          console.log("fetchUsers", data);
+          //transactions
+          const transactionQuery = new Parse.Query("TransactionRecords");
+          transactionQuery.select(
+            "userId",
+            "status",
+            "transactionAmount",
+            "type"
+          );
+          transactionQuery.containedIn("userId", ids);
+          filter.startdate &&
+            transactionQuery.greaterThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.startdate + " 00:00:00")
+            );
+          filter.enddate &&
+            transactionQuery.lessThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.enddate + " 23:59:59")
+            );
+          /*filter && Object.keys(filter).map((f) => {
+              if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
+              else transactionQuery.equalTo(f, filter[f]);
+          });*/
+          results = await transactionQuery.find();
+
+          result = {
+            data: [
+              {
+                id: 0,
+                users: data,
+                transactions: results.map((o) => ({
+                  id: o.id,
+                  ...o.attributes,
+                })),
+              },
+            ],
+            total: null,
           };
-  
-        case "rechargeRecordsExport":
-        case "redeemRecordsExport":
-          query = new Parse.Query(Parse.Object.extend("TransactionRecords"));
-          filter.type = resource === "rechargeRecordsExport" ? "recharge" : "redeem";
-          if (role === "Player") filter.userId = userid;
-          else if (role === "Agent") {
-            const { ids } = await fetchUsers();
-            query.containedIn("userId", ids);
-          }
-          query.limit(30000);
-          if (order === "DESC") query.descending(field);
-          else query.ascending(field);
-          createFilterQuery(query, filter);
-          const exportData = await query.find();
-          return {
-            data: exportData.map((o) => ({ id: o.id, ...o.attributes })),
-            total: count,
-          };
-  
-        default:
-          const DefaultResource = Parse.Object.extend(resource);
-          query = new Parse.Query(DefaultResource);
-          createFilterQuery(query, filter);
-          if (role === "Agent") {
-            const { ids } = await fetchUsers();
-            query.containedIn("userId", ids);
-          }
-          count = await query.count();
+          // console.log("Summary List ", result);
+        }
+        return result;
+      } else if (resource === "summaryData") {
+        var result = null;
+
+        const rawFilter = {
+          userId: filter?.username || userid,
+          endDate: filter?.enddate,
+          startDate: filter?.startdate,
+        };
+
+        console.log("&&&&&", rawFilter);
+
+        const response = await Parse.Cloud.run("summaryFilter", rawFilter);
+
+        console.log(response);
+
+        const array = Object.entries(response?.data).map(
+          ([key, value], index) => ({
+            id: index + 1,
+            key,
+            value,
+          })
+        );
+
+        const res = {
+          data: array,
+          total: count,
+        };
+
+        return res;
+      } else if (resource === "playerDashboard") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { username: username };
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+        return res;
+      } else if (resource === "rechargeRecordsExport") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "recharge", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+        } else if (role === "Agent") {
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+
+        query.limit(30000);
+        query.descending(field);
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+
+        return res;
+      } else if (resource === "redeemRecordsExport") {
+        const Resource = Parse.Object.extend("TransactionRecords");
+        query = new Parse.Query(Resource);
+        filter = { type: "redeem", ...filter };
+        if (role === "Player") {
+          filter = { userId: userid, ...filter };
+        } else if (role === "Agent") {
+          var { ids } = await fetchUsers();
+          query.containedIn("userId", ids);
+        }
+
+        query.limit(30000);
+        query.descending(field);
+
+        filter &&
+          Object.keys(filter).map((f) => {
+            if (f === "username") query.matches(f, filter[f], "i");
+            else query.equalTo(f, filter[f]);
+          });
+
+        const response = await query.find();
+        const res = {
+          data: response.map((o) => ({ id: o.id, ...o.attributes })),
+          total: count,
+        };
+        return res;
+      } else {
+        const Resource = Parse.Object.extend(resource);
+        query = new Parse.Query(Resource);
+        filter &&
+          Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+        var { ids } = await fetchUsers();
+        query.containedIn("userId", ids);
+        count = await query.count();
       }
-  
+
       query.limit(perPage);
       query.skip((page - 1) * perPage);
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
-  
-      const results = await query.find({ useMasterKey: true });
-      return {
+
+      filter &&
+        Object.keys(filter).map((f) => {
+          console.log("===== fffff", f);
+          if (f === "username") query.matches(f, filter[f], "i");
+          else query.equalTo(f, filter[f]);
+        });
+
+      results =
+        resource === "users"
+          ? await query.find({ useMasterKey: true })
+          : await query.find();
+      const res = {
         data: results.map((o) => ({ id: o.id, ...o.attributes })),
+        // data: [],
         total: count,
       };
+      return res;
     } catch (error) {
       throw error;
     }
@@ -404,14 +600,16 @@ export const dataProvider = {
   getLink: async (resource, params) => {
     if (resource === "paymentLink") {
       const { amount, currency } = params;
-  
+
       try {
         // Create a Checkout Session
         const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card","cashapp"], // Accept card payments
+          payment_method_types: ["card", "cashapp"], // Accept card payments
           mode: "payment", // One-time payment
-          success_url: "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your success URL
-          cancel_url: "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your cancel URL
+          success_url:
+            "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your success URL
+          cancel_url:
+            "http://localhost:3000/#/StripeForm?session_id={CHECKOUT_SESSION_ID}", // Replace with your cancel URL
           expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 10 minutes
           line_items: [
             {
@@ -439,36 +637,37 @@ export const dataProvider = {
 
         const savedTransaction = await transaction.save(null);
 
-
         console.log("Transaction saved:", savedTransaction);
 
-        console.log(session,"sessionStorage")
+        console.log(session, "sessionStorage");
         return { data: { url: session.url } };
       } catch (error) {
         console.error("Error creating session:", error.message);
         throw new Error(`Unable to create payment session: ${error.message}`);
       }
     }
-  
+
     throw new Error("Unsupported resource for getLink");
   },
   retrieveCheckoutSession: async (sessionId) => {
     try {
       // Fetch the Checkout Session from Stripe
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-  
+
       // Retrieve the corresponding TransactionRecord in Parse
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("transactionIdFromStripe", sessionId);
-  
+
       const transaction = await query.first();
-  
+
       if (!transaction) {
-        throw new Error(`Transaction record not found for session ID: ${sessionId}`);
+        throw new Error(
+          `Transaction record not found for session ID: ${sessionId}`
+        );
       }
-      console.log(session,"sessionsession")
-      console.log(TransactionRecords,"TransactionRecordsTransactionRecords")
+      console.log(session, "sessionsession");
+      console.log(TransactionRecords, "TransactionRecordsTransactionRecords");
       // Update the transaction status based on the Stripe session status
       if (session.payment_status === "paid") {
         transaction.set("status", 2); // Assuming 2 represents 'completed'
@@ -477,9 +676,9 @@ export const dataProvider = {
       } else {
         transaction.set("status", 0); // Failed or canceled
       }
-  
+
       await transaction.save(null);
-  
+
       return {
         transaction: { id: transaction.id, ...transaction.attributes },
         stripeSession: session,
@@ -495,7 +694,7 @@ export const dataProvider = {
     try {
       // Find the user by ID
       const userQuery = new Parse.Query(Parse.User);
-      userQuery.equalTo("objectId",id);
+      userQuery.equalTo("objectId", id);
       const user = await userQuery.first({ useMasterKey: true });
 
       if (!user) {
@@ -520,7 +719,10 @@ export const dataProvider = {
       transactionDetails.set("username", username);
       transactionDetails.set("userId", id);
       transactionDetails.set("transactionDate", new Date());
-      transactionDetails.set("transactionAmount", parseFloat(transactionAmount) / 100 );
+      transactionDetails.set(
+        "transactionAmount",
+        parseFloat(transactionAmount) / 100
+      );
       transactionDetails.set("remark", remark);
 
       // Save the transaction record
@@ -536,18 +738,18 @@ export const dataProvider = {
         line_items: [
           {
             price_data: {
-              currency:"usd",
+              currency: "usd",
               product_data: {
                 name: "One-time Payment", // Placeholder for product
               },
-              unit_amount: transactionAmount ,
+              unit_amount: transactionAmount,
             },
             quantity: 1,
           },
         ],
         metadata: {
           userId: id, // Replace with the actual user ID
-          username:username
+          username: username,
         },
       });
 
