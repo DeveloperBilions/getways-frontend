@@ -132,7 +132,6 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       onChange={(e) =>{
                         setCashAppId(e.target.value)
                       }}
-                      required
                     />
                   </FormGroup>
                 </Col>
