@@ -60,34 +60,11 @@ const Summary = () => {
   //   return <Loader />;
   // }
 
-  const totalRegisteredUsers = data[0]?.users.filter(
-    (item) => item.userReferralCode == "" || null
-  ).length; //excluding self
-  const totalAgents = data[0]?.users?.filter(
-    (item) => item.roleName === "Agent" && item.username !== identity.username
-  ).length;
-  const totalRechargeAmount =
-    data[0]?.transactions
-      ?.filter((item) => item.status === 2 || item.status === 3)
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-  const totalRedeemAmount =
-    data[0]?.transactions
-      ?.filter((item) => item.status === 4)
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-  const totalPendingRechargeAmount =
-    data[0]?.transactions
-      ?.filter((item) => item.status === 1)
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-  const totalFailRedeemAmount =
-    data[0]?.transactions
-      ?.filter((item) => item.status === 5)
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-
   const finalData = [
     {
       id: 1,
       name: "Total User",
-      value: totalRegisteredUsers,
+      value: data[0].totalRegisteredUsers,
       bgColor: "#E3F2FD",
       borderColor: "#7EB9FB",
       icon: <PersonIcon color="primary" />,
@@ -95,7 +72,7 @@ const Summary = () => {
     {
       id: 2,
       name: "Total Agent",
-      value: totalAgents,
+      value: data[0].totalAgents,
       bgColor: "#dedede",
       borderColor: "#adb5bd",
       icon: <PersonIcon color="info" />,
@@ -103,7 +80,7 @@ const Summary = () => {
     {
       id: 3,
       name: "Total Recharges",
-      value: "$" + totalRechargeAmount,
+      value: "$" + data[0].totalRechargeAmount,
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
       icon: <PaidIcon color="success" />,
@@ -111,7 +88,7 @@ const Summary = () => {
     {
       id: 4,
       name: "Total Redeems",
-      value: "$" + totalRedeemAmount,
+      value: "$" + data[0].totalRedeemAmount,
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
       icon: <PaidIcon color="secondary" />,
@@ -119,7 +96,7 @@ const Summary = () => {
     {
       id: 5,
       name: "Pending Recharges",
-      value: "$" + totalPendingRechargeAmount,
+      value: "$" + data[0].totalPendingRechargeAmount,
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
       icon: <WarningIcon color="warning" />,
@@ -127,7 +104,7 @@ const Summary = () => {
     {
       id: 6,
       name: "Failed Redeems",
-      value: "$" + totalFailRedeemAmount,
+      value: "$" + data[0].totalFailRedeemAmount,
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
@@ -167,15 +144,6 @@ const Summary = () => {
       ))}
     </Grid>
   );
-
-  /*return (<>
-      <div>Number of users: {totalUsers} </div>
-      <div>Number of agents: {totalAgents} </div>
-      <div>Total recharge: {totalRechargeAmount} </div>
-      <div>Total redeem: {totalRedeemAmount} </div>
-      <div>Pending Recharge: {totalPendingRechargeAmount} </div>
-      <div>Failed Redeem: {totalFailRedeemAmount} </div>
-    </>); */
 };
 
 const SearchSelectUsersFilter = () => {
@@ -206,6 +174,7 @@ const SearchSelectUsersFilter = () => {
 };
 
 export const DataSummary = () => {
+  const { identity } = useGetIdentity();
   const { data, isFetching } = useGetList(
     "users",
     {
@@ -222,9 +191,9 @@ export const DataSummary = () => {
     }
   );
 
-  const newData = data?.map((item) => ({
+  const newData = data?.map((item) => (item.id!== identity.objectId && {
     ...item,
-    optionName: "".concat(item.roleName, " - ", item.name),
+    optionName: "".concat(item.name, " (", item.roleName, ")"),
   }));
 
   const currentDate = new Date().toLocaleDateString("es-CL");
@@ -250,14 +219,14 @@ export const DataSummary = () => {
       source="startdate"
       alwaysOn
       resettable
-      validate={maxValue(currentDate)}
+      // validate={maxValue(currentDate)}
     />,
     <DateInput
       label="End date"
       source="enddate"
       alwaysOn
       resettable
-      validate={maxValue(currentDate)}
+      // validate={maxValue(currentDate)}
     />,
 
     // <SearchSelectUsersFilter />,

@@ -1,4 +1,5 @@
 import { Parse } from "parse";
+import { calculateDataSummaries } from '../utils';
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
@@ -96,7 +97,7 @@ export const dataProvider = {
     var filter = params.filter;
     var q = filter.q;
     delete filter.q;
-    console.log("==== =", filter);
+    // console.log("==== =", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
 
@@ -143,7 +144,8 @@ export const dataProvider = {
             else query.equalTo(f, filter[f]);
           });
         count = await query.count({ useMasterKey: true });
-      } else if (resource === "redeemRecords") {
+      } 
+      else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -260,7 +262,10 @@ export const dataProvider = {
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           }
-          result = {
+          result = calculateDataSummaries({id: 0, users: data, 
+            transactions: results.map((o) => ({id: o.id, ...o.attributes,}))
+          });
+          /*result = {
             data: [
               {
                 id: 0,
@@ -277,7 +282,7 @@ export const dataProvider = {
             "count ",
             result.data[0].users.length,
             result.data[0].transactions.length
-          );
+          );*/
         }
         if (role === "Agent") {
           console.log("Agent");
@@ -288,10 +293,10 @@ export const dataProvider = {
                   useMasterKey: true,
                 })
               : null;
-          console.log("selected user:", selectedUser);
+          // console.log("selected user:", selectedUser);
           const { ids, data } = await fetchUsers(selectedUser);
           // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          console.log("fetchUsers", data);
+          // console.log("fetchUsers", data);
           //transactions
           const transactionQuery = new Parse.Query("TransactionRecords");
           transactionQuery.select(
@@ -315,9 +320,14 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
+          transactionQuery.limit(10000);
           results = await transactionQuery.find();
 
-          result = {
+          result = calculateDataSummaries({id: 1, users: data, 
+            transactions: results.map((o) => ({id: o.id, ...o.attributes,}))
+          });
+
+          /*result = {
             data: [
               {
                 id: 0,
@@ -329,7 +339,7 @@ export const dataProvider = {
               },
             ],
             total: null,
-          };
+          }; */
           // console.log("Summary List ", result);
         }
         return result;
@@ -342,7 +352,7 @@ export const dataProvider = {
           startDate: filter?.startdate,
         };
 
-        console.log("&&&&&", rawFilter);
+        // console.log("&&&&&", rawFilter);
 
         const response = await Parse.Cloud.run("summaryFilter", rawFilter);
 
