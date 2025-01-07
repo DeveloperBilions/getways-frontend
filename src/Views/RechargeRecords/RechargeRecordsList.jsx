@@ -367,6 +367,10 @@ export const RechargeRecordsList = (props) => {
                     return "warning";
                   case 0:
                     return "error";
+                  case 9:
+                    return "error";
+                  case 10:
+                    return "error";
                   default:
                     return "default";
                 }
