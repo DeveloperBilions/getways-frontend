@@ -7,16 +7,17 @@ export const Success = () => {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [dataTransaction, setDatTransaction] = useState();
   const checkTransactionStatus = async (sessionId) => {
     setLoading(true);
     try {
       const { transaction, stripeSession } = await dataProvider.retrieveCheckoutSession(sessionId);
 
+      setDatTransaction(stripeSession)
       if (transaction.status === 2) {
         setStatus("Completed Payment");
       } else if (transaction.status === 1) {
-        setStatus("Pending Payment");
+        setStatus("Pending Payment"); 
       } else {
         setStatus("Payment Failed");
       }
@@ -33,7 +34,6 @@ export const Success = () => {
       checkTransactionStatus(sessionId);
     }
   }, [searchParams]);
-
   return (
     <div className="success-container">
       {loading ? (
@@ -47,7 +47,7 @@ export const Success = () => {
             status === "Completed Payment" ? "success" : "error"
           }`}
         >
-          {status}
+          {status} , Amount : ${dataTransaction?.amount_total / 100}
         </div>
       )}
     </div>

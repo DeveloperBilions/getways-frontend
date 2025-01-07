@@ -94,6 +94,10 @@ export const RechargeRecordsList = (props) => {
         return "Pending Approval";
       case 7:
         return "Rejected";
+      case 9:
+        return "Expired";
+      case 10:
+        return "Failed Transaction";
       default:
         return "Unknown Status";
     }
@@ -372,6 +376,8 @@ export const RechargeRecordsList = (props) => {
                 1: "Pending Confirmation",
                 2: "Confirmed",
                 3: "Coins Credited",
+                9: "Expired",
+                10: "Failed Transaction"
               }[record.status];
               return (
                 <Chip

@@ -706,13 +706,18 @@ export const dataProvider = {
       console.log(session, "sessionsession");
       console.log(TransactionRecords, "TransactionRecordsTransactionRecords");
       // Update the transaction status based on the Stripe session status
-      if (session.payment_status === "paid") {
+      if (session.status === "complete") {
         transaction.set("status", 2); // Assuming 2 represents 'completed'
-      } else if (session.payment_status === "pending") {
+      } else if (session.status === "pending" || session.status === "open") {
         transaction.set("status", 1); // Pending
-      } else {
-        transaction.set("status", 0); // Failed or canceled
+      } else if (session.status === "expired")
+      {
+        transaction.set("status", 9); // Expired
       }
+      else {
+        transaction.set("status", 10); // Failed or canceled
+        // Failed or canceled
+      } 
 
       await transaction.save(null);
 
