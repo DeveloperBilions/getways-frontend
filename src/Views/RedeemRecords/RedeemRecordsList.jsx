@@ -91,7 +91,7 @@ export const RedeemRecordsList = (props) => {
       case 7:
         return "Rejected";
       case 8:
-        return "Review";        
+        return "Review";
       default:
         return "Unknown Status";
     }
@@ -274,6 +274,39 @@ export const RedeemRecordsList = (props) => {
   }
   return (
     <>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {identity?.role !== "Player" ? (
+          <></>
+        ) : (
+          /*<Typography sx={{ mt: 2 }}>
+              Total Redeemed Amount: <b>${totalTransactionAmount}</b>
+            </Typography> */
+          <>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{ mt: 2 }}
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate("/playerDashboard")}
+            >
+              Back
+            </Button>
+            <Typography
+              noWrap
+              variant="subtitle2"
+              sx={{ color: "text.secondary", fontWeight: 500, mt: 2 }}
+            >
+              Agent: <b>{identity?.userParentName}</b>
+            </Typography>
+          </>
+        )}
+      </Box>
       <List
         title="Redeem Records"
         filters={dataFilters}
@@ -288,39 +321,6 @@ export const RedeemRecordsList = (props) => {
         {...props}
         sort={{ field: "transactionDate", order: "DESC" }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          {identity?.role !== "Player" ? (
-            <></>
-          ) : (
-            /*<Typography sx={{ mt: 2 }}>
-              Total Redeemed Amount: <b>${totalTransactionAmount}</b>
-            </Typography> */
-            <>
-              <Button
-                variant="contained"
-                size="small"
-                sx={{ mt: 2 }}
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate("/playerDashboard")}
-              >
-                Back
-              </Button>
-              <Typography
-                noWrap
-                variant="subtitle2"
-                sx={{ color: "text.secondary", fontWeight: 500, mt: 2 }}
-              >
-                Agent: <b>{identity?.userParentName}</b>
-              </Typography>
-            </>
-          )}
-        </Box>
         <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />
           <NumberField
@@ -359,7 +359,7 @@ export const RedeemRecordsList = (props) => {
                 5: "Fail",
                 6: "Pending Approval",
                 7: "Rejected",
-                8: "Review"
+                8: "Review",
               }[record.status];
               return (
                 <Chip

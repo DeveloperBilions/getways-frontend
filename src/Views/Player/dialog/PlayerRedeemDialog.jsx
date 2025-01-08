@@ -27,7 +27,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [remark, setRemark] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cashAppId,setCashAppId] = useState("")
+  const [cashAppId, setCashAppId] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -64,7 +64,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       transactionAmount: redeemAmount,
       remark,
       type: "redeem",
-      cashAppId:cashAppId
+      cashAppId: cashAppId,
     };
 
     setLoading(true);
@@ -129,8 +129,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="cashAppid"
                       type="text"
                       value={cashAppId}
-                      onChange={(e) =>{
-                        setCashAppId(e.target.value)
+                      onChange={(e) => {
+                        setCashAppId(e.target.value);
                       }}
                     />
                   </FormGroup>
@@ -150,6 +150,18 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
+
+                <p className="mb-0">
+                  <small>Redeem Service Fee @ {redeemFees}%</small>
+                </p>
+                {redeemFees && (
+                  <p className="mb-1">
+                    <small>
+                      Total amount to be redeemed = $
+                      {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
+                    </small>
+                  </p>
+                )}
 
                 <Col md={12}>
                   <FormGroup>

@@ -312,7 +312,7 @@ export const RechargeRecordsList = (props) => {
         {identity?.role === "Player" && (
           <>
             <Button
-              variant="contained"
+              variant="outlined"
               size="small"
               sx={{ mt: 2 }}
               startIcon={<ArrowBackIcon />}
@@ -381,7 +381,7 @@ export const RechargeRecordsList = (props) => {
                 2: "Confirmed",
                 3: "Coins Credited",
                 9: "Expired",
-                10: "Failed Transaction"
+                10: "Failed Transaction",
               }[record.status];
               return (
                 <Chip
