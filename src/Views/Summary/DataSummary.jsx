@@ -191,10 +191,13 @@ export const DataSummary = () => {
     }
   );
 
-  const newData = data?.map((item) => (item.id!== identity.objectId && {
-    ...item,
-    optionName: "".concat(item.name, " (", item.roleName, ")"),
-  }));
+  const newData = data?.map(
+    (item) =>
+      item.id !== identity.objectId && {
+        ...item,
+        optionName: "".concat(item.name, " (", item.roleName, ")"),
+      }
+  );
 
   const currentDate = new Date().toLocaleDateString("es-CL");
   const prevYearDate = new Date(
@@ -227,6 +230,9 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
+      InputProps={{
+        inputProps: { max: new Date().toISOString().split("T")[0] },
+      }}
     />,
 
     // <SearchSelectUsersFilter />,
