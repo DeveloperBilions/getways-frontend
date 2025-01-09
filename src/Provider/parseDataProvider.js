@@ -135,9 +135,12 @@ export const dataProvider = {
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
+        query.notEqualTo("isDeleted", true);
+
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
         }
+
         filter &&
           Object.keys(filter).map((f) => {
             if (f === "username") query.matches(f, filter[f], "i");
@@ -468,6 +471,8 @@ export const dataProvider = {
           if (f === "username") query.matches(f, filter[f], "i");
           else query.equalTo(f, filter[f]);
         });
+
+      console.log("!!!", filter);
 
       results =
         resource === "users"

@@ -133,14 +133,14 @@ function App() {
             </>
           );
         }
-        return (
+        {/* return (
           <Resource
             name="users"
             list={UserList}
             options={{ label: "User Management" }}
             icon={PersonIcon}
           />
-        );
+        ); */}
       }}
 
       <CustomRoutes>

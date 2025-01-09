@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useLogin, useNotify, useRedirect } from "react-admin";
+import {
+  useLogin,
+  useNotify,
+  useRedirect,
+  useRefresh,
+  usePermissions,
+} from "react-admin";
 // mui
 import {
   Button,
@@ -31,9 +37,10 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
-  const login = useLogin();
+  const { permissions, refetch } = usePermissions();
+
+  const refresh = useRefresh();
   const redirect = useRedirect();
-  const notify = useNotify();
   const location = useLocation();
 
   const searchParams = new URLSearchParams(location.search);
@@ -54,6 +61,9 @@ const LoginPage = () => {
     },
   });
 
+  const login = useLogin();
+  const notify = useNotify();
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,6 +73,8 @@ const LoginPage = () => {
     setShowConfirmPassword((show) => !show);
 
   const handleMouseDownPassword = (evt) => evt.preventDefault();
+
+  refresh();
 
   const onSubmit = async (data) => {
     const password = data?.password;
@@ -77,10 +89,15 @@ const LoginPage = () => {
       const response = await Parse.Cloud.run("excelUserUpdate", rawData);
 
       if (response.success) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         const loginresponse = await login({
           email: emailPhoneParams,
           password,
         });
+        await refetch();
+        refresh();
+
         setLoading(false);
         if (loginresponse?.role === "Player") {
           redirect("/playerDashboard");
