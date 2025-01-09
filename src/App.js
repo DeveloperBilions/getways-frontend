@@ -38,6 +38,7 @@ import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
 import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
+import { Wallet } from "./Views/Player/Wallet";
 
 function App() {
   return (
@@ -94,7 +95,13 @@ function App() {
               <Resource
                 name="playerDashboard"
                 list={PlayerList}
-                options={{ label: "playerDashboard" }}
+                options={{ label: "DashBoard" }}
+                icon={SummarizeIcon}
+              />
+              <Resource
+                name="Wallet"
+                list={Wallet}
+                options={{ label: "Wallet" }}
                 icon={SummarizeIcon}
               />
               <CustomRoutes>
@@ -102,7 +109,7 @@ function App() {
                   path="/playerDashboard"
                   element={
                     <Authenticated>
-                      <PlayerList resource="playerDashboard" />
+                      <PlayerList resource="DashBoard" />
                     </Authenticated>
                   }
                 />

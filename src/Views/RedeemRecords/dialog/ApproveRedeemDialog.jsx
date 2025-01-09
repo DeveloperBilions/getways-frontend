@@ -71,6 +71,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       percentageAmount:
         redeemAmount - redeemAmount * (redeemFees / 100).toFixed(2),
       remark,
+      redeemFees:(redeemAmount - (redeemAmount - redeemAmount * (redeemFees / 100).toFixed(2))).toFixed(2),
       type: "redeem",
     };
 

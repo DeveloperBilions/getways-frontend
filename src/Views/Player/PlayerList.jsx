@@ -44,7 +44,6 @@ export const PlayerList = () => {
 
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
-
   const role = localStorage.getItem("role");
 
   if (!role) {
@@ -242,6 +241,30 @@ export const PlayerList = () => {
                 fullWidth
               >
                 Redeem Request
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6} md={6}>
+              <Button
+                variant="contained"
+                color="success"
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  background: "#000000",
+                  textTransform: "capitalize",
+                  fontSize: "18px",
+                }}
+                startIcon={
+                  <img
+                    src={MoneySendLightIcon}
+                    alt="Money Recive Icon"
+                    style={{ width: 24, height: 24 }}
+                  />
+                }
+                onClick={() => navigate("/wallet")}
+                fullWidth
+              >
+                Wallet
               </Button>
             </Grid>
           </Grid>
