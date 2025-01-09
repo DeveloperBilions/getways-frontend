@@ -349,13 +349,18 @@ export const RedeemRecordsList = (props) => {
                 switch (status) {
                   case 4:
                     return "success";
+                  case 12 :
+                    return "success";
                   case 5:
                     return "error";
+                    case 13:
+                      return "error";
                   case 6:
                     return "warning";
                   case 7:
                     return "error";
-                
+                    case 8:
+                      return "success";
                   default:
                     return "default";
                 }
@@ -365,8 +370,10 @@ export const RedeemRecordsList = (props) => {
                 5: "Fail",
                 6: "Pending Approval",
                 7: "Rejected",
-                8: "Review",
-                9: "Expired",
+                8: "Redeemed Success",
+                11: "Cashouts",
+                12: "Cashout Approved",
+                13: "Cashout Reject"
               }[record.status];
               return (
                 <Chip
@@ -378,8 +385,18 @@ export const RedeemRecordsList = (props) => {
               );
             }}
           />
-          <DateField source="transactionDate" label="RedeemDate" showTime />
+            <DateField source="transactionDate" label="RedeemDate" showTime />
           <TextField source="responseMessage" label="Message" />
+          {
+         identity?.role === "Super-User" && 
+
+            <TextField source="paymentMode" label="Payment Method" />
+          }
+           {
+             identity?.role === "Super-User" && 
+
+            <TextField source="paymentMethodType" label="Payment Id" />
+          }
           <FunctionField
             label="Action"
             source="action"
@@ -421,7 +438,7 @@ export const RedeemRecordsList = (props) => {
                     Reject
                   </Button>
                 </Box>
-              ) : record?.status === 8 && identity?.role === "Super-User" ? (
+              ) : record?.status === 11  && identity?.role === "Super-User" ? (
                 <Box
                   sx={{
                     display: "flex",

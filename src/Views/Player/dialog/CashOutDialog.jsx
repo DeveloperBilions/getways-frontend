@@ -20,24 +20,27 @@ import { walletService } from "../../../Provider/WalletManagement";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
+const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState("");
   const [redeemFees, setRedeemFees] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [walletId,setWalletId] = useState("")
+  const [balance,setBalance] = useState(0)
   const [paymentMethods, setPaymentMethods] = useState({
     cashAppId: "",
     paypalId: "",
     venmoId: "",
   });
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // New state for selected payment method
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
     useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [selectedPaymentMethodType, setSelectedPaymentMethodType] =
+    useState(""); // Store selected payment method type (e.g., cashAppId)
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
@@ -45,7 +48,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setWarningMessage("");
     setErrorMessage("");
   };
-
+  console.log(record,"recordList")
   const parentServiceFee = async () => {
     try {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
@@ -69,7 +72,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId ,objectId} = wallet?.wallet;
+      const { cashAppId, paypalId, venmoId ,objectId , balance} = wallet.wallet;
+      setBalance(balance)
       setPaymentMethods({ cashAppId, paypalId, venmoId });
       setWalletId(objectId)
     }
@@ -82,30 +86,37 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const handleConfirm = () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
     const methodCount = [cashAppId, paypalId, venmoId].filter(Boolean).length;
-
+    if (!selectedPaymentMethodType) {
+      setErrorMessage("Please select a payment method type.");
+      return;
+    }
+    if (parseFloat(redeemAmount) > parseFloat(balance || 0)) {
+      setErrorMessage("Cash-out amount cannot exceed your wallet balance.");
+      return;
+    }
+    else{
+      setErrorMessage("");
+    }
     if (methodCount === 0) {
       setWarningMessage(
         "No payment methods are added. Please add a payment method to proceed."
       );
       setShowWarningModal(true);
-    } 
-    
-    // else if (methodCount > 0 && methodCount < 3) {
-    //   setWarningMessage(
-    //     `You have ${methodCount} payment mode${
-    //       methodCount > 1 ? "s" : ""
-    //     } added for refunds. Would you like to add/edit the payment method?`
-    //   );
-    //   setShowWarningModal(true);
-    // } 
-    
-    else {
+    } else if (methodCount > 0 && methodCount < 3) {
+      setWarningMessage(
+        `You have ${methodCount} payment mode${
+          methodCount > 1 ? "s" : ""
+        } added for refunds. Would you like to add/edit the payment method?`
+      );
+      setShowWarningModal(true);
+    } else {
       handleSubmit(); // Call handleSubmit directly if 3 payment methods are already added
     }
   };
 
   const handleSubmit = async () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
+  
     if (!cashAppId && !paypalId && !venmoId) {
       setErrorMessage("Refund cannot be processed without a payment mode.");
       return;
@@ -117,7 +128,10 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       transactionAmount: redeemAmount,
       remark,
       type: "redeem",
-      walletId: walletId
+      walletId: walletId,
+      isCashOut: true,
+      paymentMode:selectedPaymentMethodType ,
+      paymentMethodType:selectedPaymentMethod
     };
 
     setLoading(true);
@@ -144,7 +158,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
-      handleSubmit(); // Automatically call handleSubmit after adding payment methods
+     // handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
     }
@@ -156,12 +170,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       ) : (
         <Modal isOpen={open} toggle={onClose} size="md" centered>
           <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
-            Redeem Request Amount
+            Cash Out Request
           </ModalHeader>
           <ModalBody>
-            <FormText className="font-weight-bold">
-              Redeems may take up to 2 hours
-            </FormText>
             {errorMessage && (
               <Alert color="danger" className="mt-2">
                 {errorMessage}
@@ -185,7 +196,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="redeemAmount">Redeem Amount</Label>
+                    <Label for="redeemAmount">Cash Out Amount</Label>
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
@@ -197,18 +208,6 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
-
-                <p className="mb-0">
-                  <small>Redeem Service Fee @ {redeemFees}%</small>
-                </p>
-                {redeemFees && (
-                  <p className="mb-1">
-                    <small>
-                      Total amount to be redeemed = $
-                      {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
-                    </small>
-                  </p>
-                )}
 
                 <Col md={12}>
                   <FormGroup>
@@ -223,6 +222,46 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="remark">Payment Method</Label>
+                    {Object.entries(paymentMethods).map(([key, value]) =>
+                      value ? (
+                        <div key={key} className="form-check">
+                          <Input
+                            type="radio"
+                            id={key}
+                            name="paymentMethod"
+                            value={key}
+                            checked={selectedPaymentMethodType === key}
+                            onChange={(e) => {
+                              setSelectedPaymentMethodType(e.target.value); // Set method type
+                              setSelectedPaymentMethod(value); // Set method value
+                            }}
+                            required
+                          />
+                          <Label for={key} className="form-check-label">
+                            {key.replace(/Id$/, "")} - {value}
+                          </Label>
+                        </div>
+                      ) : null
+                    )}
+                  </FormGroup>
+                </Col>
+                <Col md={12} className="d-flex justify-content-end my-2">
+                  <span
+                    style={{
+                      textDecoration: "underline",
+                      color: "#007bff",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                    }}
+                    onClick={() => setShowAddPaymentMethodDialog(true)}
+                  >
+                    Add / Edit Payment Method
+                  </span>
+                </Col>
                 <Col md={12}>
                   <div className="d-flex justify-content-end">
                     <Button
@@ -378,4 +417,4 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   );
 };
 
-export default PlayerRedeemDialog;
+export default CashOutDialog;
