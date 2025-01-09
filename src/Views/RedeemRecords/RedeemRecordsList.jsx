@@ -92,6 +92,8 @@ export const RedeemRecordsList = (props) => {
         return "Rejected";
       case 8:
         return "Review";
+      case 9:
+        return "Expired";
       default:
         return "Unknown Status";
     }
@@ -105,6 +107,9 @@ export const RedeemRecordsList = (props) => {
   // 5: "Redeem Faile"
   // 6: "Pending Approval"
   // 7: "Rejected" -  Redeem Request Rejected
+  // 8: "Review"
+  // 9: "Expired"
+  // 10: "Failed Transaction"
 
   const totalTransactionAmount =
     data &&
@@ -350,6 +355,7 @@ export const RedeemRecordsList = (props) => {
                     return "warning";
                   case 7:
                     return "error";
+                
                   default:
                     return "default";
                 }
@@ -360,6 +366,7 @@ export const RedeemRecordsList = (props) => {
                 6: "Pending Approval",
                 7: "Rejected",
                 8: "Review",
+                9: "Expired",
               }[record.status];
               return (
                 <Chip

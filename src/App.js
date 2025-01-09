@@ -7,7 +7,7 @@ import {
   Authenticated,
   ListGuesser,
 } from "react-admin";
-import { Route } from "react-router-dom";
+import { Route, Navigate, Routes, BrowserRouter } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -15,6 +15,7 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 import GridViewIcon from "@mui/icons-material/GridView";
 // pages
 import LoginPage from "./Views/SignIn/forms/CheckPresence";
+import { Maintenance } from "./Views/Maintenance";
 import UpdateUser from "./Views/SignIn/forms/UpdateUser";
 import LoginEmailPage from "./Views/SignIn/forms/LoginPage";
 import SignUp from "./Views/SignIn/forms/SignUp";
@@ -40,6 +41,19 @@ import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
 
 function App() {
+  const isMaintenance = process.env.REACT_APP_MAINTENANCE_MODE;
+
+  if (isMaintenance === "true") {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<Navigate to="/maintenance" replace />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <Admin
       dataProvider={dataProvider}
@@ -77,15 +91,8 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
-              {/* Uncomment if needed
-        <Resource
-          name="StripeForm"
-          list={Stripe}
-          options={{ label: "StripeForm" }}
-          icon={SummarizeIcon}
-        />
-        */}
               <Route path="/success" element={<Success />} />
+              <Route path="/maintenance" element={<Maintenance />} />
             </>
           );
         } else if (permissions && permissions === "Player") {
@@ -137,7 +144,6 @@ function App() {
       }}
 
       <CustomRoutes>
-        {" "}
         <Route path="/success" element={<Success />} />
       </CustomRoutes>
       <CustomRoutes noLayout>

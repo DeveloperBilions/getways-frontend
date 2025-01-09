@@ -111,6 +111,9 @@ export const RechargeRecordsList = (props) => {
   // 5: "Redeem Faile"
   // 6: "Pending Approval"
   // 7: "Rejected" -  Redeem Request Rejected
+  // 8: "Review"
+  // 9: "Expired"
+  // 10: "Failed Transaction"
 
   const totalTransactionAmount =
     data &&
