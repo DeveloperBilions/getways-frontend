@@ -257,77 +257,81 @@ export const Wallet = () => {
                 setPerPage: handlePageSizeChange,
               }}
             >
-        <Datagrid
-  rowClick="edit"
-  sx={{
-    "& .RaDatagrid-row": {
-      borderBottom: "1px solid #eaeaea",
-      "&:hover": {
-        backgroundColor: "#f9f9f9",
-      },
-    },
-    "& .RaDatagrid-header": {
-      backgroundColor: "#f5f5f5",
-      fontWeight: 600,
-      borderBottom: "2px solid #dedede",
-    },
-  }}
->
-<TextField source="id" label="Transaction Id" />
-  <TextField source="transactionAmount" label="Amount" />
-  <FunctionField
-    label="Status"
-    source="status"
-    render={(record) => {
-      const getColor = (status) => {
-        switch (status) {
-          case 4:
-            return "green"; // Success
-          case 5:
-            return "red"; // Fail
-          case 6:
-            return "orange"; // Pending Approval
-          case 7:
-            return "gray"; // Rejected
-            case 11:
-            return "orange"; // Rejected
-            case 12:
-              return "green"; // Rejected
-              case 13:
-                return "red"; // Rejected
-          default:
-            return "black"; // Default color
-        }
-      };
-      const statusMessage = {
-        4: "Success",
-        5: "Fail",
-        6: "Pending Approval",
-        7: "Rejected",
-        8: "Review",
-        11: "In - Progress",
-        12: "Success",
-        13: "Rejected"
-      }[record.status];
+              <Datagrid
+                rowClick="edit"
+                sx={{
+                  "& .RaDatagrid-row": {
+                    borderBottom: "1px solid #eaeaea",
+                    "&:hover": {
+                      backgroundColor: "#f9f9f9",
+                    },
+                  },
+                  "& .RaDatagrid-header": {
+                    backgroundColor: "#f5f5f5",
+                    fontWeight: 600,
+                    borderBottom: "2px solid #dedede",
+                  },
+                }}
+              >
+                <TextField source="id" label="Transaction Id" />
+                <TextField source="transactionAmount" label="Amount" />
+                <FunctionField
+                  label="Status"
+                  source="status"
+                  render={(record) => {
+                    const getColor = (status) => {
+                      switch (status) {
+                        case 4:
+                          return "green"; // Success
+                        case 5:
+                          return "red"; // Fail
+                        case 6:
+                          return "orange"; // Pending Approval
+                        case 7:
+                          return "gray"; // Rejected
+                        case 11:
+                          return "orange"; // Rejected
+                        case 12:
+                          return "green"; // Rejected
+                        case 13:
+                          return "red"; // Rejected
+                        default:
+                          return "black"; // Default color
+                      }
+                    };
+                    const statusMessage = {
+                      4: "Success",
+                      5: "Fail",
+                      6: "Pending Approval",
+                      7: "Rejected",
+                      8: "Review",
+                      11: "In - Progress",
+                      12: "Success",
+                      13: "Rejected",
+                    }[record.status];
 
-      return (
-        <span
-          style={{
-            color: getColor(record.status),
-            padding: "4px 8px",
-            border: `1px solid ${getColor(record.status)}`,
-            borderRadius: "25px",
-            display: "inline-block",
-          }}
-        >
-          {statusMessage}
-        </span>
-      );
-    }}
-  />
-  <DateField source="transactionDate" label="Date Created" showTime />
-  <TextField source="remark" label="Remark" />
-</Datagrid>
+                    return (
+                      <span
+                        style={{
+                          color: getColor(record.status),
+                          padding: "4px 8px",
+                          border: `1px solid ${getColor(record.status)}`,
+                          borderRadius: "25px",
+                          display: "inline-block",
+                        }}
+                      >
+                        {statusMessage}
+                      </span>
+                    );
+                  }}
+                />
+                <DateField
+                  source="transactionDate"
+                  label="Date Created"
+                  showTime
+                />
+                <TextField source="remark" label="Remark" />
+              </Datagrid>
 
               <Pagination
                 count={Math.ceil(totalRecords / pageSize)} // Calculate total pages
@@ -354,8 +358,9 @@ export const Wallet = () => {
         open={cashOutDialogOpen}
         onClose={() => setcashOutDialogOpen(false)}
         record={transformedIdentity}
-        handleRefresh={() => {fetchTransactions(page, pageSize)
-        walletService()
+        handleRefresh={() => {
+          fetchTransactions(page, pageSize);
+          WalletService();
         }}
         wallet={wallet}
       />

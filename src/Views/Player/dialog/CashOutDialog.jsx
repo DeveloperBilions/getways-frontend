@@ -16,7 +16,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { walletService } from "../../../Provider/WalletManagement";
-
+import "../../../Assets/css/cashoutDialog.css";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -26,8 +26,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [redeemFees, setRedeemFees] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
-  const [walletId,setWalletId] = useState("")
-  const [balance,setBalance] = useState(0)
+  const [walletId, setWalletId] = useState("");
+  const [balance, setBalance] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState({
     cashAppId: "",
     paypalId: "",
@@ -48,7 +48,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     setWarningMessage("");
     setErrorMessage("");
   };
-  console.log(record,"recordList")
+  console.log(record, "recordList");
   const parentServiceFee = async () => {
     try {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
@@ -72,10 +72,10 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId ,objectId , balance} = wallet.wallet;
-      setBalance(balance)
+      const { cashAppId, paypalId, venmoId, objectId, balance } = wallet.wallet;
+      setBalance(balance);
       setPaymentMethods({ cashAppId, paypalId, venmoId });
-      setWalletId(objectId)
+      setWalletId(objectId);
     }
 
     if (open) {
@@ -93,8 +93,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     if (parseFloat(redeemAmount) > parseFloat(balance || 0)) {
       setErrorMessage("Cash-out amount cannot exceed your wallet balance.");
       return;
-    }
-    else{
+    } else {
       setErrorMessage("");
     }
     if (methodCount === 0) {
@@ -102,21 +101,23 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         "No payment methods are added. Please add a payment method to proceed."
       );
       setShowWarningModal(true);
-    } else if (methodCount > 0 && methodCount < 3) {
-      setWarningMessage(
-        `You have ${methodCount} payment mode${
-          methodCount > 1 ? "s" : ""
-        } added for refunds. Would you like to add/edit the payment method?`
-      );
-      setShowWarningModal(true);
-    } else {
+    }
+    // else if (methodCount > 0 && methodCount < 3) {
+    //   setWarningMessage(
+    //     `You have ${methodCount} payment mode${
+    //       methodCount > 1 ? "s" : ""
+    //     } added for refunds. Would you like to add/edit the payment method?`
+    //   );
+    //   setShowWarningModal(true);
+    // }
+    else {
       handleSubmit(); // Call handleSubmit directly if 3 payment methods are already added
     }
   };
 
   const handleSubmit = async () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
-  
+
     if (!cashAppId && !paypalId && !venmoId) {
       setErrorMessage("Refund cannot be processed without a payment mode.");
       return;
@@ -130,8 +131,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       type: "redeem",
       walletId: walletId,
       isCashOut: true,
-      paymentMode:selectedPaymentMethodType ,
-      paymentMethodType:selectedPaymentMethod
+      paymentMode: selectedPaymentMethodType,
+      paymentMethodType: selectedPaymentMethod,
     };
 
     setLoading(true);
@@ -158,7 +159,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
-     // handleSubmit(); // Automatically call handleSubmit after adding payment methods
+      // handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
     }
@@ -225,29 +226,50 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 <Col md={12}>
                   <FormGroup>
                     <Label for="remark">Payment Method</Label>
-                    {Object.entries(paymentMethods).map(([key, value]) =>
-                      value ? (
-                        <div key={key} className="form-check">
-                          <Input
-                            type="radio"
-                            id={key}
-                            name="paymentMethod"
-                            value={key}
-                            checked={selectedPaymentMethodType === key}
-                            onChange={(e) => {
-                              setSelectedPaymentMethodType(e.target.value); // Set method type
-                              setSelectedPaymentMethod(value); // Set method value
-                            }}
-                            required
-                          />
-                          <Label for={key} className="form-check-label">
-                            {key.replace(/Id$/, "")} - {value}
-                          </Label>
+                    <div className="row">
+                      {Object.entries(paymentMethods).filter(
+                        ([_, value]) => value
+                      ).length === 0 ? (
+                        <div className="col-12 text-start text-danger">
+                          <p> ** No Payment methods added ** </p>
                         </div>
-                      ) : null
-                    )}
+                      ) : (
+                        Object.entries(paymentMethods)
+                          .filter(([key, value]) => value) // Filter out methods with no value
+                          .map(([key, value]) => (
+                            <div key={key} className="col-6 mt-2">
+                              <div className="border p-3 w-100 rounded d-flex align-items-start cashout">
+                                <Input
+                                  type="radio"
+                                  id={key}
+                                  name="paymentMethod"
+                                  value={key}
+                                  checked={selectedPaymentMethodType === key}
+                                  onChange={(e) => {
+                                    setSelectedPaymentMethodType(
+                                      e.target.value
+                                    ); // Set method type
+                                    setSelectedPaymentMethod(value); // Set method value
+                                  }}
+                                  required
+                                />
+                                <Label
+                                  for={key}
+                                  className="form-check-label d-flex flex-column px-3"
+                                >
+                                  <span>{key.replace(/Id$/, "")}</span>
+                                  <span style={{ fontSize: "12px" }}>
+                                    {value}
+                                  </span>
+                                </Label>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
                   </FormGroup>
                 </Col>
+
                 <Col md={12} className="d-flex justify-content-end my-2">
                   <span
                     style={{
@@ -287,21 +309,31 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       <Modal
         isOpen={showWarningModal}
         toggle={() => {
-          if (paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId) {
+          if (
+            paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId
+          ) {
             setShowWarningModal(false);
           } else {
-            setErrorMessage("Refund cannot be processed without a payment mode.");
+            setErrorMessage(
+              "Refund cannot be processed without a payment mode."
+            );
             setShowWarningModal(false);
           }
         }}
         size="md"
         centered
       >
-        <ModalHeader toggle={() => setShowWarningModal(false)}>Attention</ModalHeader>
+        <ModalHeader toggle={() => setShowWarningModal(false)}>
+          Attention
+        </ModalHeader>
         <ModalBody>
           <p>{warningMessage}</p>
           <div className="d-flex justify-content-end">
-            {paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId ? (
+            {paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId ? (
               <Button
                 color="primary"
                 onClick={() => {
@@ -332,11 +364,11 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
             >
               Close
             </Button>
-
           </div>
         </ModalBody>
       </Modal>
 
+      {/* Add Payment Method Modal */}
       {/* Add Payment Method Modal */}
       <Modal
         isOpen={showAddPaymentMethodDialog}
@@ -347,9 +379,14 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         <ModalHeader>Add/Edit Payment Method</ModalHeader>
         <ModalBody>
           <Form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              handleAddPaymentMethod(paymentMethods);
+              setLoading(true); // Show loader when save starts
+              try {
+                await handleAddPaymentMethod(paymentMethods);
+              } finally {
+                setLoading(false); // Hide loader after save completes
+              }
             }}
           >
             <Row>
@@ -405,8 +442,27 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 </FormGroup>
               </Col>
               <Col md={12} className="d-flex justify-content-end">
-                <Button color="primary" type="submit">
-                  Save
+                <Button color="primary" type="submit" disabled={loading}>
+                  {loading ? (
+                    <span className="d-flex align-items-center">
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Saving...
+                    </span>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+                <Button
+                  color="secondary"
+                  className="ms-2"
+                  onClick={() => setShowAddPaymentMethodDialog(false)}
+                  disabled={loading} // Disable cancel button while saving
+                >
+                  Cancel
                 </Button>
               </Col>
             </Row>

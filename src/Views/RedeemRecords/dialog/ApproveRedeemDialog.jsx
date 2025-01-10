@@ -22,20 +22,20 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
+  const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
   const [remark, setRemark] = useState();
-  const [redeemFees, setredeemFees] = useState();
+  const [redeemFees, setRedeemFees] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
-  const [redeemPercentage, setRedeemPercentage] = useState();
-  const [cashAppId,setCashAppId] = useState("")
-
-  //   console.log("===== record", record);
+  const [isEditingFees, setIsEditingFees] = useState(false);
+  const [editedFees, setEditedFees] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
     setRemark("");
-    setRedeemPercentage("");
+    setRedeemFees("");
   };
 
   const parentServiceFee = async () => {
@@ -43,7 +43,8 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: record?.userParentId,
       });
-      setredeemFees(response?.redeemService || 0);
+      setRedeemFees(response?.redeemService || 0);
+      setEditedFees(response?.redeemService || 0); // Initialize edited fees
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -55,24 +56,36 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setUserName(record.username || "");
       setRedeemAmount(record?.transactionAmount || "");
       setRemark(record?.remark || "");
-      setCashAppId(record?.cashAppId || "")
     } else {
       resetFields();
     }
   }, [record, open]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleConfirmClick = () => {
+    // Show confirmation modal only if the fees have been changed
+    if (parseFloat(redeemFees) !== parseFloat(editedFees)) {
+      setShowConfirmModal(true);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    const percentageAmount = (
+      redeemAmount -
+      redeemAmount * (editedFees / 100)
+    ).toFixed(2);
 
     const rawData = {
       ...record,
       orderId: record?.id,
       transactionAmount: redeemAmount,
-      percentageAmount:
-        redeemAmount - redeemAmount * (redeemFees / 100).toFixed(2),
+      percentageAmount,
       remark,
-      redeemFees:(redeemAmount - (redeemAmount - redeemAmount * (redeemFees / 100).toFixed(2))).toFixed(2),
+      redeemFees: (redeemAmount - percentageAmount).toFixed(2),
       type: "redeem",
+      redeemServiceFee: editedFees, // Use the updated fees,
+      redeemRemarks: redeemRemarks,
     };
 
     setLoading(true);
@@ -80,7 +93,6 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       await Parse.Cloud.run("agentApproveRedeemRedords", rawData);
 
       onClose();
-      setLoading(false);
       handleRefresh();
     } catch (error) {
       console.error("Error Redeem Record details:", error);
@@ -89,25 +101,45 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
 
-  const handleClose = () => {
-    onClose();
-    handleRefresh();
-    resetFields();
+  const handleEditFees = () => {
+    setIsEditingFees(true);
   };
+
+  const handleSaveFees = () => {
+    setEditedFees(editedFees); // Save the edited fees locally
+    setIsEditingFees(false);
+  };
+
+  const handleCancelEditFees = () => {
+    setEditedFees(redeemFees); // Revert to original fees
+    setIsEditingFees(false);
+  };
+
+  const confirmFeesChange = () => {
+    setRedeemFees(editedFees); // Apply new fees
+    setShowConfirmModal(false); // Close modal
+    handleSubmit(); // Submit data
+  };
+
+  const cancelFeesChange = () => {
+    setEditedFees(redeemFees); // Revert to original fees
+    setShowConfirmModal(false); // Close modal
+  };
+
   return (
     <React.Fragment>
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleClose} size="md" centered>
-          <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
+        <Modal isOpen={open} toggle={onClose} size="md" centered>
+          <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
             Redeem Amount
           </ModalHeader>
           <ModalBody>
             <FormText className="font-weight-bold">
               Redeems may take up to 2 hours
             </FormText>
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Row>
                 <Col md={12}>
                   <FormGroup>
@@ -115,22 +147,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="userName"
                       name="userName"
-                      type="text"
                       value={userName}
-                      required
-                      disabled
-                    />
-                  </FormGroup>
-                </Col>
-                <Col md={12}>
-                  <FormGroup>
-                    <Label for="userName">Cash App Id:</Label>
-                    <Input
-                      id="cashAppId"
-                      name="cashAppId"
-                      type="text"
-                      value={cashAppId}
-                      required
                       disabled
                     />
                   </FormGroup>
@@ -142,26 +159,67 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
-                      type="number"
-                      autoComplete="off"
                       value={redeemAmount}
                       disabled
                     />
                   </FormGroup>
                 </Col>
 
-                <p className="mb-0">
-                  <small>Redeem Service Fee @ {redeemFees}%</small>
+                {isEditingFees ? (
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label for="redeemFees">Redeem Service Fee (%)</Label>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          id="redeemFees"
+                          name="redeemFees"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editedFees}
+                          onChange={(e) => setEditedFees(e.target.value)}
+                        />
+                        <Button
+                          color="success"
+                          className="ms-2"
+                          onClick={handleSaveFees}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          color="secondary"
+                          className="ms-2"
+                          onClick={handleCancelEditFees}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                ) : (
+                  <p className="mb-0">
+                    <small>
+                      Redeem Service Fee @ {editedFees || redeemFees}%{" "}
+                      <Button color="link" onClick={handleEditFees}>
+                        Edit
+                      </Button>
+                    </small>
+                  </p>
+                )}
+
+                <p className="mb-1">
+                  <small>
+                    Total amount to be redeemed = $
+                    {Math.floor(
+                      redeemAmount -
+                      (redeemAmount *
+                        (editedFees
+                          ? parseFloat(editedFees)
+                          : parseFloat(redeemFees))) /
+                        100
+                    )}
+                  </small>
                 </p>
-                {redeemPercentage !== null &&
-                  redeemPercentage !== undefined && (
-                    <p className="mb-1">
-                      <small>
-                        Total amount to be redeemed = $
-                        {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
-                      </small>
-                    </p>
-                  )}
 
                 <Col md={12}>
                   <FormGroup>
@@ -176,30 +234,31 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
-
-                {responseData && (
-                  <Col sm={12}>
-                    <Label
-                      for="errorResponse"
-                      invalid={true}
-                      className="text-danger mb-2"
-                    >
-                      {responseData}
-                    </Label>
-                  </Col>
-                )}
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="redeemRemarks">Redeem Remarks</Label>
+                    <Input
+                      id="redeemRemarks"
+                      name="redeemRemarks"
+                      type="textarea"
+                      autoComplete="off"
+                      value={redeemRemarks}
+                      onChange={(e) => setRedeemRemarks(e.target.value)}
+                    />
+                  </FormGroup>
+                </Col>
 
                 <Col md={12}>
                   <div className="d-flex justify-content-end">
                     <Button
                       color="success"
-                      type="submit"
+                      onClick={handleConfirmClick}
                       className="mx-2"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
-                    <Button color="secondary" onClick={handleClose}>
+                    <Button color="secondary" onClick={onClose}>
                       Cancel
                     </Button>
                   </div>
@@ -209,6 +268,29 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           </ModalBody>
         </Modal>
       )}
+
+      {/* Confirmation Modal */}
+      <Modal isOpen={showConfirmModal} toggle={cancelFeesChange} centered>
+        <ModalHeader toggle={cancelFeesChange}>Confirm Fees Change</ModalHeader>
+        <ModalBody>
+          <p>
+            You have changed the redeem service fee from {redeemFees}% to{" "}
+            {editedFees}%. Do you want to proceed?
+          </p>
+          <div className="d-flex justify-content-end">
+            <Button
+              color="success"
+              onClick={confirmFeesChange}
+              className="me-2"
+            >
+              Yes, Proceed
+            </Button>
+            <Button color="secondary" onClick={cancelFeesChange}>
+              No, Cancel
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
     </React.Fragment>
   );
 };

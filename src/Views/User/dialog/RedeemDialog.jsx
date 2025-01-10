@@ -15,6 +15,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -23,10 +24,13 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
   const [remark, setRemark] = useState();
-  const [redeemFees, setredeemFees] = useState();
+  const [redeemFees, setRedeemFees] = useState(); // Original fees from backend
+  const [editedFees, setEditedFees] = useState(); // Editable fees (user changes)
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
+  const [isEditingFees, setIsEditingFees] = useState(false); // Manage edit mode
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Confirmation modal visibility
 
   const resetFields = () => {
     setUserName("");
@@ -40,7 +44,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: record?.userParentId,
       });
-      setredeemFees(response?.redeemService || 0);
+      setRedeemFees(response?.redeemService || 0);
+      setEditedFees(response?.redeemService || 0); // Initialize edited fees
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -55,21 +60,30 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   }, [record, open]);
 
-  const calculateRedeemedAmount = () => {
-    if (redeemAmount && redeemFees !== 0) {
-      const calculatedAmount = redeemAmount - redeemAmount * (redeemFees / 100);
+  // Calculate redeem percentage whenever redeemFees or redeemAmount changes
+  useEffect(() => {
+    const feesToUse = editedFees !== redeemFees ? editedFees : redeemFees; // Use edited fees if changed
+    if (redeemAmount && feesToUse !== undefined) {
+      const calculatedAmount = redeemAmount - redeemAmount * (feesToUse / 100);
       setRedeemPercentage(calculatedAmount.toFixed(2));
     } else {
-      setRedeemPercentage(redeemAmount);
+      setRedeemPercentage(redeemAmount || 0);
+    }
+  }, [redeemAmount, redeemFees, editedFees]);
+
+  const handleConfirmClick = () => {
+    // Check if the redeem fees were changed by the user
+    if (redeemFees !== parseFloat(editedFees)) {
+      setShowConfirmationModal(true); // Show confirmation modal if fees changed
+    } else {
+      handleSubmit(); // Directly submit if fees haven't changed
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const handleSubmit = async () => {
     const rawData = {
       ...record,
-      redeemServiceFee: redeemFees,
+      redeemServiceFee: parseFloat(editedFees), // Use edited fees in submission
       transactionAmount: redeemAmount,
       percentageAmount: redeemPercentage,
       remark,
@@ -92,6 +106,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       console.error("Error Redeem Record details:", error);
     } finally {
       setLoading(false);
+      setShowConfirmationModal(false); // Close confirmation modal after submission
     }
   };
 
@@ -99,6 +114,20 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     onClose();
     handleRefresh();
     resetFields();
+  };
+
+  const handleEditFees = () => {
+    setIsEditingFees(true);
+  };
+
+  const handleSaveFees = () => {
+    setEditedFees(parseFloat(editedFees)); // Save the edited fees
+    setIsEditingFees(false);
+  };
+
+  const handleCancelEditFees = () => {
+    setEditedFees(redeemFees); // Revert changes
+    setIsEditingFees(false);
   };
 
   return (
@@ -114,7 +143,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             <FormText className="font-weight-bold">
               Redeems may take up to 2 hours
             </FormText>
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={(e) => e.preventDefault()}>
               <Row>
                 <Col md={12}>
                   <FormGroup>
@@ -140,20 +169,60 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       autoComplete="off"
                       min="0"
                       onChange={(e) => setRedeemAmount(e.target.value)}
-                      onBlur={calculateRedeemedAmount}
                       required
                     />
                   </FormGroup>
                 </Col>
+                {isEditingFees && (
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label for="redeemFees">Redeem Service Fee (%)</Label>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          id="redeemFees"
+                          name="redeemFees"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editedFees}
+                          onChange={(e) => setEditedFees(e.target.value)}
+                        />
+                        <Button
+                          color="success"
+                          className="ms-2"
+                          onClick={handleSaveFees}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          color="secondary"
+                          className="ms-2"
+                          onClick={handleCancelEditFees}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </FormGroup>
+                  </Col>
+                )}
 
                 <p className="mb-0">
-                  <small>Redeem Service Fee @ {redeemFees}%</small>
+                  <small>
+                    Redeem Service Fee @ {editedFees}%{" "}
+                    <Button
+                      color="link"
+                      className="ms-2"
+                      onClick={handleEditFees}
+                    >
+                      Edit
+                    </Button>
+                  </small>
                 </p>
                 {redeemPercentage !== null &&
                   redeemPercentage !== undefined && (
                     <p className="mb-1">
                       <small>
-                        Total amount to be redeemed = ${redeemPercentage || 0}
+                        Total amount to be redeemed = ${Math.floor(redeemPercentage) || 0}
                       </small>
                     </p>
                   )}
@@ -187,9 +256,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   <div className="d-flex justify-content-end">
                     <Button
                       color="success"
-                      type="submit"
+                      type="button"
                       className="mx-2"
                       disabled={loading}
+                      onClick={handleConfirmClick} // Check and open confirmation modal if needed
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
@@ -203,6 +273,37 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           </ModalBody>
         </Modal>
       )}
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={showConfirmationModal}
+        toggle={() => setShowConfirmationModal(false)}
+        size="md"
+        centered
+      >
+        <ModalHeader>Confirm Redeem Fee Change</ModalHeader>
+        <ModalBody>
+          <p>
+            You have changed the redeem service fee from <strong>{redeemFees}%</strong> to <strong>{editedFees}%</strong>.
+            Do you want to proceed with this change?
+          </p>
+          <div className="d-flex justify-content-end">
+            <Button
+              color="success"
+              className="mx-2"
+              onClick={handleSubmit} // Proceed with submission
+            >
+              Yes, Proceed
+            </Button>
+            <Button
+              color="secondary"
+              onClick={() => setShowConfirmationModal(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
     </React.Fragment>
   );
 };
