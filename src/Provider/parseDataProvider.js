@@ -677,58 +677,66 @@ export const dataProvider = {
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
-  
+
       if (transaction && transaction.get("status") === 11) {
         // Update transaction status
         transaction.set("status", 12);
-  
+
         // Get transaction amount and redeem service fee percentage
         const transactionAmount = transaction.get("transactionAmount") || 0;
-        const redeemServiceFeePercentage = transaction.get("redeemServiceFee") || 0;
-  
+        const redeemServiceFeePercentage =
+          transaction.get("redeemServiceFee") || 0;
+
         // Calculate the service fee and the amount to credit
-        const serviceFee = (transactionAmount * redeemServiceFeePercentage) / 100;
+        const serviceFee =
+          (transactionAmount * redeemServiceFeePercentage) / 100;
         const amountToCredit = transactionAmount - serviceFee;
-  
+
         if (amountToCredit < 0) {
-          return { success: false, error: "Invalid credit amount calculation." };
+          return {
+            success: false,
+            error: "Invalid credit amount calculation.",
+          };
         }
         // Save the transaction and wallet updates
         await transaction.save(null, { useMasterKey: true });
-  
+
         return {
           success: true,
           data: {
-            transaction: transaction.toJSON()
+            transaction: transaction.toJSON(),
           },
         };
       } else {
-        return { success: false, error: "Invalid status for approval or transaction not found." };
+        return {
+          success: false,
+          error: "Invalid status for approval or transaction not found.",
+        };
       }
     } catch (error) {
       console.error("Final approval error:", error);
       throw error;
     }
-  },  
+  },
   finalReject: async (orderId) => {
     try {
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const Wallet = Parse.Object.extend("Wallet");
-  
+
       // Fetch the transaction record
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
-  
+
       if (transaction && transaction.get("status") === 11) {
         // Fetch the user ID and transaction amount
         const walletId = transaction.get("walletId");
         const transactionAmount = transaction.get("transactionAmount");
-  
+
         if (!walletId || !transactionAmount) {
           return { success: false, error: "Invalid transaction data" };
         }
-  
+
         // Fetch the wallet for the user
         const walletQuery = new Parse.Query(Wallet);
         walletQuery.equalTo("objectId", walletId); // Ensure your Wallet class has a `userId` field
@@ -736,16 +744,16 @@ export const dataProvider = {
         if (!wallet) {
           return { success: false, error: "Wallet not found for user" };
         }
-  
+
         // Update wallet balance
         const currentBalance = wallet.get("balance") || 0;
         wallet.set("balance", currentBalance + transactionAmount);
         await wallet.save(null);
-  
+
         // Update the transaction status
         transaction.set("status", 13); // Rejected status
         await transaction.save(null);
-  
+
         return {
           success: true,
           data: {
@@ -757,11 +765,11 @@ export const dataProvider = {
         return { success: false, error: "Invalid status for rejection" };
       }
     } catch (error) {
-      console.log(error,"weeorrrrrrr")
+      console.log(error, "weeorrrrrrr");
       console.error("Final rejection error:", error);
       throw error;
     }
-  },  
+  },
   retrieveCheckoutSession: async (sessionId) => {
     try {
       // Fetch the Checkout Session from Stripe

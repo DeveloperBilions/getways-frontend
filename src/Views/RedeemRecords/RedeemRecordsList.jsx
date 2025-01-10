@@ -61,6 +61,9 @@ export const RedeemRecordsList = (props) => {
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
   const [finalrejectDialogOpen, setFinalRejectDialogOpen] = useState(false);
   const [finalredeemDialogOpen, setFinalRedeemDialogOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [statusValue, setStatusValue] = useState();
+
   const role = localStorage.getItem("role");
 
   if (!role) {
@@ -69,7 +72,13 @@ export const RedeemRecordsList = (props) => {
 
   const { data, isPending, isFetching } = useGetList("redeemRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
+    filter: {
+      ...(searchValue && { username: searchValue }),
+      ...(statusValue && { status: statusValue }),
+    },
   });
+
+  console.log("*****", data);
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -169,6 +178,19 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
+  const handleSearchChange = (e) => {
+    if (e) {
+      const value = e.target.value;
+      setSearchValue(value);
+    }
+  };
+
+  const handleStatusChange = (e) => {
+    if (e) {
+      setStatusValue(e.target.value);
+      console.log(e.target.value);
+    }
+  };
   // const SelectUserInput = () => {
   //   return permissions !== "Player" ? (
   //     <SelectInput
@@ -192,20 +214,26 @@ export const RedeemRecordsList = (props) => {
   // ];
 
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
+    <SearchInput
+      source="username"
+      alwaysOn
+      resettable
+      onBlur={handleSearchChange}
+    />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
         source="status"
         emptyText="All"
         alwaysOn
-        resettable
+        resettablea
         choices={[
           { id: 4, name: "Success" },
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
           { id: 7, name: "Rejected" },
         ]}
+        onBlur={handleStatusChange}
       />
     ),
   ].filter(Boolean);
@@ -349,18 +377,18 @@ export const RedeemRecordsList = (props) => {
                 switch (status) {
                   case 4:
                     return "success";
-                  case 12 :
+                  case 12:
                     return "success";
                   case 5:
                     return "error";
-                    case 13:
-                      return "error";
+                  case 13:
+                    return "error";
                   case 6:
                     return "warning";
                   case 7:
                     return "error";
-                    case 8:
-                      return "success";
+                  case 8:
+                    return "success";
                   default:
                     return "default";
                 }
@@ -373,7 +401,7 @@ export const RedeemRecordsList = (props) => {
                 8: "Redeemed Success",
                 11: "Cashouts",
                 12: "Cashout Approved",
-                13: "Cashout Reject"
+                13: "Cashout Reject",
               }[record.status];
               return (
                 <Chip
@@ -385,18 +413,14 @@ export const RedeemRecordsList = (props) => {
               );
             }}
           />
-            <DateField source="transactionDate" label="RedeemDate" showTime />
+          <DateField source="transactionDate" label="RedeemDate" showTime />
           <TextField source="responseMessage" label="Message" />
-          {
-         identity?.role === "Super-User" && 
-
+          {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
-          }
-           {
-             identity?.role === "Super-User" && 
-
+          )}
+          {identity?.role === "Super-User" && (
             <TextField source="paymentMethodType" label="Payment Id" />
-          }
+          )}
           <FunctionField
             label="Action"
             source="action"
@@ -438,7 +462,7 @@ export const RedeemRecordsList = (props) => {
                     Reject
                   </Button>
                 </Box>
-              ) : record?.status === 11  && identity?.role === "Super-User" ? (
+              ) : record?.status === 11 && identity?.role === "Super-User" ? (
                 <Box
                   sx={{
                     display: "flex",

@@ -64,6 +64,11 @@ export const RechargeRecordsList = (props) => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [statusValue, setStatusValue] = useState();
+
+  console.log("@@@", searchValue);
+  console.log("###", statusValue);
 
   const role = localStorage.getItem("role");
 
@@ -73,7 +78,13 @@ export const RechargeRecordsList = (props) => {
 
   const { data, isPending, isFetching } = useGetList("rechargeRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
+    filter: {
+      ...(searchValue && { username: searchValue }),
+      ...(statusValue && { status: statusValue }),
+    },
   });
+
+  console.log("*****", data);
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -184,6 +195,19 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
+  const handleSearchChange = (e) => {
+    if (e) {
+      const value = e.target.value;
+      setSearchValue(value);
+    }
+  };
+
+  const handleStatusChange = (e) => {
+    if (e) {
+      setStatusValue(e.target.value);
+      console.log(e.target.value);
+    }
+  };
   // const SelectUserInput = () => {
   //   console.log("ROLE", permissions);
   //   return permissions != "Player" ? (
@@ -208,7 +232,12 @@ export const RechargeRecordsList = (props) => {
   // ];
 
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
+    <SearchInput
+      source="username"
+      alwaysOn
+      resettable
+      onBlur={handleSearchChange}
+    />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
@@ -223,6 +252,7 @@ export const RechargeRecordsList = (props) => {
           { id: 3, name: "Coins Credited" },
           { id: 4, name: "Status Unknown" },
         ]}
+        onBlur={handleStatusChange}
       />
     ),
   ].filter(Boolean);
