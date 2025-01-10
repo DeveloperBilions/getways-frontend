@@ -32,6 +32,7 @@ import { Menu, MenuItem, Button } from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
+import WalletDialog from "./dialog/WalletDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -45,7 +46,8 @@ const CustomButton = ({ fetchAllUsers }) => {
   const [redeemServiceDialogOpen, setRedeemServiceDialogOpen] = useState(false);
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
-
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false); // Wallet Dialog state
+  const role = localStorage.getItem("role")
   const record = useRecordContext();
   const resource = useResourceContext();
   if (!record) return null;
@@ -89,6 +91,11 @@ const CustomButton = ({ fetchAllUsers }) => {
     setDeleteUserDialogOpen(true);
   };
 
+  const handleWallet = () => {
+    handleClose();
+    setWalletDialogOpen(true); // Open the wallet modal
+  };
+
   return (
     <React.Fragment>
       <Button
@@ -116,6 +123,9 @@ const CustomButton = ({ fetchAllUsers }) => {
           <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
         )}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+        {record?.roleName === "Player" && role === "Super-User" && (
+          <MenuItem onClick={handleWallet}>Wallet</MenuItem>
+        )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
       </Menu>
@@ -156,6 +166,11 @@ const CustomButton = ({ fetchAllUsers }) => {
         resource={resource}
         fetchAllUsers={fetchAllUsers}
         handleRefresh={handleRefresh}
+      />
+        <WalletDialog
+        open={walletDialogOpen}
+        onClose={() => setWalletDialogOpen(false)}
+        record={record} // Pass the record to fetch wallet details
       />
     </React.Fragment>
   );

@@ -10,8 +10,9 @@ import {
   Label,
   Form,
   Input,
+  Alert,
 } from "reactstrap";
-import { useGetIdentity } from "react-admin";
+import { useGetIdentity,useNotify } from "react-admin";
 // loader
 import { Loader } from "../../Loader";
 
@@ -23,24 +24,41 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   const { identity } = useGetIdentity();
-
+  const notify = useNotify(); // React-Admin's notification hook
   const [userName, setUserName] = useState("");
-  const [rechargeAmount, setRechargeAmount] = useState();
-  const [remark, setRemark] = useState();
+  const [rechargeAmount, setRechargeAmount] = useState("");
+  const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paymentSource, setPaymentSource] = useState("wallet");
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(""); // New state for error message
 
   const resetFields = () => {
     setUserName("");
     setRechargeAmount("");
     setRemark("");
+    setPaymentSource("wallet");
+    setErrorMessage(""); // Reset error message
   };
 
   useEffect(() => {
+    const fetchWalletBalance = async () => {
+      try {
+        const walletQuery = new Parse.Query("Wallet");
+        walletQuery.equalTo("userID", identity.objectId);
+        const wallet = await walletQuery.first();
+        if (wallet) {
+          setWalletBalance(wallet.get("balance") || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching wallet balance:", error);
+      }
+    };
+
     if (identity && open) {
-      // Populate fields when modal opens
       setUserName(identity.username || "");
+      fetchWalletBalance();
     } else {
-      // Reset fields when modal closes
       resetFields();
     }
   }, [identity, open]);
@@ -48,41 +66,74 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const rawData = {
-      id: identity.objectId,
-      type: "recharge",
-      username: identity.username,
-      transactionAmount: rechargeAmount * 100,
-      remark,
-    };
-    setLoading(true);
-    try {
+    setErrorMessage(""); // Clear previous errors
 
-      const response = await dataProvider.userTransaction(rawData);
-      if (response?.success) { // Ensure the response indicates success
-        if (identity?.role === "Player") {
+    if (paymentSource === "wallet") {
+      // Ensure wallet balance is sufficient
+      if (parseFloat(rechargeAmount) > walletBalance) {
+        setErrorMessage("Insufficient wallet balance."); // Set error message
+        return;
+      }
+
+      const rawData = {
+        id: identity.objectId,
+        type: "recharge",
+        username: identity.username,
+        transactionAmount: rechargeAmount * 100,
+        remark,
+        balance:walletBalance,
+        useWallet: true,
+      };
+
+      setLoading(true);
+      try {
+        const response = await dataProvider.userTransaction(rawData);
+        if (response?.success) {
+          // Display success message using useNotify
+          notify("Recharge successful!", { type: "success" });
+        } else {
+          setErrorMessage(response?.message || "Recharge failed. Please try again.");
+        }
+        onClose();
+        handleRefresh();
+        resetFields();
+      } catch (error) {
+        console.error("Error processing wallet recharge:", error);
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    } else if (paymentSource === "stripe") {
+      const rawData = {
+        id: identity.objectId,
+        type: "recharge",
+        username: identity.username,
+        transactionAmount: rechargeAmount * 100,
+        remark,
+      };
+
+      setLoading(true);
+      try {
+        const response = await dataProvider.userTransaction(rawData);
+        if (response?.success) {
           const paymentUrl = response?.apiResponse?.url;
           if (paymentUrl) {
-            // Open the URL in a new tab
             window.open(paymentUrl, "_blank");
           } else {
-            console.error("Payment URL is missing from the response");
-            // Optionally, notify the user about the missing URL
+            setErrorMessage("Payment URL is missing. Please try again.");
           }
+        } else {
+          setErrorMessage(response?.message || "Stripe recharge failed. Please try again.");
         }
-      } else {
-        console.error("Transaction failed:", response?.message || "Unknown error");
-        // Optionally, show a user-friendly error message
+        onClose();
+        handleRefresh();
+        resetFields();
+      } catch (error) {
+        console.error("Error processing Stripe payment:", error);
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
-      onClose();
-      handleRefresh();
-      setLoading(false);
-      setRechargeAmount("");
-      setRemark("");
-    } catch (error) {
-      console.error("Error Recharge Record details:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -102,6 +153,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
             Recharge Amount
           </ModalHeader>
           <ModalBody>
+            {errorMessage && (
+              <Alert color="danger" className="mt-2">
+                {errorMessage}
+              </Alert>
+            )}
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>
@@ -126,9 +182,29 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       name="rechargeAmount"
                       type="number"
                       autoComplete="off"
+                      min="1"
                       onChange={(e) => setRechargeAmount(e.target.value)}
                       required
                     />
+                  </FormGroup>
+                </Col>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="paymentSource">Payment Source</Label>
+                    <Input
+                      type="select"
+                      name="paymentSource"
+                      id="paymentSource"
+                      value={paymentSource}
+                      onChange={(e) => setPaymentSource(e.target.value)}
+                    >
+                      <option value="wallet">Wallet</option>
+                      <option value="stripe">Stripe</option>
+                    </Input>
+                    <small>
+                      Wallet Balance:{" "}
+                      <strong>${walletBalance.toFixed(2)}</strong>
+                    </small>
                   </FormGroup>
                 </Col>
 

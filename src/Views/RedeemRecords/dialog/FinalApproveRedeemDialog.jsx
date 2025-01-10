@@ -92,7 +92,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       ) : (
         <Modal isOpen={open} toggle={handleClose} size="md" centered>
           <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
-            Redeem Amount
+            CashOut Confirmation
           </ModalHeader>
           <ModalBody>
             <FormText className="font-weight-bold">
@@ -115,12 +115,12 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 </Col>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="userName">Cash App Id:</Label>
+                    <Label for="userName">Payment Mthod Type : {record?.paymentMode}</Label>
                     <Input
                       id="cashAppId"
                       name="cashAppId"
                       type="text"
-                      value={cashAppId}
+                      value={record?.paymentMethodType}
                       required
                       disabled
                     />
@@ -141,7 +141,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
-                <p className="mb-0">
+                {/* <p className="mb-0">
                   <small>Redeem Service Fee @ {redeemFees}%</small>
                 </p>
                 {redeemPercentage !== null &&
@@ -152,7 +152,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                         {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
                       </small>
                     </p>
-                  )}
+                  )} */}
 
                 <Col md={12}>
                   <FormGroup>
@@ -167,7 +167,6 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
-
                 {responseData && (
                   <Col sm={12}>
                     <Label

@@ -365,9 +365,9 @@ export const RedeemRecordsList = (props) => {
                 5: "Fail",
                 6: "Pending Approval",
                 7: "Rejected",
-                8: "Redeemed Success",
+                8: "Redeem Successfully",
                 11: "Cashouts",
-                12: "Cashout Approved",
+                12: "Cashout Successfully",
                 13: "Cashout Reject"
               }[record.status];
               return (

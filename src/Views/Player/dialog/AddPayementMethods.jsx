@@ -110,6 +110,14 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
                   "Save"
                 )}
               </Button>
+              <Button
+                  color="secondary"
+                  className="ms-2"
+                  onClick={onClose}
+                  disabled={loading} // Disable cancel button while saving
+                >
+                  Cancel
+                </Button>
             </Col>
           </Row>
         </Form>
