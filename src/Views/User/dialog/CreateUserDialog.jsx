@@ -11,9 +11,14 @@ import {
   Form,
   Input,
   FormText,
+  InputGroup,
+  InputGroupText,
 } from "reactstrap";
 //react admin
 import { useGetIdentity, usePermissions, useRefresh } from "react-admin";
+// mui icon
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 // loader
 import { Loader } from "../../Loader";
 
@@ -39,6 +44,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   const [parentType, setParentType] = useState({});
   const [userType, setUserType] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const resetFields = () => {
     setUserName("");
@@ -301,15 +308,23 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                     <Label for="password" className="pb-0 mb-0">
                       Password
                     </Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="text"
-                      autoComplete="off"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                    <InputGroup>
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="off"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <InputGroupText
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </InputGroupText>
+                    </InputGroup>
                     <FormText>
                       Password must be at least 6 characters long.
                     </FormText>
@@ -321,15 +336,29 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                     <Label for="confirmPassword" className="pb-0 mb-0">
                       Confirm Password
                     </Label>
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="text"
-                      autoComplete="off"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
+                    <InputGroup>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="off"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                      <InputGroupText
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        style={{ cursor: "pointer" }}
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </InputGroupText>
+                    </InputGroup>
                   </FormGroup>
                 </Col>
 
