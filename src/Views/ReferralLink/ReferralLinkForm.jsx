@@ -10,10 +10,15 @@ import {
   Card,
   CardBody,
   Button,
+  InputGroup,
+  InputGroupText,
 } from "reactstrap";
 import { useLocation } from "react-router-dom";
 import { useNotify } from "react-admin";
 import { useNavigate } from "react-router-dom";
+// mui icon
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 // loader
 import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
@@ -31,7 +36,6 @@ const ReferralLinkForm = () => {
   const referral = searchParams.get("referral");
 
   const [disableButtonState, setDisableButtonState] = useState(false);
-
   const [userName, setUserName] = useState("");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -41,6 +45,8 @@ const ReferralLinkForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const fetchReferral = async () => {
@@ -231,15 +237,23 @@ const ReferralLinkForm = () => {
                         <Label for="password" className="pb-0 mb-0">
                           Password
                         </Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          autoComplete="off"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                        />
+                        <InputGroup>
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="off"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                          />
+                          <InputGroupText
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </InputGroupText>
+                        </InputGroup>
                         <FormText>
                           Password must be at least 6 characters long.
                         </FormText>
@@ -251,15 +265,29 @@ const ReferralLinkForm = () => {
                         <Label for="confirmPassword" className="pb-0 mb-0">
                           Confirm Password
                         </Label>
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type="password"
-                          autoComplete="off"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                        />
+                        <InputGroup>
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            autoComplete="off"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                          />
+                          <InputGroupText
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            style={{ cursor: "pointer" }}
+                          >
+                            {showConfirmPassword ? (
+                              <VisibilityOff />
+                            ) : (
+                              <Visibility />
+                            )}
+                          </InputGroupText>
+                        </InputGroup>
                       </FormGroup>
                     </Col>
 
