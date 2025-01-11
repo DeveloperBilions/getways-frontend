@@ -54,7 +54,7 @@ export const RedeemRecordsList = (props) => {
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
-
+  const [cashout,setCashout]=useState(false)
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -465,6 +465,7 @@ export const RedeemRecordsList = (props) => {
                     onClick={() => {
                       setSelectedRecord(record);
                       setFinalRejectDialogOpen(true);
+                      setCashout(true)
                     }}
                   >
                     Reject
@@ -498,6 +499,7 @@ export const RedeemRecordsList = (props) => {
             onClose={() => setFinalRejectDialogOpen(false)}
             handleRefresh={handleRefresh}
             selectedRecord={selectedRecord}
+            cashout={cashout}
           />
           <FinalApproveRedeemDialog
             open={finalredeemDialogOpen}

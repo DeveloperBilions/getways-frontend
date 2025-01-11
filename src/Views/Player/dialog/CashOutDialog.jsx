@@ -48,7 +48,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     setWarningMessage("");
     setErrorMessage("");
   };
-  console.log(record, "recordList");
   const parentServiceFee = async () => {
     try {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
@@ -156,6 +155,14 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const handleAddPaymentMethod = async (newMethods) => {
     try {
       await walletService.updatePaymentMethods(newMethods);
+      // Check if the previously selected payment method still exists
+      if (newMethods[selectedPaymentMethodType]) {
+        setSelectedPaymentMethod(newMethods[selectedPaymentMethodType]);
+      } else {
+        // Reset selection if the previously selected method is no longer valid
+        setSelectedPaymentMethodType("");
+        setSelectedPaymentMethod("");
+      }
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
@@ -164,6 +171,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       console.error("Error updating payment methods:", error);
     }
   };
+  console.log(paymentMethods, "paymentMethods");
   return (
     <React.Fragment>
       {loading ? (
@@ -367,8 +375,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
           </div>
         </ModalBody>
       </Modal>
-
-      {/* Add Payment Method Modal */}
       {/* Add Payment Method Modal */}
       <Modal
         isOpen={showAddPaymentMethodDialog}
