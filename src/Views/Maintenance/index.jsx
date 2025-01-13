@@ -8,6 +8,7 @@ export const Maintenance = () => {
         <div className="col-md-10 main-title">
           <h1>Website</h1>
           <h2>under construction</h2>
+          <h4>Try Again in <strong>10 Mins...</strong></h4>
         </div>
       </div>
       <div className="row align-items-center">
