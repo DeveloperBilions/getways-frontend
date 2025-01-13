@@ -399,9 +399,10 @@ export const RedeemRecordsList = (props) => {
                 6: "Pending Approval",
                 7: "Rejected",
                 8: "Redeem Successfully",
+                9: "Expired",
                 11: "Cashouts",
                 12: "Cashout Successfully",
-                13: "Cashout Reject"
+                13: "Cashout Reject",
               }[record.status];
               return (
                 <Chip
