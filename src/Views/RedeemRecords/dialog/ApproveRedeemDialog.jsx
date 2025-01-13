@@ -206,21 +206,30 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     </small>
                   </p>
                 )}
-
                 <p className="mb-1">
                   <small>
                     Total amount to be redeemed = $
                     {Math.floor(
                       redeemAmount -
-                      (redeemAmount *
-                        (editedFees
-                          ? parseFloat(editedFees)
-                          : parseFloat(redeemFees))) /
-                        100
+                        (redeemAmount *
+                          (editedFees
+                            ? parseFloat(editedFees)
+                            : parseFloat(redeemFees))) /
+                          100
                     )}
                   </small>
                 </p>
-
+                <span
+                  style={{
+                    fontStyle: "italic",
+                    color: "#007BFF", // Bright blue for highlighting
+                    fontSize: "13px",
+                    fontWeight: "bold", // To make the text stand out
+                  }}
+                >
+                  ** The amount has been rounded down to the nearest lower
+                  value. **
+                </span>
                 <Col md={12}>
                   <FormGroup>
                     <Label for="remark">Remark</Label>

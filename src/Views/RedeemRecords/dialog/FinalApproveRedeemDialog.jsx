@@ -29,6 +29,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [redeemPercentage, setRedeemPercentage] = useState();
   const [cashAppId,setCashAppId] = useState("")
+  const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
 
   //   console.log("===== record", record);
 
@@ -68,7 +69,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setLoading(true);
     try {
        
-     await dataProvider.finalApprove(record?.id); // Use the correct function or method call
+     await dataProvider.finalApprove(record?.id,redeemRemarks); // Use the correct function or method call
 
       onClose();
       setLoading(false);
@@ -164,6 +165,20 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       autoComplete="off"
                       value={remark}
                       disabled
+                    />
+                  </FormGroup>
+                </Col>
+
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="redeemRemarks">CashOut Remarks</Label>
+                    <Input
+                      id="redeemRemarks"
+                      name="redeemRemarks"
+                      type="textarea"
+                      autoComplete="off"
+                      value={redeemRemarks}
+                      onChange={(e) => setRedeemRemarks(e.target.value)}
                     />
                   </FormGroup>
                 </Col>

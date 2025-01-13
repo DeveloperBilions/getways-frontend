@@ -21,6 +21,7 @@ const FinalRejectRedeemDialog = ({
   onClose,
   handleRefresh,
   selectedRecord,
+  cashout
 }) => {
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (event) => {
@@ -53,13 +54,13 @@ const FinalRejectRedeemDialog = ({
           className="overflow-visible"
         >
           <ModalHeader toggle={onClose} className="border-bottom-0">
-            Reject Redeem Amount
+           {cashout ? "Cashout Reject Request"  : "Reject Redeem Amount"}
           </ModalHeader>
           <ModalBody>
             <Form onSubmit={handleSubmit}>
               <Label for="rechargeAmount">
                 Are you sure you wish to reject the{" "}
-                <b>${selectedRecord?.transactionAmount}</b> redeem request of{" "}
+                <b>${selectedRecord?.transactionAmount}</b> {cashout ? "cashout":"redeem"} request of{" "}
                 <b>{selectedRecord?.username}</b> ?
                 <br />
                 This action cannot be undone.
