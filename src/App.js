@@ -7,7 +7,7 @@ import {
   Authenticated,
   ListGuesser,
 } from "react-admin";
-import { Route, Navigate, Routes, BrowserRouter } from "react-router-dom";
+import { Route, Navigate, Routes } from "react-router-dom";
 // mui icon
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -46,12 +46,12 @@ function App() {
 
   if (isMaintenance === "true") {
     return (
-      <BrowserRouter>
-        <Routes>
+      <Admin>
+        <CustomRoutes noLayout>
           <Route path="*" element={<Navigate to="/maintenance" replace />} />
           <Route path="/maintenance" element={<Maintenance />} />
-        </Routes>
-      </BrowserRouter>
+        </CustomRoutes>
+      </Admin>
     );
   }
 
@@ -140,14 +140,12 @@ function App() {
             </>
           );
         }
-        {/* return (
-          <Resource
-            name="users"
-            list={UserList}
-            options={{ label: "User Management" }}
-            icon={PersonIcon}
-          />
-        ); */}
+        return (
+          <CustomRoutes noLayout>
+            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+          </CustomRoutes>
+        );
       }}
 
       <CustomRoutes>
