@@ -79,9 +79,9 @@ export const walletService = {
     }
   },  
   getCashoutTransactions: async (request) => {
-    console.log(request,"getCashoutTransactions")
+    console.log(request, "getCashoutTransactions");
     const { page = 1, limit = 10, userId } = request; // Default to page 1 and limit 10
-
+  
     if (!userId) {
       return {
         status: "error",
@@ -89,27 +89,39 @@ export const walletService = {
         message: "Unauthorized: User not logged in",
       };
     }
-
+  
     try {
       // Define the TransactionRecords class
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
+  
+      // Create a query to find transactions with isCashOut === true
+      const query1 = new Parse.Query(TransactionDetails);
+      query1.equalTo("isCashOut", true);
+  
+      // Create a query to find transactions with status === 4
+      const query2 = new Parse.Query(TransactionDetails);
+      query2.equalTo("type", "redeem");
+      query2.notEqualTo("status", 6);
 
-      // Create a query to find transactions with status 11 for the current user
-      const query = new Parse.Query(TransactionDetails);
-      query.equalTo("isCashOut", true); // Filter transactions by status: 11
-      query.equalTo("userId", userId); // Filter by current user's ID
-
+      // Combine queries with OR
+      const query = Parse.Query.or(query1, query2);
+  
+      // Filter by userId
+      query.equalTo("userId", userId);
+  
       // Pagination logic
       query.skip((page - 1) * limit); // Skip records for previous pages
       query.limit(limit); // Limit the number of results
       query.descending("updatedAt"); // Sort by most recent updates
-
-      // Execute the query
+  
+      // Execute the query for fetching the paginated results
       const results = await query.find();
-
-      // Count total records for pagination metadata
-      const totalCount = await query.count();
-
+  
+      // Count total records for pagination metadata (without pagination logic applied)
+      const countQuery = Parse.Query.or(query1, query2);
+      countQuery.equalTo("type", "redeem"); // Filter by the same userId
+      const totalCount = await countQuery.count(); // Get total count without limit or skip
+  
       // Map the results to a readable format
       const transactions = results.map((transaction) => {
         return {
@@ -126,9 +138,11 @@ export const walletService = {
           status: transaction.get("status"),
           paymentMethodType: transaction.get("paymentMethodType"),
           updatedAt: transaction.get("updatedAt"), // Include updatedAt in response
+          isCashOut: transaction.get("isCashOut"),
+          redeemRemarks:transaction.get("redeemRemarks")
         };
       });
-
+  
       // Return paginated results
       return {
         status: "success",
@@ -136,8 +150,8 @@ export const walletService = {
         pagination: {
           currentPage: page,
           pageSize: limit,
-          totalRecords: totalCount,
-          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount, // Include total records count here
+          totalPages: Math.ceil(totalCount / limit), // Calculate total pages
         },
       };
     } catch (error) {
@@ -157,5 +171,5 @@ export const walletService = {
         };
       }
     }
-  },
+  }  
 };

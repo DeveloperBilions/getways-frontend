@@ -25,6 +25,7 @@ import { Loader } from "../Loader";
 import { walletService } from "../../Provider/WalletManagement";
 import CashOutDialog from "./dialog/CashOutDialog";
 import AddPaymentMethods from "./dialog/AddPayementMethods";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import Back Icon
 
 export const Wallet = () => {
   const { data, isLoading } = useRefresh("playerDashboard");
@@ -80,6 +81,7 @@ export const Wallet = () => {
         limit: pageSize,
         userId: userId,
       });
+      console.log(response, "responsesdksjdks");
       setTransactions(response.transactions || []);
       setTotalRecords(response.pagination?.totalRecords || 0);
     } catch (error) {
@@ -107,6 +109,29 @@ export const Wallet = () => {
   };
   return (
     <React.Fragment>
+      <div
+        style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />} // Add Back Arrow Icon
+          onClick={() => navigate(-1)} // Navigate back to the previous page
+          sx={{
+            textTransform: "none",
+            fontSize: "16px",
+            fontWeight: "bold",
+            color: "#1976D2", // Blue color for text
+            borderColor: "#1976D2", // Blue border
+            "&:hover": {
+              backgroundColor: "#E3F2FD", // Light blue hover effect
+              borderColor: "#1976D2", // Keep border consistent
+            },
+          }}
+        >
+          Back
+        </Button>
+      </div>
+
       <Card variant="outlined" sx={{ mt: 2, backgroundColor: "#e3e3e3" }}>
         <CardContent>
           <div className="d-flex">
@@ -242,7 +267,7 @@ export const Wallet = () => {
               paddingBottom: 1,
             }}
           >
-            Cashout Transactions
+            Wallet Transactions
           </Typography>
           {loadingTransactions ? (
             <Loader />
@@ -274,6 +299,63 @@ export const Wallet = () => {
                 }}
               >
                 <TextField source="id" label="Transaction Id" />
+                <FunctionField
+                  label="Type"
+                  source="type"
+                  render={(record) => {
+                    const isCashOut = record?.isCashOut === true;
+
+                    return (
+                      <span
+                        style={{
+                          color: isCashOut ? "#FF0000" : "#00A000", // Red for Cashout, Green for Redeem
+                          padding: "8px 8px",
+                          border: `1px solid ${
+                            isCashOut ? "#FF0000" : "#00A000"
+                          }`, // Matching border color
+                          borderRadius: "25px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {isCashOut ? "W" : "D"}
+                        </span>
+                      </span>
+                    );
+                  }}
+                />
+                <FunctionField
+                  label="Mode"
+                  source="type"
+                  render={(record) => {
+                    const isCashOut = record?.isCashOut === true;
+
+                    return (
+                      <span
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px", // Padding for a badge-like appearance
+                          fontSize: "14px", // Moderate font size
+                          fontWeight: "bold", // Bold text for emphasis
+                          color: "#ffffff", // White text for contrast
+                          backgroundColor: isCashOut ? "#4A90E2" : "#8E44AD", // Blue for CashOut, Purple for Redeem
+                          borderRadius: "15px", // Rounded edges for a pill-like design
+                          boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
+                        }}
+                      >
+                        {isCashOut ? "CashOut" : "Redeem"}
+                      </span>
+                    );
+                  }}
+                />
+
                 <TextField source="transactionAmount" label="Amount" />
                 <FunctionField
                   label="Status"
@@ -288,7 +370,7 @@ export const Wallet = () => {
                         case 6:
                           return "orange"; // Pending Approval
                         case 7:
-                          return "gray"; // Rejected
+                          return "red"; // Rejected
                         case 11:
                           return "orange"; // Rejected
                         case 12:
@@ -304,7 +386,7 @@ export const Wallet = () => {
                       5: "Fail",
                       6: "Pending Approval",
                       7: "Rejected",
-                      8: "Review",
+                      8: "Redeem Successfully",
                       11: "In - Progress",
                       12: "Success",
                       13: "Rejected",
@@ -318,6 +400,7 @@ export const Wallet = () => {
                           border: `1px solid ${getColor(record.status)}`,
                           borderRadius: "25px",
                           display: "inline-block",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {statusMessage}
@@ -331,10 +414,14 @@ export const Wallet = () => {
                   showTime
                 />
                 <TextField source="remark" label="Remark" />
+                <TextField
+                  source="redeemRemarks"
+                  label="redeem / cashout Remark"
+                />
               </Datagrid>
 
               <Pagination
-                count={Math.ceil(totalRecords / pageSize)} // Calculate total pages
+                count={Math.ceil((totalRecords * 10) / pageSize)} // Calculate total pages
                 page={page} // Current page
                 onChange={(event, value) => handlePageChange(value)} // Handle page change
                 sx={{

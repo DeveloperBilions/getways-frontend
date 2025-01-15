@@ -26,7 +26,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [redeemFees, setRedeemFees] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
-  const [walletId,setWalletId] = useState("")
+  const [walletId, setWalletId] = useState("");
   const [paymentMethods, setPaymentMethods] = useState({
     cashAppId: "",
     paypalId: "",
@@ -37,6 +37,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [savingPaymentMethod, setSavingPaymentMethod] = useState(false); // Add this state
 
   const resetFields = () => {
     setUserName("");
@@ -69,9 +70,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId ,objectId} = wallet?.wallet;
+      const { cashAppId, paypalId, venmoId, objectId } = wallet?.wallet;
       setPaymentMethods({ cashAppId, paypalId, venmoId });
-      setWalletId(objectId)
+      setWalletId(objectId);
     }
 
     if (open) {
@@ -88,8 +89,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
         "No payment methods are added. Please add a payment method to proceed."
       );
       setShowWarningModal(true);
-    } 
-    
+    }
+
     // else if (methodCount > 0 && methodCount < 3) {
     //   setWarningMessage(
     //     `You have ${methodCount} payment mode${
@@ -97,8 +98,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     //     } added for refunds. Would you like to add/edit the payment method?`
     //   );
     //   setShowWarningModal(true);
-    // } 
-    
+    // }
     else {
       handleSubmit(); // Call handleSubmit directly if 3 payment methods are already added
     }
@@ -117,7 +117,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       transactionAmount: redeemAmount,
       remark,
       type: "redeem",
-      walletId: walletId
+      walletId: walletId,
     };
 
     setLoading(true);
@@ -140,6 +140,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
   const handleAddPaymentMethod = async (newMethods) => {
     try {
+      setSavingPaymentMethod(true); // Start loader
       await walletService.updatePaymentMethods(newMethods);
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
@@ -147,6 +148,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
+    } finally {
+      setSavingPaymentMethod(false); // Stop loader
     }
   };
   return (
@@ -248,21 +251,31 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       <Modal
         isOpen={showWarningModal}
         toggle={() => {
-          if (paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId) {
+          if (
+            paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId
+          ) {
             setShowWarningModal(false);
           } else {
-            setErrorMessage("Refund cannot be processed without a payment mode.");
+            setErrorMessage(
+              "Refund cannot be processed without a payment mode."
+            );
             setShowWarningModal(false);
           }
         }}
         size="md"
         centered
       >
-        <ModalHeader toggle={() => setShowWarningModal(false)}>Attention</ModalHeader>
+        <ModalHeader toggle={() => setShowWarningModal(false)}>
+          Attention
+        </ModalHeader>
         <ModalBody>
           <p>{warningMessage}</p>
           <div className="d-flex justify-content-end">
-            {paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId ? (
+            {paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId ? (
               <Button
                 color="primary"
                 onClick={() => {
@@ -293,7 +306,6 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             >
               Close
             </Button>
-
           </div>
         </ModalBody>
       </Modal>
@@ -366,8 +378,16 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 </FormGroup>
               </Col>
               <Col md={12} className="d-flex justify-content-end">
-                <Button color="primary" type="submit">
-                  Save
+                <Button
+                  color="primary"
+                  type="submit"
+                  disabled={savingPaymentMethod}
+                >
+                  {savingPaymentMethod ? (
+                    " Saving ..."// Use your custom Loader component
+                  ) : (
+                    "Save"
+                  )}
                 </Button>
               </Col>
             </Row>

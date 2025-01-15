@@ -670,7 +670,7 @@ export const dataProvider = {
 
     throw new Error("Unsupported resource for getLink");
   },
-  finalApprove: async (orderId) => {
+  finalApprove: async (orderId,redeemRemarks) => {
     try {
       // Fetch the transaction record
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
@@ -681,7 +681,9 @@ export const dataProvider = {
       if (transaction && transaction.get("status") === 11) {
         // Update transaction status
         transaction.set("status", 12);
-
+        if(redeemRemarks){
+          transaction.set("redeemRemarks",redeemRemarks)
+        }
         // Get transaction amount and redeem service fee percentage
         const transactionAmount = transaction.get("transactionAmount") || 0;
         const redeemServiceFeePercentage =

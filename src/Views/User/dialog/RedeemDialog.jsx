@@ -222,10 +222,22 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   redeemPercentage !== undefined && (
                     <p className="mb-1">
                       <small>
-                        Total amount to be redeemed = ${Math.floor(redeemPercentage) || 0}
+                        Total amount to be redeemed = $
+                        {Math.floor(redeemPercentage) || 0}
                       </small>
                     </p>
                   )}
+                <span
+                  style={{
+                    fontStyle: "italic",
+                    color: "#007BFF", // Bright blue for highlighting
+                    fontSize: "13px",
+                    fontWeight: "bold", // To make the text stand out
+                  }}
+                >
+                  ** The amount has been rounded down to the nearest lower
+                  value. **
+                </span>
 
                 <Col md={12}>
                   <FormGroup>
@@ -284,8 +296,9 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
         <ModalHeader>Confirm Redeem Fee Change</ModalHeader>
         <ModalBody>
           <p>
-            You have changed the redeem service fee from <strong>{redeemFees}%</strong> to <strong>{editedFees}%</strong>.
-            Do you want to proceed with this change?
+            You have changed the redeem service fee from{" "}
+            <strong>{redeemFees}%</strong> to <strong>{editedFees}%</strong>. Do
+            you want to proceed with this change?
           </p>
           <div className="d-flex justify-content-end">
             <Button
