@@ -886,7 +886,7 @@ export const dataProvider = {
                 product_data: {
                   name: "One-time Payment", // Placeholder for product
                 },
-                unit_amount: Math.floor(parseFloat(transactionAmount) * 100), // Store unit amount as integer cents
+                unit_amount: Math.floor(parseFloat(transactionAmount)), // Store unit amount as integer cents
               },
               quantity: 1,
             },

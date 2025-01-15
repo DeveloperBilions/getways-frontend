@@ -1,5 +1,5 @@
 import "./App.css";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Admin,
   Resource,
@@ -40,11 +40,13 @@ import { PlayerList } from "./Views/Player/PlayerList";
 import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
+import Config from "./Config.json";
 
 function App() {
-  const isMaintenance = process.env.REACT_APP_MAINTENANCE_MODE;
+  
+  console.log("$$$$$", Config);
 
-  if (isMaintenance === "true") {
+  if (Config?.maintenance) {
     return (
       <Admin>
         <CustomRoutes noLayout>
@@ -54,6 +56,7 @@ function App() {
       </Admin>
     );
   }
+
 
   return (
     <Admin
