@@ -91,6 +91,23 @@ export const walletService = {
     }
   
     try {
+
+      const Wallet = Parse.Object.extend("Wallet");
+      const walletQuery = new Parse.Query(Wallet);
+      walletQuery.equalTo("userID", userId);
+      const wallet = await walletQuery.first();
+
+      if (!wallet) {
+        return {
+          status: "error",
+          code: 404,
+          message: "Wallet not found for the user",
+        };
+      }  
+
+      const walletCreationDate = wallet.get("createdAt"); // Assuming createdAt is the wallet's creation date
+
+  
       // Define the TransactionRecords class
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
   
@@ -108,7 +125,8 @@ export const walletService = {
   
       // Filter by userId
       query.equalTo("userId", userId);
-  
+      query.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Exclude transactions before wallet creation date
+
       // Pagination logic
       query.skip((page - 1) * limit); // Skip records for previous pages
       query.limit(limit); // Limit the number of results
@@ -120,6 +138,7 @@ export const walletService = {
       // Count total records for pagination metadata (without pagination logic applied)
       const countQuery = Parse.Query.or(query1, query2);
       countQuery.equalTo("type", "redeem"); // Filter by the same userId
+      countQuery.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
       const totalCount = await countQuery.count(); // Get total count without limit or skip
   
       // Map the results to a readable format
@@ -171,5 +190,5 @@ export const walletService = {
         };
       }
     }
-  }  
+  } 
 };
