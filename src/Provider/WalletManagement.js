@@ -125,7 +125,7 @@ export const walletService = {
   
       // Filter by userId
       query.equalTo("userId", userId);
-      query.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Exclude transactions before wallet creation date
+    //  query.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Exclude transactions before wallet creation date
 
       // Pagination logic
       query.skip((page - 1) * limit); // Skip records for previous pages
@@ -138,7 +138,7 @@ export const walletService = {
       // Count total records for pagination metadata (without pagination logic applied)
       const countQuery = Parse.Query.or(query1, query2);
       countQuery.equalTo("type", "redeem"); // Filter by the same userId
-      countQuery.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
+     // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
       const totalCount = await countQuery.count(); // Get total count without limit or skip
   
       // Map the results to a readable format
