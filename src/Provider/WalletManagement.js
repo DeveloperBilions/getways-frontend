@@ -119,6 +119,7 @@ export const walletService = {
       const query2 = new Parse.Query(TransactionDetails);
       query2.equalTo("type", "redeem");
       query2.notEqualTo("status", 6);
+      query2.notEqualTo("status", 9);
 
       // Combine queries with OR
       const query = Parse.Query.or(query1, query2);
@@ -137,7 +138,7 @@ export const walletService = {
   
       // Count total records for pagination metadata (without pagination logic applied)
       const countQuery = Parse.Query.or(query1, query2);
-      countQuery.equalTo("type", "redeem"); // Filter by the same userId
+      countQuery.equalTo("userId", userId);
      // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
       const totalCount = await countQuery.count(); // Get total count without limit or skip
   
