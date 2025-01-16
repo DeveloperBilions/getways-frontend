@@ -298,7 +298,7 @@ export const Wallet = () => {
                   },
                 }}
               >
-                <TextField source="id" label="Transaction Id" />
+                {/* <TextField source="id" label="Transaction Id" /> */}
                 <FunctionField
                   label="Type"
                   source="type"
@@ -335,8 +335,9 @@ export const Wallet = () => {
                   label="Mode"
                   source="type"
                   render={(record) => {
+                    console.log(record?.useWallet,"record?.useWalletrecord?.useWallet")
                     const isCashOut = record?.isCashOut === true;
-
+                    const useWallet = record?.useWallet === true
                     return (
                       <span
                         style={{
@@ -345,12 +346,12 @@ export const Wallet = () => {
                           fontSize: "14px", // Moderate font size
                           fontWeight: "bold", // Bold text for emphasis
                           color: "#ffffff", // White text for contrast
-                          backgroundColor: isCashOut ? "#4A90E2" : "#8E44AD", // Blue for CashOut, Purple for Redeem
+                          backgroundColor: isCashOut ? "#4A90E2" : useWallet ? "#63bd44" : "#8E44AD", // Blue for CashOut, Purple for Redeem
                           borderRadius: "15px", // Rounded edges for a pill-like design
                           boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
                         }}
                       >
-                        {isCashOut ? "CashOut" : "Redeem"}
+                        {isCashOut ? "CashOut" : useWallet ? "Recharge" : "Redeem"}
                       </span>
                     );
                   }}
@@ -367,6 +368,8 @@ export const Wallet = () => {
                           return "green"; // Success
                         case 8:
                           return "green"; // Success
+                            case 2:
+                          return "green"; // Succes
                         case 5:
                           return "red"; // Fail
                         case 6:
@@ -384,15 +387,16 @@ export const Wallet = () => {
                       }
                     };
                     const statusMessage = {
+                      2: "Recharge Successful",
                       4: "Success",
                       5: "Fail",
                       6: "Pending Approval",
-                      7: "Rejected",
-                      8: "Redeem Successfully",
+                      7: "Redeem Rejected",
+                      8: "Redeem Successful",
                       9: "Redeem Expired",
                       11: "In - Progress",
-                      12: "Success",
-                      13: "Rejected",
+                      12: "Cashout Successful",
+                      13: "Cashout Rejected",
                     }[record.status];
 
                     return (

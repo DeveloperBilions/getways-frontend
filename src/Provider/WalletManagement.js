@@ -118,11 +118,13 @@ export const walletService = {
       // Create a query to find transactions with status === 4
       const query2 = new Parse.Query(TransactionDetails);
       query2.equalTo("type", "redeem");
-      query2.notEqualTo("status", 6);
-      query2.notEqualTo("status", 9);
+      query2.containedIn("status", [6, 8, 7]); // Exclude statuses 6 and 9
+
+      const query3 = new Parse.Query(TransactionDetails);
+      query3.equalTo("useWallet", true);
 
       // Combine queries with OR
-      const query = Parse.Query.or(query1, query2);
+      const query = Parse.Query.or(query1, query2,query3);
   
       // Filter by userId
       query.equalTo("userId", userId);
@@ -137,7 +139,7 @@ export const walletService = {
       const results = await query.find();
   
       // Count total records for pagination metadata (without pagination logic applied)
-      const countQuery = Parse.Query.or(query1, query2);
+      const countQuery = Parse.Query.or(query1, query2,query3);
       countQuery.equalTo("userId", userId);
      // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
       const totalCount = await countQuery.count(); // Get total count without limit or skip
@@ -159,7 +161,8 @@ export const walletService = {
           paymentMethodType: transaction.get("paymentMethodType"),
           updatedAt: transaction.get("updatedAt"), // Include updatedAt in response
           isCashOut: transaction.get("isCashOut"),
-          redeemRemarks:transaction.get("redeemRemarks")
+          redeemRemarks:transaction.get("redeemRemarks"),
+          useWallet:transaction.get("useWallet")
         };
       });
   
