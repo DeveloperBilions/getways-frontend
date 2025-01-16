@@ -116,6 +116,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             password,
             userParentId: identity?.objectId,
             userParentName: identity?.name,
+            redeemService: 5
           });
           onClose();
           fetchAllUsers();

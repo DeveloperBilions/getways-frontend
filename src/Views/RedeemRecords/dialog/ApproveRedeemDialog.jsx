@@ -30,6 +30,9 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [isEditingFees, setIsEditingFees] = useState(false);
   const [editedFees, setEditedFees] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [redeemEnabled, setRedeemEnabled] = useState(false); // Confirmation modal visibility
+  const role = localStorage.getItem("role");
+  const [feeError, setFeeError] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -45,6 +48,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       });
       setRedeemFees(response?.redeemService || 0);
       setEditedFees(response?.redeemService || 0); // Initialize edited fees
+      setRedeemEnabled(response?.redeemServiceEnabled);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -62,6 +66,13 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [record, open]);
 
   const handleConfirmClick = () => {
+    if (role === "Agent" && (editedFees < 5 || editedFees > 20)) {
+      setFeeError(
+        "As an Agent, the redeem service fee must be between 5% and 20%."
+      );
+      return false;
+    }
+    setFeeError(""); // Clear error if input is valid
     // Show confirmation modal only if the fees have been changed
     if (parseFloat(redeemFees) !== parseFloat(editedFees)) {
       setShowConfirmModal(true);
@@ -200,12 +211,29 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   <p className="mb-0">
                     <small>
                       Redeem Service Fee @ {editedFees || redeemFees}%{" "}
-                      <Button color="link" onClick={handleEditFees}>
-                        Edit
-                      </Button>
+                      {role === "Agent" && redeemEnabled && (
+                        <Button
+                          color="link"
+                          className="ms-2"
+                          onClick={handleEditFees}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {role === "Super-User" && (
+                        <Button
+                          color="link"
+                          className="ms-2"
+                          onClick={handleEditFees}
+                        >
+                          Edit
+                        </Button>
+                      )}
                     </small>
                   </p>
                 )}
+                {feeError && <small className="text-danger">{feeError}</small>}
+
                 <p className="mb-1">
                   <small>
                     Total amount to be redeemed = $

@@ -208,7 +208,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   <p className="mb-1">
                     <small>
                       Total amount to be redeemed = $
-                      {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
+                      {Math.floor(redeemAmount - redeemAmount * (redeemFees / 100) )|| 0}
                     </small>
                   </p>
                 )}

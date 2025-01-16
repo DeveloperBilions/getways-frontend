@@ -21,11 +21,13 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
   const [serviceFee, setServiceFee] = useState();
+  const [redeemServiceEnabled, setRedeemServiceEnabled] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const resetFields = () => {
     setServiceFee();
+    setRedeemServiceEnabled(false);
     setError("");
   };
 
@@ -35,6 +37,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
         userId: record?.id,
       });
       setServiceFee(response?.redeemService || 0);
+      setRedeemServiceEnabled(response?.redeemServiceEnabled || false);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -73,6 +76,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
     const rawData = {
       userId: record?.id,
       redeemService: serviceFee,
+      redeemServiceEnabled: redeemServiceEnabled,
     };
 
     setLoading(true);
@@ -99,20 +103,19 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleCancel} size="sm" centered>
+        <Modal isOpen={open} toggle={handleCancel} size="md" centered>
           <ModalHeader toggle={handleCancel} className="border-bottom-0">
             Redeem Service Fee
           </ModalHeader>
           <ModalBody>
             <Form onSubmit={handleSubmit}>
               <Row>
-                <Label for="userName">Redeem Service Fee (%)</Label>
-
-                <Col md={4}>
+                <Col md={12}>
+                  <Label for="serviceFee">Redeem Service Fee (%)</Label>
                   <FormGroup>
                     <Input
-                      id="userName"
-                      name="userName"
+                      id="serviceFee"
+                      name="serviceFee"
                       type="text"
                       autoComplete="off"
                       value={serviceFee}
@@ -120,16 +123,35 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                       maxLength={2}
                       required
                     />
+                    {error && (
+                      <FormText color="danger" className="mb-2 mt-0">
+                        {error}
+                      </FormText>
+                    )}
                   </FormGroup>
                 </Col>
 
-                {error && (
-                  <FormText color="danger" className="mb-2 mt-0">
-                    {error}
-                  </FormText>
-                )}
+                <Col md={12} className="mt-3">
+                  <FormGroup check className="form-switch">
+                    <Input
+                      type="switch"
+                      id="redeemSwitch"
+                      checked={redeemServiceEnabled}
+                      onChange={() =>
+                        setRedeemServiceEnabled(!redeemServiceEnabled)
+                      }
+                    />
+                    <Label
+                      for="redeemSwitch"
+                      check
+                      style={{ fontSize: "14px" }}
+                    >
+                      Allow Agent to change Redeem Service ?
+                    </Label>
+                  </FormGroup>
+                </Col>
 
-                <Col md={12}>
+                <Col md={12} className="mt-3">
                   <div className="d-flex justify-content-end">
                     <Button className="mx-2" color="success" type="submit">
                       Confirm

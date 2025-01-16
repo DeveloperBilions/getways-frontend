@@ -31,6 +31,9 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [redeemPercentage, setRedeemPercentage] = useState();
   const [isEditingFees, setIsEditingFees] = useState(false); // Manage edit mode
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Confirmation modal visibility
+  const [redeemEnabled, setRedeemEnabled] = useState(false); // Confirmation modal visibility
+  const role = localStorage.getItem("role");
+  const [feeError, setFeeError] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -46,6 +49,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       });
       setRedeemFees(response?.redeemService || 0);
       setEditedFees(response?.redeemService || 0); // Initialize edited fees
+      setRedeemEnabled(response?.redeemServiceEnabled);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -72,6 +76,14 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [redeemAmount, redeemFees, editedFees]);
 
   const handleConfirmClick = () => {
+    if (role === "Agent" && (editedFees < 5 || editedFees > 20)) {
+      setFeeError(
+        "As an Agent, the redeem service fee must be between 5% and 20%."
+      );
+      return false;
+    }
+    setFeeError(""); // Clear error if input is valid
+
     // Check if the redeem fees were changed by the user
     if (redeemFees !== parseFloat(editedFees)) {
       setShowConfirmationModal(true); // Show confirmation modal if fees changed
@@ -129,7 +141,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setEditedFees(redeemFees); // Revert changes
     setIsEditingFees(false);
   };
-
+  console.log(role, "role", redeemEnabled, "priti");
   return (
     <React.Fragment>
       {loading ? (
@@ -182,8 +194,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           id="redeemFees"
                           name="redeemFees"
                           type="number"
-                          min="0"
-                          max="100"
+                          min={role === "Agent" ? "5" : "0"}
+                          max={role === "Agent" ? "20" : "100"}
                           value={editedFees}
                           onChange={(e) => setEditedFees(e.target.value)}
                         />
@@ -209,15 +221,28 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 <p className="mb-0">
                   <small>
                     Redeem Service Fee @ {editedFees}%{" "}
-                    <Button
-                      color="link"
-                      className="ms-2"
-                      onClick={handleEditFees}
-                    >
-                      Edit
-                    </Button>
+                    {role === "Agent" && redeemEnabled && (
+                      <Button
+                        color="link"
+                        className="ms-2"
+                        onClick={handleEditFees}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {role === "Super-User" && (
+                      <Button
+                        color="link"
+                        className="ms-2"
+                        onClick={handleEditFees}
+                      >
+                        Edit
+                      </Button>
+                    )}
                   </small>
                 </p>
+                {feeError && <small className="text-danger">{feeError}</small>}
+
                 {redeemPercentage !== null &&
                   redeemPercentage !== undefined && (
                     <p className="mb-1">

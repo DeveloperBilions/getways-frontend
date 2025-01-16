@@ -365,6 +365,8 @@ export const Wallet = () => {
                       switch (status) {
                         case 4:
                           return "green"; // Success
+                        case 8:
+                          return "green"; // Success
                         case 5:
                           return "red"; // Fail
                         case 6:
@@ -387,6 +389,7 @@ export const Wallet = () => {
                       6: "Pending Approval",
                       7: "Rejected",
                       8: "Redeem Successfully",
+                      9: "Redeem Expired",
                       11: "In - Progress",
                       12: "Success",
                       13: "Rejected",

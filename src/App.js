@@ -43,7 +43,7 @@ import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 
 function App() {
-  
+
   console.log("$$$$$", Config);
 
   if (Config?.maintenance) {

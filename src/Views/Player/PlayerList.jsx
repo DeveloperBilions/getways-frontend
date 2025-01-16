@@ -36,7 +36,7 @@ export const PlayerList = () => {
   const redirect = useRedirect();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
-
+  
   const transformedIdentity = {
     id: identity?.objectId,
     ...identity,
