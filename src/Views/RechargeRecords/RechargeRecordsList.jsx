@@ -426,6 +426,16 @@ export const RechargeRecordsList = (props) => {
               );
             }}
           />
+          {role === "Super-User" && 
+            <FunctionField  label="Mode"
+             render={(record) => {
+              return (
+                <Chip
+                  label={record?.useWallet ? "Wallet" : "Stripe"}
+                />
+              );
+             }}
+            />}
           <DateField source="transactionDate" label="RechargeDate" showTime />
           <FunctionField
             label="Action"

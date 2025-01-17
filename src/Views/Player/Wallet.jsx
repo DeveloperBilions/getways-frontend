@@ -153,7 +153,7 @@ export const Wallet = () => {
                 gutterBottom
                 sx={{ fontSize: "35px", fontWeight: 400, color: "black" }}
               >
-                $ {wallet.balance || "0.00"}
+                 {wallet.balance || "0.00"}
               </Typography>
             </div>
           </div>
@@ -283,7 +283,7 @@ export const Wallet = () => {
               }}
             >
               <Datagrid
-                rowClick="edit"
+                //rowClick="edit"
                 sx={{
                   "& .RaDatagrid-row": {
                     borderBottom: "1px solid #eaeaea",
@@ -297,6 +297,7 @@ export const Wallet = () => {
                     borderBottom: "2px solid #dedede",
                   },
                 }}
+                rowClick={() => false} // Prevent row click
               >
                 {/* <TextField source="id" label="Transaction Id" /> */}
                 <FunctionField

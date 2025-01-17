@@ -6,6 +6,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { useNavigate } from "react-router-dom";
 
 import AppBar from "@mui/material/AppBar";
 import {
@@ -24,6 +25,8 @@ const MyUserMenu = React.forwardRef((props, ref) => {
 
 export default function MyAppBar({ props }) {
   const { identity } = useGetIdentity();
+  const navigate = useNavigate();
+
   return (
     <AppBar
       sx={{
@@ -45,7 +48,8 @@ export default function MyAppBar({ props }) {
         color: "white",
       }}
     >
-      <Toolbar sx={{ width: "15em" }}>
+      <Toolbar sx={{ width: "15em" ,cursor: "pointer"}}       onClick={() => navigate("/")}
+>
         <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
       </Toolbar>
 
