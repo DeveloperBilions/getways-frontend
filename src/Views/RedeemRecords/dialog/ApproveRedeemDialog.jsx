@@ -280,6 +280,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       type="textarea"
                       autoComplete="off"
                       value={redeemRemarks}
+                      maxLength={30}
                       onChange={(e) => setRedeemRemarks(e.target.value)}
                     />
                   </FormGroup>

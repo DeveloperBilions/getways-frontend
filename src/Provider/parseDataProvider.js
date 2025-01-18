@@ -819,7 +819,7 @@ export const dataProvider = {
       // Find the user by ID
       const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", id);
-      const user = await userQuery.first();
+      const user = await userQuery.first({useMasterKey:true});
   
       if (!user) {
         throw new Error(`User with ID ${id} not found`);

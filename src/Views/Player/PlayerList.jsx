@@ -253,6 +253,9 @@ export const PlayerList = () => {
                   background: "#000000",
                   textTransform: "capitalize",
                   fontSize: "18px",
+                  "&:hover": {
+                    background:"#535353"
+                  }
                 }}
                 startIcon={
                   <img

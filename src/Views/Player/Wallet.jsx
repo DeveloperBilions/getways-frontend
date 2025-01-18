@@ -104,7 +104,7 @@ export const Wallet = () => {
     { name: "Venmo", id: wallet?.venmoId },
   ].filter((method) => method.id);
   const handleRefresh = async () => {
-    //refresh();
+      refresh();
     WalletService();
   };
   return (

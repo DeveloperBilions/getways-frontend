@@ -5,7 +5,6 @@ import Config from "../Config.json";
 import { Navigate } from "react-router-dom";
 
 export const MyLayout = (props) => {
-    console.log(Config,"ConfigvConfigConfig")
     // Check if the app is in maintenance mode
     if (Config?.maintenance) {
       console.log("Maintenance Mode is Active"); // Debug log

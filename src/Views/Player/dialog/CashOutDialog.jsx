@@ -21,9 +21,11 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(localStorage.getItem("username"));
+  const role = localStorage.getItem("role");
+  const userId = localStorage.getItem("id");
   const [redeemAmount, setRedeemAmount] = useState("");
-  const [redeemFees, setRedeemFees] = useState("");
+  const [redeemFees, setRedeemFees] = useState(0);
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [walletId, setWalletId] = useState("");
@@ -42,27 +44,16 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [selectedPaymentMethodType, setSelectedPaymentMethodType] =
     useState(""); // Store selected payment method type (e.g., cashAppId)
   const resetFields = () => {
-    setUserName("");
     setRedeemAmount("");
     setRemark("");
     setWarningMessage("");
     setErrorMessage("");
   };
-  const parentServiceFee = async () => {
-    try {
-      const response = await Parse.Cloud.run("redeemParentServiceFee", {
-        userId: record?.userParentId,
-      });
-      setRedeemFees(response?.redeemService || 0);
-    } catch (error) {
-      console.error("Error fetching parent service fee:", error);
-    }
-  };
 
   useEffect(() => {
     if (record && open) {
-      parentServiceFee();
-      setUserName(record.username || "");
+      //setUserName(record.username || "");
+      //parentServiceFee();
     } else {
       resetFields();
     }
@@ -122,13 +113,24 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       return;
     }
 
+    if (!redeemAmount) {
+      setErrorMessage("Cashout amount cannot be empty. Please enter a valid amount.");
+      return;
+    }
+    
+    if (redeemAmount <= 0) {
+      setErrorMessage("Cashout amount cannot be negative or 0. Please enter a valid amount.");
+      return;
+    }
+    
     const rawData = {
-      ...record,
       redeemServiceFee: redeemFees,
       transactionAmount: redeemAmount,
       remark,
       type: "redeem",
       walletId: walletId,
+      username:userName,
+      id:userId,
       isCashOut: true,
       paymentMode: selectedPaymentMethodType,
       paymentMethodType: selectedPaymentMethod,
@@ -171,7 +173,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       console.error("Error updating payment methods:", error);
     }
   };
-  console.log(paymentMethods, "paymentMethods");
   return (
     <React.Fragment>
       {loading ? (
@@ -211,10 +212,29 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="redeemAmount"
                       type="number"
                       autoComplete="off"
-                      min="0"
-                      onChange={(e) => setRedeemAmount(e.target.value)}
-                      required
-                    />
+                      value={redeemAmount}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === '' || /^\d*$/.test(value)) {
+                          if(value === ''){
+                            setRedeemAmount(value);
+                          }
+                          else if (value.includes('.')) {
+                            value = Math.floor(parseFloat(value));
+                            setRedeemAmount(value);
+                          }
+                          else if (/^\d*$/.test(value)) {
+                            setRedeemAmount(value);
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) =>{
+                        if (e.keyCode === 190) {
+                          // Prevent the default behavior of typing a decimal
+                          e.preventDefault();
+                        }
+                      }}
+                      required/>
                   </FormGroup>
                 </Col>
 
@@ -227,6 +247,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                       type="textarea"
                       autoComplete="off"
                       onChange={(e) => setRemark(e.target.value)}
+                      maxLength={30}
                     />
                   </FormGroup>
                 </Col>

@@ -199,7 +199,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       onChange={(e) => setPaymentSource(e.target.value)}
                     >
                       <option value="wallet">Wallet</option>
-                      <option value="stripe">Stripe</option>
+                      <option value="stripe">Payment Portal</option>
                     </Input>
                     <small>
                       Wallet Balance:{" "}
@@ -216,6 +216,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       name="remark"
                       type="textarea"
                       autoComplete="off"
+                      maxLength={30}
                       onChange={(e) => setRemark(e.target.value)}
                     />
                   </FormGroup>

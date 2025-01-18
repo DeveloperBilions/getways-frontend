@@ -44,8 +44,6 @@ import Config from "./Config.json";
 
 function App() {
 
-  console.log("$$$$$", Config);
-
   if (Config?.maintenance) {
     return (
       <Admin>
@@ -110,7 +108,7 @@ function App() {
               />
               <Resource
                 name="Wallet"
-                list={Wallet}
+                list={ <Authenticated><Wallet /></Authenticated>}
                 options={{ label: "Wallet" }}
                 icon={SummarizeIcon}
               />

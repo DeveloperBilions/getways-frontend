@@ -272,6 +272,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="remark"
                       type="textarea"
                       autoComplete="off"
+                      maxLength={30}
                       onChange={(e) => setRemark(e.target.value)}
                     />
                   </FormGroup>

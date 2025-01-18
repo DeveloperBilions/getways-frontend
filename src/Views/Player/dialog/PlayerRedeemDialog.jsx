@@ -204,7 +204,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 <p className="mb-0">
                   <small>Redeem Service Fee @ {redeemFees}%</small>
                 </p>
-                {redeemFees && (
+                {redeemFees > 0 && (
                   <p className="mb-1">
                     <small>
                       Total amount to be redeemed = $
@@ -221,6 +221,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="remark"
                       type="textarea"
                       autoComplete="off"
+                      maxLength={30}
                       onChange={(e) => setRemark(e.target.value)}
                     />
                   </FormGroup>
