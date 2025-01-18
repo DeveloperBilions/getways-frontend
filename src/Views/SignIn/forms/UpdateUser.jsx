@@ -146,7 +146,7 @@ const LoginPage = () => {
       >
         <Box
           sx={{
-            my: 1,
+            my: 8,
             mx: 8,
             display: "flex",
             justifyContent: "center",
@@ -192,37 +192,42 @@ const LoginPage = () => {
               <FormHelperText>{errors.email.message}</FormHelperText>
             )}
 
-            <Typography sx={{ mt: 1 }}>User Name</Typography>
-            <OutlinedInput
-              required
-              fullWidth
-              name="username"
-              label="username"
-              type="text"
-              id="username"
-              autoComplete="off"
-              sx={{ mt: 0 }}
-              {...register("username", inputValidations["username"])}
-            />
-            {errors.username && (
-              <FormHelperText>{errors.username.message}</FormHelperText>
-            )}
-
-            <Typography sx={{ mt: 1 }}>Name</Typography>
-            <OutlinedInput
-              required
-              fullWidth
-              name="name"
-              label="name"
-              type="text"
-              id="name"
-              autoComplete="off"
-              sx={{ mt: 0 }}
-              {...register("name", inputValidations["name"])}
-            />
-            {errors.name && (
-              <FormHelperText>{errors.name.message}</FormHelperText>
-            )}
+            <Grid container spacing={2}>
+              <Grid item xs={6} md={6}>
+                <Typography sx={{ mt: 1 }}>User Name</Typography>
+                <OutlinedInput
+                  required
+                  fullWidth
+                  name="username"
+                  label="username"
+                  type="text"
+                  id="username"
+                  autoComplete="off"
+                  sx={{ mt: 0 }}
+                  {...register("username", inputValidations["username"])}
+                />
+                {errors.username && (
+                  <FormHelperText>{errors.username.message}</FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={6} md={6}>
+                <Typography sx={{ mt: 1 }}>Name</Typography>
+                <OutlinedInput
+                  required
+                  fullWidth
+                  name="name"
+                  label="name"
+                  type="text"
+                  id="name"
+                  autoComplete="off"
+                  sx={{ mt: 0 }}
+                  {...register("name", inputValidations["name"])}
+                />
+                {errors.name && (
+                  <FormHelperText>{errors.name.message}</FormHelperText>
+                )}
+              </Grid>
+            </Grid>
 
             <Typography sx={{ mt: 1 }}>Password</Typography>
             <OutlinedInput
@@ -283,18 +288,22 @@ const LoginPage = () => {
               <FormHelperText>{errors.confirmPassword.message}</FormHelperText>
             )}
 
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3 }}>
-              Submit
-            </Button>
-
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{ mt: 1 }}
-              onClick={() => redirect("/login")}
-            >
-              Back
-            </Button>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={6} md={6}>
+                <Button type="submit" fullWidth variant="contained">
+                  Submit
+                </Button>
+              </Grid>
+              <Grid item xs={6} md={6}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => redirect("/login")}
+                >
+                  Back
+                </Button>
+              </Grid>
+            </Grid>
           </Box>
         </Box>
       </Grid>
