@@ -31,6 +31,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     cashAppId: "",
     paypalId: "",
     venmoId: "",
+    zelleId: ""
   });
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
     useState(false);
@@ -38,7 +39,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [warningMessage, setWarningMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [savingPaymentMethod, setSavingPaymentMethod] = useState(false); // Add this state
-
+  const [errorAddPayment, setErrorAddPayment] = useState("")
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
@@ -105,8 +106,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   };
 
   const handleSubmit = async () => {
-    const { cashAppId, paypalId, venmoId } = paymentMethods;
-    if (!cashAppId && !paypalId && !venmoId) {
+    const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
+    if (!cashAppId && !paypalId && !venmoId && !zelleId) {
       setErrorMessage("Refund cannot be processed without a payment mode.");
       return;
     }
@@ -140,8 +141,42 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
   const handleAddPaymentMethod = async (newMethods) => {
     try {
+      const trimmedMethods = {
+        cashAppId: paymentMethods?.cashAppId?.trim() || "",
+        venmoId: paymentMethods?.venmoId?.trim() || "",
+        paypalId: paymentMethods?.paypalId?.trim() || "",
+        zelleId: paymentMethods?.zelleId?.trim() || "",
+      };
+      if (
+        (!paymentMethods?.cashAppId?.trim() || paymentMethods?.cashAppId?.trim() === "") &&
+        (!paymentMethods?.venmoId?.trim() || paymentMethods?.venmoId?.trim() === "") &&
+        (!paymentMethods?.paypalId?.trim() || paymentMethods?.paypalId?.trim() === "")&&
+        (!paymentMethods?.zelleId?.trim() || paymentMethods?.zelleId?.trim() === "")
+      ) {
+        setErrorAddPayment("Add at least one valid payment method.");
+        return false;
+      } 
+      if (
+        paymentMethods?.cashAppId?.trim() &&
+        !/^(?=.*[a-zA-Z]).{1,20}$/.test(paymentMethods?.cashAppId.trim())
+      ) {
+        setErrorAddPayment(
+          "CashApp ID must include at least 1 letter and be no longer than 20 characters."
+        );
+        return false;
+      }
+      if (
+        paymentMethods?.venmoId?.trim() &&
+        !/^[a-zA-Z0-9]+$/.test(paymentMethods?.venmoId.trim())
+      ) {
+        setErrorAddPayment(
+          "Venmo ID can only contain letters and numbers (no symbols, dashes, or spaces)."
+        );
+        return false;
+      }     
+      setErrorAddPayment("");  
       setSavingPaymentMethod(true); // Start loader
-      await walletService.updatePaymentMethods(newMethods);
+      await walletService.updatePaymentMethods(trimmedMethods);
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
@@ -326,6 +361,11 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
               handleAddPaymentMethod(paymentMethods);
             }}
           >
+             {errorAddPayment && (
+              <Alert color="danger" className="mt-2">
+                {errorAddPayment}
+              </Alert>
+            )}
             <Row>
               <Col md={12}>
                 <FormGroup>
@@ -373,6 +413,23 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       setPaymentMethods({
                         ...paymentMethods,
                         venmoId: e.target.value,
+                      })
+                    }
+                  />
+                </FormGroup>
+              </Col>
+              <Col md={12}>
+                <FormGroup>
+                  <Label for="zelleId">Zelle ID</Label>
+                  <Input
+                    id="zelleId"
+                    name="zelleId"
+                    type="text"
+                    value={paymentMethods.zelleId}
+                    onChange={(e) =>
+                      setPaymentMethods({
+                        ...paymentMethods,
+                        zelleId: e.target.value,
                       })
                     }
                   />

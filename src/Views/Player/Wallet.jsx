@@ -102,6 +102,7 @@ export const Wallet = () => {
     { name: "CashApp", id: wallet?.cashAppId },
     { name: "PayPal", id: wallet?.paypalId },
     { name: "Venmo", id: wallet?.venmoId },
+    { name: "Zelle", id: wallet?.zelleId}
   ].filter((method) => method.id);
   const handleRefresh = async () => {
       refresh();

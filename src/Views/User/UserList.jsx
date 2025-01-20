@@ -123,7 +123,7 @@ const CustomButton = ({ fetchAllUsers }) => {
           <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
         )}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
-        {record?.roleName === "Player" && role === "Super-User" && (
+        {record?.roleName === "Player"  && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
         )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>

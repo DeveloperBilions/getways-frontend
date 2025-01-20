@@ -105,3 +105,37 @@ export const authProvider = {
     return roleName;
   },
 };
+export const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+  try {
+    // Ensure the new password and confirm password match
+    if (newPassword !== confirmPassword) {
+      throw new Error("New password and confirm password do not match.");
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      throw new Error("Password must be at least 6 characters long.");
+    }
+
+    // Get the current user
+    const currentUser = Parse.User.current();
+    if (!currentUser) {
+      throw new Error("User not authenticated.");
+    }
+
+    // Validate current password using Parse's login function
+    const email = currentUser.get("email");
+    try {
+      await Parse.Cloud.run("caseInsensitiveLogin", { email, password: currentPassword });
+    } catch (error) {
+      throw new Error("Current password is incorrect.");
+    }
+    await Parse.User.logOut();
+    // Update password
+    currentUser.setPassword(newPassword);
+    await currentUser.save(null, { useMasterKey: true });
+    return "Password changed successfully. Please log in again.";
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

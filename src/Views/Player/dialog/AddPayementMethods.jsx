@@ -13,6 +13,7 @@ import {
   Button,
   Spinner,
 } from "reactstrap";
+import { Alert } from "reactstrap";
 
 const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
   const [paymentMethods, setPaymentMethods] = useState({...wallet});
@@ -20,10 +21,43 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
   const [error, setError] = useState(""); // State to track errors
 
   const handleAddPaymentMethod = async (newMethods) => {
+    const trimmedMethods = {
+      cashAppId: paymentMethods?.cashAppId?.trim() || "",
+      venmoId: paymentMethods?.venmoId?.trim() || "",
+      paypalId: paymentMethods?.paypalId?.trim() || "",
+      zelleId: paymentMethods?.zelleId?.trim() || "",
+    };
+    if (
+      (!paymentMethods?.cashAppId?.trim() || paymentMethods?.cashAppId?.trim() === "") &&
+      (!paymentMethods?.venmoId?.trim() || paymentMethods?.venmoId?.trim() === "") &&
+      (!paymentMethods?.paypalId?.trim() || paymentMethods?.paypalId?.trim() === "") && 
+      (!paymentMethods?.zelleId?.trim() || paymentMethods?.zelleId?.trim() === "")
+    ) {
+      setError("Add at least one valid payment method.");
+      return false;
+    } 
+    if (
+      paymentMethods?.cashAppId?.trim() &&
+      !/^(?=.*[a-zA-Z]).{1,20}$/.test(paymentMethods?.cashAppId.trim())
+    ) {
+      setError(
+        "CashApp ID must include at least 1 letter and be no longer than 20 characters."
+      );
+      return false;
+    }
+    if (
+      paymentMethods?.venmoId?.trim() &&
+      !/^[a-zA-Z0-9]+$/.test(paymentMethods?.venmoId.trim())
+    ) {
+      setError(
+        "Venmo ID can only contain letters and numbers (no symbols, dashes, or spaces)."
+      );
+      return false;
+    }  
     setLoading(true);
     setError("");
     try {
-      await walletService.updatePaymentMethods(newMethods);
+      await walletService.updatePaymentMethods(trimmedMethods);
       setPaymentMethods(newMethods);
       if (handleRefresh) {
         handleRefresh(); // Refresh parent data if necessary
@@ -41,7 +75,7 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
     <Modal isOpen={open} toggle={onClose} size="md" centered>
       <ModalHeader toggle={onClose}>Add / Edit Payment Method</ModalHeader>
       <ModalBody>
-        {error && <div className="text-danger mb-3">{error}</div>}
+        {error &&  <Alert color="danger" className="mt-2">{error}</Alert>}
         <Form
           onSubmit={(e) => {
             e.preventDefault();
@@ -100,6 +134,23 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
                 />
               </FormGroup>
             </Col>
+            <Col md={12}>
+                <FormGroup>
+                  <Label for="zelleId">Zelle ID</Label>
+                  <Input
+                    id="zelleId"
+                    name="zelleId"
+                    type="text"
+                    value={paymentMethods.zelleId}
+                    onChange={(e) =>
+                      setPaymentMethods({
+                        ...paymentMethods,
+                        zelleId: e.target.value,
+                      })
+                    }
+                  />
+                </FormGroup>
+              </Col>
             <Col md={12} className="d-flex justify-content-end">
               <Button color="primary" type="submit" disabled={loading}>
                 {loading ? (

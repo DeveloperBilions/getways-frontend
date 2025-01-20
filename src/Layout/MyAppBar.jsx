@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Toolbar, Typography, Box } from "@mui/material";
+import { Toolbar, Typography, Box, MenuItem} from "@mui/material";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -7,6 +7,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
+import ChangePassword from "./ChangePassword";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined"; // Import icon
 
 import AppBar from "@mui/material/AppBar";
 import {
@@ -25,8 +27,16 @@ const MyUserMenu = React.forwardRef((props, ref) => {
 
 export default function MyAppBar({ props }) {
   const { identity } = useGetIdentity();
-  const navigate = useNavigate();
+  const [open, setOpen] = React.useState(false);
+  const role = localStorage.getItem("role")
+  const navigate = useNavigate()
+  const handleOpenModal = () => {
+    setOpen(true);
+  };
 
+  const handleCloseModal = () => {
+    setOpen(false);
+  };
   return (
     <AppBar
       sx={{
@@ -77,8 +87,13 @@ export default function MyAppBar({ props }) {
       </Box>
       <RefreshButton label="" icon={<RefreshIcon sx={{fontSize: "24px !important", marginRight: "-6px"}} />}  sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end"}}/>
       <UserMenu>
-        <Logout />
+        {( role === "Agent" || role === "Player" ) && 
+        <MenuItem onClick={handleOpenModal} style={{color:"#0000008a"}}> 
+        <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
+          Change Password</MenuItem>}
+        <Logout style={{color:"#0000008a"}} />
       </UserMenu>
+      <ChangePassword open={open} onClose={handleCloseModal} />
     </AppBar>
   );
 }

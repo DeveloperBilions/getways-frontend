@@ -59,11 +59,13 @@ export const walletService = {
         wallet.set("cashAppId", paymentMethods.cashAppId || "");
         wallet.set("paypalId", paymentMethods.paypalId || "");
         wallet.set("venmoId", paymentMethods.venmoId || "");
+        wallet.set("zelleId", paymentMethods.zelleId || "");
       } else {
         console.warn("No payment methods provided, setting to empty.");
         wallet.set("cashAppId", "");
         wallet.set("paypalId", "");
         wallet.set("venmoId", "");
+        wallet.set("zelleId","")
       }
   
       // Save the updated or newly created wallet object
