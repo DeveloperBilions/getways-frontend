@@ -21,7 +21,10 @@ export const mapTransactionStatus = (status) => {
   }
 };
 
-export const calculateDataSummaries = ({ id, users, transactions }) => {
+export const calculateDataSummaries = ({ id, users, transactions,walletBalances }) => {
+  const totalBalance = users.reduce((sum, user) => {
+    return sum + (walletBalances[user?.id] || 0);
+  }, 0);
   const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
   const totalRegisteredUsers = users.filter(
     (item) => !item.userReferralCode
@@ -62,6 +65,34 @@ export const calculateDataSummaries = ({ id, users, transactions }) => {
   const totalRecords = transactions.length;
   const totalAmt =
     transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+  const totalCashoutRedeemsSuccess = transactions.filter(
+      (item) => item.status === 12
+    ).length;
+  const totalCashoutRedeemsInProgress = transactions.filter(
+      (item) => item.status === 11
+    ).length;
+
+    const totalRedeemSuccessful = transactions.filter(
+      (item) => item.status === 8
+    ).length;
+    const totalRechargeByType = {
+      wallet: transactions
+        .filter((item) => item.type === "recharge" && item.useWallet === true)
+        .reduce((sum, item) => sum + item.transactionAmount, 0),
+      others: transactions
+        .filter((item) => item.type === "recharge" && (item.useWallet === false || item.useWallet == null) && item.status === 2 || item.status === 3)
+        .reduce((sum, item) => sum + item.transactionAmount, 0),
+    };
+    const totalFeesCharged = transactions
+    .filter((item) => item.type === "redeem" && (item.status === 8 || item.status === 4)) // Only consider redeems
+    .reduce((sum, item) => {
+      const serviceFee = parseInt(item.redeemServiceFee) || 0; // Default to 0 if invalid
+      const transactionAmount = parseInt(item.transactionAmount) || 0; // Default to 0 if invalid
+  
+      const calculatedFee = Math.floor((serviceFee / 100) * transactionAmount); // Calculate fee
+      return sum + calculatedFee;
+    }, 0);  
+    
   return {
     data: [
       {
@@ -74,6 +105,13 @@ export const calculateDataSummaries = ({ id, users, transactions }) => {
         totalFailRedeemAmount: totalFailRedeemAmount,
         totalRecords: totalRecords,
         totalAmt: totalAmt,
+        totalCashoutRedeemsSuccess,
+        totalCashoutRedeemsInProgress,
+        totalRedeemSuccessful,
+        totalRechargeByType,
+        totalFeesCharged,
+        walletBalances,
+        totalBalance
       },
     ],
     total: null,

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   useGetIdentity,
   useGetList,
@@ -38,10 +38,13 @@ import PersonIcon from "@mui/icons-material/Person";
 import PaidIcon from "@mui/icons-material/Paid";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
+import { Label } from "reactstrap";
 
 const Summary = () => {
   const { data, isFetching } = useListContext();
   const { identity } = useGetIdentity();
+  const role = localStorage.getItem("role");
+  const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
 
   if (isFetching) {
     return (
@@ -60,6 +63,36 @@ const Summary = () => {
   //   return <Loader />;
   // }
 
+  const filteredRechargeValue =
+    selectedRechargeType === "wallet"
+      ? data[0].totalRechargeByType?.wallet || 0
+      : selectedRechargeType === "others"
+      ? data[0].totalRechargeByType?.others || 0
+      : (data[0].totalRechargeByType?.wallet || 0) +
+        (data[0].totalRechargeByType?.others || 0);
+  const recharge = [
+    {
+      id: 3,
+      name: "Total Recharge (Filtered)",
+      value: "$" + filteredRechargeValue,
+      bgColor: "#EBF9F0",
+      borderColor: "#9CDAB8",
+      icon: <PaidIcon color="secondary" />,
+      filter: (
+        <FormControl fullWidth>
+          <Select
+            labelId="recharge-type-select-label"
+            value={selectedRechargeType}
+            onChange={(e) => setSelectedRechargeType(e.target.value)}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="wallet">Wallet</MenuItem>
+            <MenuItem value="others">Others</MenuItem>
+          </Select>
+        </FormControl>
+      ),
+    },
+  ];
   const finalData = [
     {
       id: 1,
@@ -109,6 +142,58 @@ const Summary = () => {
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
     },
+    ...(role === "Super-User"
+      ? [
+          {
+            id: 7,
+            name: "Total Cashout Redeems Successful",
+            value: data[0].totalCashoutRedeemsSuccess,
+            bgColor: "#E3F2FD",
+            borderColor: "#7EB9FB",
+            icon: <PaidIcon color="primary" />,
+          },
+          {
+            id: 8,
+            name: "Total Cashout Redeems Pending",
+            value: data[0].totalCashoutRedeemsInProgress,
+            bgColor: "#dedede",
+            borderColor: "#adb5bd",
+            icon: <PaidIcon color="success" />,
+          },
+          // {
+          //   id: 9,
+          //   name: "Total Recharge (Wallet)",
+          //   value: "$" + data[0].totalRechargeByType?.wallet,
+          //   bgColor: "#EBF9F0",
+          //   borderColor: "#9CDAB8",
+          //   icon: <PaidIcon color="secondary" />,
+          // },
+          // {
+          //   id: 10,
+          //   name: "Total Recharge (Others)",
+          //   value: "$" + data[0].totalRechargeByType?.others,
+          //   bgColor: "#F4F0F9",
+          //   borderColor: "#C4B0DF",
+          //   icon: <PaidIcon color="warning" />,
+          // },
+          {
+            id: 11,
+            name: "Total Fees Charged",
+            value: "$" + data[0].totalFeesCharged,
+            bgColor: "#FFFCEB",
+            borderColor: "#FFE787",
+            icon: <ErrorIcon color="error" />,
+          },
+          {
+            id: 12,
+            name: "Total Wallet Balance",
+            value: "$" + data[0].totalBalance,
+            bgColor: "#FFFCEB",
+            borderColor: "#FFE787",
+            icon: <ErrorIcon color="error" />,
+          },
+        ]
+      : []),
   ];
 
   identity.role === "Agent" && finalData.splice(1, 1);
@@ -137,6 +222,37 @@ const Summary = () => {
               </Typography>
               <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
                 {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+      {recharge.map((item) => (
+        <Grid item xs={12} md={4} key={item.id}>
+          <Card
+            sx={{
+              backgroundColor: item.bgColor,
+              border: 2,
+              borderColor: item.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+              >
+                {item.icon}
+                &nbsp;{item.name}
+              </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+              <Typography
+                variant="h4"
+                sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
+              >
+                {item.value}
               </Typography>
             </CardContent>
           </Card>

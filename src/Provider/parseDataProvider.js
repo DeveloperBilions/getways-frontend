@@ -105,7 +105,7 @@ export const dataProvider = {
     const role = localStorage.getItem("role");
     const userid = localStorage.getItem("id");
     const username = localStorage.getItem("username");
-    console.log(resource,"resource",role)
+    console.log(resource, "resource", role);
     const fetchUsers = async (selectedUser) => {
       const user = selectedUser ? selectedUser : await Parse.User.current();
 
@@ -265,10 +265,22 @@ export const dataProvider = {
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
           }
+          // Fetch wallet balances for the users
+          const walletQuery = new Parse.Query("Wallet");
+          const userIds = data.map((user) => user.id);
+          walletQuery.containedIn("userID", userIds);
+
+          const walletResults = await walletQuery.find({ useMasterKey: true });
+          const walletBalances = walletResults.reduce((acc, wallet) => {
+            acc[wallet.get("userID")] = wallet.get("balance") || 0;
+            return acc;
+          }, {});
+
           result = calculateDataSummaries({
             id: 0,
             users: data,
             transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
+            walletBalances,
           });
           /*result = {
             data: [
@@ -327,11 +339,12 @@ export const dataProvider = {
           });*/
           transactionQuery.limit(10000);
           results = await transactionQuery.find();
-
+          const walletBalances = 0
           result = calculateDataSummaries({
             id: 1,
             users: data,
             transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
+            walletBalances
           });
 
           /*result = {
@@ -670,7 +683,7 @@ export const dataProvider = {
 
     throw new Error("Unsupported resource for getLink");
   },
-  finalApprove: async (orderId,redeemRemarks) => {
+  finalApprove: async (orderId, redeemRemarks) => {
     try {
       // Fetch the transaction record
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
@@ -681,8 +694,8 @@ export const dataProvider = {
       if (transaction && transaction.get("status") === 11) {
         // Update transaction status
         transaction.set("status", 12);
-        if(redeemRemarks){
-          transaction.set("redeemRemarks",redeemRemarks)
+        if (redeemRemarks) {
+          transaction.set("redeemRemarks", redeemRemarks);
         }
         // Get transaction amount and redeem service fee percentage
         const transactionAmount = transaction.get("transactionAmount") || 0;
@@ -813,18 +826,26 @@ export const dataProvider = {
     }
   },
   userTransaction: async (params) => {
-    const { id, type, username, balance, transactionAmount, remark, useWallet } = params;
-  
+    const {
+      id,
+      type,
+      username,
+      balance,
+      transactionAmount,
+      remark,
+      useWallet,
+    } = params;
+
     try {
       // Find the user by ID
       const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", id);
-      const user = await userQuery.first({useMasterKey:true});
-  
+      const user = await userQuery.first({ useMasterKey: true });
+
       if (!user) {
         throw new Error(`User with ID ${id} not found`);
       }
-  
+
       let finalAmount = balance;
       if (useWallet) {
         // Ensure sufficient wallet balance
@@ -833,30 +854,30 @@ export const dataProvider = {
         }
         // Deduct amount from the wallet balance
         finalAmount -= parseFloat(transactionAmount / 100);
-  
+
         // Update the wallet balance in the Wallet class
         const walletQuery = new Parse.Query("Wallet");
         walletQuery.equalTo("userID", id);
         const wallet = await walletQuery.first();
-  
+
         if (!wallet) {
           throw new Error(`Wallet for user ID ${id} not found.`);
         }
-  
+
         wallet.set("balance", finalAmount);
         await wallet.save(null);
       } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);
-  
+
         // Take the floor value of finalAmount with two decimal precision
         finalAmount = Math.floor(finalAmount * 100) / 100;
       }
-  
+
       // Create a new transaction record
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transactionDetails = new TransactionDetails();
-  
+
       transactionDetails.set("type", type);
       transactionDetails.set("gameId", "786");
       transactionDetails.set("username", username);
@@ -864,13 +885,13 @@ export const dataProvider = {
       transactionDetails.set("transactionDate", new Date());
       transactionDetails.set(
         "transactionAmount",
-        (Math.floor(parseFloat(transactionAmount) * 100) / 100) / 100 // Ensure transactionAmount has two decimal precision
+        Math.floor(parseFloat(transactionAmount) * 100) / 100 / 100 // Ensure transactionAmount has two decimal precision
       );
       transactionDetails.set("remark", remark);
       transactionDetails.set("useWallet", !!useWallet); // Store whether wallet was used
-  
+
       let session = null;
-  
+
       if (!useWallet) {
         // Process Stripe transaction
         session = await stripe.checkout.sessions.create({
@@ -896,17 +917,17 @@ export const dataProvider = {
             username: username,
           },
         });
-  
+
         transactionDetails.set("status", 1); // Pending status
         transactionDetails.set("referralLink", session.url);
         transactionDetails.set("transactionIdFromStripe", session.id);
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
       }
-  
+
       // Save the transaction record
       await transactionDetails.save(null);
-  
+
       return {
         success: true,
         message: "Transaction updated and validated successfully",
@@ -914,13 +935,13 @@ export const dataProvider = {
       };
     } catch (error) {
       console.error("Error in userTransaction:", error.message);
-  
+
       return {
         success: false,
         message: error.message || "An unexpected error occurred.",
       };
     }
-  },  
+  },
   // refundTransaction: async (params) => {
   //   const { sessionId, amount, remark, redeemServiceFee } = params; // Include additional parameters if needed
 
