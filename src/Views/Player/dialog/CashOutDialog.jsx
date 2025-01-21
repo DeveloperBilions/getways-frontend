@@ -28,6 +28,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [redeemFees, setRedeemFees] = useState(0);
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingsave, setLoadingSave] = useState(false);
   const [walletId, setWalletId] = useState("");
   const [balance, setBalance] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState({
@@ -65,9 +66,9 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
       console.log(wallet,"walletdata")
-      const { cashAppId, paypalId, venmoId, objectId, balance,zelleId } = wallet.wallet;
+      const { cashAppId, paypalId, venmoId, objectId, balance,zelleId,isCashAppDisabled,isVenmoDisabled,isPaypalDisabled,isZelleDisabled } = wallet.wallet;
       setBalance(balance);
-      setPaymentMethods({ cashAppId, paypalId, venmoId,zelleId });
+      setPaymentMethods({ cashAppId, paypalId, venmoId,zelleId ,isCashAppDisabled,isVenmoDisabled,isPaypalDisabled,isZelleDisabled});
       setWalletId(objectId);
     }
 
@@ -192,7 +193,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       return false;
     }
     try {
-      
+      setLoadingSave(true)
       await walletService.updatePaymentMethods(trimmedMethods);
       // Check if the previously selected payment method still exists
       if (newMethods[selectedPaymentMethodType]) {
@@ -208,6 +209,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       // handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
+    }finally{
+      setLoadingSave(false)
     }
   };
   const paymentOptions = [
@@ -299,46 +302,52 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   <FormGroup>
                     <Label for="remark">Payment Method</Label>
                     <div className="row">
-                      {Object.entries(paymentMethods).filter(
-                        ([_, value]) => value
-                      ).length === 0 ? (
-                        <div className="col-12 text-start text-danger">
-                          <p> ** No Payment methods added ** </p>
-                        </div>
-                      ) : (
-                        Object.entries(paymentMethods)
-                          .filter(([key, value]) => value) // Filter out methods with no value
-                          .map(([key, value]) => (
-                            <div key={key} className="col-6 mt-2">
-                              <div className="border p-3 w-100 rounded d-flex align-items-start cashout">
-                                <Input
-                                  type="radio"
-                                  id={key}
-                                  name="paymentMethod"
-                                  value={key}
-                                  checked={selectedPaymentMethodType === key}
-                                  onChange={(e) => {
-                                    setSelectedPaymentMethodType(
-                                      e.target.value
-                                    ); // Set method type
-                                    setSelectedPaymentMethod(value); // Set method value
-                                  }}
-                                  required
-                                />
-                                <Label
-                                  for={key}
-                                  className="form-check-label d-flex flex-column px-3"
-                                >
-                                  <span>{key.replace(/Id$/, "")}</span>
-                                  <span style={{ fontSize: "12px" }}>
-                                    {value}
-                                  </span>
-                                </Label>
-                              </div>
-                            </div>
-                          ))
-                      )}
-                    </div>
+    {Object.entries(paymentMethods)
+      .filter(([key, value]) => value && paymentOptions.some(option => option.key === key)) // Filter valid methods
+      .length === 0 ? (
+        <div className="col-12 text-start text-danger">
+          <p>** No Payment methods added **</p>
+        </div>
+      ) : (
+        paymentOptions.map(({ key, label, disabled }) =>
+          paymentMethods[key] ? ( // Check if the specific method exists
+            <div key={key} className="col-6 mt-2">
+              <div
+                className={`border p-3 w-100 rounded d-flex align-items-start cashout ${
+                  disabled ? "disabled-method" : ""
+                }`}
+              >
+                <Input
+                  type="radio"
+                  id={key}
+                  name="paymentMethod"
+                  value={key}
+                  checked={selectedPaymentMethodType === key}
+                  onChange={(e) => {
+                    setSelectedPaymentMethodType(e.target.value);
+                    setSelectedPaymentMethod(paymentMethods[key]);
+                  }}
+                  disabled={disabled} // Disable radio button if the method is not allowed
+                  required
+                />
+                <Label
+                  for={key}
+                  className="form-check-label d-flex flex-column px-3"
+                >
+                  <span>{label}</span>
+                  <span style={{ fontSize: "12px" }}>{paymentMethods[key]}</span>
+                  {disabled && (
+                    <span className="text-danger" style={{ fontSize: "12px" }}>
+                      This payment mode is currently not available
+                    </span>
+                  )}
+                </Label>
+              </div>
+            </div>
+          ) : null
+        )
+      )}
+  </div>
                   </FormGroup>
                 </Col>
 
@@ -520,8 +529,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 </FormGroup>
               </Col>
               <Col md={12} className="d-flex justify-content-end">
-                <Button color="primary" type="submit" disabled={loading} onClick={()=> handleAddPaymentMethod(paymentMethods)}>
-                  {loading ? (
+                <Button color="primary" type="submit" disabled={loadingsave} onClick={()=> handleAddPaymentMethod(paymentMethods)}>
+                  {loadingsave ? (
                     <span className="d-flex align-items-center">
                       <span
                         className="spinner-border spinner-border-sm me-2"
@@ -538,7 +547,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   color="secondary"
                   className="ms-2"
                   onClick={() => setShowAddPaymentMethodDialog(false)}
-                  disabled={loading} // Disable cancel button while saving
+                  disabled={loadingsave} // Disable cancel button while saving
                 >
                   Cancel
                 </Button>

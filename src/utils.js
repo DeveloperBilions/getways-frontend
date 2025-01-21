@@ -21,7 +21,8 @@ export const mapTransactionStatus = (status) => {
   }
 };
 
-export const calculateDataSummaries = ({ id, users, transactions}) => {
+export const calculateDataSummaries = ({ id, users, transactions }) => {
+  const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
   const totalRegisteredUsers = users.filter(
     (item) => !item.userReferralCode
   ).length; //excluding self
@@ -29,31 +30,52 @@ export const calculateDataSummaries = ({ id, users, transactions}) => {
     (item) => item.roleName === "Agent" //&& item.username !== identity.username
   ).length;
   const totalRechargeAmount =
-    transactions.filter((item) => item.status === 2 || item.status === 3)
+    transactions
+      .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalRedeemAmount =
-    transactions.filter((item) => item.status === 4)
+    transactions
+      .filter((item) => {
+        const transactionDate = new Date(item.transactionDate);
+        if (transactionDate > referenceDate) {
+          return item.status === 8;
+        } else {
+          return item.status === 4;
+        }
+      })
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalPendingRechargeAmount =
-    transactions.filter((item) => item.status === 1)
+    transactions
+      .filter((item) => item.status === 1)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalFailRedeemAmount =
-    transactions.filter((item) => item.status === 5)
+    transactions
+      .filter((item) => {
+        const transactionDate = new Date(item.transactionDate);
+        if (transactionDate > referenceDate) {
+          return item.status === 7; // After 17th Jan, consider status 7
+        } else {
+          return item.status === 5; // Before or on 17th Jan, consider status 5
+        }
+      })
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalRecords = transactions.length;
-  const totalAmt = transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-  return { 
-    data: [{
-      id: id,
-      totalRegisteredUsers: totalRegisteredUsers,
-      totalAgents: totalAgents,
-      totalRechargeAmount: totalRechargeAmount,
-      totalRedeemAmount: totalRedeemAmount,
-      totalPendingRechargeAmount: totalPendingRechargeAmount,
-      totalFailRedeemAmount: totalFailRedeemAmount,
-      totalRecords: totalRecords,
-      totalAmt: totalAmt
-    }],
+  const totalAmt =
+    transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+  return {
+    data: [
+      {
+        id: id,
+        totalRegisteredUsers: totalRegisteredUsers,
+        totalAgents: totalAgents,
+        totalRechargeAmount: totalRechargeAmount,
+        totalRedeemAmount: totalRedeemAmount,
+        totalPendingRechargeAmount: totalPendingRechargeAmount,
+        totalFailRedeemAmount: totalFailRedeemAmount,
+        totalRecords: totalRecords,
+        totalAmt: totalAmt,
+      },
+    ],
     total: null,
   };
 };
