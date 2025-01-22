@@ -8,8 +8,8 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
 import ChangePassword from "./ChangePassword";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined"; // Import icon
-
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AppBar from "@mui/material/AppBar";
 import {
   TitlePortal,
@@ -19,6 +19,7 @@ import {
   useGetIdentity,
 } from "react-admin";
 import { Title } from "react-admin";
+import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -28,6 +29,8 @@ const MyUserMenu = React.forwardRef((props, ref) => {
 export default function MyAppBar({ props }) {
   const { identity } = useGetIdentity();
   const [open, setOpen] = React.useState(false);
+  const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false); // State for Recharge Limit Dialog
+
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
   const handleOpenModal = () => {
@@ -36,6 +39,13 @@ export default function MyAppBar({ props }) {
 
   const handleCloseModal = () => {
     setOpen(false);
+  };
+  const handleOpenRechargeLimit = () => {
+    setOpenRechargeLimit(true);
+  };
+
+  const handleCloseRechargeLimit = () => {
+    setOpenRechargeLimit(false);
   };
   return (
     <AppBar
@@ -91,9 +101,19 @@ export default function MyAppBar({ props }) {
         <MenuItem onClick={handleOpenModal} style={{color:"#0000008a"}}> 
         <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
           Change Password</MenuItem>}
+          {role === "Agent" && (
+          <MenuItem
+            onClick={handleOpenRechargeLimit}
+            style={{ color: "#0000008a" }}
+          >
+            <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
+            Recharge Limit
+          </MenuItem>
+        )}
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
       <ChangePassword open={open} onClose={handleCloseModal} />
+      <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
     </AppBar>
   );
 }

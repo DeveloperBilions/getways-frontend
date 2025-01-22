@@ -28,7 +28,7 @@ import RedeemServiceDialog from "./dialog/RedeemService";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
 // mui
-import { Menu, MenuItem, Button } from "@mui/material";
+import { Menu, MenuItem, Button,Box } from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
@@ -187,7 +187,7 @@ export const UserList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending } = useGetList("users", {
+  const { data, isLoading } = useGetList("users", {
     // pagination: { page: 1, perPage: 100 },
   });
 
@@ -275,11 +275,20 @@ export const UserList = (props) => {
     fetchAllUsers();
   }, []);
 
-  if (isPending) {
+  if (isLoading || !data) {
     return <Loader />;
   }
 
   return (
+    <Box
+        // sx={{
+        //   display: "flex",
+        //   justifyContent: "space-between",
+        //   alignItems: "center",
+        //   width: "100%"
+        // }}
+      >
+    {(isLoading || !data) ? <Loader /> : 
     <List
       title="User Management"
       filters={dataFilters}
@@ -318,6 +327,6 @@ export const UserList = (props) => {
         fetchAllUsers={fetchAllUsers}
         referralCode={referralCode}
       />
-    </List>
+    </List>}</Box>
   );
 };

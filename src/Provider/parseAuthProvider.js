@@ -95,6 +95,7 @@ export const authProvider = {
       userParentName: user.get("userParentName"),
       userParentId: user.get("userParentId"),
       role: role.get("name"),
+      rechargeLimit: user.get("rechargeLimit")
     };
   },
   async getPermissions() {
@@ -135,6 +136,29 @@ export const changePassword = async (currentPassword, newPassword, confirmPasswo
     currentUser.setPassword(newPassword);
     await currentUser.save(null, { useMasterKey: true });
     return "Password changed successfully. Please log in again.";
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+export const updateRechargeLimit = async (userId, newLimit) => {
+  try {
+    if (newLimit <= 0) {
+      throw new Error("Recharge limit must be greater than zero.");
+    }
+
+    // Fetch the user by ID
+    const userQuery = new Parse.Query(Parse.User);
+    const user = await userQuery.get(userId, { useMasterKey: true });
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    // Update the recharge limit
+    user.set("rechargeLimit", newLimit);
+    await user.save(null, { useMasterKey: true });
+
+    return "Recharge limit updated successfully.";
   } catch (error) {
     throw new Error(error.message);
   }

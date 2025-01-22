@@ -70,7 +70,7 @@ export const RedeemRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending, isFetching } = useGetList("redeemRecordsExport", {
+  const { data, isPending, isFetching,isLoading } = useGetList("redeemRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
     filter: {
       ...(searchValue && { username: searchValue }),
@@ -340,6 +340,8 @@ export const RedeemRecordsList = (props) => {
           </>
         )}
       </Box>
+
+      {(isPending || isFetching || isLoading || !data ) ?<Loader /> : 
       <List
         title="Redeem Records"
         filters={dataFilters}
@@ -505,7 +507,7 @@ export const RedeemRecordsList = (props) => {
             }
           />
         </Datagrid>
-      </List>
+      </List>}
       {permissions === "Agent" && (
         <>
           <RejectRedeemDialog

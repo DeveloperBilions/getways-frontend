@@ -41,9 +41,17 @@ import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 function App() {
-
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Disabling automatic refetching on window focus
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
   if (Config?.maintenance) {
     return (
       <Admin>
@@ -63,6 +71,7 @@ function App() {
       loginPage={LoginPage}
       layout={MyLayout}
       theme={MyTheme}
+      queryClient={queryClient}
     >
       {(permissions) => {
         if (permissions && permissions !== "Player") {

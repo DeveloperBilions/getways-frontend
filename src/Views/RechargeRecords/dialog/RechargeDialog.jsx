@@ -31,6 +31,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [paymentSource, setPaymentSource] = useState("wallet");
   const [walletBalance, setWalletBalance] = useState(0);
+  const [redeemFees, setRedeemFees] = useState();
+  const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState(""); // New state for error message
 
   const resetFields = () => {
@@ -58,6 +60,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
     if (identity && open) {
       setUserName(identity.username || "");
       fetchWalletBalance();
+      parentServiceFee()
     } else {
       resetFields();
     }
@@ -68,6 +71,12 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
 
     setErrorMessage(""); // Clear previous errors
 
+    if (parseFloat(rechargeAmount) < redeemFees) {
+      setErrorMessage(
+        `Recharge amount must be at least $${redeemFees.toFixed(2)}.`
+      );
+      return;
+    }
     if (paymentSource === "wallet") {
       // Ensure wallet balance is sufficient
       if (parseFloat(rechargeAmount) > walletBalance) {
@@ -136,7 +145,21 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
       }
     }
   };
+  const parentServiceFee = async () => {
+    try {
+      setMinLimitLoading(true);
 
+      const response = await Parse.Cloud.run("redeemParentServiceFee", {
+        userId: identity?.userParentId,
+      });
+      setRedeemFees(response?.rechargeLimit || 0);
+    } catch (error) {
+      console.error("Error fetching parent service fee:", error);
+    }
+    finally {
+      setMinLimitLoading(false);
+    }
+  };
   return (
     <React.Fragment>
       {loading ? (
@@ -228,7 +251,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       color="success"
                       type="submit"
                       className="mx-2"
-                      disabled={loading}
+                      disabled={loading || minLimitLoading}
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>

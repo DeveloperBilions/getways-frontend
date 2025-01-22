@@ -42,12 +42,12 @@ import { Label } from "reactstrap";
 import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
 
 const Summary = () => {
-  const { data, isFetching } = useListContext();
+  const { data, isFetching , isLoading} = useListContext();
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
 
-  if (isFetching) {
+  if (isLoading || !data) {
     return (
       <Box
         display="flex"
@@ -72,6 +72,7 @@ const Summary = () => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
+    ...(role === "Super-User" ? [
     {
       id: 3,
       name: "Total Recharge (Filtered)",
@@ -101,7 +102,26 @@ const Summary = () => {
           </Select>
         </FormControl>
       ),
-    },
+    }] : []),
+     ...(role === "Agent" ? [
+    {
+      id: 3,
+      name: "Total Recharge (Filtered)",
+      value: (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{filteredRechargeValue}</span>
+      </div>
+      ),
+      bgColor: "#EBF9F0",
+      borderColor: "#9CDAB8",
+      icon: <PaidIcon color="secondary" />,
+    }] : [])
+
   ];
   const finalData = [
     {
@@ -394,7 +414,7 @@ const SearchSelectUsersFilter = () => {
 
 export const DataSummary = () => {
   const { identity } = useGetIdentity();
-  const { data, isFetching } = useGetList(
+  const { data, isFetching,isLoading } = useGetList(
     "users",
     {
       pagination: { page: 1, perPage: 10000 },
@@ -459,6 +479,16 @@ export const DataSummary = () => {
 
   return (
     <React.Fragment>
+      {(isLoading || !data) ?
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Loading />
+      </Box> :
+  
       <ListBase>
         <FilterForm
           filters={dataFilters}
@@ -480,7 +510,7 @@ export const DataSummary = () => {
         ) : (
           <Summary />
         )}
-      </ListBase>
+      </ListBase>}
     </React.Fragment>
   );
 };

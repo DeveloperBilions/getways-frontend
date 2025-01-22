@@ -76,7 +76,7 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending, isFetching } = useGetList("rechargeRecordsExport", {
+  const { data, isPending, isFetching, isLoading  } = useGetList("rechargeRecordsExport", {
     sort: { field: "transactionDate", order: "DESC" },
     filter: {
       ...(searchValue && { username: searchValue }),
@@ -84,7 +84,7 @@ export const RechargeRecordsList = (props) => {
     },
   });
 
-  console.log("*****", data);
+  console.log("*****", useGetList);
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -326,11 +326,11 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
-  if (isPending) {
+  if (isPending || !data) {
     return <Loader />;
   }
 
-  if (isFetching) {
+  if (isFetching || !data) {
     return <Loader />;
   }
   return (
@@ -363,7 +363,7 @@ export const RechargeRecordsList = (props) => {
           </>
         )}
       </Box>
-
+          {(isPending || isFetching || isLoading || !data ) ?<Loader /> : 
       <List
         title="Recharge Records"
         filters={dataFilters}
@@ -513,7 +513,7 @@ export const RechargeRecordsList = (props) => {
             handleRefresh={handleRefresh}
           />
         )}
-      </List>
+      </List>}
     </>
   );
 };
