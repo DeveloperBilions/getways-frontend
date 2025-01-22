@@ -39,6 +39,7 @@ import PaidIcon from "@mui/icons-material/Paid";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 import { Label } from "reactstrap";
+import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
 
 const Summary = () => {
   const { data, isFetching } = useListContext();
@@ -74,7 +75,16 @@ const Summary = () => {
     {
       id: 3,
       name: "Total Recharge (Filtered)",
-      value: "$" + filteredRechargeValue,
+      value: (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{filteredRechargeValue}</span>
+      </div>
+      ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
       icon: <PaidIcon color="secondary" />,
@@ -113,7 +123,16 @@ const Summary = () => {
     {
       id: 3,
       name: "Total Recharges",
-      value: "$" + data[0].totalRechargeAmount,
+      value:(
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{data[0].totalRechargeAmount}</span>
+      </div>
+      ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
       icon: <PaidIcon color="success" />,
@@ -121,7 +140,16 @@ const Summary = () => {
     {
       id: 4,
       name: "Total Redeems",
-      value: "$" + data[0].totalRedeemAmount,
+      value: (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{data[0].totalRedeemAmount}</span>
+      </div>
+      ),
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
       icon: <PaidIcon color="secondary" />,
@@ -129,7 +157,16 @@ const Summary = () => {
     {
       id: 5,
       name: "Pending Recharges",
-      value: "$" + data[0].totalPendingRechargeAmount,
+      value:(
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{data[0].totalPendingRechargeAmount}</span>
+      </div>
+      ),
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
       icon: <WarningIcon color="warning" />,
@@ -137,17 +174,56 @@ const Summary = () => {
     {
       id: 6,
       name: "Failed Redeems",
-      value: "$" + data[0].totalFailRedeemAmount,
+      value:(
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+        <img
+          src={AOGSymbol}
+          alt="AOG Symbol"
+          style={{ width: "20px", height: "20px", marginRight: "8px" }}
+        />
+        <span>{data[0].totalFailRedeemAmount}</span>
+      </div>
+      ),
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
     },
+    ...(role === "Agent"
+    ? [
+        {
+          id: 7,
+          name: "Total Cashout Redeems Successful",
+          value:
+          (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+            <img
+              src={AOGSymbol}
+              alt="AOG Symbol"
+              style={{ width: "20px", height: "20px", marginRight: "8px" }}
+            />
+            <span>{data[0].totalCashoutRedeemsSuccess}</span>
+          </div>
+          ),
+          bgColor: "#E3F2FD",
+          borderColor: "#7EB9FB",
+          icon: <PaidIcon color="primary" />,
+        },
+      ] : []),
     ...(role === "Super-User"
       ? [
           {
             id: 7,
             name: "Total Cashout Redeems Successful",
-            value: data[0].totalCashoutRedeemsSuccess,
+            value: (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+              <img
+                src={AOGSymbol}
+                alt="AOG Symbol"
+                style={{ width: "20px", height: "20px", marginRight: "8px" }}
+              />
+              <span>{data[0].totalCashoutRedeemsSuccess}</span>
+            </div>
+            ),
             bgColor: "#E3F2FD",
             borderColor: "#7EB9FB",
             icon: <PaidIcon color="primary" />,
@@ -155,7 +231,16 @@ const Summary = () => {
           {
             id: 8,
             name: "Total Cashout Redeems Pending",
-            value: data[0].totalCashoutRedeemsInProgress,
+            value: (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+              <img
+                src={AOGSymbol}
+                alt="AOG Symbol"
+                style={{ width: "20px", height: "20px", marginRight: "8px" }}
+              />
+              <span>{data[0].totalCashoutRedeemsInProgress}</span>
+            </div>
+            ),
             bgColor: "#dedede",
             borderColor: "#adb5bd",
             icon: <PaidIcon color="success" />,
@@ -179,7 +264,16 @@ const Summary = () => {
           {
             id: 11,
             name: "Total Fees Charged",
-            value: "$" + data[0].totalFeesCharged,
+            value:(
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+              <img
+                src={AOGSymbol}
+                alt="AOG Symbol"
+                style={{ width: "20px", height: "20px", marginRight: "8px" }}
+              />
+              <span>{data[0].totalFeesCharged}</span>
+            </div>
+            ),
             bgColor: "#FFFCEB",
             borderColor: "#FFE787",
             icon: <ErrorIcon color="error" />,
@@ -187,7 +281,16 @@ const Summary = () => {
           {
             id: 12,
             name: "Total Wallet Balance",
-            value: "$" + data[0].totalBalance,
+            value: (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+              <img
+                src={AOGSymbol}
+                alt="AOG Symbol"
+                style={{ width: "20px", height: "20px", marginRight: "8px" }}
+              />
+              <span>{data[0].totalBalance}</span>
+            </div>
+            ),
             bgColor: "#FFFCEB",
             borderColor: "#FFE787",
             icon: <ErrorIcon color="error" />,

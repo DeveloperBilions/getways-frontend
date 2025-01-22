@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import MoneyReciveLightIcon from "../../Assets/icons/money-recive-light.svg";
 import WalletIcon from "../../Assets/icons/WalletIcon.svg";
+import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
 import { Loader } from "../Loader";
 import { walletService } from "../../Provider/WalletManagement";
 import CashOutDialog from "./dialog/CashOutDialog";
@@ -102,10 +103,10 @@ export const Wallet = () => {
     { name: "CashApp", id: wallet?.cashAppId },
     { name: "PayPal", id: wallet?.paypalId },
     { name: "Venmo", id: wallet?.venmoId },
-    { name: "Zelle", id: wallet?.zelleId}
+    { name: "Zelle", id: wallet?.zelleId },
   ].filter((method) => method.id);
   const handleRefresh = async () => {
-      refresh();
+    refresh();
     WalletService();
   };
   return (
@@ -154,7 +155,7 @@ export const Wallet = () => {
                 gutterBottom
                 sx={{ fontSize: "35px", fontWeight: 400, color: "black" }}
               >
-                 {wallet.balance || "0.00"}
+                <img src={AOGSymbol} /> {wallet.balance || "0.00"}
               </Typography>
             </div>
           </div>
@@ -253,7 +254,7 @@ export const Wallet = () => {
           mt: 2,
           backgroundColor: "#ffffff",
           borderRadius: 2,
-          padding: 2,
+          padding: { xs: 1.5, sm: 2 },
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
         }}
       >
@@ -263,6 +264,7 @@ export const Wallet = () => {
             sx={{
               fontWeight: 600,
               mb: 2,
+              fontSize: { xs: "16px", sm: "20px" },
               color: "#4a4a4a",
               borderBottom: "2px solid #dedede",
               paddingBottom: 1,
@@ -270,184 +272,189 @@ export const Wallet = () => {
           >
             Wallet Transactions
           </Typography>
-          {loadingTransactions ? (
-            <Loader />
-          ) : (
-            <ListContextProvider
-              value={{
-                data: transactions,
-                total: totalRecords,
-                page,
-                perPage: pageSize,
-                setPage: handlePageChange,
-                setPerPage: handlePageSizeChange,
-              }}
-            >
-              <Datagrid
-                //rowClick="edit"
-                sx={{
-                  "& .RaDatagrid-row": {
-                    borderBottom: "1px solid #eaeaea",
-                    "&:hover": {
-                      backgroundColor: "#f9f9f9",
-                    },
-                  },
-                  "& .RaDatagrid-header": {
-                    backgroundColor: "#f5f5f5",
-                    fontWeight: 600,
-                    borderBottom: "2px solid #dedede",
-                  },
+
+          {/* Ensure horizontal scrolling for smaller screens */}
+          <div
+            style={{
+              overflowX: "scroll", // Enable horizontal scrolling
+              width: "100%", // Full-width container
+              marginBottom: "16px", // Spacing below the table,
+              height:"100%"
+            }}
+          >
+            {loadingTransactions ? (
+              <Loader />
+            ) : (
+              <ListContextProvider
+                value={{
+                  data: transactions,
+                  total: totalRecords,
+                  page,
+                  perPage: pageSize,
+                  setPage: handlePageChange,
+                  setPerPage: handlePageSizeChange,
                 }}
-                rowClick={() => false} // Prevent row click
               >
-                {/* <TextField source="id" label="Transaction Id" /> */}
-                <FunctionField
-                  label="Type"
-                  source="type"
-                  render={(record) => {
-                    const isCashOut = record?.isCashOut === true;
-
-                    return (
-                      <span
-                        style={{
-                          color: isCashOut ? "#FF0000" : "#00A000", // Red for Cashout, Green for Redeem
-                          padding: "8px 8px",
-                          border: `1px solid ${
-                            isCashOut ? "#FF0000" : "#00A000"
-                          }`, // Matching border color
-                          borderRadius: "25px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "18px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {isCashOut ? "W" : "D"}
-                        </span>
-                      </span>
-                    );
+                <div
+                  style={{
+                    overflowX: "auto", // Enable horizontal scrolling
+                    overflowY: "auto",
+                    width: "100%", // Full-width container
+                    marginBottom: "16px", // Spacing below the table
                   }}
-                />
-                <FunctionField
-                  label="Mode"
-                  source="type"
-                  render={(record) => {
-                    console.log(record?.useWallet,"record?.useWalletrecord?.useWallet")
-                    const isCashOut = record?.isCashOut === true;
-                    const useWallet = record?.useWallet === true
-                    return (
-                      <span
-                        style={{
-                          display: "inline-block",
-                          padding: "6px 12px", // Padding for a badge-like appearance
-                          fontSize: "14px", // Moderate font size
-                          fontWeight: "bold", // Bold text for emphasis
-                          color: "#ffffff", // White text for contrast
-                          backgroundColor: isCashOut ? "#4A90E2" : useWallet ? "#63bd44" : "#8E44AD", // Blue for CashOut, Purple for Redeem
-                          borderRadius: "15px", // Rounded edges for a pill-like design
-                          boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-                        }}
-                      >
-                        {isCashOut ? "CashOut" : useWallet ? "Recharge" : "Redeem"}
-                      </span>
-                    );
-                  }}
-                />
-
-                <TextField source="transactionAmount" label="Amount" />
-                <FunctionField
-                  label="Status"
-                  source="status"
-                  render={(record) => {
-                    const getColor = (status) => {
-                      switch (status) {
-                        case 4:
-                          return "green"; // Success
-                        case 8:
-                          return "green"; // Success
+                >
+                  <Datagrid
+                    sx={{
+                      minWidth: "900px", // Set a minimum width to ensure all columns fit
+                      "& .RaDatagrid-row": {
+                        borderBottom: "1px solid #eaeaea",
+                        "&:hover": {
+                          backgroundColor: "#f9f9f9",
+                        },
+                      },
+                      "& .RaDatagrid-header": {
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        borderBottom: "2px solid #dedede",
+                      },
+                      "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                        padding: "8px", // Add consistent padding for readability
+                        textAlign: "left", // Align content to the left
+                      },
+                      "@media (max-width: 600px)": {
+                        // Ensure responsiveness for mobile screens
+                        "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                          padding: "6px", // Reduce padding on mobile
+                        },
+                      },
+                    }}
+                  >
+                    <FunctionField
+                      label="Type"
+                      source="type"
+                      render={(record) => {
+                        const isCashOut = record?.isCashOut === true;
+                        return (
+                          <span
+                            style={{
+                              color: isCashOut ? "#FF0000" : "#00A000",
+                              padding: "8px 8px",
+                              border: `1px solid ${
+                                isCashOut ? "#FF0000" : "#00A000"
+                              }`,
+                              borderRadius: "25px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {isCashOut ? "W" : "D"}
+                          </span>
+                        );
+                      }}
+                    />
+                    <FunctionField
+                      label="Mode"
+                      source="type"
+                      render={(record) => {
+                        const isCashOut = record?.isCashOut === true;
+                        const useWallet = record?.useWallet === true;
+                        return (
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "6px 12px",
+                              fontSize: "14px",
+                              fontWeight: "bold",
+                              color: "#ffffff",
+                              backgroundColor: isCashOut
+                                ? "#4A90E2"
+                                : useWallet
+                                ? "#63bd44"
+                                : "#8E44AD",
+                              borderRadius: "15px",
+                              boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+                            }}
+                          >
+                            {isCashOut
+                              ? "CashOut"
+                              : useWallet
+                              ? "Recharge"
+                              : "Redeem"}
+                          </span>
+                        );
+                      }}
+                    />
+                    <TextField source="transactionAmount" label="Amount" />
+                    <FunctionField
+                      label="Status"
+                      source="status"
+                      render={(record) => {
+                        const getColor = (status) => {
+                          switch (status) {
+                            case 4:
+                            case 8:
                             case 2:
-                          return "green"; // Succes
-                        case 5:
-                          return "red"; // Fail
-                        case 6:
-                          return "orange"; // Pending Approval
-                        case 7:
-                          return "red"; // Rejected
-                        case 11:
-                          return "orange"; // Rejected
-                        case 12:
-                          return "green"; // Rejected
-                        case 13:
-                          return "red"; // Rejected
-                        default:
-                          return "black"; // Default color
-                      }
-                    };
-                    const statusMessage = {
-                      2: "Recharge Successful",
-                      4: "Success",
-                      5: "Fail",
-                      6: "Pending Approval",
-                      7: "Redeem Rejected",
-                      8: "Redeem Successful",
-                      9: "Redeem Expired",
-                      11: "In - Progress",
-                      12: "Cashout Successful",
-                      13: "Cashout Rejected",
-                    }[record.status];
+                              return "green";
+                            case 5:
+                              return "red";
+                            case 6:
+                              return "orange";
+                            case 7:
+                            case 13:
+                              return "red";
+                            case 11:
+                              return "orange";
+                            case 12:
+                              return "green";
+                            default:
+                              return "black";
+                          }
+                        };
+                        const statusMessage = {
+                          2: "Recharge Successful",
+                          4: "Success",
+                          5: "Fail",
+                          6: "Pending Approval",
+                          7: "Redeem Rejected",
+                          8: "Redeem Successful",
+                          9: "Redeem Expired",
+                          11: "In - Progress",
+                          12: "Cashout Successful",
+                          13: "Cashout Rejected",
+                        }[record.status];
 
-                    return (
-                      <span
-                        style={{
-                          color: getColor(record.status),
-                          padding: "4px 8px",
-                          border: `1px solid ${getColor(record.status)}`,
-                          borderRadius: "25px",
-                          display: "inline-block",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {statusMessage}
-                      </span>
-                    );
-                  }}
-                />
-                <DateField
-                  source="transactionDate"
-                  label="Date Created"
-                  showTime
-                />
-                <TextField source="remark" label="Remark" />
-                <TextField
-                  source="redeemRemarks"
-                  label="redeem / cashout Remark"
-                />
-              </Datagrid>
-
-              <Pagination
-                count={Math.ceil((totalRecords * 10) / pageSize)} // Calculate total pages
-                page={page} // Current page
-                onChange={(event, value) => handlePageChange(value)} // Handle page change
-                sx={{
-                  mt: 2,
-                  display: "flex",
-                  justifyContent: "center",
-                  "& .MuiPaginationItem-root": {
-                    color: "#4a4a4a",
-                  },
-                  "& .MuiPaginationItem-root.Mui-selected": {
-                    backgroundColor: "#4caf50",
-                    color: "#ffffff",
-                  },
-                }}
-              />
-            </ListContextProvider>
-          )}
+                        return (
+                          <span
+                            style={{
+                              color: getColor(record.status),
+                              padding: "4px 8px",
+                              border: `1px solid ${getColor(record.status)}`,
+                              borderRadius: "25px",
+                              display: "inline-block",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {statusMessage}
+                          </span>
+                        );
+                      }}
+                    />
+                    <DateField
+                      source="transactionDate"
+                      label="Date Created"
+                      showTime
+                    />
+                    <TextField source="remark" label="Remark" />
+                    <TextField
+                      source="redeemRemarks"
+                      label="Redeem / Cashout Remark"
+                    />
+                  </Datagrid>
+                </div>
+              </ListContextProvider>
+            )}
+          </div>
         </CardContent>
       </Card>
       <CashOutDialog

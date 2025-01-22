@@ -221,7 +221,10 @@ export const dataProvider = {
               "userId",
               "status",
               "transactionAmount",
-              "type"
+              "type",
+              "useWallet",
+              "redeemServiceFee",
+              "isCashOut"
             );
             transactionQuery.containedIn("userId", ids);
             filter.startdate &&
@@ -250,7 +253,10 @@ export const dataProvider = {
               "userId",
               "status",
               "transactionAmount",
-              "type"
+              "type",
+              "useWallet",
+              "redeemServiceFee",
+              "isCashOut"
             );
             filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
@@ -264,6 +270,7 @@ export const dataProvider = {
               );
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
+            console.log(results,"results");
           }
           // Fetch wallet balances for the users
           const walletQuery = new Parse.Query("Wallet");
@@ -320,7 +327,10 @@ export const dataProvider = {
             "userId",
             "status",
             "transactionAmount",
-            "type"
+            "type",
+            "useWallet",
+            "redeemServiceFee",
+            "isCashOut"
           );
           transactionQuery.containedIn("userId", ids);
           filter.startdate &&

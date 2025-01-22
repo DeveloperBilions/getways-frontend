@@ -67,22 +67,34 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
     transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalCashoutRedeemsSuccess = transactions.filter(
       (item) => item.status === 12
-    ).length;
+    ).reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalCashoutRedeemsInProgress = transactions.filter(
       (item) => item.status === 11
-    ).length;
+    ).reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
 
     const totalRedeemSuccessful = transactions.filter(
       (item) => item.status === 8
     ).length;
     const totalRechargeByType = {
       wallet: transactions
-        .filter((item) => item.type === "recharge" && item.useWallet === true)
+        .filter(
+          (item) =>
+            item.type === "recharge" &&
+            item.useWallet === true &&
+            (item.status === 2 || item.status === 3) &&
+            Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
+        )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
       others: transactions
-        .filter((item) => item.type === "recharge" && (item.useWallet === false || item.useWallet == null) && item.status === 2 || item.status === 3)
+        .filter(
+          (item) =>
+            item.type === "recharge" &&
+            (item.useWallet === false || item.useWallet === null || item.useWallet === undefined) &&
+            (item.status === 2 || item.status === 3) &&
+            Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
+        )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
-    };
+    };    
     const totalFeesCharged = transactions
     .filter((item) => item.type === "redeem" && (item.status === 8 || item.status === 4)) // Only consider redeems
     .reduce((sum, item) => {
