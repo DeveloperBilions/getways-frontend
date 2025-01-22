@@ -223,6 +223,12 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
+      InputProps={{
+        inputProps: {
+          min: "2024-12-01",
+          max: new Date().toISOString().split("T")[0],
+        },
+      }}
     />,
     <DateInput
       label="End date"
@@ -231,7 +237,10 @@ export const DataSummary = () => {
       resettable
       // validate={maxValue(currentDate)}
       InputProps={{
-        inputProps: { max: new Date().toISOString().split("T")[0] },
+        inputProps: {
+          min: "2024-12-01",
+          max: new Date().toISOString().split("T")[0],
+        },
       }}
     />,
 
