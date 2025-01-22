@@ -445,6 +445,9 @@ export const DataSummary = () => {
   const nextYearDate = new Date(
     new Date().setFullYear(new Date().getFullYear() + 1)
   ).toLocaleDateString("es-CL");
+  const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
+
   const dataFilters = [
     <AutocompleteInput
       label="User"
@@ -462,6 +465,12 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
+      InputProps={{
+        inputProps: {
+          min: startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
+        },
+      }}
     />,
     <DateInput
       label="End date"
@@ -470,7 +479,10 @@ export const DataSummary = () => {
       resettable
       // validate={maxValue(currentDate)}
       InputProps={{
-        inputProps: { max: new Date().toISOString().split("T")[0] },
+        inputProps: {
+          min: startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
+        },
       }}
     />,
 
