@@ -224,18 +224,22 @@ export const dataProvider = {
               "type",
               "useWallet",
               "redeemServiceFee",
-              "isCashOut"
+              "isCashOut",
+              "transactionIdFromStripe",
+              "transactionDate"
             );
             transactionQuery.containedIn("userId", ids);
+
+
             filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.startdate + " 00:00:00")
+                new Date(filter.startdate + "T00:00:00Z")
               );
             filter.enddate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.enddate + " 23:59:59")
+                new Date(filter.enddate + "T23:59:59Z")
               );
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
@@ -256,17 +260,19 @@ export const dataProvider = {
               "type",
               "useWallet",
               "redeemServiceFee",
-              "isCashOut"
+              "isCashOut",
+              "transactionIdFromStripe",
+              "transactionDate"
             );
             filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.startdate + " 00:00:00")
+                new Date(filter.startdate + "T00:00:00Z")
               );
             filter.enddate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.enddate + " 23:59:59")
+                new Date(filter.enddate + "T23:59:59Z")
               );
             transactionQuery.limit(10000);
             var results = await transactionQuery.find();
@@ -282,7 +288,21 @@ export const dataProvider = {
             acc[wallet.get("userID")] = wallet.get("balance") || 0;
             return acc;
           }, {});
-
+          console.log(
+            filter,
+            "filteration",
+            new Date(Date.UTC(
+              new Date(filter.startdate + "T00:00:00Z").getUTCFullYear(),
+              new Date(filter.startdate + "T00:00:00Z").getUTCMonth(),
+              new Date(filter.startdate + "T00:00:00Z").getUTCDate()
+            )),
+            new Date(Date.UTC(
+              new Date(filter.enddate + "T23:59:59Z").getUTCFullYear(),
+              new Date(filter.enddate + "T23:59:59Z").getUTCMonth(),
+              new Date(filter.enddate + "T23:59:59Z").getUTCDate()
+            ))
+          );
+                 
           result = calculateDataSummaries({
             id: 0,
             users: data,

@@ -87,7 +87,43 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
             Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
         )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
-    };    
+    };   
+    const totalRechargeByTypeData = {
+      wallet: transactions
+        .filter(
+          (item) =>
+            item.type === "recharge" &&
+            item.useWallet === true &&
+            (item.status === 2 || item.status === 3) &&
+            Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
+        )
+        .map((item) => ({
+          transactionId: item.id,
+          amount: item.transactionAmount,
+          date: item.date,
+          status: item.status,
+          paymentType: "wallet",
+          transactionIdFromStripe:item?.transactionIdFromStripe,
+          transactionDate:item?.transactionDate
+        })),
+      others: transactions
+        .filter(
+          (item) =>
+            item.type === "recharge" &&
+            (item.useWallet === false || item.useWallet === null || item.useWallet === undefined) &&
+            (item.status === 2 || item.status === 3) &&
+            Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
+        )
+        .map((item) => ({
+          transactionId: item.id,
+          amount: item.transactionAmount,
+          date: item.date,
+          status: item.status,
+          paymentType: "others",
+          transactionIdFromStripe:item?.transactionIdFromStripe,
+          transactionDate:item?.transactionDate
+        })),
+    }; 
     const totalFeesCharged = transactions
     .filter((item) => item.type === "redeem" && (item.status === 8 || item.status === 4)) // Only consider redeems
     .reduce((sum, item) => {
@@ -116,7 +152,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
         totalRechargeByType,
         totalFeesCharged,
         walletBalances,
-        totalBalance
+        totalBalance,
+        totalRechargeByTypeData
       },
     ],
     total: null,

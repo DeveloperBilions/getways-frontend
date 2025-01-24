@@ -32,6 +32,8 @@ import {
   Select,
   MenuItem,
   Button,
+  Menu,
+  ListItemIcon,
 } from "@mui/material";
 // mui icons
 import PersonIcon from "@mui/icons-material/Person";
@@ -40,13 +42,143 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 import { Label } from "reactstrap";
 import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import BackupTableIcon from "@mui/icons-material/BackupTable";
+import GetAppIcon from "@mui/icons-material/GetApp";
 
 const Summary = () => {
-  const { data, isFetching , isLoading} = useListContext();
+  const { data, isFetching, isLoading } = useListContext();
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
+  const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
 
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleExportRechargePDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.text("Total Recharge Data", 10, 10);
+
+    // Prepare wallet data for PDF
+    const walletTableData = data[0]?.totalRechargeByTypeData?.wallet?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        item.transactionDate,
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+      ]
+    );
+
+    // Prepare others data for PDF
+    const othersTableData = data[0]?.totalRechargeByTypeData?.others?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        item.transactionDate,
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+      ]
+    );
+
+    // Add Wallet Transactions
+    doc.text("Wallet Transactions", 10, 20);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+        ],
+      ],
+      body: walletTableData,
+      startY: 25,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Add Others Transactions
+    doc.text("Others Transactions", 10, doc.lastAutoTable.finalY + 10);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+        ],
+      ],
+      body: othersTableData,
+      startY: doc.lastAutoTable.finalY + 15,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Save PDF
+    doc.save("TotalRechargeData.pdf");
+  };
+
+  const handleExportRechargeXLS = () => {
+    // Combine wallet and others data for Excel
+    const combinedData = [
+      ...data[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": item.transactionDate,
+        Status: item.status,
+        "Stripe Transaction ID": item.transactionIdFromStripe,
+        "Payment Type": item.paymentType,
+      })),
+      ...data[0]?.totalRechargeByTypeData?.others.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": item.transactionDate,
+        Status: item.status,
+        "Stripe Transaction ID": item.transactionIdFromStripe,
+        "Payment Type": item.paymentType,
+      })),
+    ];
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "TotalRechargeData.xlsx"
+    );
+  };
   if (isLoading || !data) {
     return (
       <Box
@@ -72,56 +204,73 @@ const Summary = () => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
-    ...(role === "Super-User" ? [
-    {
-      id: 3,
-      name: "Total Recharge (Filtered)",
-      value: (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{filteredRechargeValue}</span>
-      </div>
-      ),
-      bgColor: "#EBF9F0",
-      borderColor: "#9CDAB8",
-      icon: <PaidIcon color="secondary" />,
-      filter: (
-        <FormControl fullWidth>
-          <Select
-            labelId="recharge-type-select-label"
-            value={selectedRechargeType}
-            onChange={(e) => setSelectedRechargeType(e.target.value)}
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="wallet">Wallet</MenuItem>
-            <MenuItem value="others">Others</MenuItem>
-          </Select>
-        </FormControl>
-      ),
-    }] : []),
-     ...(role === "Agent" ? [
-    {
-      id: 3,
-      name: "Total Recharge (Filtered)",
-      value: (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{filteredRechargeValue}</span>
-      </div>
-      ),
-      bgColor: "#EBF9F0",
-      borderColor: "#9CDAB8",
-      icon: <PaidIcon color="secondary" />,
-    }] : [])
-
+    ...(role === "Super-User"
+      ? [
+          {
+            id: 3,
+            name: "Total Recharge (Filtered)",
+            value: (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{filteredRechargeValue}</span>
+              </div>
+            ),
+            bgColor: "#EBF9F0",
+            borderColor: "#9CDAB8",
+            icon: <PaidIcon color="secondary" />,
+            filter: (
+              <FormControl fullWidth>
+                <Select
+                  labelId="recharge-type-select-label"
+                  value={selectedRechargeType}
+                  onChange={(e) => setSelectedRechargeType(e.target.value)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="wallet">Wallet</MenuItem>
+                  <MenuItem value="others">Others</MenuItem>
+                </Select>
+              </FormControl>
+            ),
+          },
+        ]
+      : []),
+    ...(role === "Agent"
+      ? [
+          {
+            id: 3,
+            name: "Total Recharge (Filtered)",
+            value: (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{filteredRechargeValue}</span>
+              </div>
+            ),
+            bgColor: "#EBF9F0",
+            borderColor: "#9CDAB8",
+            icon: <PaidIcon color="secondary" />,
+          },
+        ]
+      : []),
   ];
   const finalData = [
     {
@@ -143,15 +292,21 @@ const Summary = () => {
     {
       id: 3,
       name: "Total Recharges",
-      value:(
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{data[0].totalRechargeAmount}</span>
-      </div>
+      value: (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
+        >
+          <img
+            src={AOGSymbol}
+            alt="AOG Symbol"
+            style={{ width: "20px", height: "20px", marginRight: "8px" }}
+          />
+          <span>{data[0].totalRechargeAmount}</span>
+        </div>
       ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
@@ -161,14 +316,20 @@ const Summary = () => {
       id: 4,
       name: "Total Redeems",
       value: (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{data[0].totalRedeemAmount}</span>
-      </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
+        >
+          <img
+            src={AOGSymbol}
+            alt="AOG Symbol"
+            style={{ width: "20px", height: "20px", marginRight: "8px" }}
+          />
+          <span>{data[0].totalRedeemAmount}</span>
+        </div>
       ),
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
@@ -177,15 +338,21 @@ const Summary = () => {
     {
       id: 5,
       name: "Pending Recharges",
-      value:(
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{data[0].totalPendingRechargeAmount}</span>
-      </div>
+      value: (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
+        >
+          <img
+            src={AOGSymbol}
+            alt="AOG Symbol"
+            style={{ width: "20px", height: "20px", marginRight: "8px" }}
+          />
+          <span>{data[0].totalPendingRechargeAmount}</span>
+        </div>
       ),
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
@@ -194,55 +361,73 @@ const Summary = () => {
     {
       id: 6,
       name: "Failed Redeems",
-      value:(
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-        <img
-          src={AOGSymbol}
-          alt="AOG Symbol"
-          style={{ width: "20px", height: "20px", marginRight: "8px" }}
-        />
-        <span>{data[0].totalFailRedeemAmount}</span>
-      </div>
+      value: (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
+        >
+          <img
+            src={AOGSymbol}
+            alt="AOG Symbol"
+            style={{ width: "20px", height: "20px", marginRight: "8px" }}
+          />
+          <span>{data[0].totalFailRedeemAmount}</span>
+        </div>
       ),
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
     },
     ...(role === "Agent"
-    ? [
-        {
-          id: 7,
-          name: "Total Cashout Redeems Successful",
-          value:
-          (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-            <img
-              src={AOGSymbol}
-              alt="AOG Symbol"
-              style={{ width: "20px", height: "20px", marginRight: "8px" }}
-            />
-            <span>{data[0].totalCashoutRedeemsSuccess}</span>
-          </div>
-          ),
-          bgColor: "#E3F2FD",
-          borderColor: "#7EB9FB",
-          icon: <PaidIcon color="primary" />,
-        },
-      ] : []),
+      ? [
+          {
+            id: 7,
+            name: "Total Cashout Redeems Successful",
+            value: (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{data[0].totalCashoutRedeemsSuccess}</span>
+              </div>
+            ),
+            bgColor: "#E3F2FD",
+            borderColor: "#7EB9FB",
+            icon: <PaidIcon color="primary" />,
+          },
+        ]
+      : []),
     ...(role === "Super-User"
       ? [
           {
             id: 7,
             name: "Total Cashout Redeems Successful",
             value: (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-              <img
-                src={AOGSymbol}
-                alt="AOG Symbol"
-                style={{ width: "20px", height: "20px", marginRight: "8px" }}
-              />
-              <span>{data[0].totalCashoutRedeemsSuccess}</span>
-            </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{data[0].totalCashoutRedeemsSuccess}</span>
+              </div>
             ),
             bgColor: "#E3F2FD",
             borderColor: "#7EB9FB",
@@ -252,14 +437,20 @@ const Summary = () => {
             id: 8,
             name: "Total Cashout Redeems Pending",
             value: (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-              <img
-                src={AOGSymbol}
-                alt="AOG Symbol"
-                style={{ width: "20px", height: "20px", marginRight: "8px" }}
-              />
-              <span>{data[0].totalCashoutRedeemsInProgress}</span>
-            </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{data[0].totalCashoutRedeemsInProgress}</span>
+              </div>
             ),
             bgColor: "#dedede",
             borderColor: "#adb5bd",
@@ -284,15 +475,21 @@ const Summary = () => {
           {
             id: 11,
             name: "Total Fees Charged",
-            value:(
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-              <img
-                src={AOGSymbol}
-                alt="AOG Symbol"
-                style={{ width: "20px", height: "20px", marginRight: "8px" }}
-              />
-              <span>{data[0].totalFeesCharged}</span>
-            </div>
+            value: (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{data[0].totalFeesCharged}</span>
+              </div>
             ),
             bgColor: "#FFFCEB",
             borderColor: "#FFE787",
@@ -302,14 +499,20 @@ const Summary = () => {
             id: 12,
             name: "Total Wallet Balance",
             value: (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-              <img
-                src={AOGSymbol}
-                alt="AOG Symbol"
-                style={{ width: "20px", height: "20px", marginRight: "8px" }}
-              />
-              <span>{data[0].totalBalance}</span>
-            </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
+                />
+                <span>{data[0].totalBalance}</span>
+              </div>
             ),
             bgColor: "#FFFCEB",
             borderColor: "#FFE787",
@@ -322,66 +525,107 @@ const Summary = () => {
   identity.role === "Agent" && finalData.splice(1, 1);
 
   return (
-    <Grid container spacing={2} mt>
-      {finalData?.map((item) => (
-        <Grid item xs={12} md={4} key={item?.id}>
-          <Card
-            sx={{
-              backgroundColor: item?.bgColor,
-              border: 2,
-              borderColor: item?.borderColor,
-              borderRadius: 0,
-              boxShadow: 0,
-            }}
+    <>
+      {role === "Super-User" && (
+        <Box display="flex" justifyContent="flex-end" sx={{ mb: 2, marginTop:"-40px" }}>
+          <Button
+            variant="contained"
+            startIcon={<GetAppIcon />}
+            onClick={handleMenuOpen}
           >
-            <CardContent>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-              >
-                {item?.icon}
-                &nbsp;{item?.name}
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                {item?.value}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-      {recharge.map((item) => (
-        <Grid item xs={12} md={4} key={item.id}>
-          <Card
-            sx={{
-              backgroundColor: item.bgColor,
-              border: 2,
-              borderColor: item.borderColor,
-              borderRadius: 0,
-              boxShadow: 0,
-            }}
+            Recharge Data Export
+          </Button>
+          <Menu
+            anchorEl={menuAnchor}
+            open={Boolean(menuAnchor)}
+            onClose={handleMenuClose}
           >
-            <CardContent>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-              >
-                {item.icon}
-                &nbsp;{item.name}
-              </Typography>
-              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
-              <Typography
-                variant="h4"
-                sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
-              >
-                {item.value}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
+            <MenuItem
+              onClick={() => {
+                handleExportRechargePDF();
+                handleMenuClose();
+              }}
+            >
+              <ListItemIcon>
+                <PictureAsPdfIcon fontSize="small" />
+              </ListItemIcon>
+              PDF
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleExportRechargeXLS();
+                handleMenuClose();
+              }}
+            >
+              <ListItemIcon>
+                <BackupTableIcon fontSize="small" />
+              </ListItemIcon>
+              Excel
+            </MenuItem>
+          </Menu>
+        </Box>
+      )}
+      <Grid container spacing={2} mt>
+        {finalData?.map((item) => (
+          <Grid item xs={12} md={4} key={item?.id}>
+            <Card
+              sx={{
+                backgroundColor: item?.bgColor,
+                border: 2,
+                borderColor: item?.borderColor,
+                borderRadius: 0,
+                boxShadow: 0,
+              }}
+            >
+              <CardContent>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                >
+                  {item?.icon}
+                  &nbsp;{item?.name}
+                </Typography>
+                <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
+                  {item?.value}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+        {recharge.map((item) => (
+          <Grid item xs={12} md={4} key={item.id}>
+            <Card
+              sx={{
+                backgroundColor: item.bgColor,
+                border: 2,
+                borderColor: item.borderColor,
+                borderRadius: 0,
+                boxShadow: 0,
+              }}
+            >
+              <CardContent>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                >
+                  {item.icon}
+                  &nbsp;{item.name}
+                </Typography>
+                {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+                <Typography
+                  variant="h4"
+                  sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
+                >
+                  {item.value}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </>
   );
 };
 
@@ -414,7 +658,7 @@ const SearchSelectUsersFilter = () => {
 
 export const DataSummary = () => {
   const { identity } = useGetIdentity();
-  const { data, isFetching,isLoading } = useGetList(
+  const { data, isFetching, isLoading } = useGetList(
     "users",
     {
       pagination: { page: 1, perPage: 10000 },
@@ -491,38 +735,40 @@ export const DataSummary = () => {
 
   return (
     <React.Fragment>
-      {(isLoading || !data) ?
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <Loading />
-      </Box> :
-  
-      <ListBase>
-        <FilterForm
-          filters={dataFilters}
-          sx={{
-            flex: "0 2 auto !important",
-            padding: "0px 0px 0px 0px !important",
-            alignItems: "flex-start",
-          }}
-        />
-        {isFetching ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="50vh"
-          >
-            <Loading />
-          </Box>
-        ) : (
-          <Summary />
-        )}
-      </ListBase>}
+      {isLoading || !data ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="50vh"
+        >
+          <Loading />
+        </Box>
+      ) : (
+        <ListBase>
+          <FilterForm
+            filters={dataFilters}
+            sx={{
+              flex: "0 2 auto !important",
+              padding: "0px 0px 0px 0px !important",
+              alignItems: "flex-start",
+            }}
+          />
+
+          {isFetching ? (
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              minHeight="50vh"
+            >
+              <Loading />
+            </Box>
+          ) : (
+            <Summary />
+          )}
+        </ListBase>
+      )}
     </React.Fragment>
   );
 };
