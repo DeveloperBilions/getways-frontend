@@ -28,7 +28,10 @@ export const authProvider = {
       localStorage.setItem("name", user.get("name"));
       localStorage.setItem("username", user.get("username"));
       localStorage.setItem("role", role.get("name"));
-
+      localStorage.setItem(
+        `Parse/${process.env.REACT_APP_APPID}/currentUser`,
+        JSON.stringify({ roleName: role.get("name") })
+      );
       return {
         role: role.get("name"),
       };
@@ -102,6 +105,7 @@ export const authProvider = {
     const currentUserData = localStorage.getItem(
       `Parse/${process.env.REACT_APP_APPID}/currentUser`
     );
+    console.log("ewlkewlewew",currentUserData)
     const roleName = JSON.parse(currentUserData).roleName;
     return roleName;
   },

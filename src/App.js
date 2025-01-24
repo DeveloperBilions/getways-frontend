@@ -74,9 +74,6 @@ function App() {
       queryClient={queryClient}
     >
       {(permissions) => {
-        if (!permissions) {
-          return <div>Loading permissions...</div>; // Fallback UI
-        }
         if (permissions && permissions !== "Player") {
           return (
             <>

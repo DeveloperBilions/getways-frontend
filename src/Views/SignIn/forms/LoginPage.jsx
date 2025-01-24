@@ -74,6 +74,12 @@ const LoginPage = () => {
       if (response?.role === "Player") {
         redirect("/playerDashboard");
       }
+      else if (response?.role === "Super-User") {
+        redirect("/users");
+      }
+      else if (response?.role === "Agent") {
+        redirect("/users");
+      }
     } catch (error) {
       notify(error?.message || "Login failed. Please try again.");
     } finally {
