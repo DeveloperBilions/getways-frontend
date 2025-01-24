@@ -75,7 +75,7 @@ const Summary = () => {
       (item, index) => [
         item.transactionId,
         item.amount,
-        item.transactionDate,
+        new Date(item.transactionDate).toLocaleString(),
         item.status,
         item.transactionIdFromStripe,
         item.paymentType,
@@ -87,7 +87,7 @@ const Summary = () => {
       (item, index) => [
         item.transactionId,
         item.amount,
-        item.transactionDate,
+        new Date(item.transactionDate).toLocaleString(),
         item.status,
         item.transactionIdFromStripe,
         item.paymentType,
@@ -152,7 +152,7 @@ const Summary = () => {
       ...data[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": item.transactionDate,
+        "Transaction Date": new Date(item.transactionDate).toLocaleString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
@@ -160,7 +160,7 @@ const Summary = () => {
       ...data[0]?.totalRechargeByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": item.transactionDate,
+        "Transaction Date": new Date(item.transactionDate).toLocaleString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
