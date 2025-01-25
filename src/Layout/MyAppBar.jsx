@@ -20,6 +20,7 @@ import {
 } from "react-admin";
 import { Title } from "react-admin";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
+import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -30,6 +31,7 @@ export default function MyAppBar({ props }) {
   const { identity } = useGetIdentity();
   const [open, setOpen] = React.useState(false);
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false); // State for Recharge Limit Dialog
+  const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
 
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
@@ -110,10 +112,25 @@ export default function MyAppBar({ props }) {
             Recharge Limit
           </MenuItem>
         )}
+         {role === "Super-User" && (
+          <MenuItem
+            onClick={(e) =>{
+              setDisableDialogOpen(true)
+            }}
+            style={{ color: "#0000008a" }}
+          >
+            <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
+            Payment Methods
+          </MenuItem>
+        )}
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
       <ChangePassword open={open} onClose={handleCloseModal} />
       <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
+      <DisablePaymentMethodDialog
+        open={disableDialogOpen}
+        onClose={() => setDisableDialogOpen(false)}
+      />
     </AppBar>
   );
 }

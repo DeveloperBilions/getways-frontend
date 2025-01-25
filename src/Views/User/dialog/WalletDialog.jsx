@@ -178,14 +178,6 @@ const WalletDialog = ({ open, onClose, record }) => {
           </p>
         </div>}
           <div className="text-end mt-3">
-            {role === "Super-User" && walletDetails &&  
-          <Button
-          className="mr-4"
-                    color="primary"
-                    onClick={() => setDisableDialogOpen(true)}
-                  >
-                    Manage Payment Methods
-                  </Button> }
             <Button color="light" onClick={onClose}>
               Close
             </Button>

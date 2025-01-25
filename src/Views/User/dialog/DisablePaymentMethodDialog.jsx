@@ -12,27 +12,51 @@ import { FaCashRegister, FaPaypal } from "react-icons/fa";
 import { BiLogoVenmo } from "react-icons/bi";
 import { SiZelle } from "react-icons/si";
 import { Switch, CircularProgress } from "@mui/material";
+import { Snackbar, Alert as MuiAlert } from "@mui/material";
 import { Parse } from "parse";
 
-const DisablePaymentMethodDialog = ({ open, onClose, paymentMethods = {},record }) => {
+const DisablePaymentMethodDialog = ({ open, onClose }) => {
   const [disableMethods, setDisableMethods] = useState({
-    cashAppId: paymentMethods?.isCashAppDisabled || false,
-    paypalId: paymentMethods?.isPaypalDisabled || false,
-    venmoId: paymentMethods?.isVenmoDisabled || false,
-    zelleId: paymentMethods?.isZelleDisabled || false,
+    cashAppId: false,
+    paypalId: false,
+    venmoId: false,
+    zelleId: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const userId = record?.id
+  const [success, setSuccess] = useState(false); // State for success message
+
   useEffect(() => {
-    // Update local state when paymentMethods prop changes
-    setDisableMethods({
-      cashAppId: paymentMethods?.isCashAppDisabled || false,
-      paypalId: paymentMethods?.isPaypalDisabled || false,
-      venmoId: paymentMethods?.isVenmoDisabled || false,
-      zelleId: paymentMethods?.isZelleDisabled || false,
-    });
-  }, [paymentMethods]);
+    // Fetch payment methods from the PaymentMethods table
+    const fetchPaymentMethods = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const query = new Parse.Query("PaymentMethods");
+        const paymentMethods = await query.first();
+
+        if (paymentMethods) {
+          setDisableMethods({
+            cashAppId: paymentMethods.get("isCashAppDisabled") || false,
+            paypalId: paymentMethods.get("isPaypalDisabled") || false,
+            venmoId: paymentMethods.get("isVenmoDisabled") || false,
+            zelleId: paymentMethods.get("isZelleDisabled") || false,
+          });
+        } else {
+          throw new Error("No PaymentMethods record found.");
+        }
+      } catch (err) {
+        setError(err.message || "An error occurred while loading data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (open) {
+      fetchPaymentMethods();
+    }
+  }, [open]);
 
   const handleToggleDisable = (method) => {
     setDisableMethods((prev) => ({
@@ -46,33 +70,33 @@ const DisablePaymentMethodDialog = ({ open, onClose, paymentMethods = {},record 
       (disabled) => !disabled
     ).length;
 
-    // Validation: At least one payment method must remain enabled
     if (enabledMethods === 0) {
       setError("At least one payment method must be enabled.");
       return;
     }
 
-    setError(""); // Clear any previous errors
+    setError("");
     setLoading(true);
 
     try {
-      // Update Parse Wallet data
-      const walletQuery = new Parse.Query("Wallet");
-      walletQuery.equalTo("userID", userId); // Query by the user ID
-      const wallet = await walletQuery.first();
+      const query = new Parse.Query("PaymentMethods");
+      const paymentMethods = await query.first();
 
-      if (!wallet) {
-        throw new Error("Wallet not found.");
+      if (!paymentMethods) {
+        throw new Error("PaymentMethods record not found.");
       }
 
-      wallet.set("isCashAppDisabled", disableMethods.cashAppId);
-      wallet.set("isPaypalDisabled", disableMethods.paypalId);
-      wallet.set("isVenmoDisabled", disableMethods.venmoId);
-      wallet.set("isZelleDisabled", disableMethods.zelleId);
+      paymentMethods.set("isCashAppDisabled", disableMethods.cashAppId);
+      paymentMethods.set("isPaypalDisabled", disableMethods.paypalId);
+      paymentMethods.set("isVenmoDisabled", disableMethods.venmoId);
+      paymentMethods.set("isZelleDisabled", disableMethods.zelleId);
 
-      await wallet.save(null);
-
-      onClose(); // Close dialog after successful save
+      await paymentMethods.save(null);
+      setSuccess(true); // Show success message
+      setTimeout(() => {
+        setSuccess(false);
+        onClose(); // Close dialog after success message disappears
+      }, 2000);
     } catch (err) {
       setError(err.message || "An error occurred while saving.");
     } finally {
@@ -87,6 +111,11 @@ const DisablePaymentMethodDialog = ({ open, onClose, paymentMethods = {},record 
         {error && (
           <Alert color="danger" className="mb-3">
             {error}
+          </Alert>
+        )}
+         {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Payment methods changed successfully
           </Alert>
         )}
         <ListGroup flush>

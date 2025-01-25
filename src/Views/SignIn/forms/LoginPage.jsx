@@ -67,19 +67,22 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const response = await login({ email: emailPhoneParams, password });
-      await refetch();
-      refresh();
-
-      setLoading(false);
-      if (response?.role === "Player") {
-        redirect("/playerDashboard");
-      }
-      else if (response?.role === "Super-User") {
-        redirect("/users");
-      }
-      else if (response?.role === "Agent") {
-        redirect("/users");
-      }
+      setTimeout(async() =>{
+        await refetch();
+        refresh();
+  
+        setLoading(false);
+        if (response?.role === "Player") {
+          redirect("/playerDashboard");
+        }
+        else if (response?.role === "Super-User") {
+          redirect("/users");
+        }
+        else if (response?.role === "Agent") {
+          redirect("/users");
+        }
+      },2000)
+      
     } catch (error) {
       notify(error?.message || "Login failed. Please try again.");
     } finally {

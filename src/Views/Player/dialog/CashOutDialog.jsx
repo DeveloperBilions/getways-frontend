@@ -35,8 +35,13 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     cashAppId: "",
     paypalId: "",
     venmoId: "",
-    zelleId:""
+    zelleId: "",
+    isCashAppDisabled: false,
+    isPaypalDisabled: false,
+    isVenmoDisabled: false,
+    isZelleDisabled: false,
   });
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false); // Loading state for fetching payment methods
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // New state for selected payment method
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
     useState(false);
@@ -66,17 +71,46 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
       console.log(wallet,"walletdata")
-      const { cashAppId, paypalId, venmoId, objectId, balance,zelleId,isCashAppDisabled,isVenmoDisabled,isPaypalDisabled,isZelleDisabled } = wallet.wallet;
+      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance} = wallet.wallet;
       setBalance(balance);
-      setPaymentMethods({ cashAppId, paypalId, venmoId,zelleId ,isCashAppDisabled,isVenmoDisabled,isPaypalDisabled,isZelleDisabled});
+      setPaymentMethods((prev) => ({
+        ...prev,
+        cashAppId,
+        paypalId,
+        venmoId,
+        zelleId,
+      }));
       setWalletId(objectId);
     }
 
     if (open) {
       WalletService();
+      fetchPaymentMethods(); // Fetch payment methods when the modal is open
     }
   }, [open]);
-
+  const fetchPaymentMethods = async () => {
+    setLoadingPaymentMethods(true);
+    try {
+      const query = new Parse.Query("PaymentMethods");
+      const paymentMethodsRecord = await query.first(); // Fetch the first (and only) record
+      if (paymentMethodsRecord) {
+        setPaymentMethods((prev) => ({
+          ...prev,
+          isCashAppDisabled: paymentMethodsRecord.get("isCashAppDisabled") || false,
+          isPaypalDisabled: paymentMethodsRecord.get("isPaypalDisabled") || false,
+          isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
+          isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
+        }));
+      } else {
+        setErrorMessage("No payment methods found in the table.");
+      }
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      setErrorMessage("Failed to fetch payment methods.");
+    } finally {
+      setLoadingPaymentMethods(false);
+    }
+  };
   const handleConfirm = () => {
     const { cashAppId, paypalId, venmoId,zelleId } = paymentMethods;
     const methodCount = [cashAppId, paypalId, venmoId,zelleId].filter(Boolean).length;
@@ -219,6 +253,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
     { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
   ];
+  console.log(paymentMethods,"paymentMethods")
   return (
     <React.Fragment>
       {loading ? (
@@ -234,6 +269,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 {errorMessage}
               </Alert>
             )}
+            {loadingPaymentMethods && <Loader message="Fetching available payment methods..." />}
             <Form>
               <Row>
                 <Col md={12}>

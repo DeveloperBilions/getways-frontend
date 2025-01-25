@@ -98,15 +98,14 @@ export const authProvider = {
       userParentName: user.get("userParentName"),
       userParentId: user.get("userParentId"),
       role: role.get("name"),
-      rechargeLimit: user.get("rechargeLimit")
+      rechargeLimit: user.get("rechargeLimit"),
+      isPasswordPermission:user.get("isPasswordPermission")
     };
   },
   async getPermissions() {
-    const currentUserData = localStorage.getItem(
-      `Parse/${process.env.REACT_APP_APPID}/currentUser`
-    );
+    const currentUserData = localStorage.getItem('role');
     console.log("ewlkewlewew",currentUserData)
-    const roleName = JSON.parse(currentUserData).roleName;
+    const roleName = currentUserData;
     return roleName;
   },
 };

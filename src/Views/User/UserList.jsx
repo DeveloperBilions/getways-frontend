@@ -28,11 +28,12 @@ import RedeemServiceDialog from "./dialog/RedeemService";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
 // mui
-import { Menu, MenuItem, Button,Box } from "@mui/material";
+import { Menu, MenuItem, Button, Box } from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
 import WalletDialog from "./dialog/WalletDialog";
+import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -47,7 +48,10 @@ const CustomButton = ({ fetchAllUsers }) => {
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
   const [walletDialogOpen, setWalletDialogOpen] = useState(false); // Wallet Dialog state
-  const role = localStorage.getItem("role")
+  const [passwordPermissionDialogOpen, setPasswordPermissionDialogOpen] =
+    useState(false);
+
+  const role = localStorage.getItem("role");
   const record = useRecordContext();
   const resource = useResourceContext();
   if (!record) return null;
@@ -122,8 +126,15 @@ const CustomButton = ({ fetchAllUsers }) => {
         {record?.roleName === "Agent" && (
           <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
         )}
+        {record?.roleName === "Agent" && (
+          <MenuItem onClick={() => {
+            setAnchorEl(null);
+            setPasswordPermissionDialogOpen(true)}}>
+            Password Permission
+          </MenuItem>
+        )}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
-        {record?.roleName === "Player"  && (
+        {record?.roleName === "Player" && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
         )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
@@ -167,10 +178,16 @@ const CustomButton = ({ fetchAllUsers }) => {
         fetchAllUsers={fetchAllUsers}
         handleRefresh={handleRefresh}
       />
-        <WalletDialog
+      <WalletDialog
         open={walletDialogOpen}
         onClose={() => setWalletDialogOpen(false)}
         record={record} // Pass the record to fetch wallet details
+      />
+      <PasswordPermissionDialog
+        open={passwordPermissionDialogOpen}
+        onClose={() => setPasswordPermissionDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
       />
     </React.Fragment>
   );
@@ -281,52 +298,56 @@ export const UserList = (props) => {
 
   return (
     <Box
-        // sx={{
-        //   display: "flex",
-        //   justifyContent: "space-between",
-        //   alignItems: "center",
-        //   width: "100%"
-        // }}
-      >
-    {(isLoading || !data) ? <Loader /> : 
-    <List
-      title="User Management"
-      filters={dataFilters}
-      sx={{ pt: 1 }}
-      actions={<PostListActions />}
-      empty={false}
-      // filter={{ userReferralCode: "" }}
-      filter={{
-        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-      }}
-      {...props}
-      sort={{ field: "createdAt", order: "DESC" }}
+    // sx={{
+    //   display: "flex",
+    //   justifyContent: "space-between",
+    //   alignItems: "center",
+    //   width: "100%"
+    // }}
     >
-      <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
-        <TextField source="username" label="User Name" />
-        <TextField source="email" label="Email" />
-        {identity?.role === "Super-User" && (
-          <TextField source="userParentName" label="Parent User" />
-        )}
-        {identity?.role === "Super-User" && (
-          <TextField source="roleName" label="User Type" />
-        )}
-        <DateField source="createdAt" label="Date" showTime />
-        <WrapperField label="Actions">
-          <CustomButton fetchAllUsers={fetchAllUsers} />
-        </WrapperField>
-      </Datagrid>
-      <CreateUserDialog
-        open={userCreateDialogOpen}
-        onClose={() => setUserCreateDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
-      />
-      <ReferralDialog
-        open={referralDialogOpen}
-        onClose={() => setReferralDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
-        referralCode={referralCode}
-      />
-    </List>}</Box>
+      {isLoading || !data ? (
+        <Loader />
+      ) : (
+        <List
+          title="User Management"
+          filters={dataFilters}
+          sx={{ pt: 1 }}
+          actions={<PostListActions />}
+          empty={false}
+          // filter={{ userReferralCode: "" }}
+          filter={{
+            $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+          }}
+          {...props}
+          sort={{ field: "createdAt", order: "DESC" }}
+        >
+          <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
+            <TextField source="username" label="User Name" />
+            <TextField source="email" label="Email" />
+            {identity?.role === "Super-User" && (
+              <TextField source="userParentName" label="Parent User" />
+            )}
+            {identity?.role === "Super-User" && (
+              <TextField source="roleName" label="User Type" />
+            )}
+            <DateField source="createdAt" label="Date" showTime />
+            <WrapperField label="Actions">
+              <CustomButton fetchAllUsers={fetchAllUsers} />
+            </WrapperField>
+          </Datagrid>
+          <CreateUserDialog
+            open={userCreateDialogOpen}
+            onClose={() => setUserCreateDialogOpen(false)}
+            fetchAllUsers={fetchAllUsers}
+          />
+          <ReferralDialog
+            open={referralDialogOpen}
+            onClose={() => setReferralDialogOpen(false)}
+            fetchAllUsers={fetchAllUsers}
+            referralCode={referralCode}
+          />
+        </List>
+      )}
+    </Box>
   );
 };

@@ -60,6 +60,7 @@ export const Wallet = () => {
   useEffect(() => {
     WalletService();
     fetchTransactions(page, pageSize);
+    
   }, [page, pageSize]);
 
   async function WalletService() {

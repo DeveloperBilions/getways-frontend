@@ -121,7 +121,8 @@ export const dataProvider = {
         "name",
         "username",
         "userReferralCode",
-        "email"
+        "email",
+        "isPasswordPermission"
       );
       var results = await usrQuery.find({ useMasterKey: true });
       results.push(user);
