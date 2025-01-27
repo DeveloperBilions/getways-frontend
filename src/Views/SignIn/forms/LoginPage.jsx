@@ -63,6 +63,7 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     const password = data?.password;
+    localStorage.clear()
 
     setLoading(true);
     try {

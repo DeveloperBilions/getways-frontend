@@ -40,7 +40,7 @@ const LoginPage = () => {
       setLoading(true);
 
       const response = await Parse.Cloud.run("checkpresence", data);
-
+      localStorage.clear()
       if (response?.fromAgentExcel) {
         redirect(
           `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
