@@ -111,7 +111,11 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setErrorMessage("Refund cannot be processed without a payment mode.");
       return;
     }
-
+    if (redeemAmount <= 0) {
+      setErrorMessage("RedeemAmount amount cannot be negative or 0. Please enter a valid amount.");
+      return;
+    }
+    
     const rawData = {
       ...record,
       redeemServiceFee: redeemFees,
@@ -232,6 +236,12 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       min="0"
                       onChange={(e) => setRedeemAmount(e.target.value)}
                       required
+                      onKeyDown={(e) =>{
+                        if (e.keyCode === 190) {
+                          // Prevent the default behavior of typing a decimal
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </FormGroup>
                 </Col>
