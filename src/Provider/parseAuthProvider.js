@@ -32,6 +32,10 @@ export const authProvider = {
         `Parse/${process.env.REACT_APP_APPID}/currentUser`,
         JSON.stringify({ roleName: role.get("name") })
       );
+      localStorage.setItem(
+        `Parse/${process.env.REACT_APP_APPID}/sessionToken`,
+        sessionToken
+      );
       return {
         role: role.get("name"),
       };
@@ -85,22 +89,52 @@ export const authProvider = {
     }
   },
   async getIdentity() {
-    const user = Parse.User.current();
-    const roleQuery = new Parse.Query(Parse.Role);
-    roleQuery.equalTo("users", user);
-    const role = await roleQuery.first({ useMasterKey: true });
-    return {
-      objectId: user.id,
-      email: user.get("email"),
-      name: user.get("name"),
-      username: user.get("username"),
-      redeemService: user.get("redeemService"),
-      userParentName: user.get("userParentName"),
-      userParentId: user.get("userParentId"),
-      role: role.get("name"),
-      rechargeLimit: user.get("rechargeLimit"),
-      isPasswordPermission:user.get("isPasswordPermission")
-    };
+    try {
+      let user = Parse.User.current();
+  
+      // Restore session if user is null
+      if (!user) {
+        const sessionToken = localStorage.getItem(
+          `Parse/${process.env.REACT_APP_APPID}/sessionToken`
+        );
+  
+        if (sessionToken) {
+          console.log("Restoring session...");
+          try {
+            user = await Parse.User.become(sessionToken);
+          } catch (err) {
+            console.error("Session restoration failed:", err);
+            throw new Error("Session expired. Please log in again.");
+          }
+        } else {
+          throw new Error("No active session found.");
+        }
+      }
+  
+      // Ensure the user is fully fetched
+      user = await user.fetch();
+  
+      // Fetch the user's role
+      const roleQuery = new Parse.Query(Parse.Role);
+      roleQuery.equalTo("users", user);
+      const role = await roleQuery.first({ useMasterKey: true });
+  
+      return {
+        objectId: user.id,
+        email: user.get("email"),
+        name: user.get("name"),
+        username: user.get("username"),
+        redeemService: user.get("redeemService"),
+        userParentName: user.get("userParentName"),
+        userParentId: user.get("userParentId"),
+        role: role ? role.get("name") : "Unknown",
+        rechargeLimit: user.get("rechargeLimit"),
+        isPasswordPermission: user.get("isPasswordPermission"),
+      };
+    } catch (error) {
+      console.error("Error getting user identity:", error);
+      return null;
+    }
   },
   async getPermissions() {
     const currentUserData = localStorage.getItem('role');

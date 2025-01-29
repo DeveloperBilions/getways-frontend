@@ -37,9 +37,9 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
       .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalRedeemAmount =
-    transactions
+  Math.floor( transactions
     .filter((item) => item.type === "redeem" && (item.status === 8 || item.status === 4))
-      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
+      .reduce((sum, item) => sum + item.transactionAmount, 0) || 0);
   const totalPendingRechargeAmount =
     transactions
       .filter((item) => item.status === 1)
