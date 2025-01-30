@@ -39,7 +39,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
     setUserName("");
     setRechargeAmount("");
     setRemark("");
-    setPaymentSource("wallet");
+    setPaymentSource("stripe");
     setErrorMessage(""); // Reset error message
   };
 
@@ -221,8 +221,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       value={paymentSource}
                       onChange={(e) => setPaymentSource(e.target.value)}
                     >
-                      <option value="wallet">Wallet</option>
                       <option value="stripe">Payment Portal</option>
+                      <option value="wallet">Wallet</option>
                     </Input>
                     <small>
                       Wallet Balance:{" "}
