@@ -29,7 +29,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   const [rechargeAmount, setRechargeAmount] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
-  const [paymentSource, setPaymentSource] = useState("wallet");
+  const [paymentSource, setPaymentSource] = useState("stripe");
   const [walletBalance, setWalletBalance] = useState(0);
   const [redeemFees, setRedeemFees] = useState();
   const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
