@@ -73,6 +73,10 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       return;
     }
 
+    if (!record?.id) {
+      setError("User Not Found");
+      return;
+    }
     const rawData = {
       userId: record?.id,
       redeemService: serviceFee,
