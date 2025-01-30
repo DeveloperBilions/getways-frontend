@@ -107,6 +107,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     try {
       if (permissions === "Super-User") {
         if (userType === "Agent") {
+          if(!identity?.objectId && !identity?.name)
+          {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
           await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
@@ -124,6 +129,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           refresh();
           setLoading(false);
         } else if (userType === "Player") {
+           if(!parentType?.id && !parentType?.name)
+          {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
           await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
