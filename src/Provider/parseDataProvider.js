@@ -426,7 +426,7 @@ export const dataProvider = {
       } else if (resource === "playerDashboard") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { username: username };
+        filter = { userId: userid };
 
         filter &&
           Object.keys(filter).map((f) => {
