@@ -430,7 +430,7 @@ export const dataProvider = {
 
         filter &&
           Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
+            if (f === "username") query.equalTo(f, filter[f]);
             else query.equalTo(f, filter[f]);
           });
 
