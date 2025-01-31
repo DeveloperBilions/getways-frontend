@@ -149,13 +149,14 @@ function App() {
               </CustomRoutes>
             </>
           );
-        }
-        return (
+        }else{        
+          
+          return (
           <CustomRoutes noLayout>
             <Route path="*" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
           </CustomRoutes>
-        );
+        );}
       }}
 
       <CustomRoutes>

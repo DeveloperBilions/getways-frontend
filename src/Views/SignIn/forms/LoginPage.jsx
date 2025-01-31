@@ -59,37 +59,32 @@ const LoginPage = () => {
 
   const [loading, setLoading] = useState(false);
 
-  refresh();
-
   const onSubmit = async (data) => {
     const password = data?.password;
-    localStorage.clear()
-
     setLoading(true);
     try {
       const response = await login({ email: emailPhoneParams, password });
-      setTimeout(async() =>{
-        await refetch();
-        refresh();
-  
-        setLoading(false);
-        if (response?.role === "Player") {
-          redirect("/playerDashboard");
-        }
-        else if (response?.role === "Super-User") {
-          redirect("/users");
-        }
-        else if (response?.role === "Agent") {
-          redirect("/users");
-        }
-      },2000)
-      
+      await refetch();
+      await refresh()
+      setTimeout(() => {
+      // Handle redirection based on role
+      if (response?.role === "Player") {
+        redirect("/playerDashboard");
+      } else if (response?.role === "Super-User" || response?.role === "Agent") {
+        redirect("/users");
+      }
+    },5)
     } catch (error) {
       notify(error?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
+      // Adding a small delay before refresh
+      setTimeout(() => {
+        refresh();
+      }, 0); // Delay is set to 0 ms, just deferring it to the next event loop
     }
   };
+  
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword((show) => !show);

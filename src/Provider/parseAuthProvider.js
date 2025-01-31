@@ -20,24 +20,20 @@ export const authProvider = {
       console.log("LOGGED IN");
       // Set the current user session using the session token
       const currentUser = await Parse.User.become(sessionToken);
-
-      const roleQuery = new Parse.Query(Parse.Role);
-      roleQuery.equalTo("users", user);
-      const role = await roleQuery.first({ useMasterKey: true });
+      localStorage.setItem("role", user.get("roleName"));
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
       localStorage.setItem("username", user.get("username"));
-      localStorage.setItem("role", role.get("name"));
       localStorage.setItem(
         `Parse/${process.env.REACT_APP_APPID}/currentUser`,
-        JSON.stringify({ roleName: role.get("name") })
+        JSON.stringify({ roleName: user.get("roleName") })
       );
       localStorage.setItem(
         `Parse/${process.env.REACT_APP_APPID}/sessionToken`,
         sessionToken
       );
       return {
-        role: role.get("name"),
+        role: user.get("roleName"),
       };
     } catch (error) {
       throw Error(error.message);
@@ -54,10 +50,8 @@ export const authProvider = {
     }
   },
   async checkAuth() {
-    const currentUserData = localStorage.getItem(
-      `Parse/${process.env.REACT_APP_APPID}/currentUser`
-    );
-    const roleName = JSON.parse(currentUserData).roleName;
+    const currentUserData = localStorage.getItem("role");
+    const roleName = currentUserData;
     if (!roleName) {
       const error = new Error();
       error.redirectTo = "/login";
@@ -99,7 +93,6 @@ export const authProvider = {
         );
   
         if (sessionToken) {
-          console.log("Restoring session...");
           try {
             user = await Parse.User.become(sessionToken);
           } catch (err) {
@@ -114,11 +107,6 @@ export const authProvider = {
       // Ensure the user is fully fetched
       user = await user.fetch();
   
-      // Fetch the user's role
-      const roleQuery = new Parse.Query(Parse.Role);
-      roleQuery.equalTo("users", user);
-      const role = await roleQuery.first({ useMasterKey: true });
-  
       return {
         objectId: user.id,
         email: user.get("email"),
@@ -127,7 +115,7 @@ export const authProvider = {
         redeemService: user.get("redeemService"),
         userParentName: user.get("userParentName"),
         userParentId: user.get("userParentId"),
-        role: role ? role.get("name") : "Unknown",
+        role: user.get("roleName"),
         rechargeLimit: user.get("rechargeLimit"),
         isPasswordPermission: user.get("isPasswordPermission"),
       };
@@ -138,7 +126,6 @@ export const authProvider = {
   },
   async getPermissions() {
     const currentUserData = localStorage.getItem('role');
-    console.log("ewlkewlewew",currentUserData)
     const roleName = currentUserData;
     return roleName;
   },
