@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -74,7 +74,6 @@ export const RedeemRecordsList = (props) => {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "transactionDate", order: "DESC" },
   });
-  console.log("isLoadingisLoading",isFetching)
   if (!role) {
     navigate("/login");
   }
@@ -136,7 +135,13 @@ export const RedeemRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
-
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleRefresh();
+    }, 60000); // 60,000 ms = 1 minute
+  
+    return () => clearInterval(interval); // Cleanup when unmounted
+  }, []);  
   const handleExportPDF = async () => {
     const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {

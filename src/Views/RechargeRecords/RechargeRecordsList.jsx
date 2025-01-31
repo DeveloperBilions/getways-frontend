@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -145,7 +145,13 @@ export const RechargeRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
-
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleRefresh();
+    }, 60000); // 60,000 ms = 1 minute
+  
+    return () => clearInterval(interval); // Cleanup when unmounted
+  }, []);  
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
     setCreditCoinDialogOpen(true);

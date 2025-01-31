@@ -195,6 +195,7 @@ const CustomButton = ({ fetchAllUsers }) => {
 
 export const UserList = (props) => {
   const navigate = useNavigate();
+  const refresh = useRefresh();
   const { identity } = useGetIdentity();
   // const [create, { isPending, error }] = useCreate();
 
@@ -216,6 +217,9 @@ export const UserList = (props) => {
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
   };
+  const handleRefresh = async () => {
+    refresh();
+  }
 
   function generateRandomString() {
     const characters =
@@ -292,6 +296,14 @@ export const UserList = (props) => {
   useEffect(() => {
     fetchAllUsers();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleRefresh();
+    }, 60000); // 60,000 ms = 1 minute
+  
+    return () => clearInterval(interval); // Cleanup when unmounted
+  }, []);  
 
   if (isLoading || !data) {
     return <Loader />;
