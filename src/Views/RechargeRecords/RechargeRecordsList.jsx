@@ -376,6 +376,7 @@ export const RechargeRecordsList = (props) => {
             : { type: "recharge", status: 1 }
         }
         sort={{ field: "transactionDate", order: "DESC" }}
+        emptyWhileLoading={true}
       >
         <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />

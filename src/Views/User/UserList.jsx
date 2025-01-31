@@ -261,6 +261,7 @@ export const UserList = (props) => {
 
   const PostListActions = () => (
     <TopToolbar>
+      {role != "Super-User" && 
       <Button
         variant="contained"
         color="primary"
@@ -269,7 +270,7 @@ export const UserList = (props) => {
         onClick={handleGenerateLink}
       >
         Referral Link
-      </Button>
+      </Button>}
       <Button
         variant="contained"
         color="primary"

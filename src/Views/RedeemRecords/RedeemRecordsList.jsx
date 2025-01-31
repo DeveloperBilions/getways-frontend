@@ -350,6 +350,7 @@ export const RedeemRecordsList = (props) => {
         empty={false}
         {...props}
         sort={{ field: "transactionDate", order: "DESC" }}
+        emptyWhileLoading={true}
       >
         <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />
