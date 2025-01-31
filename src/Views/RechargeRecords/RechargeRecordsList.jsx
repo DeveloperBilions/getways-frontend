@@ -40,6 +40,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CircularProgress from "@mui/material/CircularProgress";
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -49,6 +50,7 @@ import { saveAs } from "file-saver";
 import { Loader } from "../Loader";
 
 import { Parse } from "parse";
+import { dataProvider } from "../../Provider/parseDataProvider";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -66,9 +68,9 @@ export const RechargeRecordsList = (props) => {
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [statusValue, setStatusValue] = useState();
-
-  console.log("@@@", searchValue);
-  console.log("###", statusValue);
+  const [data, setData] = useState(null); // Initialize data as null
+  const [isExporting, setIsExporting] = useState(false); // Track export state
+  const [exportError, setExportError] = useState(null); // Store any export errors
 
   const role = localStorage.getItem("role");
 
@@ -76,17 +78,38 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, isPending, isFetching, isLoading  } = useGetList("rechargeRecordsExport", {
-    sort: { field: "transactionDate", order: "DESC" },
-    filter: {
-      ...(searchValue && { username: searchValue }),
-      ...(statusValue && { status: statusValue }),
-    },
-  });
+  // const { data, isPending, isFetching, isLoading  } = useGetList("rechargeRecordsExport", {
+  //   sort: { field: "transactionDate", order: "DESC" },
+  //   filter: {
+  //     ...(searchValue && { username: searchValue }),
+  //     ...(statusValue && { status: statusValue }),
+  //   },
+  // });
+  const fetchDataForExport = async () => {
+    setIsExporting(true); // Set exporting to true before fetching
+    setExportError(null); // Clear any previous errors
 
-  console.log("*****", useGetList);
-
-  // Map numeric status to corresponding string message
+    try {
+      const { data } = await dataProvider.getList("rechargeRecordsExport", {
+        pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
+        sort: { field: "transactionDate", order: "DESC" },
+        filter: {
+          ...(searchValue && { username: searchValue }),
+          ...(statusValue && { status: statusValue }),
+        },
+      });
+      console.log(data,"datafromrechargeRecordsExport")
+      setData(data);
+      return data; // Return the fetched data
+    } catch (error) {
+      console.error("Error fetching data for export:", error);
+      setExportError("Error fetching data for export."); // Set the error message
+      setData(null); // Reset data to null in case of error
+      return null; // Return null to indicate failure
+    } finally {
+      setIsExporting(false); // Set exporting to false after fetch, regardless of success/failure
+    }
+  };
   const mapStatus = (status) => {
     switch (status) {
       case 0:
@@ -113,19 +136,6 @@ export const RechargeRecordsList = (props) => {
         return "Unknown Status";
     }
   };
-
-  // 0: "Pending Referral Link"
-  // 1: "Pending Confirmation"
-  // 2: "Confirmed" - btn dispaly "Coins Credit"
-  // 3: "Coins Credited" for status
-  // 4: "Redeem Success"
-  // 5: "Redeem Faile"
-  // 6: "Pending Approval"
-  // 7: "Rejected" -  Redeem Request Rejected
-  // 8: "Review"
-  // 9: "Expired"
-  // 10: "Failed Transaction"
-
   const totalTransactionAmount =
     data &&
     data
@@ -151,12 +161,17 @@ export const RechargeRecordsList = (props) => {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    if (!exportData || exportData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
       head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
-      body: data.map((row, index) => [
+      body: exportData.map((row, index) => [
         index + 1,
         row.username,
         row.transactionAmount,
@@ -168,8 +183,13 @@ export const RechargeRecordsList = (props) => {
     doc.save("RechargeRecords.pdf");
   };
 
-  const handleExportXLS = () => {
-    const selectedFields = data.map((item) => ({
+  const handleExportXLS = async () => {
+    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    if (!exportData || exportData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
+    const selectedFields = exportData.map((item) => ({
       Name: item.username,
       "Amount($)": item.transactionAmount,
       Remark: item.remark,
@@ -208,29 +228,6 @@ export const RechargeRecordsList = (props) => {
       console.log(e.target.value);
     }
   };
-  // const SelectUserInput = () => {
-  //   console.log("ROLE", permissions);
-  //   return permissions != "Player" ? (
-  // <SelectInput
-  //   label="Status"
-  //   source="status"
-  //   emptyText="All"
-  //   choices={[
-  //     { id: 0, name: "Pending Referral Link" },
-  //     { id: 1, name: "Pending Confirmation" },
-  //     { id: 2, name: "Confirmed" },
-  //     { id: 3, name: "Coins Credited" },
-  //     { id: 4, name: "Status Unknown" },
-  //   ]}
-  // />;
-  //   ) : null;
-  // };
-
-  // const dataFilters = [
-  //   <SearchInput source="username" alwaysOn resettable />,
-  //   <SelectUserInput alwaysOn resettable />,
-  // ];
-
   const dataFilters = [
     <SearchInput
       source="username"
@@ -299,11 +296,16 @@ export const RechargeRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportPDF();
-            handleMenuClose();
+            //handleMenuClose();
           }}
+          disabled={isExporting}
         >
           <ListItemIcon>
-            <PictureAsPdfIcon fontSize="small" />
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PictureAsPdfIcon fontSize="small" />
+            )}
           </ListItemIcon>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             PDF file
@@ -312,11 +314,16 @@ export const RechargeRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportXLS();
-            handleMenuClose();
+           // handleMenuClose();
           }}
+          disabled={isExporting}
         >
           <ListItemIcon>
-            <BackupTableIcon fontSize="small" />
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <BackupTableIcon fontSize="small" />
+            )}
           </ListItemIcon>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Excel file
@@ -326,13 +333,6 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
-  if (isPending || !data) {
-    return <Loader />;
-  }
-
-  if (isFetching || !data) {
-    return <Loader />;
-  }
   return (
     <>
       <Box
@@ -363,7 +363,6 @@ export const RechargeRecordsList = (props) => {
           </>
         )}
       </Box>
-          {(isPending || isFetching || isLoading || !data ) ?<Loader /> : 
       <List
         title="Recharge Records"
         filters={dataFilters}
@@ -426,16 +425,14 @@ export const RechargeRecordsList = (props) => {
               );
             }}
           />
-          {role === "Super-User" && 
-            <FunctionField  label="Mode"
-             render={(record) => {
-              return (
-                <Chip
-                  label={record?.useWallet ? "Wallet" : "Stripe"}
-                />
-              );
-             }}
-            />}
+          {role === "Super-User" && (
+            <FunctionField
+              label="Mode"
+              render={(record) => {
+                return <Chip label={record?.useWallet ? "Wallet" : "Stripe"} />;
+              }}
+            />
+          )}
           <DateField source="transactionDate" label="RechargeDate" showTime />
           <FunctionField
             label="Action"
@@ -513,7 +510,7 @@ export const RechargeRecordsList = (props) => {
             handleRefresh={handleRefresh}
           />
         )}
-      </List>}
+      </List>
     </>
   );
 };

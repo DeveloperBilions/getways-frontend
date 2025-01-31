@@ -45,6 +45,8 @@ import { Loader } from "../Loader";
 import { Parse } from "parse";
 import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
 import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
+import CircularProgress from "@mui/material/CircularProgress";
+import { dataProvider } from "../../Provider/parseDataProvider";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -54,7 +56,7 @@ export const RedeemRecordsList = (props) => {
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
-  const [cashout,setCashout]=useState(false)
+  const [cashout, setCashout] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -63,22 +65,45 @@ export const RedeemRecordsList = (props) => {
   const [finalredeemDialogOpen, setFinalRedeemDialogOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [statusValue, setStatusValue] = useState();
+  const [Data, setData] = useState(null); // Initialize data as null
+  const [isExporting, setIsExporting] = useState(false); // Track export state
+  const [exportError, setExportError] = useState(null); // Store any export errors
 
   const role = localStorage.getItem("role");
-
+  const { data,isFetching } = useGetList("redeemRecords", {
+    pagination: { page: 1, perPage: 10 },
+    sort: { field: "transactionDate", order: "DESC" },
+  });
+  console.log("isLoadingisLoading",isFetching)
   if (!role) {
     navigate("/login");
   }
 
-  const { data, isPending, isFetching,isLoading } = useGetList("redeemRecordsExport", {
-    sort: { field: "transactionDate", order: "DESC" },
-    filter: {
-      ...(searchValue && { username: searchValue }),
-      ...(statusValue && { status: statusValue }),
-    },
-  });
+  const fetchDataForExport = async () => {
+    setIsExporting(true); // Set exporting to true before fetching
+    setExportError(null); // Clear any previous errors
 
-  console.log("*****", data);
+    try {
+      const { data } = await dataProvider.getList("redeemRecordsExport", {
+        pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
+        sort: { field: "transactionDate", order: "DESC" },
+        filter: {
+          ...(searchValue && { username: searchValue }),
+          ...(statusValue && { status: statusValue }),
+        },
+      });
+      console.log(data, "datafromrechargeRecordsExport");
+      setData(data);
+      return data; // Return the fetched data
+    } catch (error) {
+      console.error("Error fetching data for export:", error);
+      setExportError("Error fetching data for export."); // Set the error message
+      setData(null); // Reset data to null in case of error
+      return null; // Return null to indicate failure
+    } finally {
+      setIsExporting(false); // Set exporting to false after fetch, regardless of success/failure
+    }
+  };
 
   // Map numeric status to corresponding string message
   const mapStatus = (status) => {
@@ -108,36 +133,23 @@ export const RedeemRecordsList = (props) => {
     }
   };
 
-  // 0: "Pending Referral Link"
-  // 1: "Pending Confirmation"
-  // 2: "Confirmed" - btn dispaly "Coins Credit"
-  // 3: "Coins Credited" for status
-  // 4: "Redeem Success"
-  // 5: "Redeem Faile"
-  // 6: "Pending Approval"
-  // 7: "Rejected" -  Redeem Request Rejected
-  // 8: "Review"
-  // 9: "Expired"
-  // 10: "Failed Transaction"
-
-  const totalTransactionAmount =
-    data &&
-    data
-      .filter((item) => item.status === 4 && item.type === "redeem")
-      .reduce((sum, item) => sum + item.transactionAmount, 0);
-
   const handleRefresh = async () => {
     refresh();
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    if (!exportData || exportData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
     const doc = new jsPDF();
     doc.text("Redeem Records", 10, 10);
     doc.autoTable({
       head: [
         ["No", "Name", "Amount($)", "Remark", "Status", "Message", "Date"],
       ],
-      body: data.map((row, index) => [
+      body: exportData.map((row, index) => [
         index + 1,
         row.username,
         row.transactionAmount,
@@ -150,8 +162,13 @@ export const RedeemRecordsList = (props) => {
     doc.save("RedeemRecords.pdf");
   };
 
-  const handleExportXLS = () => {
-    const selectedFields = data.map((item) => ({
+  const handleExportXLS = async () => {
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    if (!exportData || exportData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
+    const selectedFields = exportData.map((item) => ({
       Name: item.username,
       "Amount($)": item.transactionAmount,
       Remark: item.remark,
@@ -191,28 +208,6 @@ export const RedeemRecordsList = (props) => {
       console.log(e.target.value);
     }
   };
-  // const SelectUserInput = () => {
-  //   return permissions !== "Player" ? (
-  //     <SelectInput
-  //       label="Status"
-  //       source="status"
-  //       emptyText="All"
-  //       choices={[
-  //         { id: 4, name: "Success" },
-  //         { id: 5, name: "Failed" },
-  //         { id: 6, name: "Pending Approval" },
-  //         { id: 7, name: "Rejected" },
-  //       ]}
-  //       sx={{ width: 48, backgroundColor: "red" }}
-  //     />
-  //   ) : null;
-  // };
-
-  // const dataFilters = [
-  //   <SearchInput source="username" alwaysOn resettable />,
-  //   <SelectUserInput alwaysOn resettable />,
-  // ];
-
   const dataFilters = [
     <SearchInput
       source="username"
@@ -297,13 +292,12 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-
-  if (isPending) {
-    return <Loader />;
-  }
-
   if (isFetching) {
-    return <Loader />;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+        <CircularProgress />
+      </Box>
+    );
   }
   return (
     <>
@@ -340,8 +334,9 @@ export const RedeemRecordsList = (props) => {
           </>
         )}
       </Box>
-
-      {(isPending || isFetching || isLoading || !data ) ?<Loader /> : 
+      {isFetching ?   <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+      <CircularProgress />
+    </Box> :
       <List
         title="Redeem Records"
         filters={dataFilters}
@@ -497,7 +492,7 @@ export const RedeemRecordsList = (props) => {
                     onClick={() => {
                       setSelectedRecord(record);
                       setFinalRejectDialogOpen(true);
-                      setCashout(true)
+                      setCashout(true);
                     }}
                   >
                     Reject
