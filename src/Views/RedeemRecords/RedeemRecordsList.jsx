@@ -228,10 +228,18 @@ export const RedeemRecordsList = (props) => {
         alwaysOn
         resettablea
         choices={[
-          { id: 4, name: "Success" },
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
           { id: 7, name: "Rejected" },
+          { id: 8, name: "Redeem Successfully"},
+          { id: 9, name: "Expired"},
+          ...(permissions === "Super-User"
+          ? [
+              { id: 11, name: "Cashouts" },
+              { id: 12, name: "Cashout Successfully" },
+              { id: 13, name: "Cashout Reject" },
+            ]
+          : []),
         ]}
         onBlur={handleStatusChange}
       />
@@ -339,9 +347,6 @@ export const RedeemRecordsList = (props) => {
           </>
         )}
       </Box>
-      {isFetching ?   <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
-      <CircularProgress />
-    </Box> :
       <List
         title="Redeem Records"
         filters={dataFilters}
@@ -508,7 +513,7 @@ export const RedeemRecordsList = (props) => {
             }
           />
         </Datagrid>
-      </List>}
+      </List>
       {permissions === "Agent" && (
         <>
           <RejectRedeemDialog
