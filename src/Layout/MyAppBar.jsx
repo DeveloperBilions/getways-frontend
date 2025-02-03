@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ChangePassword from "./ChangePassword";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import AppBar from "@mui/material/AppBar";
 import {
   TitlePortal,
@@ -21,6 +22,7 @@ import {
 import { Title } from "react-admin";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
 import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
+import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -32,6 +34,7 @@ export default function MyAppBar({ props }) {
   const [open, setOpen] = React.useState(false);
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false); // State for Recharge Limit Dialog
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
+  const [openHelpVideo, setOpenHelpVideo] = React.useState(false); // New state for Help Video Modal
 
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
@@ -123,6 +126,13 @@ export default function MyAppBar({ props }) {
             Payment Methods
           </MenuItem>
         )}
+         <MenuItem
+          onClick={() => setOpenHelpVideo(true)}
+          style={{ color: "#0000008a" }}
+        >
+          <HelpOutlineIcon sx={{ marginRight: 1 }} />
+          Help Videos
+        </MenuItem>
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
       <ChangePassword open={open} onClose={handleCloseModal} />
@@ -131,6 +141,7 @@ export default function MyAppBar({ props }) {
         open={disableDialogOpen}
         onClose={() => setDisableDialogOpen(false)}
       />
+      <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
     </AppBar>
   );
 }

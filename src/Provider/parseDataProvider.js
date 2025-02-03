@@ -227,7 +227,7 @@ export const dataProvider = {
               "redeemServiceFee",
               "isCashOut",
               "transactionIdFromStripe",
-              "transactionDate"
+              "transactionDate",
             );
             transactionQuery.containedIn("userId", ids);
 

@@ -56,6 +56,8 @@ const Summary = () => {
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
   const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
+
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget);
   };
@@ -63,7 +65,125 @@ const Summary = () => {
   const handleMenuClose = () => {
     setMenuAnchor(null);
   };
+  const handleMenuRedeemOpen = (event) => {
+    setMenuAnchorRedeem(event.currentTarget);
+  };
 
+  const handleMenuRedeemClose = () => {
+    setMenuAnchorRedeem(null);
+  };
+  const handleExportRedeemPDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.text("Total Recharge Data", 10, 10);
+
+    // Prepare wallet data for PDF
+    const walletTableData = data[0]?.totalRedeemByTypeData?.wallet?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.redeemServiceFee,
+      ]
+    );
+
+    // Prepare others data for PDF
+    const othersTableData = data[0]?.totalRedeemByTypeData?.others?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.redeemServiceFee,
+      ]
+    );
+
+    // Add Wallet Transactions
+    doc.text("Redeem Transactions", 10, 20);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",,
+          "Redeem Service Fee",
+        ],
+      ],
+      body: walletTableData,
+      startY: 25,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Add Others Transactions
+    doc.text("Cashout Transactions", 10, doc.lastAutoTable.finalY + 10);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Redeem Service Fee"
+        ],
+      ],
+      body: othersTableData,
+      startY: doc.lastAutoTable.finalY + 15,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Save PDF
+    doc.save("TotalRedeemData.pdf");
+  };
+
+  const handleExportRedeemXLS = () => {
+    // Combine wallet and others data for Excel
+    const combinedData = [
+      ...data[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": new Date(item.transactionDate).toISOString(),
+        Status: item.paymentType,
+        "Redeem Service Fee": item.redeemServiceFee,
+      })),
+      ...data[0]?.totalRedeemByTypeData?.others.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": new Date(item.transactionDate).toISOString(),
+        Status: item.paymentType,
+        "Redeem Service Fee": 0,
+
+      })),
+    ];
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "TotalReedeemData.xlsx"
+    );
+  };
   const handleExportRechargePDF = () => {
     const doc = new jsPDF();
 
@@ -152,7 +272,7 @@ const Summary = () => {
       ...data[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toLocaleString(),
+        "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
@@ -160,7 +280,7 @@ const Summary = () => {
       ...data[0]?.totalRechargeByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toLocaleString(),
+        "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
@@ -528,6 +648,14 @@ const Summary = () => {
     <>
       {role === "Super-User" && (
         <Box display="flex" justifyContent="flex-end" sx={{ mb: 2, marginTop:"-40px" }}>
+           <Button
+            variant="contained"
+            startIcon={<GetAppIcon />}
+            onClick={handleMenuRedeemOpen}
+            style={{marginRight:"10px"}}
+          >
+            Redeem Data Export
+          </Button>
           <Button
             variant="contained"
             startIcon={<GetAppIcon />}
@@ -555,6 +683,35 @@ const Summary = () => {
               onClick={() => {
                 handleExportRechargeXLS();
                 handleMenuClose();
+              }}
+            >
+              <ListItemIcon>
+                <BackupTableIcon fontSize="small" />
+              </ListItemIcon>
+              Excel
+            </MenuItem>
+          </Menu>
+
+          <Menu
+            anchorEl={menuAnchorRedeem}
+            open={Boolean(menuAnchorRedeem)}
+            onClose={handleMenuRedeemClose}
+          >
+            <MenuItem
+              onClick={() => {
+                handleExportRedeemPDF();
+                handleMenuRedeemClose();
+              }}
+            >
+              <ListItemIcon>
+                <PictureAsPdfIcon fontSize="small" />
+              </ListItemIcon>
+              PDF
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleExportRedeemXLS();
+                handleMenuRedeemClose();
               }}
             >
               <ListItemIcon>
@@ -676,7 +833,7 @@ export const DataSummary = () => {
 
   const newData = data?.map(
     (item) =>
-      item.id !== identity.objectId && {
+      item?.id !== identity?.objectId && {
         ...item,
         optionName: "".concat(item.name, " (", item.roleName, ")"),
       }

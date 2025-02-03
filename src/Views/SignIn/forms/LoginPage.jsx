@@ -33,6 +33,7 @@ import { useForm } from "react-hook-form";
 import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
+import HelpVideoModal from "../HelpVideoModal";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -40,6 +41,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
   const { permissions, refetch } = usePermissions();
+  const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
 
   const refresh = useRefresh();
   const redirect = useRedirect();
@@ -94,6 +96,7 @@ const LoginPage = () => {
     return <Loader />;
   }
   return (
+    <>
     <Grid container component="main" sx={{ height: "100vh" }}>
       <CssBaseline />
       <Grid
@@ -215,9 +218,22 @@ const LoginPage = () => {
               Back
             </Button>
           </Box>
+          <Button
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 1 }}
+              onClick={() => setHelpOpen(true)}
+            >
+              Need Help? Watch Videos
+            </Button>
         </Box>
       </Grid>
     </Grid>
+    <HelpVideoModal
+        open={helpOpen}
+        handleClose={() => setHelpOpen(false)}
+      />
+    </>
   );
 };
 

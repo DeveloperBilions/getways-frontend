@@ -88,6 +88,38 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
         )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
     };   
+    const totalRedeemByTypeData = {
+      wallet: transactions
+        .filter(
+          (item) =>
+            item.type === "redeem" &&
+            (item.status === 4 || item.status === 8) 
+        )
+        .map((item) => ({
+          transactionId: item.id,
+          amount: item.transactionAmount,
+          status: item.status,
+          paymentType: "redeem",
+          transactionIdFromStripe:item?.transactionIdFromStripe,
+          transactionDate:item?.transactionDate,
+          redeemServiceFee:item?.redeemServiceFee
+        })),
+      others: transactions
+        .filter(
+          (item) =>
+            item.type === "redeem" &&
+            (item.status === 12)
+        )
+        .map((item) => ({
+          transactionId: item.id,
+          amount: item.transactionAmount,
+          status: item.status,
+          paymentType: "cashout",
+          transactionIdFromStripe:item?.transactionIdFromStripe,
+          transactionDate:item?.transactionDate,
+          redeemServiceFee:item?.redeemServiceFee
+        })),
+    }; 
     const totalRechargeByTypeData = {
       wallet: transactions
         .filter(
@@ -153,7 +185,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
         totalFeesCharged,
         walletBalances,
         totalBalance,
-        totalRechargeByTypeData
+        totalRechargeByTypeData,
+        totalRedeemByTypeData
       },
     ],
     total: null,
