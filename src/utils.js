@@ -87,7 +87,11 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
             Number.isFinite(item.transactionAmount) // Ensure transactionAmount is a valid number
         )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
-    };   
+    }; 
+    const getUserParentName = (userId) => {
+      const user = users.find((user) => user.id === userId);
+      return user ? user.userParentName : "Unknown";
+    }; 
     const totalRedeemByTypeData = {
       wallet: transactions
         .filter(
@@ -102,7 +106,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           paymentType: "redeem",
           transactionIdFromStripe:item?.transactionIdFromStripe,
           transactionDate:item?.transactionDate,
-          redeemServiceFee:item?.redeemServiceFee
+          redeemServiceFee:item?.redeemServiceFee,
+          agentName: getUserParentName(item?.userId),
         })),
       others: transactions
         .filter(
@@ -117,7 +122,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           paymentType: "cashout",
           transactionIdFromStripe:item?.transactionIdFromStripe,
           transactionDate:item?.transactionDate,
-          redeemServiceFee:item?.redeemServiceFee
+          redeemServiceFee:item?.redeemServiceFee,
+          agentName: getUserParentName(item?.userId),
         })),
     }; 
     const totalRechargeByTypeData = {
@@ -136,7 +142,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           status: item.status,
           paymentType: "wallet",
           transactionIdFromStripe:item?.transactionIdFromStripe,
-          transactionDate:item?.transactionDate
+          transactionDate:item?.transactionDate,
+          agentName: getUserParentName(item?.userId),
         })),
       others: transactions
         .filter(
@@ -153,7 +160,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           status: item.status,
           paymentType: "others",
           transactionIdFromStripe:item?.transactionIdFromStripe,
-          transactionDate:item?.transactionDate
+          transactionDate:item?.transactionDate,
+          agentName: getUserParentName(item?.userId),
         })),
     }; 
     const totalFeesCharged = transactions
@@ -165,7 +173,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
       const calculatedFee = Math.floor((serviceFee / 100) * transactionAmount); // Calculate fee
       return sum + calculatedFee;
     }, 0);  
-    
+   
   return {
     data: [
       {

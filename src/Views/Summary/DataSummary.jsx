@@ -49,6 +49,8 @@ import { saveAs } from "file-saver";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import GetAppIcon from "@mui/icons-material/GetApp";
+import { dataProvider } from "../../Provider/parseDataProvider";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Summary = () => {
   const { data, isFetching, isLoading } = useListContext();
@@ -57,7 +59,33 @@ const Summary = () => {
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
   const [menuAnchor, setMenuAnchor] = React.useState(null);
   const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
+  const [isExporting, setIsExporting] = useState(false); // Track export progress
+  const [exportdData, setExportData] = useState(null); // Store export data
+  const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
 
+  const loadAndExportData = async () => {
+    setIsExporting(true); // Set exporting state
+    setLoadingData(true); // Set loading data state
+
+    try {
+      const { data } = await dataProvider.getList("summaryExport", {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "transactionDate", order: "DESC" },
+        filter: {},
+      }); // Call the service to fetch export data
+      if (data) {
+        setExportData(data); // Save the fetched data
+        return data; // Return the fetched data
+      } else {
+        console.error("No data available for export");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsExporting(false); // Hide exporting state once finished
+      setLoadingData(false); // Hide loading state once data is fetched
+    }
+  };
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget);
   };
@@ -72,14 +100,16 @@ const Summary = () => {
   const handleMenuRedeemClose = () => {
     setMenuAnchorRedeem(null);
   };
-  const handleExportRedeemPDF = () => {
+  const handleExportRedeemPDF = async () => {
+    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
+
     const doc = new jsPDF();
 
     // Add title
     doc.text("Total Recharge Data", 10, 10);
 
     // Prepare wallet data for PDF
-    const walletTableData = data[0]?.totalRedeemByTypeData?.wallet?.map(
+    const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
       (item, index) => [
         item.transactionId,
         item.amount,
@@ -87,11 +117,12 @@ const Summary = () => {
         item.status,
         item.transactionIdFromStripe,
         item.redeemServiceFee,
+        item?.agentName,
       ]
     );
 
     // Prepare others data for PDF
-    const othersTableData = data[0]?.totalRedeemByTypeData?.others?.map(
+    const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
       (item, index) => [
         item.transactionId,
         item.amount,
@@ -99,6 +130,7 @@ const Summary = () => {
         item.status,
         item.transactionIdFromStripe,
         item.redeemServiceFee,
+        item?.agentName,
       ]
     );
 
@@ -110,8 +142,9 @@ const Summary = () => {
           "ID",
           "Amount",
           "Transaction Date",
-          "Status",,
+          "Status",
           "Redeem Service Fee",
+          "Agent Name",
         ],
       ],
       body: walletTableData,
@@ -134,7 +167,8 @@ const Summary = () => {
           "Amount",
           "Transaction Date",
           "Status",
-          "Redeem Service Fee"
+          "Redeem Service Fee",
+          "Agent Name",
         ],
       ],
       body: othersTableData,
@@ -152,23 +186,26 @@ const Summary = () => {
     doc.save("TotalRedeemData.pdf");
   };
 
-  const handleExportRedeemXLS = () => {
+  const handleExportRedeemXLS = async () => {
+    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
+
     // Combine wallet and others data for Excel
     const combinedData = [
-      ...data[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
+      ...exportData[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toISOString(),
+        "Transaction Date": new Date(item?.transactionDate).toISOString(),
         Status: item.paymentType,
         "Redeem Service Fee": item.redeemServiceFee,
+        "Agent Name": item?.agentName,
       })),
-      ...data[0]?.totalRedeemByTypeData?.others.map((item) => ({
+      ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toISOString(),
+        "Transaction Date": new Date(item?.transactionDate).toISOString(),
         Status: item.paymentType,
         "Redeem Service Fee": 0,
-
+        "Agent Name": item?.agentName,
       })),
     ];
 
@@ -184,14 +221,16 @@ const Summary = () => {
       "TotalReedeemData.xlsx"
     );
   };
-  const handleExportRechargePDF = () => {
+  const handleExportRechargePDF = async () => {
+    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
+
     const doc = new jsPDF();
 
     // Add title
     doc.text("Total Recharge Data", 10, 10);
 
     // Prepare wallet data for PDF
-    const walletTableData = data[0]?.totalRechargeByTypeData?.wallet?.map(
+    const walletTableData = exportData[0]?.totalRechargeByTypeData?.wallet?.map(
       (item, index) => [
         item.transactionId,
         item.amount,
@@ -199,11 +238,12 @@ const Summary = () => {
         item.status,
         item.transactionIdFromStripe,
         item.paymentType,
+        item?.agentName,
       ]
     );
 
     // Prepare others data for PDF
-    const othersTableData = data[0]?.totalRechargeByTypeData?.others?.map(
+    const othersTableData = exportData[0]?.totalRechargeByTypeData?.others?.map(
       (item, index) => [
         item.transactionId,
         item.amount,
@@ -211,6 +251,7 @@ const Summary = () => {
         item.status,
         item.transactionIdFromStripe,
         item.paymentType,
+        item?.agentName,
       ]
     );
 
@@ -225,6 +266,7 @@ const Summary = () => {
           "Status",
           "Stripe ID",
           "Payment Type",
+          "Agent Name",
         ],
       ],
       body: walletTableData,
@@ -249,6 +291,7 @@ const Summary = () => {
           "Status",
           "Stripe ID",
           "Payment Type",
+          "Agent Name",
         ],
       ],
       body: othersTableData,
@@ -266,24 +309,28 @@ const Summary = () => {
     doc.save("TotalRechargeData.pdf");
   };
 
-  const handleExportRechargeXLS = () => {
+  const handleExportRechargeXLS = async () => {
+    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
+
     // Combine wallet and others data for Excel
     const combinedData = [
-      ...data[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
+      ...exportData[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
         "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
+        "Agent Name": item?.agentName,
       })),
-      ...data[0]?.totalRechargeByTypeData?.others.map((item) => ({
+      ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
         "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
+        "Agent Name": item?.agentName,
       })),
     ];
 
@@ -647,12 +694,16 @@ const Summary = () => {
   return (
     <>
       {role === "Super-User" && (
-        <Box display="flex" justifyContent="flex-end" sx={{ mb: 2, marginTop:"-40px" }}>
-           <Button
+        <Box
+          display="flex"
+          justifyContent="flex-end"
+          sx={{ mb: 2, marginTop: "-40px" }}
+        >
+          <Button
             variant="contained"
             startIcon={<GetAppIcon />}
             onClick={handleMenuRedeemOpen}
-            style={{marginRight:"10px"}}
+            style={{ marginRight: "10px" }}
           >
             Redeem Data Export
           </Button>
@@ -671,22 +722,32 @@ const Summary = () => {
             <MenuItem
               onClick={() => {
                 handleExportRechargePDF();
-                handleMenuClose();
+                // handleMenuClose();
               }}
+              disabled={isExporting}
             >
               <ListItemIcon>
-                <PictureAsPdfIcon fontSize="small" />
+                {isExporting ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <PictureAsPdfIcon fontSize="small" />
+                )}
               </ListItemIcon>
               PDF
             </MenuItem>
             <MenuItem
               onClick={() => {
                 handleExportRechargeXLS();
-                handleMenuClose();
+                //  handleMenuClose();
               }}
+              disabled={isExporting}
             >
               <ListItemIcon>
-                <BackupTableIcon fontSize="small" />
+                {isExporting ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <BackupTableIcon fontSize="small" />
+                )}
               </ListItemIcon>
               Excel
             </MenuItem>
@@ -700,22 +761,32 @@ const Summary = () => {
             <MenuItem
               onClick={() => {
                 handleExportRedeemPDF();
-                handleMenuRedeemClose();
+                //handleMenuRedeemClose();
               }}
+              disabled={isExporting}
             >
               <ListItemIcon>
-                <PictureAsPdfIcon fontSize="small" />
+                {isExporting ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <PictureAsPdfIcon fontSize="small" />
+                )}
               </ListItemIcon>
               PDF
             </MenuItem>
             <MenuItem
               onClick={() => {
                 handleExportRedeemXLS();
-                handleMenuRedeemClose();
+                //  handleMenuRedeemClose();
               }}
+              disabled={isExporting}
             >
               <ListItemIcon>
-                <BackupTableIcon fontSize="small" />
+                {isExporting ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <BackupTableIcon fontSize="small" />
+                )}
               </ListItemIcon>
               Excel
             </MenuItem>

@@ -18,6 +18,7 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
+import ReCAPTCHA from "react-google-recaptcha";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -27,6 +28,7 @@ const LoginPage = () => {
   const redirect = useRedirect();
   const notify = useNotify();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
+  const [captchaValue, setCaptchaValue] = useState(null);
 
   const {
     register,
@@ -37,6 +39,10 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
+    if (!captchaValue) {
+      notify("Please verify the reCAPTCHA");
+      return;
+    }
     console.log(data);
     try {
       setLoading(true);
@@ -130,7 +136,11 @@ const LoginPage = () => {
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
               )}
-
+              <Box mt={"10px"}>
+              <ReCAPTCHA
+                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                onChange={(value) => setCaptchaValue(value)}
+              /> </Box>
               <Button
                 type="submit"
                 fullWidth
