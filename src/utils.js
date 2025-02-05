@@ -92,6 +92,10 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
       const user = users.find((user) => user.id === userId);
       return user ? user.userParentName : "Unknown";
     }; 
+    const getUserName = (userId) => {
+      const user = users.find((user) => user.id === userId);
+      return user ? user.username : "Unknown";
+    }; 
     const totalRedeemByTypeData = {
       wallet: transactions
         .filter(
@@ -108,6 +112,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           transactionDate:item?.transactionDate,
           redeemServiceFee:item?.redeemServiceFee,
           agentName: getUserParentName(item?.userId),
+          userName: getUserName(item?.userId),
         })),
       others: transactions
         .filter(
@@ -124,6 +129,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           transactionDate:item?.transactionDate,
           redeemServiceFee:item?.redeemServiceFee,
           agentName: getUserParentName(item?.userId),
+          userName: getUserName(item?.userId),
         })),
     }; 
     const totalRechargeByTypeData = {
@@ -144,6 +150,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           transactionIdFromStripe:item?.transactionIdFromStripe,
           transactionDate:item?.transactionDate,
           agentName: getUserParentName(item?.userId),
+                    userName: getUserName(item?.userId),
         })),
       others: transactions
         .filter(
@@ -162,6 +169,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           transactionIdFromStripe:item?.transactionIdFromStripe,
           transactionDate:item?.transactionDate,
           agentName: getUserParentName(item?.userId),
+          userName: getUserName(item?.userId),
+
         })),
     }; 
     const totalFeesCharged = transactions

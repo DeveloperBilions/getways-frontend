@@ -113,6 +113,12 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
         setLoading(false);
       }
     } else if (paymentSource === "stripe") {
+      const amount = parseFloat(rechargeAmount);
+
+      if (paymentSource === "stripe" && amount < 20) {
+        setErrorMessage("Stripe payment must be at least $20.");
+        return;
+      }
       const rawData = {
         id: identity.objectId,
         type: "recharge",

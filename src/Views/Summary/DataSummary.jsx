@@ -118,6 +118,7 @@ const Summary = () => {
         item.transactionIdFromStripe,
         item.redeemServiceFee,
         item?.agentName,
+        item?.userName
       ]
     );
 
@@ -131,6 +132,7 @@ const Summary = () => {
         item.transactionIdFromStripe,
         item.redeemServiceFee,
         item?.agentName,
+        item?.userName
       ]
     );
 
@@ -145,6 +147,7 @@ const Summary = () => {
           "Status",
           "Redeem Service Fee",
           "Agent Name",
+          "User Name"
         ],
       ],
       body: walletTableData,
@@ -169,6 +172,7 @@ const Summary = () => {
           "Status",
           "Redeem Service Fee",
           "Agent Name",
+          "User Name"
         ],
       ],
       body: othersTableData,
@@ -195,17 +199,21 @@ const Summary = () => {
         "Transaction ID": item.transactionId,
         Amount: item.amount,
         "Transaction Date": new Date(item?.transactionDate).toISOString(),
-        Status: item.paymentType,
+        Status: item.status,
+        paymentType:item?.paymentType,
         "Redeem Service Fee": item.redeemServiceFee,
         "Agent Name": item?.agentName,
+        "User Name": item?.userName
       })),
       ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
         "Transaction Date": new Date(item?.transactionDate).toISOString(),
-        Status: item.paymentType,
+        Status: item.status,
+        paymentType:item?.paymentType,
         "Redeem Service Fee": 0,
         "Agent Name": item?.agentName,
+        "User Name": item?.userName
       })),
     ];
 
@@ -239,6 +247,7 @@ const Summary = () => {
         item.transactionIdFromStripe,
         item.paymentType,
         item?.agentName,
+       item?.userName
       ]
     );
 
@@ -252,6 +261,7 @@ const Summary = () => {
         item.transactionIdFromStripe,
         item.paymentType,
         item?.agentName,
+       item?.userName
       ]
     );
 
@@ -267,6 +277,7 @@ const Summary = () => {
           "Stripe ID",
           "Payment Type",
           "Agent Name",
+          "User Name"
         ],
       ],
       body: walletTableData,
@@ -292,6 +303,7 @@ const Summary = () => {
           "Stripe ID",
           "Payment Type",
           "Agent Name",
+          "User Name"
         ],
       ],
       body: othersTableData,
@@ -319,18 +331,22 @@ const Summary = () => {
         Amount: item.amount,
         "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
+        paymentType:item?.paymentType,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
         "Agent Name": item?.agentName,
+        "User Name": item?.userName
       })),
       ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
         "Transaction ID": item.transactionId,
         Amount: item.amount,
         "Transaction Date": new Date(item.transactionDate).toISOString(),
         Status: item.status,
+        paymentType:item?.paymentType,
         "Stripe Transaction ID": item.transactionIdFromStripe,
         "Payment Type": item.paymentType,
         "Agent Name": item?.agentName,
+        "User Name": item?.userName
       })),
     ];
 

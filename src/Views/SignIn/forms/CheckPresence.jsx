@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNotify, useRedirect } from "react-admin";
 // mui
 import {
@@ -29,7 +29,9 @@ const LoginPage = () => {
   const notify = useNotify();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
   const [captchaValue, setCaptchaValue] = useState(null);
-
+  const recaptchaRef = useRef();
+  const [captchaVerified, setCaptchaVerified] = useState(false);  // Track captcha verification
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false);  // Track captcha load status
   const {
     register,
     handleSubmit,
@@ -38,6 +40,14 @@ const LoginPage = () => {
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
+    if (recaptchaRef.current) {
+      setIsCaptchaReady(true);  // Set ready status to true when ref is available
+    }
+  }, [recaptchaRef.current]);  // Watch the ref to ensure it is correctly initialized
+
+  
   const onSubmit = async (data) => {
     if (!captchaValue) {
       notify("Please verify the reCAPTCHA");
@@ -49,12 +59,15 @@ const LoginPage = () => {
 
       const response = await Parse.Cloud.run("checkpresence", data);
       localStorage.clear()
+      setCaptchaVerified(true); // Set captcha as verified
       if (response?.fromAgentExcel) {
         redirect(
           `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
         );
+        window.location.reload()
       } else {
         redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
+        window.location.reload()
       }
     } catch (error) {
       notify(error?.message || "User Checking failed. Please try again.");
@@ -136,11 +149,17 @@ const LoginPage = () => {
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
               )}
-              <Box mt={"10px"}>
-              <ReCAPTCHA
-                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                onChange={(value) => setCaptchaValue(value)}
-              /> </Box>
+              {!captchaVerified && (
+                <Box mt={"10px"}>
+                                  <div className="recaptcha-container">
+                  <ReCAPTCHA
+                    sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                    onChange={(value) => setCaptchaValue(value)}
+                    ref={recaptchaRef}
+                  />
+                  </div>
+                </Box>
+              )}
               <Button
                 type="submit"
                 fullWidth

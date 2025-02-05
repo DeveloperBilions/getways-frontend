@@ -160,7 +160,10 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       setErrorMessage("Cashout amount cannot be negative or 0. Please enter a valid amount.");
       return;
     }
-    
+    if (redeemAmount < 20) {
+      setErrorMessage("Cashout request should not be less than $20.");
+      return;
+    }
     const rawData = {
       redeemServiceFee: redeemFees,
       transactionAmount: redeemAmount,
