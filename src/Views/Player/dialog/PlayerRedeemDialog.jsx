@@ -231,10 +231,25 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
-                      type="number"
+                      type="text"
                       autoComplete="off"
                       min="0"
-                      onChange={(e) => setRedeemAmount(e.target.value)}
+                      value={redeemAmount}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === '' || /^\d*$/.test(value)) {
+                          if(value === ''){
+                            setRedeemAmount(value);
+                          }
+                          else if (value.includes('.')) {
+                            value = Math.floor(parseFloat(value));
+                            setRedeemAmount(value);
+                          }
+                          else if (/^\d*$/.test(value)) {
+                            setRedeemAmount(value);
+                          }
+                        }
+                      }}
                       required
                       onKeyDown={(e) =>{
                         if (e.keyCode === 190) {
