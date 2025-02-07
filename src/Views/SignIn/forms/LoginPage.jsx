@@ -72,7 +72,7 @@ const LoginPage = () => {
       // Handle redirection based on role
       if (response?.role === "Player") {
         redirect("/playerDashboard");
-      } else if (response?.role === "Super-User" || response?.role === "Agent") {
+      } else if (response?.role === "Super-User" || response?.role === "Agent" || response?.role === "Master-Agent" ) {
         redirect("/users");
       }
     },5)

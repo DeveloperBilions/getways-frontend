@@ -436,7 +436,7 @@ export const RechargeRecordsList = (props) => {
             <FunctionField
               label="Mode"
               render={(record) => {
-                return <Chip label={record?.useWallet ? "Wallet" : "Stripe"} />;
+                return <Chip label={ record?.referralLink?.toLowerCase().includes("aog") ? "AOG" : record?.useWallet ? "Wallet" : "Stripe"} />;
               }}
             />
           )}

@@ -123,10 +123,10 @@ const CustomButton = ({ fetchAllUsers }) => {
         }}
       >
         <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
-        {record?.roleName === "Agent" && (
+        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent" )&& (
           <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
         )}
-        {record?.roleName === "Agent" && (
+        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent")&& (
           <MenuItem onClick={() => {
             setAnchorEl(null);
             setPasswordPermissionDialogOpen(true)}}>
@@ -337,10 +337,10 @@ export const UserList = (props) => {
           <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
             <TextField source="username" label="User Name" />
             <TextField source="email" label="Email" />
-            {identity?.role === "Super-User" && (
+            {(identity?.role === "Super-User" || identity?.role === "Master-Agent" ) && (
               <TextField source="userParentName" label="Parent User" />
             )}
-            {identity?.role === "Super-User" && (
+            {(identity?.role === "Super-User" || identity?.role === "Master-Agent") && (
               <TextField source="roleName" label="User Type" />
             )}
             <DateField source="createdAt" label="Date" showTime />

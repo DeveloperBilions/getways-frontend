@@ -118,6 +118,8 @@ export const authProvider = {
         role: user.get("roleName"),
         rechargeLimit: user.get("rechargeLimit"),
         isPasswordPermission: user.get("isPasswordPermission"),
+        isReedeemZeroAllowed: user.get("isReedeemZeroAllowed"),
+        redeemServiceEnabled: user.get("redeemServiceEnabled")
       };
     } catch (error) {
       console.error("Error getting user identity:", error);

@@ -15,13 +15,18 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { useGetIdentity } from "react-admin";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
+  const { identity } = useGetIdentity();
   const [serviceFee, setServiceFee] = useState();
   const [redeemServiceEnabled, setRedeemServiceEnabled] = useState(false);
+  const [redeemServiceZeroAllowed, setRedeemServiceZeroAllowed] =
+    useState(false);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +43,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       });
       setServiceFee(response?.redeemService || 0);
       setRedeemServiceEnabled(response?.redeemServiceEnabled || false);
+      setRedeemServiceZeroAllowed(response?.isReedeemZeroAllowed || false);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -81,6 +87,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       userId: record?.id,
       redeemService: serviceFee,
       redeemServiceEnabled: redeemServiceEnabled,
+      redeemServiceZeroAllowed,
     };
 
     setLoading(true);
@@ -102,6 +109,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
     onClose();
   };
 
+  console.log(identity, "identityidentityidentityidentity");
   return (
     <React.Fragment>
       {loading ? (
@@ -126,6 +134,10 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                       onChange={handleServiceFeeChange}
                       maxLength={2}
                       required
+                      disabled={
+                        !identity?.redeemServiceEnabled &&
+                        identity?.role === "Master-Agent"
+                      }
                     />
                     {error && (
                       <FormText color="danger" className="mb-2 mt-0">
@@ -135,31 +147,108 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                   </FormGroup>
                 </Col>
 
-                <Col md={12} className="mt-3">
-                  <FormGroup check className="form-switch">
-                    <Input
-                      type="switch"
-                      id="redeemSwitch"
-                      checked={redeemServiceEnabled}
-                      onChange={() =>
-                        setRedeemServiceEnabled(!redeemServiceEnabled)
-                      }
-                    />
-                    <Label
-                      for="redeemSwitch"
-                      check
-                      style={{ fontSize: "14px" }}
-                    >
-                      Allow Agent to change Redeem Service ?
-                    </Label>
-                  </FormGroup>
-                </Col>
-
+                {identity?.role === "Master-Agent" &&
+                  identity?.redeemServiceEnabled === true && (
+                    <Col md={12} className="mt-3">
+                      <FormGroup check className="form-switch">
+                        <Input
+                          type="switch"
+                          id="redeemSwitch"
+                          checked={redeemServiceEnabled}
+                          onChange={() =>
+                            setRedeemServiceEnabled(!redeemServiceEnabled)
+                          }
+                        />
+                        <Label
+                          for="redeemSwitch"
+                          check
+                          style={{ fontSize: "14px" }}
+                        >
+                          Allow Agent to change Redeem Service ?
+                        </Label>
+                      </FormGroup>
+                    </Col>
+                  )}
+                {identity?.role === "Super-User" && (
+                  <Col md={12} className="mt-3">
+                    <FormGroup check className="form-switch">
+                      <Input
+                        type="switch"
+                        id="redeemSwitch"
+                        checked={redeemServiceEnabled}
+                        onChange={() =>
+                          setRedeemServiceEnabled(!redeemServiceEnabled)
+                        }
+                      />
+                      <Label
+                        for="redeemSwitch"
+                        check
+                        style={{ fontSize: "14px" }}
+                      >
+                        Allow Agent to change Redeem Service ?
+                      </Label>
+                    </FormGroup>
+                  </Col>
+                )}
+                {identity?.role === "Master-Agent" &&
+                  identity?.isReedeemZeroAllowed === true && (
+                    <Col md={12} className="mt-3">
+                      <FormGroup check className="form-switch">
+                        <Input
+                          type="switch"
+                          id="redeemSwitch1"
+                          checked={redeemServiceZeroAllowed}
+                          onChange={() =>
+                            setRedeemServiceZeroAllowed(
+                              !redeemServiceZeroAllowed
+                            )
+                          }
+                        />
+                        <Label
+                          for="redeemSwitch1"
+                          check
+                          style={{ fontSize: "14px" }}
+                        >
+                          Allow Agent to Add 0 Redeem Service ?
+                        </Label>
+                      </FormGroup>
+                    </Col>
+                  )}
+                {identity?.role === "Super-User" && (
+                  <Col md={12} className="mt-3">
+                    <FormGroup check className="form-switch">
+                      <Input
+                        type="switch"
+                        id="redeemSwitch1"
+                        checked={redeemServiceZeroAllowed}
+                        onChange={() =>
+                          setRedeemServiceZeroAllowed(!redeemServiceZeroAllowed)
+                        }
+                      />
+                      <Label
+                        for="redeemSwitch1"
+                        check
+                        style={{ fontSize: "14px" }}
+                      >
+                        Allow Agent to Add 0 Redeem Service ?
+                      </Label>
+                    </FormGroup>
+                  </Col>
+                )}
                 <Col md={12} className="mt-3">
                   <div className="d-flex justify-content-end">
-                    <Button className="mx-2" color="success" type="submit">
-                      Confirm
-                    </Button>
+                    {identity?.redeemServiceEnabled &&
+                      identity?.role === "Master-Agent" && (
+                        <Button className="mx-2" color="success" type="submit">
+                          Confirm
+                        </Button>
+                      )}
+                    {identity?.role === "Super-User" && (
+                      <Button className="mx-2" color="success" type="submit">
+                        Confirm
+                      </Button>
+                    )}
+
                     <Button color="secondary" onClick={handleCancel}>
                       Cancel
                     </Button>

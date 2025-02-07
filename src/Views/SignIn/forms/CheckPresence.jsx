@@ -49,10 +49,10 @@ const LoginPage = () => {
 
   
   const onSubmit = async (data) => {
-    if (!captchaValue) {
-      notify("Please verify the reCAPTCHA");
-      return;
-    }
+    // if (!captchaValue) {
+    //   notify("Please verify the reCAPTCHA");
+    //   return;
+    // }
     console.log(data);
     try {
       setLoading(true);
@@ -64,10 +64,10 @@ const LoginPage = () => {
         redirect(
           `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
         );
-        window.location.reload()
+        ///window.location.reload()
       } else {
         redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
-        window.location.reload()
+       // window.location.reload()
       }
     } catch (error) {
       notify(error?.message || "User Checking failed. Please try again.");
@@ -149,7 +149,7 @@ const LoginPage = () => {
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
               )}
-              {!captchaVerified && (
+              {/* {!captchaVerified && (
                 <Box mt={"10px"}>
                                   <div className="recaptcha-container">
                   <ReCAPTCHA
@@ -159,7 +159,7 @@ const LoginPage = () => {
                   />
                   </div>
                 </Box>
-              )}
+              )} */}
               <Button
                 type="submit"
                 fullWidth

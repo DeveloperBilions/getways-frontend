@@ -102,11 +102,11 @@ export default function MyAppBar({ props }) {
       </Box>
       <RefreshButton label="" icon={<RefreshIcon sx={{fontSize: "24px !important", marginRight: "-6px"}} />}  sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end"}}/>
       <UserMenu>
-        {( role === "Agent" || role === "Player" ) && 
+        {( role === "Agent" || role === "Player" || role === "Master-Agent") && 
         <MenuItem onClick={handleOpenModal} style={{color:"#0000008a"}}> 
         <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
           Change Password</MenuItem>}
-          {role === "Agent" && (
+          {(role === "Agent" || role === "Master-Agent")&& (
           <MenuItem
             onClick={handleOpenRechargeLimit}
             style={{ color: "#0000008a" }}

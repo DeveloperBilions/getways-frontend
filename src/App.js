@@ -155,22 +155,16 @@ function App() {
           <CustomRoutes noLayout>
             <Route path="*" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
-          </CustomRoutes>
-        );}
-      }}
-
-      <CustomRoutes>
-        <Route path="/success" element={<Success />} />
-      </CustomRoutes>
-      <CustomRoutes noLayout>
-        <Route path="/loginEmail" element={<LoginEmailPage />} />
+           < Route path="/loginEmail" element={<LoginEmailPage />} />
         <Route path="/updateUser" element={<UpdateUser />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-email-sent" element={<EmailSent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         <Route path="/create-user" element={<ReferralLinkForm />} />
-      </CustomRoutes>
+          </CustomRoutes>
+        );}
+      }}
 
       {/* <CustomRoutes>
         <Route

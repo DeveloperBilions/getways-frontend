@@ -70,7 +70,7 @@ export const RedeemRecordsList = (props) => {
   const [exportError, setExportError] = useState(null); // Store any export errors
 
   const role = localStorage.getItem("role");
-  const { data,isFetching } = useGetList("redeemRecords", {
+  const { data, isFetching } = useGetList("redeemRecords", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "transactionDate", order: "DESC" },
   });
@@ -139,9 +139,9 @@ export const RedeemRecordsList = (props) => {
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
-  
+
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);  
+  }, []);
   const handleExportPDF = async () => {
     const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
@@ -231,15 +231,15 @@ export const RedeemRecordsList = (props) => {
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
           { id: 7, name: "Rejected" },
-          { id: 8, name: "Redeem Successfully"},
-          { id: 9, name: "Expired"},
+          { id: 8, name: "Redeem Successfully" },
+          { id: 9, name: "Expired" },
           ...(permissions === "Super-User"
-          ? [
-              { id: 11, name: "Cashouts" },
-              { id: 12, name: "Cashout Successfully" },
-              { id: 13, name: "Cashout Reject" },
-            ]
-          : []),
+            ? [
+                { id: 11, name: "Cashouts" },
+                { id: 12, name: "Cashout Successfully" },
+                { id: 13, name: "Cashout Reject" },
+              ]
+            : []),
         ]}
         onBlur={handleStatusChange}
       />
@@ -279,11 +279,16 @@ export const RedeemRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportPDF();
-            handleMenuClose();
+            //handleMenuClose();
           }}
+          disabled={isExporting}
         >
           <ListItemIcon>
-            <PictureAsPdfIcon fontSize="small" />
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PictureAsPdfIcon fontSize="small" />
+            )}
           </ListItemIcon>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             PDF file
@@ -292,11 +297,16 @@ export const RedeemRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportXLS();
-            handleMenuClose();
+            //handleMenuClose();
           }}
+          disabled={isExporting}
         >
           <ListItemIcon>
-            <BackupTableIcon fontSize="small" />
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <BackupTableIcon fontSize="small" />
+            )}
           </ListItemIcon>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Excel file
@@ -307,7 +317,12 @@ export const RedeemRecordsList = (props) => {
   );
   if (isFetching) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="50vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -434,7 +449,10 @@ export const RedeemRecordsList = (props) => {
             label="Action"
             source="action"
             render={(record) =>
-              record?.status === 6 && identity?.role === "Agent" ? (
+              (record?.status === 6 && identity?.role === "Agent") ||
+              (record?.status === 6 &&
+                identity?.role === "Master-Agent" &&
+                identity?.objectId === record?.userParentId) ? (
                 <Box
                   sx={{
                     display: "flex",
@@ -514,7 +532,7 @@ export const RedeemRecordsList = (props) => {
           />
         </Datagrid>
       </List>
-      {permissions === "Agent" && (
+      {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>
           <RejectRedeemDialog
             open={rejectDialogOpen}

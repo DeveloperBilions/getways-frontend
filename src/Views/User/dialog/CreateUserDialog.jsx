@@ -69,7 +69,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   const fetchUsersByRole = async () => {
     try {
       const users = await Parse.Cloud.run("getUsersByRole", {
-        roleName: "Agent",
+        roleName: ["Agent", "Master-Agent"],
       });
       setParentOptions(users);
     } catch (error) {
@@ -107,8 +107,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     try {
       if (permissions === "Super-User") {
         if (userType === "Agent") {
-          if(!identity?.objectId && !identity?.name)
-          {
+          if (!identity?.objectId && !identity?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
           }
@@ -119,9 +118,9 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             phoneNumber,
             email,
             password,
-            userParentId: identity?.objectId,
-            userParentName: identity?.name,
-            redeemService: 5
+            userParentId: parentType?.id,
+            userParentName: parentType?.name,
+            redeemService: 5,
           });
           onClose();
           fetchAllUsers();
@@ -129,8 +128,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           refresh();
           setLoading(false);
         } else if (userType === "Player") {
-           if(!parentType?.id && !parentType?.name)
-          {
+          if (!parentType?.id && !parentType?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
           }
@@ -149,8 +147,46 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           resetFields();
           refresh();
           setLoading(false);
+        } else if (userType === "Master-Agent") {
+          if (!parentType?.id && !parentType?.name) {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
+          await Parse.Cloud.run("createUser", {
+            roleName: userType,
+            username: userName,
+            name,
+            phoneNumber,
+            email,
+            password,
+            userParentId: identity?.objectId,
+            userParentName: identity?.name,
+            redeemService: 5,
+          });
+          onClose();
+          fetchAllUsers();
+          resetFields();
+          refresh();
+          setLoading(false);
         }
       } else if (permissions === "Agent") {
+        await Parse.Cloud.run("createUser", {
+          roleName: "Player",
+          username: userName,
+          name,
+          phoneNumber,
+          email,
+          password,
+          userParentId: identity?.objectId,
+          userParentName: identity?.name,
+        });
+        onClose();
+        fetchAllUsers();
+        resetFields();
+        refresh();
+        setLoading(false);
+      }
+      else if (permissions === "Master-Agent") {
         await Parse.Cloud.run("createUser", {
           roleName: "Player",
           username: userName,
@@ -190,6 +226,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
       type: selectedParent?.role || identity?.role,
     });
   };
+
+  console.log(combinedOptions, "combinedOptions");
 
   return (
     <React.Fragment>
@@ -285,6 +323,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                           required
                         >
                           <option value="">Select User Type</option>
+                          <option value="Master-Agent">Master Agent</option>
                           <option value="Agent">Agent</option>
                           <option value="Player">Player</option>
                         </Input>
@@ -300,10 +339,27 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                           type="select"
                           value={parentType.id}
                           onChange={handleParentTypeChange}
-                          disabled={userType === "Agent"}
+                          disabled={userType === "Master-Agent"}
                           required
                         >
-                          {combinedOptions.map((user) => (
+                          <option value="">Select Parent</option>
+                          {[
+                            {
+                              id: identity?.objectId,
+                              name: identity?.name,
+                              role: identity?.role,
+                            }, // Always include identity
+                            ...parentOptions.filter((user) => {
+                              if (userType === "Agent")
+                                return user.role === "Master-Agent"; // Show only Master-Agent
+                              if (userType === "Player")
+                                return (
+                                  user.role === "Agent" ||
+                                  user.role === "Master-Agent"
+                                ); // Show Agents & Master-Agents
+                              return true;
+                            }),
+                          ].map((user) => (
                             <option key={user.id} value={user.id}>
                               {`${user.role}: ${user.name}`}
                             </option>
