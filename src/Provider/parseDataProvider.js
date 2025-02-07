@@ -898,7 +898,7 @@ export const dataProvider = {
           // Fetch users from Parse.User table
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds);
-          userQuery.select("objectId", "userParentId", "name"); // Include userParentId and name
+          userQuery.select("objectId", "userParentId", "name","userParentName"); // Include userParentId and name
           const userResults = await userQuery.find({ useMasterKey: true });
 
           // Create a map: userId -> userParentId & userParentName
