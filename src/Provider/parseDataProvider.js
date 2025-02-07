@@ -906,7 +906,7 @@ export const dataProvider = {
           userResults.forEach((user) => {
             userMap[user.id] = {
               userParentId: user.get("userParentId") || null,
-              userParentName: user.get("name") || null,
+              userParentName: user.get("userParentName") || null,
             };
           });
 

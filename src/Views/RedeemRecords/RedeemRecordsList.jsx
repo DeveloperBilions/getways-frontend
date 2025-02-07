@@ -384,6 +384,12 @@ export const RedeemRecordsList = (props) => {
             label="Redeemed"
             textAlign="left"
           />
+           <FunctionField
+              label="Parent"
+              render={(record) => {
+                return record?.userParentName;
+              }}
+            />
           <FunctionField
             source="redeemServiceFee"
             label="ServiceFee"

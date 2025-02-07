@@ -432,6 +432,13 @@ export const RechargeRecordsList = (props) => {
               );
             }}
           />
+            <FunctionField
+              label="Parent"
+              render={(record) => {
+                return record?.userParentName;
+              }}
+            />
+          
           {role === "Super-User" && (
             <FunctionField
               label="Mode"
