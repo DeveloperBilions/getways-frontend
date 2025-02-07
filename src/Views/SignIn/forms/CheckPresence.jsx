@@ -169,14 +169,14 @@ const LoginPage = () => {
                 Next
               </Button>
             </Box>
-              <Button
+              {/* <Button
               fullWidth
               variant="outlined"
               sx={{ mt: 1 }}
               onClick={() => setHelpOpen(true)}
             >
               Need Help? Watch Videos
-            </Button>
+            </Button> */}
           </Box>
         </Grid>
       </Grid>
