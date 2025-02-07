@@ -295,7 +295,7 @@ export const dataProvider = {
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
-            transactionQuery.limit(10000);
+            transactionQuery.limit(100000);
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
@@ -328,7 +328,7 @@ export const dataProvider = {
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
-            transactionQuery.limit(10000);
+            transactionQuery.limit(100000);
             var results = await transactionQuery.find();
             console.log(results, "results");
           }
@@ -407,7 +407,7 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(10000);
+          transactionQuery.limit(100000);
           results = await transactionQuery.find();
           const walletBalances = 0;
           result = calculateDataSummaries({
@@ -470,7 +470,7 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(10000);
+          transactionQuery.limit(100000);
           results = await transactionQuery.find();
           const walletBalances = 0;
           result = calculateDataSummaries({
@@ -534,7 +534,7 @@ export const dataProvider = {
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
-            transactionQuery.limit(10000);
+            transactionQuery.limit(100000);
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
@@ -567,7 +567,7 @@ export const dataProvider = {
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
-            transactionQuery.limit(10000);
+            transactionQuery.limit(100000);
             var results = await transactionQuery.find();
             console.log(results, "results");
           }
@@ -664,7 +664,7 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(10000);
+          transactionQuery.limit(100000);
           results = await transactionQuery.find();
           const walletBalances = 0;
           result = calculateDataSummaries({
@@ -728,7 +728,7 @@ export const dataProvider = {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(10000);
+          transactionQuery.limit(100000);
           results = await transactionQuery.find();
           const walletBalances = 0;
           result = calculateDataSummaries({
@@ -794,7 +794,7 @@ export const dataProvider = {
             else query.equalTo(f, filter[f]);
           });
 
-        query.limit(10000);
+        query.limit(100000);
 
         const response = await query.find();
         const res = {
