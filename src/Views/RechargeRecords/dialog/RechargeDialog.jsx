@@ -232,7 +232,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                     </Input>
                     <small>
                       Wallet Balance:{" "}
-                      <strong>${walletBalance.toFixed(2)}</strong>
+                      <strong>{walletBalance.toFixed(2)}</strong>
                     </small>
                   </FormGroup>
                 </Col>

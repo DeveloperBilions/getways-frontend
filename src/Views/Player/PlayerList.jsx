@@ -80,13 +80,13 @@ export const PlayerList = () => {
     {
       id: 2,
       name: "Total Redeems",
-      value: "$" + totalRedeems,
+      value:  totalRedeems,
       icon: MoneyReciveDarkIcon,
     },
     {
       id: 3,
       name: "Pending Recharges",
-      value: "$" + pendingRecharges,
+      value:  pendingRecharges,
       icon: MoneySendDarkIcon,
       url: "rechargeRecords",
     },
