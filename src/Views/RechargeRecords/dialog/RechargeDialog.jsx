@@ -115,8 +115,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
     } else if (paymentSource === "stripe") {
       const amount = parseFloat(rechargeAmount);
 
-      if (paymentSource === "stripe" && amount < 20) {
-        setErrorMessage("Non-Wallet transaction must be at least $20.");
+      if (paymentSource === "stripe" && amount < 10) {
+        setErrorMessage("Non-Wallet transaction must be at least $10.");
         return;
       }
       const rawData = {
