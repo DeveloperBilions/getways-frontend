@@ -52,6 +52,16 @@ export const authProvider = {
   async checkAuth() {
     const currentUserData = localStorage.getItem("role");
     const roleName = currentUserData;
+    try{
+      let user = Parse.User.current();
+      user = await user.fetch();
+    }
+    catch (error) {
+      if(error?.message === "Invalid session token"){
+        await authProvider.logout();
+      }
+      return null;
+    }
     if (!roleName) {
       const error = new Error();
       error.redirectTo = "/login";
@@ -85,7 +95,6 @@ export const authProvider = {
   async getIdentity() {
     try {
       let user = Parse.User.current();
-  
       // Restore session if user is null
       if (!user) {
         const sessionToken = localStorage.getItem(
@@ -97,16 +106,21 @@ export const authProvider = {
             user = await Parse.User.become(sessionToken);
           } catch (err) {
             console.error("Session restoration failed:", err);
-            throw new Error("Session expired. Please log in again.");
-          }
+          await authProvider.logout(); // Log out if session restoration fails
+          throw new Error("Session expired. Please log in again.");
+       }
         } else {
           throw new Error("No active session found.");
         }
       }
-  
       // Ensure the user is fully fetched
       user = await user.fetch();
-  
+      if (user.get("isDeleted") === true) {
+        console.warn("User is marked as deleted. Logging out...");
+        await authProvider.logout();
+        throw new Error("Your account has been deactivated.");
+      }
+
       return {
         objectId: user.id,
         email: user.get("email"),
@@ -119,10 +133,14 @@ export const authProvider = {
         rechargeLimit: user.get("rechargeLimit"),
         isPasswordPermission: user.get("isPasswordPermission"),
         isReedeemZeroAllowed: user.get("isReedeemZeroAllowed"),
-        redeemServiceEnabled: user.get("redeemServiceEnabled")
+        redeemServiceEnabled: user.get("redeemServiceEnabled"),
+        isDeleted: user.get("isDeleted")
       };
     } catch (error) {
-      console.error("Error getting user identity:", error);
+      console.error("Error getting user identity:", error?.message);
+      if(error?.message === "Invalid session token"){
+        await authProvider.logout();
+      }
       return null;
     }
   },
