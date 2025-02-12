@@ -34,6 +34,7 @@ import { Loader } from "../Loader";
 import { Parse } from "parse";
 import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
+import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -50,6 +51,7 @@ const CustomButton = ({ fetchAllUsers }) => {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false); // Wallet Dialog state
   const [passwordPermissionDialogOpen, setPasswordPermissionDialogOpen] =
     useState(false);
+  const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
 
   const role = localStorage.getItem("role");
   const record = useRecordContext();
@@ -123,13 +125,18 @@ const CustomButton = ({ fetchAllUsers }) => {
         }}
       >
         <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent" )&& (
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
           <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
         )}
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent")&& (
-          <MenuItem onClick={() => {
-            setAnchorEl(null);
-            setPasswordPermissionDialogOpen(true)}}>
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setPasswordPermissionDialogOpen(true);
+            }}
+          >
             Password Permission
           </MenuItem>
         )}
@@ -139,6 +146,16 @@ const CustomButton = ({ fetchAllUsers }) => {
         )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        {record?.roleName === "Player" && (
+          <MenuItem
+            onClick={(e) => {
+              handleClose();
+              setBlacklistDialogOpen(true);
+            }}
+          >
+            Black List User
+          </MenuItem>
+        )}
       </Menu>
       <RedeemDialog
         open={redeemDialogOpen}
@@ -177,6 +194,11 @@ const CustomButton = ({ fetchAllUsers }) => {
         resource={resource}
         fetchAllUsers={fetchAllUsers}
         handleRefresh={handleRefresh}
+      />
+      <BlacklistUserDialog
+        open={blacklistDialogOpen}
+        onClose={() => setBlacklistDialogOpen(false)}
+        record={record}
       />
       <WalletDialog
         open={walletDialogOpen}
@@ -219,7 +241,7 @@ export const UserList = (props) => {
   };
   const handleRefresh = async () => {
     refresh();
-  }
+  };
 
   function generateRandomString() {
     const characters =
@@ -265,16 +287,17 @@ export const UserList = (props) => {
 
   const PostListActions = () => (
     <TopToolbar>
-      {role != "Super-User" && 
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={handleGenerateLink}
-      >
-        Referral Link
-      </Button>}
+      {role != "Super-User" && (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={handleGenerateLink}
+        >
+          Referral Link
+        </Button>
+      )}
       <Button
         variant="contained"
         color="primary"
@@ -301,9 +324,9 @@ export const UserList = (props) => {
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
-  
+
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);  
+  }, []);
 
   if (isLoading || !data) {
     return <Loader />;
@@ -337,10 +360,12 @@ export const UserList = (props) => {
           <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
             <TextField source="username" label="User Name" />
             <TextField source="email" label="Email" />
-            {(identity?.role === "Super-User" || identity?.role === "Master-Agent" ) && (
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
               <TextField source="userParentName" label="Parent User" />
             )}
-            {(identity?.role === "Super-User" || identity?.role === "Master-Agent") && (
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
               <TextField source="roleName" label="User Type" />
             )}
             <DateField source="createdAt" label="Date" showTime />

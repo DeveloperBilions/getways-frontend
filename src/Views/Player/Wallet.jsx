@@ -179,8 +179,14 @@ export const Wallet = () => {
                     style={{ width: 24, height: 24 }}
                   />
                 }
-                onClick={() => setcashOutDialogOpen(true)}
+                onClick={() => {
+                  if(!identity?.isBlackListed)
+                  {
+                    setcashOutDialogOpen(true)
+                  }
+                  }}
                 fullWidth
+                disabled={identity?.isBlackListed}
               >
                 Cash out
               </Button>
@@ -197,7 +203,13 @@ export const Wallet = () => {
                   fontSize: "18px",
                 }}
                 fullWidth
-                onClick={() => setPaymentDialogOpen(true)}
+                onClick={() => {
+                  if(!identity?.isBlackListed)
+                  {
+                    setPaymentDialogOpen(true)
+                  }
+                  }}
+                disabled={identity?.isBlackListed}
               >
                 Add Payment Methods
               </Button>

@@ -102,7 +102,6 @@ export const PlayerList = () => {
   const handleRefresh = async () => {
     refresh();
   };
-
   return (
     <React.Fragment>
       <Card
@@ -213,8 +212,14 @@ export const PlayerList = () => {
                     style={{ width: 24, height: 24 }}
                   />
                 }
-                onClick={() => setRechargeDialogOpen(true)}
+                onClick={() => {
+                  if(!identity?.isBlackListed)
+                  {
+                    setRechargeDialogOpen(true)
+                  }
+                  }}
                 fullWidth
+                disabled={identity?.isBlackListed}
               >
                 Recharge
               </Button>
