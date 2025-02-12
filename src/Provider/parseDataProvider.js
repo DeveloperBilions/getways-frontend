@@ -1,5 +1,5 @@
 import { Parse } from "parse";
-import { calculateDataSummaries } from "../utils";
+import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
@@ -159,6 +159,8 @@ export const dataProvider = {
 
       return { ids: ids, data: data };
     };
+    const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
+
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
@@ -259,44 +261,205 @@ export const dataProvider = {
         count = await query.count();
       } else if (resource === "summary") {
         var result = null;
+        if (
+          filter?.startDate &&
+          filter?.endDate &&
+          new Date(`${filter.startdate}T00:00:00Z`) >
+            new Date(`${filter.endDate}T00:00:00Z`)
+        ) {
+          throw new Error("Start date cannot be greater than end date");
+        }
+
+        const queryPipeline = [
+          {
+            $match: {
+            },
+          },
+          { $limit: 10000 },
+          {
+            $facet: {
+              totalRechargeAmount: [
+                { $match: { status: { $in: [2, 3] } } },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: "$transactionAmount" },
+                  },
+                },
+              ],
+              totalRedeemAmount: [
+                { 
+                  $match: { 
+                    type: "redeem", 
+                    status: { $in: [4, 8] }, 
+                    transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
+                  } 
+                },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: "$transactionAmount" },
+                  },
+                },
+              ],
+              totalPendingRechargeAmount: [
+                { $match: { status: 1 } },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: "$transactionAmount" },
+                  },
+                },
+              ],
+              totalCashoutRedeemsSuccess: [
+                { $match: { status: 12 } },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: "$transactionAmount" },
+                  },
+                },
+              ],
+              totalCashoutRedeemsInProgress: [
+                { $match: { status: 11 ,                    transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
+              } },
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: "$transactionAmount" },
+                  },
+                },
+              ],
+              totalRecords: [{ $count: "total" }],
+              totalAmt: [
+                {
+                  $group: {
+                    _id: null,
+                    total: { $sum: { $ifNull: ["$transactionAmount", 0] } },
+                  },
+                },
+              ]
+              ,
+              totalFeesCharged: [
+                {
+                  $match: {
+                    type: "redeem",
+                    status: { $in: [4, 8] },
+                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                    redeemServiceFee: { $gt: 0, $type: "number" }   // Ensure positive finite numbers
+                  },
+                },
+                {
+                  $project: {
+                    calculatedFee: {
+                      $floor: {
+                        $multiply: [
+                          { $divide: ["$redeemServiceFee", 100] },
+                          "$transactionAmount",
+                        ],
+                      },
+                    },
+                  },
+                },
+                {
+                  $group: { _id: null, total: { $sum: "$calculatedFee" } },
+                },
+              ]
+              ,
+              totalRedeemSuccessful: [
+                { $match: { status: 8 } },
+                { $count: "count" },
+              ],
+
+              totalRechargeByType: [
+                { $match: { type: "recharge", status: { $in: [2, 3] } } },
+                {
+                  $group: {
+                    _id: {
+                      wallet: { $ifNull: ["$useWallet", false] },
+                    },
+                    totalAmount: {
+                      $sum: { $ifNull: ["$transactionAmount", 0] },
+                    },
+                  },
+                },
+                {
+                  $project: {
+                    _id: 0,
+                    wallet: {
+                      $cond: [
+                        { $eq: ["$_id.wallet", true] },
+                        "wallet",
+                        "others",
+                      ],
+                    },
+                    totalAmount: 1,
+                  },
+                },
+              ],
+
+              totalRedeemByTypeData: [
+                {
+                  $match: {
+                    type: "redeem",
+                    status: { $in: [4, 8, 12] },
+                  },
+                },
+                {
+                  $project: {
+                    transactionId: "$id",
+                    amount: { $ifNull: ["$transactionAmount", 0] },
+                    status: 1,
+                    paymentType: {
+                      $cond: [{ $eq: ["$status", 12] }, "cashout", "redeem"],
+                    },
+                    transactionIdFromStripe: 1,
+                    transactionDate: 1,
+                    redeemServiceFee: 1,
+                  },
+                },
+              ],
+
+              totalRechargeByTypeData: [
+                {
+                  $match: {
+                    type: "recharge",
+                    status: { $in: [2, 3] },
+                  },
+                },
+                {
+                  $project: {
+                    transactionId: "$id",
+                    amount: { $ifNull: ["$transactionAmount", 0] },
+                    date: "$date",
+                    status: 1,
+                    paymentType: {
+                      $cond: [
+                        { $eq: ["$useWallet", true] },
+                        "wallet",
+                        "others",
+                      ],
+                    },
+                    transactionIdFromStripe: 1,
+                    transactionDate: 1,
+                  },
+                },
+              ],
+            },
+          },
+        ];
         if (role === "Super-User") {
           //users
           console.log("SU", filter);
 
           if (filter?.username) {
-            // console.log("IN IF");
+            console.log("IN IF");
             var userQuery = new Parse.Query(Parse.User);
             var selectedUser = await userQuery.get(filter.username, {
               useMasterKey: true,
             });
             var { ids, data } = await fetchUsers(selectedUser);
-
-            const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-              "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate"
-            );
-            transactionQuery.containedIn("userId", ids);
-
-            filter.startdate &&
-              transactionQuery.greaterThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.startdate + "T00:00:00Z")
-              );
-            filter.enddate &&
-              transactionQuery.lessThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.enddate + "T23:59:59Z")
-              );
-            transactionQuery.limit(100000);
-            var results = await transactionQuery.find();
+            queryPipeline[0]["$match"]["userId"] = { $in: ids };
           } else {
             var userQuery = new Parse.Query(Parse.User);
             userQuery.limit(10000);
@@ -304,33 +467,6 @@ export const dataProvider = {
             var data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
             data.push({ id: userid, ...currentUser.attributes });
-
-            //transaction
-            const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-              "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate"
-            );
-            filter.startdate &&
-              transactionQuery.greaterThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.startdate + "T00:00:00Z")
-              );
-            filter.enddate &&
-              transactionQuery.lessThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.enddate + "T23:59:59Z")
-              );
-            transactionQuery.limit(100000);
-            var results = await transactionQuery.find();
-            console.log(results, "results");
           }
           // Fetch wallet balances for the users
           const walletQuery = new Parse.Query("Wallet");
@@ -342,11 +478,28 @@ export const dataProvider = {
             acc[wallet.get("userID")] = wallet.get("balance") || 0;
             return acc;
           }, {});
+          console.log(
+            filter,
+            "filteration",
+            new Date(
+              Date.UTC(
+                new Date(filter.startdate + "T00:00:00Z").getUTCFullYear(),
+                new Date(filter.startdate + "T00:00:00Z").getUTCMonth(),
+                new Date(filter.startdate + "T00:00:00Z").getUTCDate()
+              )
+            ),
+            new Date(
+              Date.UTC(
+                new Date(filter.enddate + "T23:59:59Z").getUTCFullYear(),
+                new Date(filter.enddate + "T23:59:59Z").getUTCMonth(),
+                new Date(filter.enddate + "T23:59:59Z").getUTCDate()
+              )
+            )
+          );
 
-          result = calculateDataSummaries({
+          result = calculateDataSummariesForSummary({
             id: 0,
             users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
             walletBalances,
           });
           /*result = {
@@ -369,7 +522,6 @@ export const dataProvider = {
           );*/
         }
         if (role === "Agent") {
-          console.log("Agent");
           //users
           const selectedUser =
             filter && filter.username
@@ -377,60 +529,14 @@ export const dataProvider = {
                   useMasterKey: true,
                 })
               : null;
-          // console.log("selected user:", selectedUser);
           const { ids, data } = await fetchUsers(selectedUser);
-          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          // console.log("fetchUsers", data);
-          //transactions
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          transactionQuery.select(
-            "userId",
-            "status",
-            "transactionAmount",
-            "type",
-            "useWallet",
-            "redeemServiceFee",
-            "isCashOut"
-          );
-          transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
-            );
-          /*filter && Object.keys(filter).map((f) => {
-              if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
-              else transactionQuery.equalTo(f, filter[f]);
-          });*/
-          transactionQuery.limit(100000);
-          results = await transactionQuery.find();
+          queryPipeline[0]["$match"]["userId"] = { $in: ids };
           const walletBalances = 0;
-          result = calculateDataSummaries({
+          result = calculateDataSummariesForSummary({
             id: 1,
             users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
             walletBalances,
           });
-
-          /*result = {
-            data: [
-              {
-                id: 0,
-                users: data,
-                transactions: results.map((o) => ({
-                  id: o.id,
-                  ...o.attributes,
-                })),
-              },
-            ],
-            total: null,
-          }; */
-          // console.log("Summary List ", result);
         }
         if (role === "Master-Agent") {
           //users
@@ -440,63 +546,162 @@ export const dataProvider = {
                   useMasterKey: true,
                 })
               : null;
-          // console.log("selected user:", selectedUser);
-          const { ids, data } = await fetchUsers(selectedUser, true);
-          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          // console.log("fetchUsers", data);
-          //transactions
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          transactionQuery.select(
-            "userId",
-            "status",
-            "transactionAmount",
-            "type",
-            "useWallet",
-            "redeemServiceFee",
-            "isCashOut"
-          );
-          transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
-            );
-          /*filter && Object.keys(filter).map((f) => {
-              if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
-              else transactionQuery.equalTo(f, filter[f]);
-          });*/
-          transactionQuery.limit(100000);
-          results = await transactionQuery.find();
+          const { ids, data } = await fetchUsers(selectedUser,true);
+          queryPipeline[0]["$match"]["userId"] = { $in: ids };
           const walletBalances = 0;
-          result = calculateDataSummaries({
+          result = calculateDataSummariesForSummary({
             id: 1,
             users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
             walletBalances,
           });
+        }
 
-          /*result = {
-            data: [
+        const matchConditions = [];
+
+        if (filter.startdate) {
+          matchConditions.push({
+            transactionDate: {
+              $gte: new Date(`${filter.startdate}T00:00:00Z`),
+            },
+          });
+        }
+
+        if (filter.enddate) {
+          matchConditions.push({
+            transactionDate: { $lte: new Date(`${filter.enddate}T23:59:59Z`) },
+          });
+        }
+        const pppipeline = [
+          {
+            $match: {},
+          },
+          {
+            $group: {
+              _id: null, // No grouping key since we want the total sum for all records
+              totalAmount: { $sum: "$transactionAmount" }, // Sum the transactionAmount
+            },
+          },
+        ];
+        const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
+
+        if (matchConditions.length > 0) {
+          queryPipeline[0]["$match"] = {
+            $and: [
+              ...matchConditions,
+              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
+            ],
+          };
+          pppipeline[0]["$match"] = {
+            $and: [
+              ...matchConditions,
+              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
               {
-                id: 0,
-                users: data,
-                transactions: results.map((o) => ({
-                  id: o.id,
-                  ...o.attributes,
-                })),
+                $or: [
+                  {
+                    transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
+                    status: 5,
+                  },
+                  {
+                    transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
+                    status: 7,
+                  },
+                ],
               },
             ],
-            total: null,
-          }; */
-          // console.log("Summary List ", result);
+          };
+        } else {
+          pppipeline[0]["$match"] = {
+            $and: [
+              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
+              {
+                $or: [
+                  {
+                    transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
+                    status: 5,
+                  },
+                  {
+                    transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
+                    status: 7,
+                  },
+                ],
+              },
+            ],
+          };
         }
+
+        const newResults = await new Parse.Query(
+          "TransactionRecords"
+        ).aggregate(queryPipeline, { useMasterKey: true });
+
+        const Combinedresult = await new Parse.Query(
+          "TransactionRecords"
+        ).aggregate(pppipeline, { useMasterKey: true });
+
+        const {
+          totalRechargeAmount,
+          totalRedeemAmount,
+          totalPendingRechargeAmount,
+          totalCashoutRedeemsSuccess,
+          totalCashoutRedeemsInProgress,
+          totalRecords,
+          totalAmt,
+          totalFeesCharged,
+          totalRedeemSuccessful,
+          totalRechargeByType,
+          totalRedeemByTypeData,
+          totalRechargeByTypeData,
+        } = newResults[0];
+        const newsummaray = {
+          totalRechargeAmount: totalRechargeAmount[0]?.total || 0,
+          totalRedeemAmount: totalRedeemAmount[0]?.total || 0,
+          totalPendingRechargeAmount: totalPendingRechargeAmount[0]?.total || 0,
+          totalCashoutRedeemsSuccess: totalCashoutRedeemsSuccess[0]?.total || 0,
+          totalCashoutRedeemsInProgress:
+            totalCashoutRedeemsInProgress[0]?.total || 0,
+          totalRecords: totalRecords[0]?.total || 0,
+          totalAmt: totalAmt[0]?.total || 0,
+          totalFeesCharged: totalFeesCharged[0]?.total || 0,
+          totalRedeemSuccessful: totalRedeemSuccessful[0]?.count || 0,
+          totalRechargeByType: totalRechargeByType,
+          totalRedeemByTypeData: totalRedeemByTypeData,
+          totalRechargeByTypeData: totalRechargeByTypeData,
+        };
+        const walletTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
+          (o) => o.paymentType === "wallet"
+        );
+        const othersTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
+          (o) => o.paymentType === "others"
+        );
+        newsummaray.totalRechargeByTypeData = {
+          wallet: walletTotalRecharge,
+          others: othersTotalRecharge,
+        };
+        newsummaray.totalRechargeByType = {
+          wallet:
+            newsummaray.totalRechargeByType.find((o) => o.wallet === "wallet")
+              ?.totalAmount || 0,
+          others:
+            newsummaray.totalRechargeByType.find((o) => o.wallet === "others")
+              ?.totalAmount || 0,
+        };
+
+        const walletRedeem = newsummaray.totalRedeemByTypeData.filter(
+          (o) => o.paymentType === "redeem"
+        );
+        const othersRedeem = newsummaray.totalRedeemByTypeData.filter(
+          (o) => o.paymentType === "cashout"
+        );
+        newsummaray.totalRedeemByTypeData = {
+          wallet: walletRedeem,
+          others: othersRedeem,
+        };
+
+        result.data[0] = Object.assign(result.data[0], newsummaray);
+        result.data[0]["totalFailRedeemAmount"] =
+          Combinedresult[0]?.totalAmount || 0;
+        console.log("result", result);
         return result;
-      } else if (resource === "summaryExport") {
+    }else if (resource === "summaryExport") {
         var result = null;
         if (role === "Super-User") {
           //users

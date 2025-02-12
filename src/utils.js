@@ -209,3 +209,31 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
     total: null,
   };
 };
+
+export const calculateDataSummariesForSummary = ({ id, users,walletBalances }) => {
+
+  const totalBalance = users.reduce((sum, user) => {
+    return sum + (walletBalances[user?.id] || 0);
+  }, 0);
+  // const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
+  console.log(users);
+  const totalRegisteredUsers = users.filter(
+    (item) => !item.userReferralCode
+  ).length; //excluding self
+  const totalAgents = users.filter(
+    (item) => item.roleName === "Agent" //&& item.username !== identity.username
+  ).length;
+
+  return {
+    data: [
+      {
+        id: id,
+        totalRegisteredUsers: totalRegisteredUsers,
+        totalAgents: totalAgents,
+        walletBalances,
+        totalBalance,
+      },
+    ],
+    total: null,
+  };
+};
