@@ -502,24 +502,6 @@ export const dataProvider = {
             users: data,
             walletBalances,
           });
-          /*result = {
-            data: [
-              {
-                id: 0,
-                users: data,
-                transactions: results.map((o) => ({
-                  id: o.id,
-                  ...o.attributes,
-                })),
-              },
-            ],
-            total: null,
-          };
-          console.log(
-            "count ",
-            result.data[0].users.length,
-            result.data[0].transactions.length
-          );*/
         }
         if (role === "Agent") {
           //users
@@ -571,9 +553,14 @@ export const dataProvider = {
             transactionDate: { $lte: new Date(`${filter.enddate}T23:59:59Z`) },
           });
         }
+        if (queryPipeline[0]["$match"]["userId"]) {
+          matchConditions.push({
+            userId: queryPipeline[0]["$match"]["userId"],
+          });
+        }        
         const pppipeline = [
           {
-            $match: {},
+            $match: matchConditions.length > 0 ? { $and: matchConditions } : {},
           },
           {
             $group: {
@@ -582,7 +569,6 @@ export const dataProvider = {
             },
           },
         ];
-        const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
 
         if (matchConditions.length > 0) {
           queryPipeline[0]["$match"] = {
