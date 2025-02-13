@@ -187,6 +187,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
+      setErrorAddPayment(error.message || "Failed to update payment methods. Please try again.");
     } finally {
       setSavingPaymentMethod(false); // Stop loader
     }

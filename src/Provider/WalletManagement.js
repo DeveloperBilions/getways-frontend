@@ -40,35 +40,52 @@ export const walletService = {
   updatePaymentMethods: async (paymentMethods) => {
     try {
       const Wallet = Parse.Object.extend("Wallet");
-      const query = new Parse.Query(Wallet);
       const userId = localStorage.getItem("id");
   
-      query.equalTo("userID", userId);
+      // Ensure at least one payment method is provided
+      if (
+        !paymentMethods?.cashAppId?.trim() &&
+        !paymentMethods?.paypalId?.trim() &&
+        !paymentMethods?.venmoId?.trim() &&
+        !paymentMethods?.zelleId?.trim()
+      ) {
+        throw new Error("At least one valid payment method is required.");
+      }
   
+      // Function to check for duplicates before setting values
+      const checkAndSet = async (wallet, field, value) => {
+        if (value) {
+          const existingQuery = new Parse.Query(Wallet);
+          existingQuery.notEqualTo("userID", userId);
+          existingQuery.equalTo(field, value);
+          
+          const existing = await existingQuery.first();
+          if (existing) {
+            throw new Error(`${field} is already in use by another user.`);
+          } else {
+            wallet.set(field, value);
+          }
+        }
+      };
+  
+      // Query for the user's wallet (if it exists)
+      const query = new Parse.Query(Wallet);
+      query.equalTo("userID", userId);
       let wallet = await query.first();
   
-      // If wallet does not exist, create a new one
+      // Create a new wallet if it doesn't exist
       if (!wallet) {
         wallet = new Wallet();
         wallet.set("userID", userId);
-        console.log("Creating new wallet for user ID:", userId);
       }
   
-      // Ensure payment methods are correctly set
-      if (paymentMethods) {
-        wallet.set("cashAppId", paymentMethods.cashAppId || "");
-        wallet.set("paypalId", paymentMethods.paypalId || "");
-        wallet.set("venmoId", paymentMethods.venmoId || "");
-        wallet.set("zelleId", paymentMethods.zelleId || "");
-      } else {
-        console.warn("No payment methods provided, setting to empty.");
-        wallet.set("cashAppId", "");
-        wallet.set("paypalId", "");
-        wallet.set("venmoId", "");
-        wallet.set("zelleId","")
-      }
+      // Check and set payment methods
+      await checkAndSet(wallet, "cashAppId", paymentMethods.cashAppId?.trim() || "");
+      await checkAndSet(wallet, "paypalId", paymentMethods.paypalId?.trim() || "");
+      await checkAndSet(wallet, "venmoId", paymentMethods.venmoId?.trim() || "");
+      await checkAndSet(wallet, "zelleId", paymentMethods.zelleId?.trim() || "");
   
-      // Save the updated or newly created wallet object
+      // Save the updated or newly created wallet
       const updatedWallet = await wallet.save(null);
   
       return {
@@ -77,7 +94,7 @@ export const walletService = {
       };
     } catch (error) {
       console.error("Error updating or creating wallet:", error.message);
-      throw new Error("Could not update or create wallet. Please try again.");
+      throw new Error(error.message || "Could not update or create wallet. Please try again.");
     }
   },  
   getCashoutTransactions: async (request) => {

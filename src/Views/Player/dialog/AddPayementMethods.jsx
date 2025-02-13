@@ -65,7 +65,7 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
       onClose(); // Close the modal
     } catch (error) {
       console.error("Error updating payment methods:", error);
-      setError("Failed to save payment methods. Please try again.");
+      setError(error.message ? error.message :"Failed to save payment methods. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -146,7 +146,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
-        {record?.roleName === "Player" && (
+        {record?.roleName === "Player" && role === "Super-User" && (
           <MenuItem
             onClick={(e) => {
               handleClose();
