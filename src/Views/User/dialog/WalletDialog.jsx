@@ -26,7 +26,12 @@ const WalletDialog = ({ open, onClose, record }) => {
   const [walletDetails, setWalletDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
-  const role = localStorage.getItem("role")
+  const role = localStorage.getItem("role");
+  const [cashoutStats, setCashoutStats] = useState({
+    inProgressCount: 0,
+    completedCount: 0,
+    retriedCount: 0,
+  });
 
   useEffect(() => {
     const fetchWalletDetails = async () => {
@@ -34,7 +39,7 @@ const WalletDialog = ({ open, onClose, record }) => {
       try {
         const walletQuery = new Parse.Query("Wallet");
         walletQuery.equalTo("userID", record.id); // Query by the user ID
-        const wallet = await walletQuery.first({ useMasterKey: true });
+        const wallet = await walletQuery.first();
         if (wallet) {
           setWalletDetails({
             balance: wallet.get("balance"),
@@ -47,8 +52,7 @@ const WalletDialog = ({ open, onClose, record }) => {
             zelleId: wallet.get("zelleId"),
             isZelleDisabled: wallet.get("isZelleDisabled"),
           });
-        }
-        else {
+        } else {
           setWalletDetails(null); // No wallet found
         }
       } catch (error) {
@@ -60,9 +64,59 @@ const WalletDialog = ({ open, onClose, record }) => {
 
     if (open) {
       fetchWalletDetails();
+      fetchCashoutStats(record.id).then((stats) => {
+        setCashoutStats(stats);
+      });
     }
   }, [open, record]);
 
+  const fetchCashoutStats = async (userId) => {
+    try {
+      const now = new Date();
+      const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago
+      const pipeline = [
+        { 
+          $match: { 
+            userId: userId, 
+            status: { $in: [11, 12] } 
+          } 
+        }, // Match userId and status
+  
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+          },
+        },
+      ]
+      const query = new Parse.Query("TransactionRecords");
+      const results = await query.aggregate(pipeline);
+     // Count retried transactions separately with a direct query
+     const retriedCountQuery = new Parse.Query("TransactionRecords");
+     retriedCountQuery.equalTo("userId", userId);
+     retriedCountQuery.equalTo("status", 11);
+     retriedCountQuery.lessThan("updatedAt", twoHoursAgo);
+     
+     const retriedCount = await retriedCountQuery.count();
+
+      let inProgressCount = 0;
+      let completedCount = 0;
+  
+      results.forEach((result) => {
+        if (result.objectId === 11) {
+          inProgressCount = result.count;
+        } else if (result.objectId === 12) {
+          completedCount = result.count;
+        }
+      });
+  
+      return { inProgressCount, completedCount, retriedCount };
+    } catch (error) {
+      console.error("Error fetching cashout stats:", error);
+      return { inProgressCount: 0, completedCount: 0, retriedCount: 0 };
+    }
+  };
+  
   return (
     <>
       <Modal isOpen={open} toggle={onClose} size="md" centered>
@@ -73,7 +127,7 @@ const WalletDialog = ({ open, onClose, record }) => {
         <ModalBody>
           {loading ? (
             <Loader />
-          ) :walletDetails ? (
+          ) : walletDetails ? (
             <Card
               className="shadow-sm"
               style={{
@@ -171,12 +225,51 @@ const WalletDialog = ({ open, onClose, record }) => {
                   </ListGroupItem>
                 </ListGroup>
               </CardBody>
+              <CardBody
+                style={{
+                  borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+                  paddingTop: "1rem",
+                }}
+              >
+                <h5 className="mb-3">Cashout Statistics</h5>
+                <ListGroup flush>
+                  <ListGroupItem
+                    style={{
+                      background: "transparent",
+                      color: "#fff",
+                      border: "none",
+                    }}
+                  >
+                    <strong>In Progress:</strong> {cashoutStats.inProgressCount}
+                  </ListGroupItem>
+                  <ListGroupItem
+                    style={{
+                      background: "transparent",
+                      color: "#fff",
+                      border: "none",
+                    }}
+                  >
+                    <strong>Completed:</strong> {cashoutStats.completedCount}
+                  </ListGroupItem>
+                  <ListGroupItem
+                    style={{
+                      background: "transparent",
+                      color: "#fff",
+                      border: "none",
+                    }}
+                  >
+                    <strong>Retried:</strong> {cashoutStats.retriedCount}
+                  </ListGroupItem>
+                </ListGroup>
+              </CardBody>
             </Card>
-          ) : <div className="text-center">
-          <p style={{ fontSize: "1.2rem", color: "#999" }}>
-            Wallet not yet created.
-          </p>
-        </div>}
+          ) : (
+            <div className="text-center">
+              <p style={{ fontSize: "1.2rem", color: "#999" }}>
+                Wallet not yet created.
+              </p>
+            </div>
+          )}
           <div className="text-end mt-3">
             <Button color="light" onClick={onClose}>
               Close
