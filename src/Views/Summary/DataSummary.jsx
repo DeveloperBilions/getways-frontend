@@ -515,6 +515,7 @@ export const DataSummary = () => {
         sort: { field: "transactionDate", order: "DESC" },
         filter: {...filters},
       }); // Call the service to fetch export data
+      console.log(data,"datafrijijrijee")
       if (data) {
         setExportData(data); // Save the fetched data
         return data; // Return the fetched data
@@ -811,6 +812,70 @@ export const DataSummary = () => {
       "TotalRechargeData.xlsx"
     );
   };
+
+  const handleExportAllDataXLS = async () => {
+    const exportData = await loadAndExportData(); // Fetch data
+
+    // Flatten and combine all data
+    const combinedData = exportData.map((item) => ({
+      "Transaction ID": item.id,
+      "type": item?.type,
+      Amount: item.transactionAmount,
+      "Transaction Date": formatDateForExcel(item.transactionDate),
+      Status: item.status,
+      "Stripe Transaction ID": item.transactionIdFromStripe,
+      "Redeem Service Fee": item.redeemServiceFee,
+      "Agent Name": item?.agentName,
+      "User Name": item?.username,
+      "isCashout": item?.isCashOut,
+      "paymentMode": item?.paymentMode,
+      "paymentMethodType": item?.paymentMethodType,
+      "remark": item?.remark,
+      "Redeem Remark": item?.redeemRemarks,
+    }));
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "All Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([xlsData], { type: "application/octet-stream" }), "AllData.xlsx");
+  };
+  // Function to map wallet data for export
+const mapWalletDataForExport = (walletData) => {
+  return walletData.map((item) => ({
+    "Wallet ID": item.id,                      // Wallet record ID
+    "User ID": item.userID,                    // User ID associated with wallet
+    "Agent Name": item?.agentName,             // Assuming agentName is available
+    "User Name": item?.username,               // Assuming username is available
+    "Balance": item?.balance,                  // Wallet balance
+    "Zelle ID": item?.zelleId,                 // Zelle ID from wallet
+    "Paypal ID": item?.paypalId,               // Paypal ID from wallet
+    "Venmo ID": item?.venmoId,                 // Venmo ID from wallet
+    "CashApp ID": item?.cashAppId,             // CashApp ID from wallet
+    "Date": item?.createdAt
+  }));
+};
+
+// Function to handle the export to XLSX (wallet data only)
+const handleExportWalletDataXLS = async () => {
+  const walletData = await loadAndExportData(); // Fetch wallet data (replace with actual function)
+
+  // Map wallet data for export
+  const combinedData = mapWalletDataForExport(walletData);
+
+  // Create worksheet and workbook
+  const worksheet = XLSX.utils.json_to_sheet(combinedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Wallet Data");
+
+  // Write Excel file
+  const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  saveAs(new Blob([xlsData], { type: "application/octet-stream" }), "WalletData.xlsx");
+};
+
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
 

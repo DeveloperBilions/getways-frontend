@@ -275,7 +275,6 @@ export const dataProvider = {
             $match: {
             },
           },
-          { $limit: 10000 },
           {
             $facet: {
               totalRechargeAmount: [
@@ -453,12 +452,11 @@ export const dataProvider = {
           console.log("SU", filter);
 
           if (filter?.username) {
-            console.log("IN IF");
             var userQuery = new Parse.Query(Parse.User);
             var selectedUser = await userQuery.get(filter.username, {
               useMasterKey: true,
             });
-            var { ids, data } = await fetchUsers(selectedUser);
+            var { ids, data } = await fetchUsers(selectedUser,"yes");
             queryPipeline[0]["$match"]["userId"] = { $in: ids };
           } else {
             var userQuery = new Parse.Query(Parse.User);
@@ -478,25 +476,6 @@ export const dataProvider = {
             acc[wallet.get("userID")] = wallet.get("balance") || 0;
             return acc;
           }, {});
-          console.log(
-            filter,
-            "filteration",
-            new Date(
-              Date.UTC(
-                new Date(filter.startdate + "T00:00:00Z").getUTCFullYear(),
-                new Date(filter.startdate + "T00:00:00Z").getUTCMonth(),
-                new Date(filter.startdate + "T00:00:00Z").getUTCDate()
-              )
-            ),
-            new Date(
-              Date.UTC(
-                new Date(filter.enddate + "T23:59:59Z").getUTCFullYear(),
-                new Date(filter.enddate + "T23:59:59Z").getUTCMonth(),
-                new Date(filter.enddate + "T23:59:59Z").getUTCDate()
-              )
-            )
-          );
-
           result = calculateDataSummariesForSummary({
             id: 0,
             users: data,
@@ -945,36 +924,127 @@ export const dataProvider = {
           // console.log("Summary List ", result);
         }
         return result;
-      } else if (resource === "summaryData") {
+      }else if (resource === "summaryData") {
         var result = null;
+      
+        // Fetch all users in one query
+        const userQuery = new Parse.Query(Parse.User);
+        userQuery.limit(10000);
+        const users = await userQuery.find({useMasterKey:true});
 
-        const rawFilter = {
-          userId: filter?.username || userid,
-          endDate: filter?.enddate,
-          startDate: filter?.startdate,
-        };
-
-        // console.log("&&&&&", rawFilter);
-
-        const response = await Parse.Cloud.run("summaryFilter", rawFilter);
-
-        console.log(response);
-
-        const array = Object.entries(response?.data).map(
-          ([key, value], index) => ({
-            id: index + 1,
-            key,
-            value,
-          })
+        // Create a map for quick user lookup by userId
+        const userMap = users.reduce((map, user) => {
+          map[user.id] = user;
+          return map;
+        }, {});
+        console.log("Users:", users);
+        console.log("User Map:", userMap);
+      
+        // transaction query
+        const transactionQuery = new Parse.Query("TransactionRecords");
+        transactionQuery.select(
+          "userId",
+          "status",
+          "transactionAmount",
+          "type",
+          "useWallet",
+          "redeemServiceFee",
+          "isCashOut",
+          "transactionIdFromStripe",
+          "transactionDate",
+          "paymentMode",
+          "paymentMethodType",
+          "remark",
+          "redeemRemarks",
+          "username"
         );
-
-        const res = {
-          data: array,
-          total: count,
-        };
-
-        return res;
-      } else if (resource === "playerDashboard") {
+        transactionQuery.limit(100000);
+        var results = await transactionQuery.find();
+      
+        // Process transactions and add agentName from the user map
+        result = results.map((o) => {
+          const transactionData = { id: o.id, ...o.attributes };
+      
+          // Get the user object from the map based on userId
+          const user = userMap[transactionData.userId];
+          console.log("User for transactionId:", transactionData.userId, "->", user);
+      
+          // Check if the user has the "userParentName" field
+          if (user) {
+            const agentName = user.get("userParentName");
+            console.log("Agent Name:", agentName);
+      
+            // Add the Agent Name to the transaction data
+            if (agentName) {
+              transactionData.agentName = agentName;
+            } else {
+              console.log("No userParentName found for user:", user.id);
+            }
+          } else {
+            console.log("User not found for userId:", transactionData.userId);
+          }
+      
+          return transactionData;
+        });
+      
+        return { data: result };
+      }else if (resource === "walletData") {
+        var result = null;
+      
+        // Fetch all users in one query
+        const userQuery = new Parse.Query(Parse.User);
+        userQuery.limit(10000);
+        const users = await userQuery.find({ useMasterKey: true });
+      
+        // Create a map for quick user lookup by userId
+        const userMap = users.reduce((map, user) => {
+          map[user.id] = user;
+          return map;
+        }, {});
+      
+        // Wallet query
+        const walletQuery = new Parse.Query("Wallet");
+        walletQuery.limit(10000);
+        const wallets = await walletQuery.find({ useMasterKey: true });
+      
+        // Process wallet data and add user-related information
+        result = wallets.map((o) => {
+          const walletData = { id: o.id, ...o.attributes };
+      
+          // Get the user object from the map based on userId
+          const user = userMap[walletData.userID];
+      
+          if (user) {
+            // Extract the required wallet data from the user object
+            const agentName = user.get("userParentName");
+            const username = user.get("username");
+            const userID = walletData.userID
+            const zelleId = walletData.zelleId;  // Assuming this comes from the Wallet table
+            const balance = walletData.balance;  // Assuming this comes from the Wallet table
+            const paypalId = walletData.paypalId; // Assuming this comes from the Wallet table
+            const venmoId = walletData.venmoId;  // Assuming this comes from the Wallet table
+            const cashAppId = walletData.cashAppId; // Assuming this comes from the Wallet table
+      
+            // Add user and wallet-related data to the wallet data
+            walletData.agentName = agentName;
+            walletData.username = username;
+            walletData.zelleId = zelleId;
+            walletData.balance = balance;
+            walletData.paypalId = paypalId;
+            walletData.venmoId = venmoId;
+            walletData.cashAppId = cashAppId;
+            walletData.userID = userID;
+            walletData.createdAt = walletData.createdAt;
+          } else {
+            console.log("User not found for userId:", walletData.userId);
+          }
+      
+          return walletData;
+        });
+      
+        return { data: result };
+      }
+       else if (resource === "playerDashboard") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { userId: userid };
@@ -1386,7 +1456,7 @@ export const dataProvider = {
 
     throw new Error("Unsupported resource for getLink");
   },
-  finalApprove: async (orderId, redeemRemarks) => {
+  finalApprove: async (orderId, redeemRemarks,tempAmount) => {
     try {
       // Fetch the transaction record
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
@@ -1416,8 +1486,27 @@ export const dataProvider = {
             error: "Invalid credit amount calculation.",
           };
         }
+
+
+         // If the tempAmount is different, refund the difference to the user's wallet
+         if (tempAmount < transactionAmount) {
+          const refundAmount = transactionAmount - tempAmount;
+
+          // Fetch the user wallet
+          const Wallet = Parse.Object.extend("Wallet");
+          const walletQuery = new Parse.Query(Wallet);
+          walletQuery.equalTo("userID", transaction.get("userId"));
+          let wallet = await walletQuery.first();
+
+            // Update wallet balance
+            const currentBalance = wallet.get("balance") || 0;
+            wallet.set("balance", currentBalance + refundAmount);
+            await wallet.save(null);
+      
+        }
+        transaction.set("transactionAmount", tempAmount); 
         // Save the transaction and wallet updates
-        await transaction.save(null, { useMasterKey: true });
+        await transaction.save(null);
 
         return {
           success: true,
@@ -1436,7 +1525,7 @@ export const dataProvider = {
       throw error;
     }
   },
-  finalReject: async (orderId) => {
+  finalReject: async (orderId,remark) => {
     try {
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const Wallet = Parse.Object.extend("Wallet");
@@ -1470,6 +1559,7 @@ export const dataProvider = {
 
         // Update the transaction status
         transaction.set("status", 13); // Rejected status
+        transaction.set("redeemRemarks", remark); // Rejected status
         await transaction.save(null);
 
         return {
