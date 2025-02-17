@@ -10,6 +10,7 @@ import {
   Label,
   Form,
   Input,
+  Alert
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -24,6 +25,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
   const [rechargeAmount, setRechargeAmount] = useState();
   const [remark, setRemark] = useState();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // New state for error message
 
   const resetFields = () => {
     setUserName("");
@@ -41,6 +43,10 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (rechargeAmount < 10) {
+      setErrorMessage("Non-Wallet transaction must be at least $10.");
+      return;
+    }
     const rawData = {
       ...record,
       transactionAmount: rechargeAmount * 100,
@@ -72,6 +78,11 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
             Recharge Amount
           </ModalHeader>
           <ModalBody>
+          {errorMessage && (
+              <Alert color="danger" className="mt-2">
+                {errorMessage}
+              </Alert>
+            )}
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>

@@ -42,6 +42,7 @@ import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { Reports } from "./Views/Reports/Reports";
 
 function App() {
   const queryClient = new QueryClient({
@@ -102,6 +103,13 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
+              { permissions === "Super-User" &&
+               <Resource
+                name="Reports"
+                list={Reports}
+                options={{ label: "Reports" }}
+                icon={SummarizeIcon}
+              />}
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>

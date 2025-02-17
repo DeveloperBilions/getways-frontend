@@ -57,311 +57,7 @@ const Summary = () => {
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
-  const [menuAnchor, setMenuAnchor] = React.useState(null);
-  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
-  const [isExporting, setIsExporting] = useState(false); // Track export progress
-  const [exportdData, setExportData] = useState(null); // Store export data
-  const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
 
-  const loadAndExportData = async () => {
-    setIsExporting(true); // Set exporting state
-    setLoadingData(true); // Set loading data state
-
-    try {
-      const { data } = await dataProvider.getList("summaryExport", {
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: "transactionDate", order: "DESC" },
-        filter: {},
-      }); // Call the service to fetch export data
-      if (data) {
-        setExportData(data); // Save the fetched data
-        return data; // Return the fetched data
-      } else {
-        console.error("No data available for export");
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsExporting(false); // Hide exporting state once finished
-      setLoadingData(false); // Hide loading state once data is fetched
-    }
-  };
-  const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
-  };
-  const handleMenuRedeemOpen = (event) => {
-    setMenuAnchorRedeem(event.currentTarget);
-  };
-
-  const handleMenuRedeemClose = () => {
-    setMenuAnchorRedeem(null);
-  };
-  const handleExportRedeemPDF = async () => {
-    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
-
-    const doc = new jsPDF();
-
-    // Add title
-    doc.text("Total Recharge Data", 10, 10);
-
-    // Prepare wallet data for PDF
-    const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.redeemServiceFee,
-        item?.agentName,
-        item?.userName
-      ]
-    );
-
-    // Prepare others data for PDF
-    const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.redeemServiceFee,
-        item?.agentName,
-        item?.userName
-      ]
-    );
-
-    // Add Wallet Transactions
-    doc.text("Redeem Transactions", 10, 20);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Redeem Service Fee",
-          "Agent Name",
-          "User Name"
-        ],
-      ],
-      body: walletTableData,
-      startY: 25,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
-
-    // Add Others Transactions
-    doc.text("Cashout Transactions", 10, doc.lastAutoTable.finalY + 10);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Redeem Service Fee",
-          "Agent Name",
-          "User Name"
-        ],
-      ],
-      body: othersTableData,
-      startY: doc.lastAutoTable.finalY + 15,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
-
-    // Save PDF
-    doc.save("TotalRedeemData.pdf");
-  };
-
-  const handleExportRedeemXLS = async () => {
-    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
-
-    // Combine wallet and others data for Excel
-    const combinedData = [
-      ...exportData[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": new Date(item?.transactionDate).toISOString(),
-        Status: item.status,
-        paymentType:item?.paymentType,
-        "Redeem Service Fee": item.redeemServiceFee,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName
-      })),
-      ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": new Date(item?.transactionDate).toISOString(),
-        Status: item.status,
-        paymentType:item?.paymentType,
-        "Redeem Service Fee": 0,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName
-      })),
-    ];
-
-    // Create worksheet and workbook
-    const worksheet = XLSX.utils.json_to_sheet(combinedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
-
-    // Write Excel file
-    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    saveAs(
-      new Blob([xlsData], { type: "application/octet-stream" }),
-      "TotalReedeemData.xlsx"
-    );
-  };
-  const handleExportRechargePDF = async () => {
-    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
-
-    const doc = new jsPDF();
-
-    // Add title
-    doc.text("Total Recharge Data", 10, 10);
-
-    // Prepare wallet data for PDF
-    const walletTableData = exportData[0]?.totalRechargeByTypeData?.wallet?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.paymentType,
-        item?.agentName,
-       item?.userName
-      ]
-    );
-
-    // Prepare others data for PDF
-    const othersTableData = exportData[0]?.totalRechargeByTypeData?.others?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.paymentType,
-        item?.agentName,
-       item?.userName
-      ]
-    );
-
-    // Add Wallet Transactions
-    doc.text("Wallet Transactions", 10, 20);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Stripe ID",
-          "Payment Type",
-          "Agent Name",
-          "User Name"
-        ],
-      ],
-      body: walletTableData,
-      startY: 25,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
-
-    // Add Others Transactions
-    doc.text("Others Transactions", 10, doc.lastAutoTable.finalY + 10);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Stripe ID",
-          "Payment Type",
-          "Agent Name",
-          "User Name"
-        ],
-      ],
-      body: othersTableData,
-      startY: doc.lastAutoTable.finalY + 15,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
-
-    // Save PDF
-    doc.save("TotalRechargeData.pdf");
-  };
-
-  const handleExportRechargeXLS = async () => {
-    const exportData = exportdData || (await loadAndExportData()); // Use existing data or fetch if null
-
-    // Combine wallet and others data for Excel
-    const combinedData = [
-      ...exportData[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toISOString(),
-        Status: item.status,
-        paymentType:item?.paymentType,
-        "Stripe Transaction ID": item.transactionIdFromStripe,
-        "Payment Type": item.paymentType,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName
-      })),
-      ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": new Date(item.transactionDate).toISOString(),
-        Status: item.status,
-        paymentType:item?.paymentType,
-        "Stripe Transaction ID": item.transactionIdFromStripe,
-        "Payment Type": item.paymentType,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName
-      })),
-    ];
-
-    // Create worksheet and workbook
-    const worksheet = XLSX.utils.json_to_sheet(combinedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
-
-    // Write Excel file
-    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    saveAs(
-      new Blob([xlsData], { type: "application/octet-stream" }),
-      "TotalRechargeData.xlsx"
-    );
-  };
   if (isLoading || !data) {
     return (
       <Box
@@ -709,106 +405,6 @@ const Summary = () => {
 
   return (
     <>
-      {role === "Super-User" && (
-        <Box
-          display="flex"
-          justifyContent="flex-end"
-          sx={{ mb: 2, marginTop: "-40px" }}
-        >
-          <Button
-            variant="contained"
-            startIcon={<GetAppIcon />}
-            onClick={handleMenuRedeemOpen}
-            style={{ marginRight: "10px" }}
-          >
-            Redeem Data Export
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<GetAppIcon />}
-            onClick={handleMenuOpen}
-          >
-            Recharge Data Export
-          </Button>
-          <Menu
-            anchorEl={menuAnchor}
-            open={Boolean(menuAnchor)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem
-              onClick={() => {
-                handleExportRechargePDF();
-                // handleMenuClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <PictureAsPdfIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              PDF
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleExportRechargeXLS();
-                //  handleMenuClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <BackupTableIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              Excel
-            </MenuItem>
-          </Menu>
-
-          <Menu
-            anchorEl={menuAnchorRedeem}
-            open={Boolean(menuAnchorRedeem)}
-            onClose={handleMenuRedeemClose}
-          >
-            <MenuItem
-              onClick={() => {
-                handleExportRedeemPDF();
-                //handleMenuRedeemClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <PictureAsPdfIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              PDF
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleExportRedeemXLS();
-                //  handleMenuRedeemClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <BackupTableIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              Excel
-            </MenuItem>
-          </Menu>
-        </Box>
-      )}
       <Grid container spacing={2} mt>
         {finalData?.map((item) => (
           <Grid item xs={12} md={4} key={item?.id}>
@@ -873,34 +469,8 @@ const Summary = () => {
   );
 };
 
-const SearchSelectUsersFilter = () => {
-  const { data, isPending } = useGetList("users", {
-    pagination: { page: 1, perPage: 10000 },
-    sort: { field: "roleName", order: "ASC" },
-    filter: { userReferralCode: null },
-  });
-  // console.log(data);
-  // if (isPending) return null;
-
-  if (isPending) {
-    return <Loader />;
-  }
-
-  return (
-    <SelectInput
-      label="username"
-      source="username"
-      choices={data}
-      optionText="username"
-      optionValue="id"
-      alwaysOn
-      resettable
-      emptyText="All"
-    />
-  );
-};
-
 export const DataSummary = () => {
+  const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
   const { data, isFetching, isLoading } = useGetList(
     "users",
@@ -908,15 +478,20 @@ export const DataSummary = () => {
       pagination: { page: 1, perPage: 10000 },
       sort: { field: "roleName", order: "ASC" },
       // filter: { userReferralCode: "" },
-      filter: {
-        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-      },
+      // filter: {
+      //   //$or: [{ userReferralCode: "" }, { userReferralCode: null }],
+      // },
     },
     {
       refetchOnWindowFocus: false, // Prevent refetch on focus
       refetchOnReconnect: false,
     }
   );
+  const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
+  const [isExporting, setIsExporting] = useState(false); // Track export progress
+  const [exportdData, setExportData] = useState(null); // Store export data
+  const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
 
   const newData = data?.map(
     (item) =>
@@ -926,13 +501,316 @@ export const DataSummary = () => {
       }
   );
 
-  const currentDate = new Date().toLocaleDateString("es-CL");
-  const prevYearDate = new Date(
-    new Date().setFullYear(new Date().getFullYear() - 1)
-  ).toLocaleDateString("es-CL");
-  const nextYearDate = new Date(
-    new Date().setFullYear(new Date().getFullYear() + 1)
-  ).toLocaleDateString("es-CL");
+  const loadAndExportData = async () => {
+    const filters = {
+      startdate: document.querySelector('input[name="startdate"]')?.value || null,
+      enddate: document.querySelector('input[name="enddate"]')?.value || null,
+    };
+    setIsExporting(true); // Set exporting state
+    setLoadingData(true); // Set loading data state
+
+    try {
+      const { data } = await dataProvider.getList("summaryExport", {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "transactionDate", order: "DESC" },
+        filter: {...filters},
+      }); // Call the service to fetch export data
+      if (data) {
+        setExportData(data); // Save the fetched data
+        return data; // Return the fetched data
+      } else {
+        console.error("No data available for export");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsExporting(false); // Hide exporting state once finished
+      setLoadingData(false); // Hide loading state once data is fetched
+    }
+  };
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+  const handleMenuRedeemOpen = (event) => {
+    setMenuAnchorRedeem(event.currentTarget);
+  };
+
+  const handleMenuRedeemClose = () => {
+    setMenuAnchorRedeem(null);
+  };
+  const formatDateForExcel = (date) => {
+    if (!date) return date; // Keep the original value if it's null or undefined
+
+    const validDate = new Date(date);
+    return !isNaN(validDate.getTime()) ? validDate.toISOString() : date; // Keep the original string if it's invalid
+  };
+
+  const handleExportRedeemPDF = async () => {
+    const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+    const doc = new jsPDF();
+
+    // Add title
+    doc.text("Total Recharge Data", 10, 10);
+
+    // Prepare wallet data for PDF
+    const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.redeemServiceFee,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Prepare others data for PDF
+    const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.redeemServiceFee,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Add Wallet Transactions
+    doc.text("Redeem Transactions", 10, 20);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Redeem Service Fee",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: walletTableData,
+      startY: 25,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Add Others Transactions
+    doc.text("Cashout Transactions", 10, doc.lastAutoTable.finalY + 10);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Redeem Service Fee",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: othersTableData,
+      startY: doc.lastAutoTable.finalY + 15,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Save PDF
+    doc.save("TotalRedeemData.pdf");
+  };
+
+  const handleExportRedeemXLS = async () => {
+    const exportData =await loadAndExportData(); // Use existing data or fetch if null
+
+    // Combine wallet and others data for Excel
+    const combinedData = [
+      ...exportData[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Redeem Service Fee": item.redeemServiceFee,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+      ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Redeem Service Fee": 0,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+    ];
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "TotalReedeemData.xlsx"
+    );
+  };
+  const handleExportRechargePDF = async () => {
+    const exportData =await loadAndExportData(); // Use existing data or fetch if null
+
+    const doc = new jsPDF();
+
+    // Add title
+    doc.text("Total Recharge Data", 10, 10);
+
+    // Prepare wallet data for PDF
+    const walletTableData = exportData[0]?.totalRechargeByTypeData?.wallet?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Prepare others data for PDF
+    const othersTableData = exportData[0]?.totalRechargeByTypeData?.others?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Add Wallet Transactions
+    doc.text("Wallet Transactions", 10, 20);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: walletTableData,
+      startY: 25,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Add Others Transactions
+    doc.text("Others Transactions", 10, doc.lastAutoTable.finalY + 10);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: othersTableData,
+      startY: doc.lastAutoTable.finalY + 15,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Save PDF
+    doc.save("TotalRechargeData.pdf");
+  };
+
+  const handleExportRechargeXLS = async () => {
+    const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+    // Combine wallet and others data for Excel
+    const combinedData = [
+      ...exportData[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Stripe Transaction ID": item.transactionIdFromStripe,
+        "Payment Type": item.paymentType,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+      ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Stripe Transaction ID": item.transactionIdFromStripe,
+        "Payment Type": item.paymentType,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+    ];
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "TotalRechargeData.xlsx"
+    );
+  };
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
 
@@ -989,29 +867,131 @@ export const DataSummary = () => {
           <Loading />
         </Box>
       ) : (
-        <ListBase>
-          <FilterForm
-            filters={dataFilters}
-            sx={{
-              flex: "0 2 auto !important",
-              padding: "0px 0px 0px 0px !important",
-              alignItems: "flex-start",
-            }}
-          />
+        <>
+         
+          <ListBase>
+            <FilterForm
+              filters={dataFilters}
+              sx={{
+                flex: "0 2 auto !important",
+                padding: "0px 0px 0px 0px !important",
+                alignItems: "flex-start",
+              }}
+            /> {role === "Super-User" && (
+              <Box
+                display="flex"
+                justifyContent="flex-end"
+                sx={{ mb: 2, marginTop: "-40px" }}
+              >
+                <Button
+                  variant="contained"
+                  startIcon={<GetAppIcon />}
+                  onClick={handleMenuRedeemOpen}
+                  style={{ marginRight: "10px" }}
+                >
+                  Redeem Data Export
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<GetAppIcon />}
+                  onClick={handleMenuOpen}
+                >
+                  Recharge Data Export
+                </Button>
+                <Menu
+                  anchorEl={menuAnchor}
+                  open={Boolean(menuAnchor)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRechargePDF();
+                      // handleMenuClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <PictureAsPdfIcon fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    PDF
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRechargeXLS();
+                      //  handleMenuClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <BackupTableIcon fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    Excel
+                  </MenuItem>
+                </Menu>
+  
+                <Menu
+                  anchorEl={menuAnchorRedeem}
+                  open={Boolean(menuAnchorRedeem)}
+                  onClose={handleMenuRedeemClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRedeemPDF();
+                      //handleMenuRedeemClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <PictureAsPdfIcon fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    PDF
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRedeemXLS();
+                      //  handleMenuRedeemClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <BackupTableIcon fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    Excel
+                  </MenuItem>
+                </Menu>
+              </Box>
+            )}
 
-          {isFetching ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              minHeight="50vh"
-            >
-              <Loading />
-            </Box>
-          ) : (
-            <Summary />
-          )}
-        </ListBase>
+            {isFetching ? (
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                minHeight="50vh"
+              >
+                <Loading />
+              </Box>
+            ) : (
+              <Summary />
+            )}
+          </ListBase>
+        </>
       )}
     </React.Fragment>
   );

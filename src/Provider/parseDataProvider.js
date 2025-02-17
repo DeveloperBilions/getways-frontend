@@ -164,7 +164,7 @@ export const dataProvider = {
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
-        query.notEqualTo("isDeleted", true);
+        // query.notEqualTo("isDeleted", true);
 
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
@@ -172,7 +172,7 @@ export const dataProvider = {
           // Step 1: Find all agents under the Master-Agent
           const agentQuery = new Parse.Query(Parse.User);
           agentQuery.equalTo("userParentId", userid);
-          agentQuery.notEqualTo("isDeleted", true);
+          // agentQuery.notEqualTo("isDeleted", true);
           agentQuery.equalTo("roleName", "Agent");
 
           const agents = await agentQuery.find({ useMasterKey: true });
@@ -687,7 +687,7 @@ export const dataProvider = {
           Combinedresult[0]?.totalAmount || 0;
         console.log("result", result);
         return result;
-    }else if (resource === "summaryExport") {
+      }else if (resource === "summaryExport") {
         var result = null;
         if (role === "Super-User") {
           //users
@@ -1052,7 +1052,67 @@ export const dataProvider = {
           total: count,
         };
         return res;
-      } else {
+      } else if (resource === "Report") {
+        const { fromDate, toDate } = params.filter || {}; // Extract filter params
+    
+        // Define date filtering condition
+        const dateFilter = {};
+        if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
+        if (toDate) dateFilter.transactionDate = { 
+            ...dateFilter.transactionDate, 
+            $lte: new Date(toDate) 
+        };
+    
+        const queryPipeline = [
+          {
+            $match: dateFilter, // Apply date filter
+          },
+          {
+            $facet: {
+              // New Calculation for Fees (11% of Transaction Amount)
+              totalFeesAmount: [
+                {
+                  $match: {
+                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                  },
+                },
+                {
+                  $group: {
+                    _id: null,
+                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } },
+                  },
+                },
+              ],
+              // Calculation for Ticket Amount (Transaction Amount - Fees)
+              totalTicketAmount: [
+                {
+                  $match: {
+                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                  },
+                },
+                {
+                  $group: {
+                    _id: null,
+                    totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
+                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } }, // Sum of all fees
+                  },
+                },
+                {
+                  $project: {
+                    _id: 0,
+                    totalTicketAmount: { $subtract: ["$totalTransaction", "$totalFees"] }, // Ticket Amount Calculation
+                  },
+                },
+              ],
+            },
+          },
+        ];
+        
+        const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline);
+        return newResults;
+    }
+    
+      else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         filter &&
@@ -1585,6 +1645,49 @@ export const dataProvider = {
       };
     }
   },
+  summaryReport:async(params)=> {
+    const queryPipeline = [
+      {
+        $match: {
+        },
+      },
+      { $limit: 10000 },
+      {
+        $facet: {
+          totalRechargeAmount: [
+            { $match: { status: { $in: [2, 3] } } },
+            {
+              $group: {
+                _id: null,
+                total: { $sum: "$transactionAmount" },
+              },
+            },
+          ],
+          totalRedeemAmount: [
+            { 
+              $match: { 
+                type: "redeem", 
+                status: { $in: [4, 8] }, 
+                transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
+              } 
+            },
+            {
+              $group: {
+                _id: null,
+                total: { $sum: "$transactionAmount" },
+              },
+            },
+          ]
+        },
+      },
+    ];
+    const newResults = await new Parse.Query(
+      "TransactionRecords"
+    ).aggregate(queryPipeline);
+
+    console.log(newResults,"nwResule")
+
+  }
   // refundTransaction: async (params) => {
   //   const { sessionId, amount, remark, redeemServiceFee } = params; // Include additional parameters if needed
 
