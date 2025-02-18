@@ -2,7 +2,7 @@ const usernameRegex = /^[a-zA-Z0-9_]{3,16}$/;
 const nameRegex = /^[a-zA-Z\s]{1,50}$/;
 const phoneNumberRegex = /^\+?[1-9]\d{1,14}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordRegex = /^.{6,}$/;
+// const passwordRegex = /^.{6,}$/;
 export function validateCreateUser(user) {
   const errors = {};
   if (!user.username) {
@@ -27,12 +27,12 @@ export function validateCreateUser(user) {
   } else if (!emailRegex.test(user.email)) {
     errors.email = "Invalid email format";
   }
-  if (!user.password) {
-    errors.password = "Password is required";
-  } else if (!passwordRegex.test(user.password)) {
-    errors.password =
-      "Password must be at least 8 characters and include both letters and numbers";
-  }
+  // if (!user.password) {
+  //   errors.password = "Password is required";
+  // } else if (!passwordRegex.test(user.password)) {
+  //   errors.password =
+  //     "Password must be at least 8 characters and include both letters and numbers";
+  // }
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
@@ -57,12 +57,12 @@ export function validateUpdateUser(user) {
   } else if (!emailRegex.test(user.email)) {
     errors.email = "Invalid email format";
   }
-  if (!user.password) {
-    errors.password = "Password is required";
-  } else if (!passwordRegex.test(user.password)) {
-    errors.password =
-      "Password must be at least 8 characters and include both letters and numbers";
-  }
+  // if (!user.password) {
+  //   errors.password = "Password is required";
+  // } else if (!passwordRegex.test(user.password)) {
+  //   errors.password =
+  //     "Password must be at least 8 characters and include both letters and numbers";
+  // }
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
