@@ -10,6 +10,7 @@ import {
   Typography,
   FormHelperText,
   OutlinedInput,
+  Alert,
 } from "@mui/material";
 // hook form
 import { useForm } from "react-hook-form";
@@ -39,6 +40,7 @@ const LoginPage = () => {
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
@@ -54,6 +56,10 @@ const LoginPage = () => {
     //   return;
     // }
     console.log(data);
+     if (data?.emailPhone === "") {
+       setErrorMessage("Please enter email or phone number");
+       return;
+     }
     try {
       setLoading(true);
 
@@ -129,6 +135,13 @@ const LoginPage = () => {
             <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
               Sign in
             </Typography>
+            <Box mb={3}>
+              {errorMessage && (
+                <Alert severity="error" onClose={() => setErrorMessage("")}>
+                  {errorMessage}
+                </Alert>
+              )}
+            </Box>
             <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
               <Typography htmlFor="emailPhone" sx={{ mt: 1 }}>
                 Email / Phone
@@ -169,7 +182,7 @@ const LoginPage = () => {
                 Next
               </Button>
             </Box>
-              {/* <Button
+            {/* <Button
               fullWidth
               variant="outlined"
               sx={{ mt: 1 }}
@@ -180,10 +193,7 @@ const LoginPage = () => {
           </Box>
         </Grid>
       </Grid>
-      <HelpVideoModal
-        open={helpOpen}
-        handleClose={() => setHelpOpen(false)}
-      />
+      <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </React.Fragment>
   );
 };

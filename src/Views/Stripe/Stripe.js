@@ -1,6 +1,7 @@
 import React, { useState , useEffect } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { useSearchParams } from "react-router-dom";
+import { validatePositiveNumber } from "../Validator/number.validator";
 
 export const Stripe = () => {
   const [amount, setAmount] = useState("");
@@ -15,6 +16,12 @@ export const Stripe = () => {
     setLoading(true);
     setError("");
     setPaymentLink("");
+     const validatorResponse = validatePositiveNumber(amount);
+     if (!validatorResponse.isValid) {
+       setError(validatorResponse.error);
+       setLoading(false);
+       return;
+     }
 
     try {
       // Call getLink from dataProvider
@@ -62,38 +69,39 @@ export const Stripe = () => {
   }, [searchParams]);
   return (
     <React.Fragment>
-
-        {statusVerify ? "Verifying Your Payment , Don't clsoe the window" : 
-        
+      {statusVerify ? (
+        "Verifying Your Payment , Don't clsoe the window"
+      ) : (
         <>
-             <div>
+          <div>
+            <h1>Stripe Payment Link Generator</h1>
+            <label htmlFor="amount">Enter Amount (USD):</label>
+            <input
+              type="number"
+              id="amount"
+              min="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount"
+            />
+            <button onClick={handleGenerateLink} disabled={loading}>
+              {loading ? "Generating..." : "Generate Payment Link"}
+            </button>
+          </div>
 
-        <h1>Stripe Payment Link Generator</h1>
-        <label htmlFor="amount">Enter Amount (USD):</label>
-        <input
-          type="number"
-          id="amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Enter amount"
-        />
-        <button onClick={handleGenerateLink} disabled={loading}>
-          {loading ? "Generating..." : "Generate Payment Link"}
-        </button>
-      </div>
+          {error && <div style={{ color: "red" }}>{error}</div>}
+          {status && <div style={{ color: "green" }}>{status}</div>}
 
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      {status && <div style={{ color: "green" }}>{status}</div>}
-
-      {paymentLink && (
-        <div>
-          <h2>Payment Link:</h2>
-          <a href={paymentLink} target="_blank" rel="noopener noreferrer">
-            {paymentLink}
-          </a>
-        </div>
+          {paymentLink && (
+            <div>
+              <h2>Payment Link:</h2>
+              <a href={paymentLink} target="_blank" rel="noopener noreferrer">
+                {paymentLink}
+              </a>
+            </div>
+          )}
+        </>
       )}
-      </>}
     </React.Fragment>
   );
 };
