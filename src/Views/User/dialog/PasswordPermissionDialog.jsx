@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -58,7 +58,10 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
   
-
+  useEffect(() => {
+    setPasswordPermission(record?.isPasswordPermission || false);
+  }, [record, open]);
+  
   const handleSliderChange = (event, newValue) => {
     setCustomDuration(newValue);
   };

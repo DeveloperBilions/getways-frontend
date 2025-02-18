@@ -43,6 +43,10 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (rechargeAmount <= 0) {
+      setErrorMessage("Recharge Amount cannot be negative or 0. Please enter a valid amount.");
+      return;
+    }
     if (rechargeAmount < 10) {
       setErrorMessage("Non-Wallet transaction must be at least $10.");
       return;
@@ -105,10 +109,31 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                     <Input
                       id="rechargeAmount"
                       name="rechargeAmount"
-                      type="number"
+                      type="text"
                       autoComplete="off"
-                      onChange={(e) => setRechargeAmount(e.target.value)}
+                      value={rechargeAmount}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === '' || /^\d*$/.test(value)) {
+                          if(value === ''){
+                            setRechargeAmount(value);
+                          }
+                          else if (value.includes('.')) {
+                            value = Math.floor(parseFloat(value));
+                            setRechargeAmount(value);
+                          }
+                          else if (/^\d*$/.test(value)) {
+                            setRechargeAmount(value);
+                          }
+                        }
+                      }}
                       required
+                      onKeyDown={(e) =>{
+                        if (e.keyCode === 190) {
+                          // Prevent the default behavior of typing a decimal
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </FormGroup>
                 </Col>

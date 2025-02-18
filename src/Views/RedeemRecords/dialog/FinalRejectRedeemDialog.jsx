@@ -7,6 +7,7 @@ import {
   Col,
   Label,
   Form,
+  Input,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -24,15 +25,20 @@ const FinalRejectRedeemDialog = ({
   cashout
 }) => {
   const [loading, setLoading] = useState(false);
+  const [remark, setRemark] = useState("");
+  const [error, setError] = useState("");
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
     try {
         
-      await dataProvider.finalReject(selectedRecord?.id);
+      await dataProvider.finalReject(selectedRecord?.id,remark);
 
       onClose();
       handleRefresh();
+      setRemark("");
+      setError("");
       setLoading(false);
     } catch (error) {
       console.error("Error Redeem Record details:", error);
@@ -58,7 +64,19 @@ const FinalRejectRedeemDialog = ({
           </ModalHeader>
           <ModalBody>
             <Form onSubmit={handleSubmit}>
-              <Label for="rechargeAmount">
+            <Col md={12}>
+                <Label for="remark">Remark</Label>
+                <Input
+                  type="textarea"
+                  id="remark"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  placeholder="Enter your remark"
+                  required
+                />
+                {error && <p className="text-danger">{error}</p>}
+              </Col>
+              <Label for="rechargeAmount" className="mt-3">
                 Are you sure you wish to reject the{" "}
                 <b>${selectedRecord?.transactionAmount}</b> {cashout ? "cashout":"redeem"} request of{" "}
                 <b>{selectedRecord?.username}</b> ?
