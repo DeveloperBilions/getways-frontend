@@ -35,11 +35,12 @@ import { Parse } from "parse";
 import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
+import Pagination from "@mui/material/Pagination";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CustomButton = ({ fetchAllUsers }) => {
+const CustomButton = ({ fetchAllUsers, identity }) => {
   const refresh = useRefresh();
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -126,9 +127,13 @@ const CustomButton = ({ fetchAllUsers }) => {
       >
         <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
         {(record?.roleName === "Agent" ||
-          record?.roleName === "Master-Agent") && (
-          <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
-        )}
+          record?.roleName === "Master-Agent") &&
+          ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
+            role === "Super-User") && (
+            <MenuItem onClick={handleRedeemService}>
+              Redeem Service Fee
+            </MenuItem>
+          )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") && (
           <MenuItem
@@ -221,14 +226,21 @@ export const UserList = (props) => {
   const { identity } = useGetIdentity();
   // const [create, { isPending, error }] = useCreate();
 
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const role = localStorage.getItem("role");
+  const [filterValues, setFilters] = useState();
 
   if (!role) {
     navigate("/login");
   }
-
-  const { data, isLoading } = useGetList("users", {
-    // pagination: { page: 1, perPage: 100 },
+  const { data, isLoading, total } = useGetList("users", {
+    pagination: { page, perPage }, // Ensure correct pagination parameters
+    sort: { field: "createdAt", order: "DESC" },
+    filter: {
+      ...filterValues,
+      //$or: [{ userReferralCode: "" }, { userReferralCode: null }],
+    },
   });
 
   const [userData, setUserData] = useState();
@@ -281,7 +293,14 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
+    <SearchInput
+      source="username"
+      alwaysOn
+      resettable
+      onChange={(e) =>
+        setFilters({ ...filterValues, username: e.target.value })
+      }
+    />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
 
@@ -317,20 +336,12 @@ export const UserList = (props) => {
   }, [identity]);
 
   useEffect(() => {
-    fetchAllUsers();
-  }, []);
-
-  useEffect(() => {
     const interval = setInterval(() => {
-      handleRefresh();
-    }, 60000); // 60,000 ms = 1 minute
+      refresh();
+    }, 60000); // Refresh every 60 seconds
 
-    return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);
-
-  if (isLoading || !data) {
-    return <Loader />;
-  }
+    return () => clearInterval(interval);
+  }, [refresh]);
 
   return (
     <Box
@@ -340,24 +351,24 @@ export const UserList = (props) => {
     //   alignItems: "center",
     //   width: "100%"
     // }}
+     sx={{ pt: 1 ,border:"none",boxShadow:"none"}}
     >
-      {isLoading || !data ? (
-        <Loader />
-      ) : (
-        <List
-          title="User Management"
-          filters={dataFilters}
-          sx={{ pt: 1 }}
-          actions={<PostListActions />}
-          empty={false}
-          // filter={{ userReferralCode: "" }}
-          filter={{
-            $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-          }}
-          {...props}
-          sort={{ field: "createdAt", order: "DESC" }}
-        >
-          <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
+      <List
+        title="User Management"
+        filters={dataFilters}
+        sx={{ pt: 1 ,border:"none",boxShadow:"none"}}
+        actions={<PostListActions />}
+        pagination={false}
+      >
+        {isLoading || !data ? (
+          <Loader />
+        ) : (
+          <Datagrid
+            size="small"
+            rowClick={false}
+            bulkActionButtons={false}
+            data={data}
+          >
             <TextField source="username" label="User Name" />
             <TextField source="email" label="Email" />
             {(identity?.role === "Super-User" ||
@@ -370,22 +381,46 @@ export const UserList = (props) => {
             )}
             <DateField source="createdAt" label="Date" showTime />
             <WrapperField label="Actions">
-              <CustomButton fetchAllUsers={fetchAllUsers} />
+              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
             </WrapperField>
           </Datagrid>
-          <CreateUserDialog
-            open={userCreateDialogOpen}
-            onClose={() => setUserCreateDialogOpen(false)}
-            fetchAllUsers={fetchAllUsers}
+        )}
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            mt: 2,
+            border: "none",
+            boxShadow: "none",
+          }}
+        >
+          <Pagination
+            page={page}
+            rowsPerPage={perPage}
+            onChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setPerPage(parseInt(event.target.value, 10));
+              setPage(1);
+            }}
+            count={Math.ceil((total || 0) / perPage)}
+            variant="outlined"
+            color="secondary"
+            rows
           />
-          <ReferralDialog
-            open={referralDialogOpen}
-            onClose={() => setReferralDialogOpen(false)}
-            fetchAllUsers={fetchAllUsers}
-            referralCode={referralCode}
-          />
-        </List>
-      )}
+        </Box>
+        <CreateUserDialog
+          open={userCreateDialogOpen}
+          onClose={() => setUserCreateDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+        />
+        <ReferralDialog
+          open={referralDialogOpen}
+          onClose={() => setReferralDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+          referralCode={referralCode}
+        />
+      </List>
     </Box>
   );
 };

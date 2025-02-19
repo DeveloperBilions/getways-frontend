@@ -11,6 +11,7 @@ import ChangePassword from "./ChangePassword";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AppBar from "@mui/material/AppBar";
 import {
   TitlePortal,
@@ -23,6 +24,7 @@ import { Title } from "react-admin";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
 import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
+import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -35,6 +37,7 @@ export default function MyAppBar({ props }) {
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false); // State for Recharge Limit Dialog
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false); // New state for Help Video Modal
+  const [openRedeemService, setOpenRedeemService] = React.useState(false);
 
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
@@ -126,6 +129,11 @@ export default function MyAppBar({ props }) {
             Payment Methods
           </MenuItem>
         )}
+         {identity?.redeemServiceEnabled && role === "Master-Agent" && (
+          <MenuItem onClick={() => setOpenRedeemService(true)} style={{ color: "#0000008a" }}>
+            <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
+          </MenuItem>
+        )}
          <MenuItem
           onClick={() => setOpenHelpVideo(true)}
           style={{ color: "#0000008a" }}
@@ -142,6 +150,7 @@ export default function MyAppBar({ props }) {
         onClose={() => setDisableDialogOpen(false)}
       />
       <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
+      <AllRedeemService open={openRedeemService} onClose={() => setOpenRedeemService(false)} />
     </AppBar>
   );
 }

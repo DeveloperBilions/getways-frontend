@@ -47,6 +47,8 @@ import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
 import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import { Pagination } from "@mui/material";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -68,11 +70,17 @@ export const RedeemRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
-
+  const [filterValues, setFilters] = useState();
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10); // Default 10 rows per page
   const role = localStorage.getItem("role");
-  const { data, isFetching } = useGetList("redeemRecords", {
-    pagination: { page: 1, perPage: 10 },
+  const { data, isLoading , total } = useGetList("redeemRecords", {
+    pagination: { page, perPage },
     sort: { field: "transactionDate", order: "DESC" },
+    filter: {
+      ...filterValues,
+      // $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+    }
   });
   if (!role) {
     navigate("/login");
@@ -218,7 +226,9 @@ export const RedeemRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onBlur={handleSearchChange}
+      onChange={(e) =>
+        setFilters({ ...filterValues, username: e.target.value })
+      }
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -241,8 +251,9 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-        onBlur={handleStatusChange}
-      />
+        onChange={(e) =>
+          setFilters({ ...filterValues, status: e.target.value })
+        }      />
     ),
   ].filter(Boolean);
 
@@ -315,18 +326,7 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-  if (isFetching) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="50vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+
   return (
     <>
       <Box
@@ -376,8 +376,12 @@ export const RedeemRecordsList = (props) => {
         {...props}
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
+        pagination={false}
       >
-        <Datagrid size="small" bulkActionButtons={false}>
+         {isLoading || !data ? (
+          <Loader />
+        ) : (
+        <Datagrid size="small" bulkActionButtons={false} data={data}>
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -536,7 +540,21 @@ export const RedeemRecordsList = (props) => {
               ) : null
             }
           />
-        </Datagrid>
+        </Datagrid> )}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Pagination
+          page={page}
+          count={Math.ceil((total || 0) / perPage)} // Total pages
+          onChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setPerPage(parseInt(event.target.value, 10));
+            setPage(1);
+          }}
+          rowsPerPage={perPage}
+          variant="outlined"
+          color="secondary"
+        />
+      </Box>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

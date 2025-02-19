@@ -51,6 +51,7 @@ import { Loader } from "../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import { Pagination } from "@mui/material";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -61,16 +62,18 @@ export const RechargeRecordsList = (props) => {
   const refresh = useRefresh();
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
-
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10); // Default 10 rows per page
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [statusValue, setStatusValue] = useState();
-  const [data, setData] = useState(null); // Initialize data as null
+  const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
+  const [filterValues, setFilters] = useState();
 
   const role = localStorage.getItem("role");
 
@@ -78,13 +81,14 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  // const { data, isPending, isFetching, isLoading  } = useGetList("rechargeRecordsExport", {
-  //   sort: { field: "transactionDate", order: "DESC" },
-  //   filter: {
-  //     ...(searchValue && { username: searchValue }),
-  //     ...(statusValue && { status: statusValue }),
-  //   },
-  // });
+  const { data, total, isLoading } = useGetList("rechargeRecords", {
+    pagination: { page, perPage },
+    sort: { field: "transactionDate", order: "DESC" },
+    filter: {
+      ...filterValues,
+      // $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+    }
+  });
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -137,8 +141,8 @@ export const RechargeRecordsList = (props) => {
     }
   };
   const totalTransactionAmount =
-    data &&
-    data
+    Data &&
+    Data
       .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
@@ -168,7 +172,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportPDF = async () => {
-    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -190,7 +194,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportXLS = async () => {
-    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -221,13 +225,6 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleSearchChange = (e) => {
-    if (e) {
-      const value = e.target.value;
-      setSearchValue(value);
-    }
-  };
-
   const handleStatusChange = (e) => {
     if (e) {
       setStatusValue(e.target.value);
@@ -239,7 +236,9 @@ export const RechargeRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onBlur={handleSearchChange}
+      onChange={(e) =>
+        setFilters({ ...filterValues, username: e.target.value })
+      }
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -255,7 +254,9 @@ export const RechargeRecordsList = (props) => {
           { id: 3, name: "Coins Credited" },
           { id: 4, name: "Status Unknown" },
         ]}
-        onBlur={handleStatusChange}
+        onChange={(e) =>
+          setFilters({ ...filterValues, status: e.target.value })
+        }
       />
     ),
   ].filter(Boolean);
@@ -383,8 +384,12 @@ export const RechargeRecordsList = (props) => {
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
+        pagination={false}
       >
-        <Datagrid size="small" bulkActionButtons={false}>
+        {isLoading || !data ? (
+          <Loader />
+        ) : (
+        <Datagrid size="small" bulkActionButtons={false} data={data}>
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -510,7 +515,21 @@ export const RechargeRecordsList = (props) => {
               ) : null
             }
           />
-        </Datagrid>
+        </Datagrid>)}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Pagination
+          page={page}
+          count={Math.ceil((total || 0) / perPage)} // Total pages
+          onChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setPerPage(parseInt(event.target.value, 10));
+            setPage(1);
+          }}
+          rowsPerPage={perPage}
+          variant="outlined"
+          color="secondary"
+        />
+      </Box>
         <CoinsCreditDialog
           open={creditCoinDialogOpen}
           onClose={() => setCreditCoinDialogOpen(false)}

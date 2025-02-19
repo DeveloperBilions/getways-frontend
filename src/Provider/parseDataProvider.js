@@ -1204,7 +1204,7 @@ export const dataProvider = {
           else query.equalTo(f, filter[f]);
         });
 
-      console.log("!!!", filter);
+      console.log("!!!", filter,page, perPage );
 
       results =
         resource === "users"
