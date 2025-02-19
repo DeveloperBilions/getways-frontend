@@ -239,7 +239,7 @@ export const UserList = (props) => {
     sort: { field: "createdAt", order: "DESC" },
     filter: {
       ...filterValues,
-      //$or: [{ userReferralCode: "" }, { userReferralCode: null }],
+      $or: [{ userReferralCode: "" }, { userReferralCode: null }],
     },
   });
 
