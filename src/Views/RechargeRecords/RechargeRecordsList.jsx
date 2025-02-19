@@ -227,8 +227,7 @@ export const RechargeRecordsList = (props) => {
 
   const handleStatusChange = (e) => {
     if (e) {
-      setStatusValue(e.target.value);
-      console.log(e.target.value);
+      setStatusValue(e?.target?.value);
     }
   };
   const dataFilters = [
@@ -237,7 +236,7 @@ export const RechargeRecordsList = (props) => {
       alwaysOn
       resettable
       onChange={(e) =>
-        setFilters({ ...filterValues, username: e.target.value })
+        setFilters({ ...filterValues, username: e?.target?.value })
       }
     />,
     permissions !== "Player" && (
@@ -255,7 +254,7 @@ export const RechargeRecordsList = (props) => {
           { id: 4, name: "Status Unknown" },
         ]}
         onChange={(e) =>
-          setFilters({ ...filterValues, status: e.target.value })
+          setFilters({ ...filterValues, status: e?.target?.value })
         }
       />
     ),

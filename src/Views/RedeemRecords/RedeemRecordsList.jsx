@@ -227,7 +227,7 @@ export const RedeemRecordsList = (props) => {
       alwaysOn
       resettable
       onChange={(e) =>
-        setFilters({ ...filterValues, username: e.target.value })
+        setFilters({ ...filterValues, username: e?.target?.value })
       }
     />,
     permissions !== "Player" && (
@@ -252,7 +252,7 @@ export const RedeemRecordsList = (props) => {
             : []),
         ]}
         onChange={(e) =>
-          setFilters({ ...filterValues, status: e.target.value })
+          setFilters({ ...filterValues, status: e?.target?.value })
         }      />
     ),
   ].filter(Boolean);
