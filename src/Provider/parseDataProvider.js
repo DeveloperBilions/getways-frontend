@@ -180,12 +180,14 @@ export const dataProvider = {
           // Step 2: Find all users (agents + players under those agents)
           query.containedIn("userParentId", [userid, ...agentIds]);
         }
-
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
+        if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+          Object.keys(filter).forEach((f) => {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "username") query.matches(f, String(filter[f]), "i");
+              else query.equalTo(f, filter[f]);
+            }
           });
+        }            
         count = await query.count({ useMasterKey: true });
       } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -1197,15 +1199,14 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      filter &&
-        Object.keys(filter).map((f) => {
-          console.log("===== fffff", f);
-          if (f === "username") query.matches(f, filter[f], "i");
-          else query.equalTo(f, filter[f]);
+      if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+        Object.keys(filter).forEach((f) => {
+          if (filter[f] !== undefined && filter[f] !== null) {
+            if (f === "username") query.matches(f, String(filter[f]), "i");
+            else query.equalTo(f, filter[f]);
+          }
         });
-
-      console.log("!!!", filter,page, perPage );
-
+      }      
       results =
         resource === "users"
           ? await query.find({ useMasterKey: true })
