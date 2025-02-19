@@ -272,10 +272,16 @@ export const dataProvider = {
           throw new Error("Start date cannot be greater than end date");
         }
 
+        const now = new Date(); // Get current local date and time
+        
+        // If endDate is not provided, set it to the current local date
+        if (!filter?.endDate) {
+          filter.endDate = now.toISOString().split("T")[0]; // Get YYYY-MM-DD format
+        }
         const queryPipeline = [
           {
             $match: {
-              ...(filter?.startDate && filter?.endDate && {
+              ...((filter?.startDate || filter?.endDate) && {
                 createdAt: {
                   $gte: new Date(`${filter.startDate}T00:00:00Z`),
                   $lte: new Date(`${filter.endDate}T23:59:59Z`),
