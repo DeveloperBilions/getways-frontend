@@ -164,7 +164,7 @@ export const dataProvider = {
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
-        // query.notEqualTo("isDeleted", true);
+        query.notEqualTo("isDeleted", true);
 
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
