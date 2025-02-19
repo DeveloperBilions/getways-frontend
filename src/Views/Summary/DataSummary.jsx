@@ -53,9 +53,10 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const Summary = ({ selectedUser }) => {
+const Summary = ({ selectedUser ,startDate , endDate}) => {
+  console.log(startDate,endDate,"dlajdaidoa")
   const { data, isLoading, isFetching } = useGetList("summary", {
-    filter: { username: selectedUser?.id },
+    filter: { username: selectedUser?.id , startDate:startDate,endDate:endDate },
   });
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
@@ -486,7 +487,8 @@ export const DataSummary = () => {
   const [loading, setLoading] = useState(false);
   const perPage = 10;
   const [selectedUser, setSelectedUser] = useState(null); // Store selected user
-
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const handleUserChange = (selectedId) => {
     setSelectedUser(selectedId);
   };
@@ -956,6 +958,7 @@ export const DataSummary = () => {
           max: today, // Maximum allowed date
         },
       }}
+      onChange={(event) => setStartDate(event.target.value)}
     />,
     <DateInput
       label="End date"
@@ -963,6 +966,7 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
+              onChange={(event) => setEndDate(event.target.value)}
       InputProps={{
         inputProps: {
           min: startDateLimit, // Minimum allowed date
@@ -1085,7 +1089,7 @@ export const DataSummary = () => {
             </Menu>
           </Box>
         )}
-        <Summary selectedUser={selectedUser} />
+        <Summary selectedUser={selectedUser} startDate={startDate} endDate={endDate} />
       </ListBase>
     </React.Fragment>
   );

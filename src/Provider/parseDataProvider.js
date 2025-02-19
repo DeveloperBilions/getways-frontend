@@ -275,6 +275,12 @@ export const dataProvider = {
         const queryPipeline = [
           {
             $match: {
+              ...(filter?.startDate && filter?.endDate && {
+                createdAt: {
+                  $gte: new Date(`${filter.startDate}T00:00:00Z`),
+                  $lte: new Date(`${filter.endDate}T23:59:59Z`),
+                },
+              }),              
             },
           },
           {
@@ -521,17 +527,17 @@ export const dataProvider = {
 
         const matchConditions = [];
 
-        if (filter.startdate) {
+        if (filter.startDate) {
           matchConditions.push({
-            transactionDate: {
-              $gte: new Date(`${filter.startdate}T00:00:00Z`),
+            createdAt: {
+              $gte: new Date(`${filter.startDate}T00:00:00Z`),
             },
           });
         }
 
-        if (filter.enddate) {
+        if (filter.endDate) {
           matchConditions.push({
-            transactionDate: { $lte: new Date(`${filter.enddate}T23:59:59Z`) },
+            createdAt: { $lte: new Date(`${filter.endDate}T23:59:59Z`) },
           });
         }
         if (queryPipeline[0]["$match"]["userId"]) {
