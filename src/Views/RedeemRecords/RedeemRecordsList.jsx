@@ -227,33 +227,41 @@ export const RedeemRecordsList = (props) => {
       alwaysOn
       resettable
       onChange={(e) =>
-        setFilters({ ...filterValues, username: e?.target?.value })
+        {
+          setFilters({ ...filterValues, username: e?.target?.value })
+          setPage(1)
+      }
       }
     />,
     permissions !== "Player" && (
       <SelectInput
-        label="Status"
-        source="status"
-        emptyText="All"
-        alwaysOn
-        resettablea
-        choices={[
-          { id: 5, name: "Failed" },
-          { id: 6, name: "Pending Approval" },
-          { id: 7, name: "Rejected" },
-          { id: 8, name: "Redeem Successfully" },
-          { id: 9, name: "Expired" },
-          ...(permissions === "Super-User"
-            ? [
-                { id: 11, name: "Cashouts" },
-                { id: 12, name: "Cashout Successfully" },
-                { id: 13, name: "Cashout Reject" },
-              ]
-            : []),
-        ]}
-        onChange={(e) =>
-          setFilters({ ...filterValues, status: e?.target?.value })
-        }      />
+  label="Status"
+  source="status"
+  emptyText="All"
+  emptyValue=""
+  alwaysOn
+  resettable
+  choices={[
+    { id: 5, name: "Failed" },
+    { id: 6, name: "Pending Approval" },
+    { id: 7, name: "Rejected" },
+    { id: 8, name: "Redeem Successfully" },
+    { id: 9, name: "Expired" },
+    ...(permissions === "Super-User"
+      ? [
+          { id: 11, name: "Cashouts" },
+          { id: 12, name: "Cashout Successfully" },
+          { id: 13, name: "Cashout Reject" },
+        ]
+      : []),
+  ]}
+  onChange={(e) => {
+    const selectedValue = e?.target?.value;
+    setFilters({ ...filterValues, status: selectedValue });
+    setPage(1);
+  }}
+/>
+
     ),
   ].filter(Boolean);
 
@@ -327,6 +335,7 @@ export const RedeemRecordsList = (props) => {
     </TopToolbar>
   );
 
+  console.log(data,"fatasioioioioa")
   return (
     <>
       <Box
@@ -377,11 +386,25 @@ export const RedeemRecordsList = (props) => {
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}
+        
       >
          {isLoading || !data ? (
           <Loader />
         ) : (
-        <Datagrid size="small" bulkActionButtons={false} data={data}>
+        <Datagrid size="small" bulkActionButtons={false} data={data}
+        sx={{
+      minWidth: "1000px", // Ensures the table is wide enough to scroll
+      tableLayout: "fixed", // Fix column sizes
+      "& .RaDatagrid-table": {
+        width: "100%", // Ensures table fills the available space
+      },
+      "& .column-paymentMethodType": {
+        minWidth: "250px", // Ensure this column is wide enough
+        maxWidth: "250px",
+        whiteSpace: "nowrap"
+      },
+    }}
+        >
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -448,12 +471,15 @@ export const RedeemRecordsList = (props) => {
             }}
           />
           <DateField source="transactionDate" label="RedeemDate" showTime />
-          <TextField source="responseMessage" label="Message" />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
           {identity?.role === "Super-User" && (
-            <TextField source="paymentMethodType" label="Payment Id" />
+            <TextField
+  source="paymentMethodType"
+  label="Payment Id"
+  sx={{ minWidth: "250px", maxWidth: "300px", whiteSpace: "nowrap" }}
+/>
           )}
           <FunctionField
             label="Action"

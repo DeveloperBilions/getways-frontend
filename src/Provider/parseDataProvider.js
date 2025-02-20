@@ -473,29 +473,47 @@ export const dataProvider = {
             var { ids, data } = await fetchUsers(selectedUser,"yes");
             queryPipeline[0]["$match"]["userId"] = { $in: ids };
           } else {
-            var userQuery = new Parse.Query(Parse.User);
-            userQuery.limit(10000);
-            var results = await userQuery.find({ useMasterKey: true });
-            var data = results.map((o) => ({ id: o.id, ...o.attributes }));
-            const currentUser = await Parse.User.current();
-            data.push({ id: userid, ...currentUser.attributes });
-          }
-          // Fetch wallet balances for the users
-          const walletQuery = new Parse.Query("Wallet");
-          const userIds = data.map((user) => user.id);
-          walletQuery.containedIn("userID", userIds);
-
-          const walletResults = await walletQuery.find({ useMasterKey: true });
-          const walletBalances = walletResults.reduce((acc, wallet) => {
-            acc[wallet.get("userID")] = wallet.get("balance") || 0;
-            return acc;
-          }, {});
-          result = calculateDataSummariesForSummary({
-            id: 0,
-            users: data,
-            walletBalances,
-          });
+            var userQuery = new Parse.Query("AgentPlayer");
+            userQuery.equalTo("userID", userid);
+            
+            var result = await userQuery.first({ useMasterKey: true }); // Fetch only one record
+        
+            if (result) {
+                // Extract the Player attribute, assuming it contains an array of IDs
+                let playerIds = result.get("Players"); 
+              console.log(playerIds,"playerIdsplayerIdsplayerIds")
+                if (Array.isArray(playerIds) && playerIds.length > 0) {
+                    // Assign to query pipeline
+                    queryPipeline[0]["$match"]["userId"] = { $in: playerIds };
+                } else {
+                    console.log("Player array is empty or not found.");
+                }
+            } else {
+                console.log("No user found.");
+            }
         }
+        
+          // Fetch wallet balances for the users
+          // const walletQuery = new Parse.Query("Wallet");
+          // const userIds = data.map((user) => user.id);
+          // walletQuery.containedIn("userID", userIds);
+
+          // const walletResults = await walletQuery.find({ useMasterKey: true });
+          // const walletBalances = walletResults.reduce((acc, wallet) => {
+          //   acc[wallet.get("userID")] = wallet.get("balance") || 0;
+          //   return acc;
+          // }, {});
+          result = {data: [
+            {
+              id: "124",
+              totalRegisteredUsers: 98,
+              totalAgents: 450,
+              walletBalances:990,
+              totalBalance:328,
+            },
+          ],
+          total: null,
+        }}
         if (role === "Agent") {
           //users
           const selectedUser =

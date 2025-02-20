@@ -297,8 +297,9 @@ export const UserList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onChange={(e) =>
+      onChange={(e) =>{
         setFilters({ ...filterValues, username: e?.target?.value })
+        setPage(1)}
       }
     />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,

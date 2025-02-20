@@ -235,8 +235,9 @@ export const RechargeRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onChange={(e) =>
+      onChange={(e) =>{
         setFilters({ ...filterValues, username: e?.target?.value })
+        setPage(1)}
       }
     />,
     permissions !== "Player" && (
@@ -251,10 +252,14 @@ export const RechargeRecordsList = (props) => {
           { id: 1, name: "Pending Confirmation" },
           { id: 2, name: "Confirmed" },
           { id: 3, name: "Coins Credited" },
+          { id: 9, name: "Expired" },
           { id: 4, name: "Status Unknown" },
         ]}
         onChange={(e) =>
+          {
           setFilters({ ...filterValues, status: e?.target?.value })
+          setPage(1)
+          }
         }
       />
     ),

@@ -481,14 +481,23 @@ export const DataSummary = () => {
   const [isExporting, setIsExporting] = useState(false); // Track export progress
   const [exportdData, setExportData] = useState(null); // Store export data
   const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
-
+  const [tempStartDate, setTempStartDate] = useState(null);
+  const [tempEndDate, setTempEndDate] = useState(null);
   const [choices, setChoices] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const perPage = 10;
   const [selectedUser, setSelectedUser] = useState(null); // Store selected user
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  // const [startDate, setStartDate] = useState(null);
+  // const [endDate, setEndDate] = useState(null);
+  const [dateRange, setDateRange] = useState("1"); // Default to last 1 day
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const handleUserChange = (selectedId) => {
     setSelectedUser(selectedId);
   };
@@ -907,12 +916,43 @@ export const DataSummary = () => {
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
+  const handleFilterSubmit = () => {
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+  };
 
   const debouncedFetchUsers = useCallback(debounce(fetchUsers, 500), []);
+  const applyDateRangeFilter = (range = dateRange) => {
+    const todayDate = new Date();
+    let calculatedStartDate;
+
+    switch (range) {
+      case "7":
+        calculatedStartDate = new Date(todayDate);
+        calculatedStartDate.setDate(todayDate.getDate() - 7);
+        break;
+      case "5":
+        calculatedStartDate = new Date(todayDate);
+        calculatedStartDate.setDate(todayDate.getDate() - 5);
+        break;
+      case "3":
+        calculatedStartDate = new Date(todayDate);
+        calculatedStartDate.setDate(todayDate.getDate() - 3);
+        break;
+      default: // "1" or no date range
+        calculatedStartDate = new Date(todayDate);
+        calculatedStartDate.setDate(todayDate.getDate() - 1);
+        break;
+    }
+
+    setStartDate(calculatedStartDate.toISOString().split("T")[0]);
+    setEndDate(todayDate.toISOString().split("T")[0]);
+    setDateRange(range);
+  };
   const dataFilters = [
     <Autocomplete
       source="username"
-      sx={{ width: 300 }}
+      sx={{ width: 200 }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -946,6 +986,20 @@ export const DataSummary = () => {
       alwaysOn
       resettable
     />,
+    <SelectInput
+    label="Date Range"
+    source="dateRange"
+    choices={[
+      { id: "1", name: "Last 1 Day" },
+      { id: "3", name: "Last 3 Days" },
+      { id: "5", name: "Last 5 Days" },
+      { id: "7", name: "Last 7 Days" },
+    ]}
+    value={dateRange}
+    onChange={(event) => applyDateRangeFilter(event.target.value)}
+    alwaysOn
+    resettable
+  />,
     <DateInput
       label="Start date"
       source="startdate"
@@ -958,7 +1012,7 @@ export const DataSummary = () => {
           max: today, // Maximum allowed date
         },
       }}
-      onChange={(event) => setStartDate(event.target.value)}
+      onChange={(event) => setTempStartDate(event.target.value)}
     />,
     <DateInput
       label="End date"
@@ -966,40 +1020,56 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
-              onChange={(event) => setEndDate(event.target.value)}
+              onChange={(event) => setTempEndDate(event.target.value)}
       InputProps={{
         inputProps: {
           min: startDateLimit, // Minimum allowed date
           max: today, // Maximum allowed date
         },
       }}
-    />,
-
+    />
     // <SearchSelectUsersFilter />,
   ];
 
   return (
     <React.Fragment>
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-        <FilterForm
-          filters={dataFilters}
-          sx={{
-            flex: "0 2 auto !important",
-            padding: "0px 0px 0px 0px !important",
-            alignItems: "flex-start",
-          }}
-        />{" "}
-        {role === "Super-User" && (
+      <Box
+            display="flex"
+            
+          >
+  <FilterForm
+    filters={dataFilters}
+    sx={{
+      //flex: "1", // Takes available space
+      padding: "0px !important",
+      alignItems: "flex-start",
+    }}
+  />
+  <Box
+            display="flex"
+            justifyContent="flex-end"
+            sx={{ mb: 2, marginTop: "10px" }}
+          >
+  <Button
+    source="date"
+    variant="contained"
+    onClick={handleFilterSubmit}
+    sx={{  mb: 2,marginRight: "10px",whiteSpace:"nowrap"  }} // Adds left margin for spacing
+  >
+    Apply Filter
+  </Button></Box>
+  {role === "Super-User" && (
           <Box
             display="flex"
             justifyContent="flex-end"
-            sx={{ mb: 2, marginTop: "-40px" }}
+            sx={{ mb: 2, marginTop: "10px" }}
           >
             <Button
               variant="contained"
               startIcon={<GetAppIcon />}
               onClick={handleMenuRedeemOpen}
-              style={{ marginRight: "10px" }}
+              style={{ marginRight: "10px",whiteSpace:"nowrap"  }}
             >
               Redeem Data Export
             </Button>
@@ -1007,6 +1077,7 @@ export const DataSummary = () => {
               variant="contained"
               startIcon={<GetAppIcon />}
               onClick={handleMenuOpen}
+              style={{whiteSpace:"nowrap" }}
             >
               Recharge Data Export
             </Button>
@@ -1089,6 +1160,8 @@ export const DataSummary = () => {
             </Menu>
           </Box>
         )}
+  </Box>
+        
         <Summary selectedUser={selectedUser} startDate={startDate} endDate={endDate} />
       </ListBase>
     </React.Fragment>
