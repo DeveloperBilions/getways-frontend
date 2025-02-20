@@ -359,6 +359,8 @@ export const UserList = (props) => {
         sx={{ pt: 1 ,border:"none",boxShadow:"none"}}
         actions={<PostListActions />}
         pagination={false}
+        emptyWhileLoading={true}
+        empty={false}
       >
         {isLoading || !data ? (
           <Loader />
