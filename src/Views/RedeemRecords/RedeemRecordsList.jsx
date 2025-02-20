@@ -381,7 +381,20 @@ export const RedeemRecordsList = (props) => {
          {isLoading || !data ? (
           <Loader />
         ) : (
-        <Datagrid size="small" bulkActionButtons={false} data={data}>
+        <Datagrid size="small" bulkActionButtons={false} data={data}
+        sx={{
+          minWidth: "1000px", // Ensures the table is wide enough to scroll
+          tableLayout: "fixed", // Fix column sizes
+          "& .RaDatagrid-table": {
+            width: "100%", // Ensures table fills the available space
+          },
+          "& .column-paymentMethodType": {
+            minWidth: "150px", // Ensure this column is wide enough
+            maxWidth: "150px",
+            whiteSpace: "nowrap"
+          },
+        }}
+        >
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -448,7 +461,6 @@ export const RedeemRecordsList = (props) => {
             }}
           />
           <DateField source="transactionDate" label="RedeemDate" showTime />
-          <TextField source="responseMessage" label="Message" />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
