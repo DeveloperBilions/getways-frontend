@@ -187,8 +187,8 @@ export const changePassword = async (currentPassword, newPassword, confirmPasswo
 };
 export const updateRechargeLimit = async (userId, newLimit) => {
   try {
-    if (newLimit <= 0) {
-      throw new Error("Recharge limit must be greater than zero.");
+    if (newLimit <= 0 || newLimit>1000) {
+      throw new Error("Recharge limit must be a number between 1 and 1000.");
     }
 
     // Fetch the user by ID

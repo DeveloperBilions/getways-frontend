@@ -19,6 +19,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import { validateUpdateUser } from "../../../Validators/user.validator";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -67,6 +68,21 @@ const EditUserDialog = ({
       setLoading(false);
       return;
     }
+
+    const validationData = {
+      username: userName,
+      name,
+      email,
+      password
+    };
+
+    const validationResponse = validateUpdateUser(validationData);
+    if (!validationResponse.isValid) {
+      setErrorMessage(Object.values(validationResponse.errors).join(" "));
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         userId: record.id,

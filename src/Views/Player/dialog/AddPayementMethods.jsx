@@ -16,6 +16,7 @@ import {
 import { Alert } from "reactstrap";
 
 const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
+  const [originalPaymentMethods, setOriginalPaymentMethods] = useState({...wallet});
   const [paymentMethods, setPaymentMethods] = useState({...wallet});
   const [loading, setLoading] = useState(false); // State to track loading status
   const [error, setError] = useState(""); // State to track errors
@@ -46,6 +47,13 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
       return false;
     }
     if (
+      paymentMethods?.paypalId?.trim() &&
+      !/^[a-zA-Z0-9]{13}$/.test(paymentMethods?.paypalId.trim())
+    ) {
+      setError("PayPal ID must be exactly 13 alphanumeric characters.");
+      return false;
+    }
+    if (
       paymentMethods?.venmoId?.trim() &&
       !/^[a-zA-Z0-9]+$/.test(paymentMethods?.venmoId.trim())
     ) {
@@ -59,6 +67,7 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
     try {
       await walletService.updatePaymentMethods(trimmedMethods);
       setPaymentMethods(newMethods);
+      setOriginalPaymentMethods(newMethods);
       if (handleRefresh) {
         handleRefresh(); // Refresh parent data if necessary
       }
@@ -164,7 +173,10 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
               <Button
                   color="secondary"
                   className="ms-2"
-                  onClick={onClose}
+                  onClick={() => {
+                    setPaymentMethods(originalPaymentMethods);
+                    onClose();
+                  }}
                   disabled={loading} // Disable cancel button while saving
                 >
                   Cancel

@@ -41,6 +41,16 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     isVenmoDisabled: false,
     isZelleDisabled: false,
   });
+  const [displayPaymentMethods, setDisplayPaymentMethods] = useState({
+    cashAppId: "",
+    paypalId: "",
+    venmoId: "",
+    zelleId: "",
+    isCashAppDisabled: false,
+    isPaypalDisabled: false,
+    isVenmoDisabled: false,
+    isZelleDisabled: false,
+  });
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false); // Loading state for fetching payment methods
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // New state for selected payment method
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
@@ -70,10 +80,18 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      console.log(wallet,"walletdata")
-      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance} = wallet.wallet;
+      console.log(wallet, "walletdata");
+      const { cashAppId, paypalId, venmoId, zelleId, objectId, balance } =
+        wallet.wallet;
       setBalance(balance);
       setPaymentMethods((prev) => ({
+        ...prev,
+        cashAppId,
+        paypalId,
+        venmoId,
+        zelleId,
+      }));
+      setDisplayPaymentMethods((prev) => ({
         ...prev,
         cashAppId,
         paypalId,
@@ -96,8 +114,10 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       if (paymentMethodsRecord) {
         setPaymentMethods((prev) => ({
           ...prev,
-          isCashAppDisabled: paymentMethodsRecord.get("isCashAppDisabled") || false,
-          isPaypalDisabled: paymentMethodsRecord.get("isPaypalDisabled") || false,
+          isCashAppDisabled:
+            paymentMethodsRecord.get("isCashAppDisabled") || false,
+          isPaypalDisabled:
+            paymentMethodsRecord.get("isPaypalDisabled") || false,
           isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
           isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
         }));
@@ -112,8 +132,10 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
   const handleConfirm = () => {
-    const { cashAppId, paypalId, venmoId,zelleId } = paymentMethods;
-    const methodCount = [cashAppId, paypalId, venmoId,zelleId].filter(Boolean).length;
+    const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
+    const methodCount = [cashAppId, paypalId, venmoId, zelleId].filter(
+      Boolean
+    ).length;
     if (!selectedPaymentMethodType) {
       setErrorMessage("Please select a payment method type.");
       return;
@@ -152,12 +174,16 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
 
     if (!redeemAmount) {
-      setErrorMessage("Cashout amount cannot be empty. Please enter a valid amount.");
+      setErrorMessage(
+        "Cashout amount cannot be empty. Please enter a valid amount."
+      );
       return;
     }
-    
+
     if (redeemAmount <= 0) {
-      setErrorMessage("Cashout amount cannot be negative or 0. Please enter a valid amount.");
+      setErrorMessage(
+        "Cashout amount cannot be negative or 0. Please enter a valid amount."
+      );
       return;
     }
     if (redeemAmount < 15) {
@@ -170,8 +196,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       remark,
       type: "redeem",
       walletId: walletId,
-      username:userName,
-      id:userId,
+      username: userName,
+      id: userId,
       isCashOut: true,
       paymentMode: selectedPaymentMethodType,
       paymentMethodType: selectedPaymentMethod,
@@ -203,14 +229,18 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       zelleId: paymentMethods?.zelleId?.trim() || "",
     };
     if (
-      (!paymentMethods?.cashAppId?.trim() || paymentMethods?.cashAppId?.trim() === "") &&
-      (!paymentMethods?.venmoId?.trim() || paymentMethods?.venmoId?.trim() === "") &&
-      (!paymentMethods?.paypalId?.trim() || paymentMethods?.paypalId?.trim() === "") && 
-      (!paymentMethods?.zelleId?.trim() || paymentMethods?.zelleId?.trim() === "")
+      (!paymentMethods?.cashAppId?.trim() ||
+        paymentMethods?.cashAppId?.trim() === "") &&
+      (!paymentMethods?.venmoId?.trim() ||
+        paymentMethods?.venmoId?.trim() === "") &&
+      (!paymentMethods?.paypalId?.trim() ||
+        paymentMethods?.paypalId?.trim() === "") &&
+      (!paymentMethods?.zelleId?.trim() ||
+        paymentMethods?.zelleId?.trim() === "")
     ) {
       setError("Add at least one valid payment method.");
       return false;
-    } 
+    }
     if (
       paymentMethods?.cashAppId?.trim() &&
       !/^(?=.*[a-zA-Z]).{1,20}$/.test(paymentMethods?.cashAppId.trim())
@@ -218,6 +248,13 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       setError(
         "CashApp ID must include at least 1 letter and be no longer than 20 characters."
       );
+      return false;
+    }
+    if (
+      paymentMethods?.paypalId?.trim() &&
+      !/^[a-zA-Z0-9]{13}$/.test(paymentMethods?.paypalId.trim())
+    ) {
+      setError("PayPal ID must be exactly 13 alphanumeric characters.");
       return false;
     }
     if (
@@ -230,7 +267,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       return false;
     }
     try {
-      setLoadingSave(true)
+      setLoadingSave(true);
       await walletService.updatePaymentMethods(trimmedMethods);
       // Check if the previously selected payment method still exists
       if (newMethods[selectedPaymentMethodType]) {
@@ -241,22 +278,41 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         setSelectedPaymentMethod("");
       }
       setPaymentMethods(newMethods);
+      setDisplayPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
+      setError("");
       // handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
-    }finally{
-      setLoadingSave(false)
+      setError(error.message);
+    } finally {
+      setLoadingSave(false);
     }
   };
   const paymentOptions = [
-    { key: "cashAppId", label: "CashApp", disabled: paymentMethods.isCashAppDisabled },
-    { key: "paypalId", label: "PayPal", disabled: paymentMethods.isPaypalDisabled },
-    { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
-    { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
+    {
+      key: "cashAppId",
+      label: "CashApp",
+      disabled: paymentMethods.isCashAppDisabled,
+    },
+    {
+      key: "paypalId",
+      label: "PayPal",
+      disabled: paymentMethods.isPaypalDisabled,
+    },
+    {
+      key: "venmoId",
+      label: "Venmo",
+      disabled: paymentMethods.isVenmoDisabled,
+    },
+    {
+      key: "zelleId",
+      label: "Zelle",
+      disabled: paymentMethods.isZelleDisabled,
+    },
   ];
-  console.log(paymentMethods,"paymentMethods")
+  // console.log(paymentMethods, "paymentMethods");
   return (
     <React.Fragment>
       {loading ? (
@@ -272,7 +328,9 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 {errorMessage}
               </Alert>
             )}
-            {loadingPaymentMethods && <Loader message="Fetching available payment methods..." />}
+            {loadingPaymentMethods && (
+              <Loader message="Fetching available payment methods..." />
+            )}
             <Form>
               <Row>
                 <Col md={12}>
@@ -300,26 +358,25 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                       value={redeemAmount}
                       onChange={(e) => {
                         let value = e.target.value;
-                        if (value === '' || /^\d*$/.test(value)) {
-                          if(value === ''){
+                        if (value === "" || /^\d*$/.test(value)) {
+                          if (value === "") {
                             setRedeemAmount(value);
-                          }
-                          else if (value.includes('.')) {
+                          } else if (value.includes(".")) {
                             value = Math.floor(parseFloat(value));
                             setRedeemAmount(value);
-                          }
-                          else if (/^\d*$/.test(value)) {
+                          } else if (/^\d*$/.test(value)) {
                             setRedeemAmount(value);
                           }
                         }
                       }}
-                      onKeyDown={(e) =>{
+                      onKeyDown={(e) => {
                         if (e.keyCode === 190) {
                           // Prevent the default behavior of typing a decimal
                           e.preventDefault();
                         }
                       }}
-                      required/>
+                      required
+                    />
                   </FormGroup>
                 </Col>
 
@@ -341,52 +398,64 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   <FormGroup>
                     <Label for="remark">Payment Method</Label>
                     <div className="row">
-    {Object.entries(paymentMethods)
-      .filter(([key, value]) => value && paymentOptions.some(option => option.key === key)) // Filter valid methods
-      .length === 0 ? (
-        <div className="col-12 text-start text-danger">
-          <p>** No Payment methods added **</p>
-        </div>
-      ) : (
-        paymentOptions.map(({ key, label, disabled }) =>
-          paymentMethods[key] ? ( // Check if the specific method exists
-            <div key={key} className="col-6 mt-2">
-              <div
-                className={`border p-3 w-100 rounded d-flex align-items-start cashout ${
-                  disabled ? "disabled-method" : ""
-                }`}
-              >
-                <Input
-                  type="radio"
-                  id={key}
-                  name="paymentMethod"
-                  value={key}
-                  checked={selectedPaymentMethodType === key}
-                  onChange={(e) => {
-                    setSelectedPaymentMethodType(e.target.value);
-                    setSelectedPaymentMethod(paymentMethods[key]);
-                  }}
-                  disabled={disabled} // Disable radio button if the method is not allowed
-                  required
-                />
-                <Label
-                  for={key}
-                  className="form-check-label d-flex flex-column px-3"
-                >
-                  <span>{label}</span>
-                  <span style={{ fontSize: "12px" }}>{paymentMethods[key]}</span>
-                  {disabled && (
-                    <span className="text-danger" style={{ fontSize: "12px" }}>
-                      This payment mode is currently not available
-                    </span>
-                  )}
-                </Label>
-              </div>
-            </div>
-          ) : null
-        )
-      )}
-  </div>
+                      {Object.entries(displayPaymentMethods).filter(
+                        ([key, value]) =>
+                          value &&
+                          paymentOptions.some((option) => option.key === key)
+                      ).length === 0 ? ( // Filter valid methods
+                        <div className="col-12 text-start text-danger">
+                          <p>** No Payment methods added **</p>
+                        </div>
+                      ) : (
+                        paymentOptions.map(({ key, label, disabled }) =>
+                          displayPaymentMethods[key] ? ( // Check if the specific method exists
+                            <div key={key} className="col-6 mt-2">
+                              <div
+                                className={`border p-3 w-100 rounded d-flex align-items-start cashout ${
+                                  disabled ? "disabled-method" : ""
+                                }`}
+                              >
+                                <Input
+                                  type="radio"
+                                  id={key}
+                                  name="paymentMethod"
+                                  value={key}
+                                  checked={selectedPaymentMethodType === key}
+                                  onChange={(e) => {
+                                    setSelectedPaymentMethodType(
+                                      e.target.value
+                                    );
+                                    setSelectedPaymentMethod(
+                                      displayPaymentMethods[key]
+                                    );
+                                  }}
+                                  disabled={disabled} // Disable radio button if the method is not allowed
+                                  required
+                                />
+                                <Label
+                                  for={key}
+                                  className="form-check-label d-flex flex-column px-3"
+                                >
+                                  <span>{label}</span>
+                                  <span style={{ fontSize: "12px" }}>
+                                    {displayPaymentMethods[key]}
+                                  </span>
+                                  {disabled && (
+                                    <span
+                                      className="text-danger"
+                                      style={{ fontSize: "12px" }}
+                                    >
+                                      This payment mode is currently not
+                                      available
+                                    </span>
+                                  )}
+                                </Label>
+                              </div>
+                            </div>
+                          ) : null
+                        )
+                      )}
+                    </div>
                   </FormGroup>
                 </Col>
 
@@ -496,102 +565,114 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       >
         <ModalHeader>Add/Edit Payment Method</ModalHeader>
         <ModalBody>
-        {error &&  <Alert color="danger" className="mt-2">{error}</Alert>}
+          {error && (
+            <Alert color="danger" className="mt-2">
+              {error}
+            </Alert>
+          )}
 
-            <Row>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="cashAppId">CashApp ID</Label>
-                  <Input
-                    id="cashAppId"
-                    name="cashAppId"
-                    type="text"
-                    value={paymentMethods.cashAppId}
-                    onChange={(e) =>
-                      setPaymentMethods({
-                        ...paymentMethods,
-                        cashAppId: e.target.value,
-                      })
-                    }
-                  />
-                </FormGroup>
-              </Col>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="paypalId">PayPal ID</Label>
-                  <Input
-                    id="paypalId"
-                    name="paypalId"
-                    type="text"
-                    value={paymentMethods.paypalId}
-                    onChange={(e) =>
-                      setPaymentMethods({
-                        ...paymentMethods,
-                        paypalId: e.target.value,
-                      })
-                    }
-                  />
-                </FormGroup>
-              </Col>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="venmoId">Venmo ID</Label>
-                  <Input
-                    id="venmoId"
-                    name="venmoId"
-                    type="text"
-                    value={paymentMethods.venmoId}
-                    onChange={(e) =>
-                      setPaymentMethods({
-                        ...paymentMethods,
-                        venmoId: e.target.value,
-                      })
-                    }
-                  />
-                </FormGroup>
-              </Col>
-              <Col md={12}>
-                <FormGroup>
-                  <Label for="zelleId">Zelle ID</Label>
-                  <Input
-                    id="zelleId"
-                    name="zelleId"
-                    type="text"
-                    value={paymentMethods.zelleId}
-                    onChange={(e) =>
-                      setPaymentMethods({
-                        ...paymentMethods,
-                        zelleId: e.target.value,
-                      })
-                    }
-                  />
-                </FormGroup>
-              </Col>
-              <Col md={12} className="d-flex justify-content-end">
-                <Button color="primary" type="submit" disabled={loadingsave} onClick={()=> handleAddPaymentMethod(paymentMethods)}>
-                  {loadingsave ? (
-                    <span className="d-flex align-items-center">
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      Saving...
-                    </span>
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
-                <Button
-                  color="secondary"
-                  className="ms-2"
-                  onClick={() => setShowAddPaymentMethodDialog(false)}
-                  disabled={loadingsave} // Disable cancel button while saving
-                >
-                  Cancel
-                </Button>
-              </Col>
-            </Row>
+          <Row>
+            <Col md={12}>
+              <FormGroup>
+                <Label for="cashAppId">CashApp ID</Label>
+                <Input
+                  id="cashAppId"
+                  name="cashAppId"
+                  type="text"
+                  value={paymentMethods.cashAppId}
+                  onChange={(e) =>
+                    setPaymentMethods({
+                      ...paymentMethods,
+                      cashAppId: e.target.value,
+                    })
+                  }
+                />
+              </FormGroup>
+            </Col>
+            <Col md={12}>
+              <FormGroup>
+                <Label for="paypalId">PayPal ID</Label>
+                <Input
+                  id="paypalId"
+                  name="paypalId"
+                  type="text"
+                  value={paymentMethods.paypalId}
+                  onChange={(e) =>
+                    setPaymentMethods({
+                      ...paymentMethods,
+                      paypalId: e.target.value,
+                    })
+                  }
+                />
+              </FormGroup>
+            </Col>
+            <Col md={12}>
+              <FormGroup>
+                <Label for="venmoId">Venmo ID</Label>
+                <Input
+                  id="venmoId"
+                  name="venmoId"
+                  type="text"
+                  value={paymentMethods.venmoId}
+                  onChange={(e) =>
+                    setPaymentMethods({
+                      ...paymentMethods,
+                      venmoId: e.target.value,
+                    })
+                  }
+                />
+              </FormGroup>
+            </Col>
+            <Col md={12}>
+              <FormGroup>
+                <Label for="zelleId">Zelle ID</Label>
+                <Input
+                  id="zelleId"
+                  name="zelleId"
+                  type="text"
+                  value={paymentMethods.zelleId}
+                  onChange={(e) =>
+                    setPaymentMethods({
+                      ...paymentMethods,
+                      zelleId: e.target.value,
+                    })
+                  }
+                />
+              </FormGroup>
+            </Col>
+            <Col md={12} className="d-flex justify-content-end">
+              <Button
+                color="primary"
+                type="submit"
+                disabled={loadingsave}
+                onClick={() => handleAddPaymentMethod(paymentMethods)}
+              >
+                {loadingsave ? (
+                  <span className="d-flex align-items-center">
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save"
+                )}
+              </Button>
+              <Button
+                color="secondary"
+                className="ms-2"
+                onClick={() => {
+                  setShowAddPaymentMethodDialog(false);
+                  setPaymentMethods(displayPaymentMethods);
+                }}
+                disabled={loadingsave} // Disable cancel button while saving
+              >
+                Cancel
+              </Button>
+            </Col>
+          </Row>
         </ModalBody>
       </Modal>
     </React.Fragment>

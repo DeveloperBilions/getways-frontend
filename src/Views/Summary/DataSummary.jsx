@@ -955,7 +955,7 @@ export const DataSummary = () => {
       InputProps={{
         inputProps: {
           min: startDateLimit, // Minimum allowed date
-          max: today, // Maximum allowed date
+          max: endDate || today // Maximum allowed date
         },
       }}
       onChange={(event) => setStartDate(event.target.value)}
@@ -969,7 +969,7 @@ export const DataSummary = () => {
               onChange={(event) => setEndDate(event.target.value)}
       InputProps={{
         inputProps: {
-          min: startDateLimit, // Minimum allowed date
+          min: startDate || startDateLimit, // Minimum allowed date
           max: today, // Maximum allowed date
         },
       }}

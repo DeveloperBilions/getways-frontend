@@ -100,12 +100,12 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
         if (response?.success) {
           // Display success message using useNotify
           notify("Recharge successful!", { type: "success" });
+          onClose();
+          handleRefresh();
+          resetFields();
         } else {
           setErrorMessage(response?.message || "Recharge failed. Please try again.");
         }
-        onClose();
-        handleRefresh();
-        resetFields();
       } catch (error) {
         console.error("Error processing wallet recharge:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
