@@ -499,7 +499,9 @@ export const DataSummary = () => {
       const { data } = await dataProvider.getList("users", {
         pagination: { page: pageNum, perPage },
         sort: { field: "username", order: "ASC" },
-        filter: search ? { username: search } : {},
+        filter: search ? { username: search,  $or: [{ userReferralCode: "" }, { userReferralCode: null }] } : {
+          $or: [{ userReferralCode: "" }, { userReferralCode: null }]
+       },
       });
 
       const formattedData = data
