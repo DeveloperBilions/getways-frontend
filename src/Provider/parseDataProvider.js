@@ -192,7 +192,7 @@ export const dataProvider = {
       } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "redeem", ...filter };
+        filter = { type: "redeem", ...(filter?.status ? { status: filter.status } : {}) };
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&
@@ -228,7 +228,7 @@ export const dataProvider = {
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...filter };
+        filter = { type: "recharge", ...(filter?.status ? { status: filter.status } : {})};
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&

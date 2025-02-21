@@ -20,7 +20,7 @@ import {
 import { Loader, KPILoader } from "../Loader";
 import debounce from "lodash/debounce"; // Import Lodash debounce
 import { Autocomplete, TextField } from "@mui/material";
-
+import EventIcon from "@mui/icons-material/Event";
 // mui
 import {
   Typography,
@@ -54,14 +54,50 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 
 const Summary = ({ selectedUser ,startDate , endDate}) => {
-  console.log(startDate,endDate,"dlajdaidoa")
-  const { data, isLoading, isFetching } = useGetList("summary", {
-    filter: { username: selectedUser?.id , startDate:startDate,endDate:endDate },
-  });
+  const shouldFetch = startDate && endDate;
+  const { data, isLoading } = useGetList(
+    "summary",
+    shouldFetch
+      ? { filter: { username: selectedUser?.id, startDate, endDate } }
+      : { enabled: false } // Disable the request if dates are missing
+  );
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
 
+  if (!shouldFetch) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Card
+          sx={{
+            padding: "20px",
+            textAlign: "center",
+            maxWidth: "400px",
+            backgroundColor: "#f9f9f9",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            borderRadius: "10px",
+          }}
+        >
+          <CardContent>
+            <Box display="flex" justifyContent="center" mb={2}>
+              <EventIcon color="primary" sx={{ fontSize: 40 }} />
+            </Box>
+            <Typography variant="h6" fontWeight="bold">
+              Select a Date Range
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Please select both start and end dates to view the summary data.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }  
   if (isLoading || !data) {
     return (
       <Box
@@ -489,6 +525,8 @@ export const DataSummary = () => {
   const [selectedUser, setSelectedUser] = useState(null); // Store selected user
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [tempStartDate, setTempStartDate] = useState(null);
+  const [tempEndDate, setTempEndDate] = useState(null);
   const handleUserChange = (selectedId) => {
     setSelectedUser(selectedId);
   };
@@ -509,7 +547,7 @@ export const DataSummary = () => {
           (item) =>
             item?.id !== identity?.objectId && {
               ...item,
-              optionName: `${item.name} (${item.roleName})`,
+              optionName: `${item.username} (${item.roleName})`,
             }
         )
         .filter(Boolean); // Remove `false` values (filtered-out identities)
@@ -960,7 +998,7 @@ export const DataSummary = () => {
           max: today, // Maximum allowed date
         },
       }}
-      onChange={(event) => setStartDate(event.target.value)}
+      onChange={(event) => setTempStartDate(event.target.value)}
     />,
     <DateInput
       label="End date"
@@ -968,7 +1006,7 @@ export const DataSummary = () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
-              onChange={(event) => setEndDate(event.target.value)}
+      onChange={(event) => setTempEndDate(event.target.value)}
       InputProps={{
         inputProps: {
           min: startDateLimit, // Minimum allowed date
@@ -980,9 +1018,17 @@ export const DataSummary = () => {
     // <SearchSelectUsersFilter />,
   ];
 
+  const handleFilterSubmit = () => {
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+  };
   return (
     <React.Fragment>
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
+      <Box
+            display="flex"
+            
+          >
         <FilterForm
           filters={dataFilters}
           sx={{
@@ -991,11 +1037,25 @@ export const DataSummary = () => {
             alignItems: "flex-start",
           }}
         />{" "}
+         <Box
+            display="flex"
+            justifyContent="flex-end"
+            sx={{ mb: 2, marginTop: "10px" }}
+          >
+  <Button
+    source="date"
+    variant="contained"
+    onClick={handleFilterSubmit}
+    sx={{  mb: 2,marginRight: "10px",whiteSpace:"nowrap"  }} // Adds left margin for spacing
+  >
+    Apply Filter
+  </Button></Box>
+  </Box>
         {role === "Super-User" && (
           <Box
             display="flex"
-            justifyContent="flex-end"
-            sx={{ mb: 2, marginTop: "-40px" }}
+            justifyContent="flex-start"
+            sx={{ mb: 2 }}
           >
             <Button
               variant="contained"

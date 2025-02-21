@@ -36,6 +36,7 @@ import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 import Pagination from "@mui/material/Pagination";
+import TablePagination from '@mui/material/TablePagination';
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -397,6 +398,19 @@ export const UserList = (props) => {
             boxShadow: "none",
           }}
         >
+          <TablePagination
+  component="div"
+  count={Math.ceil((total || 0) / perPage)}
+  page={page}
+  //onPageChange={handleChangePage}
+  rowsPerPage={perPage}
+  onRowsPerPageChange={(event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  }}
+  nextIconButtonProps={{ style: { display: "none" } }}
+  backIconButtonProps={{ style: { display: "none" } }}
+/>
           <Pagination
             page={page}
             rowsPerPage={perPage}
@@ -409,6 +423,7 @@ export const UserList = (props) => {
             variant="outlined"
             color="secondary"
             rows
+            rowsPerPageOptions={[10, 20, 50, 100]} // ✅ Add this line
           />
         </Box>
         <CreateUserDialog

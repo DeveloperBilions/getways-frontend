@@ -48,6 +48,7 @@ import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { Pagination } from "@mui/material";
+import TablePagination from '@mui/material/TablePagination';
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -225,18 +226,19 @@ export const RedeemRecordsList = (props) => {
     <SearchInput
       source="username"
       alwaysOn
-      resettable
       onChange={(e) =>
         setFilters({ ...filterValues, username: e?.target?.value })
       }
+      value={filterValues?.username}
     />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
         source="status"
-        emptyText="All"
+        emptyText={"All"}
         alwaysOn
-        resettablea
+        resettable
+        // value={filterValues?.status ?? null} // Explicitly handle undefined case
         choices={[
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
@@ -251,12 +253,12 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-        onChange={(e) =>
-          setFilters({ ...filterValues, status: e?.target?.value })
-        }      />
+        onChange={(e) => {
+          const newValue = e?.target?.value ?? null; // Ensure null if undefined
+          setFilters({ ...filterValues, status: newValue });
+        }}    />
     ),
   ].filter(Boolean);
-
   const postListActions = (
     <TopToolbar>
       <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
@@ -326,7 +328,6 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-
   return (
     <>
       <Box
@@ -377,6 +378,7 @@ export const RedeemRecordsList = (props) => {
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}
+        key={filterValues} // Changing key forces component remount
       >
          {isLoading || !data ? (
           <Loader />
@@ -554,6 +556,19 @@ export const RedeemRecordsList = (props) => {
           />
         </Datagrid> )}
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <TablePagination
+  component="div"
+  count={Math.ceil((total || 0) / perPage)}
+  page={page}
+  //onPageChange={handleChangePage}
+  rowsPerPage={perPage}
+  onRowsPerPageChange={(event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  }}
+  nextIconButtonProps={{ style: { display: "none" } }}
+  backIconButtonProps={{ style: { display: "none" } }}
+/>
         <Pagination
           page={page}
           count={Math.ceil((total || 0) / perPage)} // Total pages

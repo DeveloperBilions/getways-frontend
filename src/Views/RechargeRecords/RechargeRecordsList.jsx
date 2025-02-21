@@ -52,6 +52,7 @@ import { Loader } from "../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { Pagination } from "@mui/material";
+import TablePagination from '@mui/material/TablePagination';
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -516,6 +517,19 @@ export const RechargeRecordsList = (props) => {
           />
         </Datagrid>)}
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <TablePagination
+  component="div"
+  count={Math.ceil((total || 0) / perPage)}
+  page={page}
+  //onPageChange={handleChangePage}
+  rowsPerPage={perPage}
+  onRowsPerPageChange={(event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  }}
+  nextIconButtonProps={{ style: { display: "none" } }}
+  backIconButtonProps={{ style: { display: "none" } }}
+/>
         <Pagination
           page={page}
           count={Math.ceil((total || 0) / perPage)} // Total pages
