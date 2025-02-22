@@ -1,6 +1,7 @@
 import React, { useState , useEffect } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { useSearchParams } from "react-router-dom";
+import { validatePositiveNumber } from "../../Validators/number.validator";
 
 export const Stripe = () => {
   const [amount, setAmount] = useState("");
@@ -15,6 +16,13 @@ export const Stripe = () => {
     setLoading(true);
     setError("");
     setPaymentLink("");
+
+    const validationResponse = validatePositiveNumber(amount);
+    if (!validationResponse.isValid) {
+      setError(validationResponse.error);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Call getLink from dataProvider

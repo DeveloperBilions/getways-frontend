@@ -15,6 +15,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { validatePositiveNumber } from "../../../Validators/number.validator";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -101,6 +102,12 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   };
 
   const handleSubmit = async () => {
+    
+    const validatorResponse = validatePositiveNumber(redeemAmount);
+    if (!validatorResponse.isValid) {
+      setResponseData(validatorResponse.error);
+      return;
+    }
     const rawData = {
       ...record,
       redeemServiceFee: parseFloat(editedFees), // Use edited fees in submission

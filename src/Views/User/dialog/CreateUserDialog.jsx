@@ -24,6 +24,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
+import { validateCreateUser } from "../../../Validators/user.validator";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -55,11 +56,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     setPassword("");
     setConfirmPassword("");
     setErrorMessage("");
-  };
-
-  const validatePassword = (password) => {
-    const passwordRegex = /^.{6,}$/;
-    return passwordRegex.test(password);
   };
 
   const handleCancel = () => {
@@ -94,8 +90,17 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validatePassword(password)) {
-      setErrorMessage("Password must be at least 6 characters long.");
+    const validationData = {
+      username: userName,
+      name,
+      phoneNumber,
+      email,
+      password,
+    };
+
+    const validationResponse = validateCreateUser(validationData);
+    if (!validationResponse.isValid) {
+      setErrorMessage(Object.values(validationResponse.errors).join(" "));
       return;
     }
 
@@ -106,7 +111,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
 
     setLoading(true);
     try {
-      let response
+      let response;
       if (permissions === "Super-User") {
         if (userType === "Agent") {
           if (!identity?.objectId && !identity?.name) {
@@ -124,7 +129,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             userParentName: parentType?.name,
             redeemService: 5,
           });
-        
         } else if (userType === "Player") {
           if (!parentType?.id && !parentType?.name) {
             setErrorMessage("Parent User data is not valid");
@@ -145,7 +149,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             setErrorMessage("Parent User data is not valid");
             return;
           }
-          response =  await Parse.Cloud.run("createUser", {
+          response = await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
             name,
@@ -158,7 +162,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           });
         }
       } else if (permissions === "Agent") {
-        response= await Parse.Cloud.run("createUser", {
+        response = await Parse.Cloud.run("createUser", {
           roleName: "Player",
           username: userName,
           name,
@@ -168,8 +172,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           userParentId: identity?.objectId,
           userParentName: identity?.name,
         });
-      }
-      else if (permissions === "Master-Agent") {
+      } else if (permissions === "Master-Agent") {
         response = await Parse.Cloud.run("createUser", {
           roleName: "Player",
           username: userName,
@@ -182,20 +185,19 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
         });
       }
 
-      if(response?.code != 200){
+      if (response?.code != 200) {
         setErrorMessage(response.message);
         return;
-      }
-      else{
+      } else {
         onClose();
-    fetchAllUsers();
-    resetFields();
-    refresh();
+        fetchAllUsers();
+        resetFields();
+        refresh();
       }
       console.log("API Response:", response);
     } catch (error) {
       console.error("Error Creating User:", error);
-  
+
       // Handle Parse-specific errors
       if (error?.code && error?.message) {
         setErrorMessage(error.message);
@@ -234,14 +236,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           <ModalHeader toggle={handleCancel} className="border-bottom-0">
             Add New user
           </ModalHeader>
- 
+
           <ModalBody>
             <Form onSubmit={handleSubmit}>
-            {errorMessage && (
-  <Grid item xs={12}>
-    <Alert severity="error">{errorMessage}</Alert>
-  </Grid>
-)}
+              {errorMessage && (
+                <Grid item xs={12}>
+                  <Alert severity="error">{errorMessage}</Alert>
+                </Grid>
+              )}
 
               <Row>
                 <Col md={6}>
