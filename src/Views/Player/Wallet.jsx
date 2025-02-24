@@ -4,7 +4,6 @@ import {
   useRefresh,
   Datagrid,
   TextField,
-  Pagination,
   ListContextProvider,
   FunctionField,
   ChipField,
@@ -18,6 +17,7 @@ import {
   Typography,
   Grid,
   Paper,
+  Box,
 } from "@mui/material";
 import MoneyReciveLightIcon from "../../Assets/icons/money-recive-light.svg";
 import WalletIcon from "../../Assets/icons/WalletIcon.svg";
@@ -27,7 +27,8 @@ import { walletService } from "../../Provider/WalletManagement";
 import CashOutDialog from "./dialog/CashOutDialog";
 import AddPaymentMethods from "./dialog/AddPayementMethods";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import Back Icon
-
+import { Pagination } from "@mui/material";
+import TablePagination from "@mui/material/TablePagination";
 export const Wallet = () => {
   const { data, isLoading } = useRefresh("playerDashboard");
   const navigate = useNavigate();
@@ -58,10 +59,11 @@ export const Wallet = () => {
   }, [role, navigate]);
 
   useEffect(() => {
-    WalletService();
     fetchTransactions(page, pageSize);
-    
   }, [page, pageSize]);
+  useEffect(() =>{
+    WalletService();
+  },[])
 
   async function WalletService() {
     setWalletLoading(true);
@@ -180,11 +182,10 @@ export const Wallet = () => {
                   />
                 }
                 onClick={() => {
-                  if(!identity?.isBlackListed)
-                  {
-                    setcashOutDialogOpen(true)
+                  if (!identity?.isBlackListed) {
+                    setcashOutDialogOpen(true);
                   }
-                  }}
+                }}
                 fullWidth
                 disabled={identity?.isBlackListed}
               >
@@ -204,11 +205,10 @@ export const Wallet = () => {
                 }}
                 fullWidth
                 onClick={() => {
-                  if(!identity?.isBlackListed)
-                  {
-                    setPaymentDialogOpen(true)
+                  if (!identity?.isBlackListed) {
+                    setPaymentDialogOpen(true);
                   }
-                  }}
+                }}
                 disabled={identity?.isBlackListed}
               >
                 Add Payment Methods
@@ -292,11 +292,11 @@ export const Wallet = () => {
               overflowX: "scroll", // Enable horizontal scrolling
               width: "100%", // Full-width container
               marginBottom: "16px", // Spacing below the table,
-              height:"100%"
+              height: "100%",
             }}
           >
             {loadingTransactions ? (
-              <Loader />
+                <Box style={{textAlign:"center"}}>Loading data...</Box>
             ) : (
               <ListContextProvider
                 value={{
@@ -465,6 +465,35 @@ export const Wallet = () => {
                     />
                   </Datagrid>
                 </div>
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}
+                >
+                  <TablePagination
+                    component="div"
+                    count={Math.ceil((totalRecords || 0) / pageSize)}
+                    page={page}
+                    //onPageChange={handleChangePage}
+                    rowsPerPage={pageSize}
+                    onRowsPerPageChange={(event) => {
+                      setPageSize(parseInt(event.target.value, 10));
+                      setPage(1);
+                    }}
+                    nextIconButtonProps={{ style: { display: "none" } }}
+                    backIconButtonProps={{ style: { display: "none" } }}
+                  />
+                  <Pagination
+                    page={page}
+                    count={Math.ceil((totalRecords || 0) / pageSize)} // Total pages
+                    onChange={(event, newPage) => setPage(newPage)}
+                    rowsPerPage={pageSize}
+                    onRowsPerPageChange={(event) => {
+                      setPageSize(parseInt(event.target.value, 10));
+                      setPage(1);
+                    }}
+                    variant="outlined"
+                    color="secondary"
+                  />
+                </Box>
               </ListContextProvider>
             )}
           </div>
