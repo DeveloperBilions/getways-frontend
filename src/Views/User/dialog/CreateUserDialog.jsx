@@ -210,7 +210,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   // Combine parentOptions with identity
   const combinedOptions = [
     { id: identity?.objectId, name: identity?.name, role: identity?.role },
-    ...parentOptions,
+    // ...parentOptions,
   ];
 
   const handleParentTypeChange = (e) => {
@@ -352,16 +352,16 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                               name: identity?.name,
                               role: identity?.role,
                             }, // Always include identity
-                            ...parentOptions.filter((user) => {
-                              if (userType === "Agent")
-                                return user.role === "Master-Agent"; // Show only Master-Agent
-                              if (userType === "Player")
-                                return (
-                                  user.role === "Agent" ||
-                                  user.role === "Master-Agent"
-                                ); // Show Agents & Master-Agents
-                              return true;
-                            }),
+                            // ...parentOptions.filter((user) => {
+                            //   if (userType === "Agent")
+                            //     return user.role === "Master-Agent"; // Show only Master-Agent
+                            //   if (userType === "Player")
+                            //     return (
+                            //       user.role === "Agent" ||
+                            //       user.role === "Master-Agent"
+                            //     ); // Show Agents & Master-Agents
+                            //   return true;
+                            // }),
                           ].map((user) => (
                             <option key={user.id} value={user.id}>
                               {`${user.role}: ${user.name}`}

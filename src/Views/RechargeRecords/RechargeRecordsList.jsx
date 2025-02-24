@@ -231,9 +231,9 @@ export const RechargeRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onChange={(e) =>
-        setFilters({ ...filterValues, username: e?.target?.value })
-      }
+      // onChange={(e) =>
+      //   setFilters({ ...filterValues, username: e?.target?.value })
+      // }
     />,
     permissions !== "Player" && (
       <SelectInput
