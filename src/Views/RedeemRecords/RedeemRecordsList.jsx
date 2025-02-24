@@ -127,6 +127,14 @@ export const RedeemRecordsList = (props) => {
         return "Review";
       case 9:
         return "Expired";
+      case 10:
+        return "Failed Transaction";
+      case 11:
+        return "Cashouts";
+      case 12:
+        return "Cashout Successfully";
+      case 13:
+        return "Cashout Reject";
       default:
         return "Unknown Status";
     }

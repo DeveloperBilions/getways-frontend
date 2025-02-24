@@ -17,7 +17,8 @@ import {
   useRefresh,
   useListContext,
   useListController,
-  Pagination
+  Pagination,
+  SelectInput
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -294,13 +295,26 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput
-      source="username"
+  <SearchInput source="username" alwaysOn resettable />,
+];
+
+// Conditionally add SelectInput if role is "Super-User"
+if (role === "Super-User") {
+  dataFilters.push(
+    <SelectInput
+      source="role"
+      label="Role"
+      emptyText={"All"}
       alwaysOn
       resettable
-    />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
-  ];
+      choices={[
+        { id: "Super-User", name: "Super-User" },
+        { id: "Player", name: "Player" },
+        { id: "Agent", name: "Agent" },
+      ]}
+    />
+  );
+}
 
   const PostListActions = () => (
     <TopToolbar>
