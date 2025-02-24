@@ -14,6 +14,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  DateInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -82,6 +83,12 @@ export const RedeemRecordsList = (props) => {
       // $or: [{ userReferralCode: "" }, { userReferralCode: null }],
     }
   });
+
+  const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const startDateLimit = "2024-12-01";
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+
   if (!role) {
     navigate("/login");
   }
@@ -221,6 +228,29 @@ export const RedeemRecordsList = (props) => {
       console.log(e.target.value);
     }
   };
+
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+    if (e.target.value) {
+      setFilters({ ...filterValues, startdate: e.target.value });
+    }else {
+      const newFilters = { ...filterValues };
+      delete newFilters.startdate;
+      setFilters(newFilters);
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
+    if (e.target.value) {
+      setFilters({ ...filterValues, enddate: e.target.value });
+    } else {
+      const newFilters = { ...filterValues };
+      delete newFilters.enddate;
+      setFilters(newFilters);
+    }
+  };
+
   const dataFilters = [
     <SearchInput
       source="username"
@@ -255,6 +285,32 @@ export const RedeemRecordsList = (props) => {
           setFilters({ ...filterValues, status: e?.target?.value })
         }      />
     ),
+    <DateInput
+      label="Start date"
+      source="startdate"
+      alwaysOn
+      resettable
+      InputProps={{
+        inputProps: {
+          min: startDateLimit, // Minimum allowed date
+          max: endDate || today, // Maximum allowed date
+        },
+      }}
+      onChange={handleStartDateChange}
+    />,
+    <DateInput
+      label="End date"
+      source="enddate"
+      alwaysOn
+      resettable
+      InputProps={{
+        inputProps: {
+          min: startDate || startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
+        },
+      }}
+      onChange={handleEndDateChange}
+    />,
   ].filter(Boolean);
 
   const postListActions = (

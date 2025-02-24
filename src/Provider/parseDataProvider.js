@@ -162,6 +162,17 @@ export const dataProvider = {
     const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
 
     try {
+      let startDate = "";
+      let endDate = "";
+      if (filter.startdate) {
+        startDate = new Date(filter.startdate + "T00:00:00Z");
+        delete filter.startdate;
+      }
+      if (filter.enddate) {
+        endDate = new Date(filter.enddate + "T23:59:59Z");
+        delete filter.enddate;
+      }
+      
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
         query.notEqualTo("isDeleted", true);
@@ -188,6 +199,14 @@ export const dataProvider = {
             }
           });
         }            
+
+        if(startDate !== "") {
+          query.greaterThanOrEqualTo("createdAt", startDate);
+        }
+        if(endDate !== "") {
+          query.lessThanOrEqualTo("createdAt", endDate);
+        }
+
         count = await query.count({ useMasterKey: true });
       } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -224,6 +243,14 @@ export const dataProvider = {
             if (f === "username") query.matches(f, filter[f], "i");
             else query.equalTo(f, filter[f]);
           });
+
+        if(startDate !== "") {
+          query.greaterThanOrEqualTo("createdAt", startDate);
+        }
+        if(endDate !== "") {
+          query.lessThanOrEqualTo("createdAt", endDate);
+        }
+
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -260,6 +287,13 @@ export const dataProvider = {
             if (f === "username") query.matches(f, filter[f], "i");
             else query.equalTo(f, filter[f]);
           });
+
+        if(startDate !== "") {
+          query.greaterThanOrEqualTo("createdAt", startDate);
+        }
+        if(endDate !== "") {
+          query.lessThanOrEqualTo("createdAt", endDate);
+        }
         count = await query.count();
       } else if (resource === "summary") {
         var result = null;
@@ -1100,6 +1134,13 @@ export const dataProvider = {
             else query.equalTo(f, filter[f]);
           });
 
+        if(startDate !== "") {
+          query.greaterThanOrEqualTo("createdAt", startDate);
+        }
+        if(endDate !== "") {
+          query.lessThanOrEqualTo("createdAt", endDate);
+        }
+
         const response = await query.find();
         const res = {
           data: response.map((o) => ({ id: o.id, ...o.attributes })),
@@ -1129,6 +1170,13 @@ export const dataProvider = {
             if (f === "username") query.matches(f, filter[f], "i");
             else query.equalTo(f, filter[f]);
           });
+
+        if(startDate !== "") {
+          query.greaterThanOrEqualTo("createdAt", startDate);
+        }
+        if(endDate !== "") {
+          query.lessThanOrEqualTo("createdAt", endDate);
+        }
 
         const response = await query.find();
         const res = {

@@ -15,6 +15,7 @@ import {
   useGetList,
   SearchInput,
   useRefresh,
+  DateInput,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -247,6 +248,10 @@ export const UserList = (props) => {
   const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+  const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const startDateLimit = "2024-12-01";
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
@@ -292,6 +297,28 @@ export const UserList = (props) => {
     }
   };
 
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+    if (event.target.value) {
+      setFilters({ ...filterValues, startdate: event.target.value });
+    } else {
+      const newFilters = { ...filterValues };
+      delete newFilters.startdate;
+      setFilters(newFilters);
+    }
+  };
+
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
+    if (event.target.value) {
+      setFilters({ ...filterValues, enddate: event.target.value });
+    } else {
+      const newFilters = { ...filterValues };
+      delete newFilters.enddate;
+      setFilters(newFilters);
+    }
+  };
+
   const dataFilters = [
     <SearchInput
       source="username"
@@ -300,6 +327,32 @@ export const UserList = (props) => {
       onChange={(e) =>
         setFilters({ ...filterValues, username: e?.target?.value })
       }
+    />,
+    <DateInput
+      label="Start date"
+      source="startdate"
+      alwaysOn
+      resettable
+      InputProps={{
+        inputProps: {
+          min: startDateLimit, // Minimum allowed date
+          max: endDate || today, // Maximum allowed date
+        },
+      }}
+      onChange={handleStartDateChange}
+    />,
+    <DateInput
+      label="End date"
+      source="enddate"
+      alwaysOn
+      resettable
+      InputProps={{
+        inputProps: {
+          min: startDate || startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
+        },
+      }}
+      onChange={handleEndDateChange}
     />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
