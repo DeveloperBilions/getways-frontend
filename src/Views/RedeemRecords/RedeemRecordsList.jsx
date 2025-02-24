@@ -131,11 +131,18 @@ export const RedeemRecordsList = (props) => {
         return "Review";
       case 9:
         return "Expired";
+      case 10:
+        return "Failed Transaction";
+      case  11:
+        return "Cashouts";
+      case 12:
+        return "Cashout Successfully";
+      case 13:
+        return "Cashout Reject";
       default:
         return "Unknown Status";
     }
   };
-
   const handleRefresh = async () => {
     refresh();
   };
@@ -370,208 +377,214 @@ export const RedeemRecordsList = (props) => {
         pagination={false}
         key={filterValues} // Changing key forces component remount
       >
-         {isLoading || !data ? (
+        {isLoading || !data ? (
           <Loader />
         ) : (
-        <Datagrid size="small" bulkActionButtons={false} data={data}
-        sx={{
-          minWidth: "1000px", // Ensures the table is wide enough to scroll
-          tableLayout: "fixed", // Fix column sizes
-          "& .RaDatagrid-table": {
-            width: "100%", // Ensures table fills the available space
-          },
-          "& .column-paymentMethodType": {
-            minWidth: "150px", // Ensure this column is wide enough
-            maxWidth: "150px",
-            whiteSpace: "nowrap"
-          },
-        }}
-        >
-          <TextField source="username" label="Account" />
-          <NumberField
-            source="transactionAmount"
-            label="Redeemed"
-            textAlign="left"
-          />
-           <FunctionField
+          <Datagrid
+            size="small"
+            bulkActionButtons={false}
+            data={data}
+            sx={{
+              minWidth: "1000px", // Ensures the table is wide enough to scroll
+              tableLayout: "fixed", // Fix column sizes
+              "& .RaDatagrid-table": {
+                width: "100%", // Ensures table fills the available space
+              },
+              "& .column-paymentMethodType": {
+                minWidth: "150px", // Ensure this column is wide enough
+                maxWidth: "150px",
+                whiteSpace: "nowrap",
+              },
+            }}
+          >
+            <TextField source="username" label="Account" />
+            <NumberField
+              source="transactionAmount"
+              label="Redeemed"
+              textAlign="left"
+            />
+            <FunctionField
               label="Parent"
               render={(record) => {
                 return record?.userParentName;
               }}
             />
-          <FunctionField
-            source="redeemServiceFee"
-            label="ServiceFee"
-            render={(record) =>
-              record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
-            }
-          />
-          <TextField source="remark" label="Remark" />
-          <FunctionField
-            label="Status"
-            source="status"
-            render={(record) => {
-              const getColor = (status) => {
-                switch (status) {
-                  case 4:
-                    return "success";
-                  case 12:
-                    return "success";
-                  case 5:
-                    return "error";
-                  case 13:
-                    return "error";
-                  case 6:
-                    return "warning";
-                  case 7:
-                    return "error";
-                  case 8:
-                    return "success";
-                  default:
-                    return "default";
-                }
-              };
-              const statusMessage = {
-                4: "Success",
-                5: "Fail",
-                6: "Pending Approval",
-                7: "Rejected",
-                8: "Redeem Successfully",
-                9: "Expired",
-                11: "Cashouts",
-                12: "Cashout Successfully",
-                13: "Cashout Reject",
-              }[record.status];
-              return (
-                <Chip
-                  label={statusMessage}
-                  color={getColor(record.status)}
-                  size="small"
-                  variant="outlined"
-                />
-              );
-            }}
-          />
-          <DateField source="transactionDate" label="RedeemDate" showTime />
-          {identity?.role === "Super-User" && (
-            <TextField source="paymentMode" label="Payment Method" />
-          )}
-          {identity?.role === "Super-User" && (
-            <TextField source="paymentMethodType" label="Payment Id" />
-          )}
-          <FunctionField
-            label="Action"
-            source="action"
-            render={(record) =>
-              (record?.status === 6 && identity?.role === "Agent") ||
-              (record?.status === 6 &&
-                identity?.role === "Master-Agent" &&
-                identity?.objectId === record?.userParentId) ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
+            <FunctionField
+              source="redeemServiceFee"
+              label="ServiceFee"
+              render={(record) =>
+                record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
+              }
+            />
+            <TextField source="remark" label="Remark" />
+            <FunctionField
+              label="Status"
+              source="status"
+              render={(record) => {
+                const getColor = (status) => {
+                  switch (status) {
+                    case 4:
+                      return "success";
+                    case 12:
+                      return "success";
+                    case 5:
+                      return "error";
+                    case 13:
+                      return "error";
+                    case 6:
+                      return "warning";
+                    case 7:
+                      return "error";
+                    case 8:
+                      return "success";
+                    default:
+                      return "default";
+                  }
+                };
+                const statusMessage = {
+                  4: "Success",
+                  5: "Fail",
+                  6: "Pending Approval",
+                  7: "Rejected",
+                  8: "Redeem Successfully",
+                  9: "Expired",
+                  11: "Cashouts",
+                  12: "Cashout Successfully",
+                  13: "Cashout Reject",
+                }[record.status];
+                return (
+                  <Chip
+                    label={statusMessage}
+                    color={getColor(record.status)}
                     size="small"
+                    variant="outlined"
+                  />
+                );
+              }}
+            />
+            <DateField source="transactionDate" label="RedeemDate" showTime />
+            {identity?.role === "Super-User" && (
+              <TextField source="paymentMode" label="Payment Method" />
+            )}
+            {identity?.role === "Super-User" && (
+              <TextField source="paymentMethodType" label="Payment Id" />
+            )}
+            <FunctionField
+              label="Action"
+              source="action"
+              render={(record) =>
+                (record?.status === 6 && identity?.role === "Agent") ||
+                (record?.status === 6 &&
+                  identity?.role === "Master-Agent" &&
+                  identity?.objectId === record?.userParentId) ? (
+                  <Box
                     sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setRedeemDialogOpen(true);
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%", // Ensures it uses full width
                     }}
                   >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setRejectDialogOpen(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : record?.status === 11 && identity?.role === "Super-User" ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      size="small"
+                      sx={{
+                        mr: 1,
+                      }}
+                      onClick={() => {
+                        setSelectedRecord({
+                          ...record,
+                          userParentId: identity?.objectId,
+                        });
+                        setRedeemDialogOpen(true);
+                      }}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => {
+                        setSelectedRecord(record);
+                        setRejectDialogOpen(true);
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </Box>
+                ) : record?.status === 11 && identity?.role === "Super-User" ? (
+                  <Box
                     sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setFinalRedeemDialogOpen(true);
+                      display: "flex",
+                      justifyContent: "center", // This centers the buttons
+                      alignItems: "center",
+                      width: "100%",
                     }}
                   >
-                    Success
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setFinalRejectDialogOpen(true);
-                      setCashout(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : null
-            }
-          />
-        </Datagrid> )}
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      size="small"
+                      sx={{
+                        mr: 1,
+                      }}
+                      onClick={() => {
+                        setSelectedRecord({
+                          ...record,
+                          userParentId: identity?.objectId,
+                        });
+                        setFinalRedeemDialogOpen(true);
+                      }}
+                    >
+                      Success
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => {
+                        setSelectedRecord(record);
+                        setFinalRejectDialogOpen(true);
+                        setCashout(true);
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </Box>
+                ) : null
+              }
+            />
+          </Datagrid>
+        )}
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <TablePagination
-  component="div"
-  count={Math.ceil((total || 0) / perPage)}
-  page={page}
-  //onPageChange={handleChangePage}
-  rowsPerPage={perPage}
-  onRowsPerPageChange={(event) => {
-    setPerPage(parseInt(event.target.value, 10));
-    setPage(1);
-  }}
-  nextIconButtonProps={{ style: { display: "none" } }}
-  backIconButtonProps={{ style: { display: "none" } }}
-/>
-        <Pagination
-          page={page}
-          count={Math.ceil((total || 0) / perPage)} // Total pages
-          onChange={(event, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(event) => {
-            setPerPage(parseInt(event.target.value, 10));
-            setPage(1);
-          }}
-          rowsPerPage={perPage}
-          variant="outlined"
-          color="secondary"
-        />
-      </Box>
+            component="div"
+            count={Math.ceil((total || 0) / perPage)}
+            page={page}
+            //onPageChange={handleChangePage}
+            rowsPerPage={perPage}
+            onRowsPerPageChange={(event) => {
+              setPerPage(parseInt(event.target.value, 10));
+              setPage(1);
+            }}
+            nextIconButtonProps={{ style: { display: "none" } }}
+            backIconButtonProps={{ style: { display: "none" } }}
+          />
+          <Pagination
+            page={page}
+            count={Math.ceil((total || 0) / perPage)} // Total pages
+            onChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setPerPage(parseInt(event.target.value, 10));
+              setPage(1);
+            }}
+            rowsPerPage={perPage}
+            variant="outlined"
+            color="secondary"
+          />
+        </Box>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>
