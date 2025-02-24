@@ -360,8 +360,8 @@ export const RechargeRecordsList = (props) => {
         )}
       </Box>
       <List
-        title="Recharge Records"
-        filters={dataFilters}
+title={identity?.role !== "Player" ? "Recharge Records": "Pending Recharge Request" }
+filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}

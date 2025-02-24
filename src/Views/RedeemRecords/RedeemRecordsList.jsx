@@ -357,7 +357,7 @@ export const RedeemRecordsList = (props) => {
       <List
 
 
-title="Redeem Records"
+title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" }
         filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
