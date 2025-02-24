@@ -14,6 +14,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -51,24 +52,27 @@ import { Loader } from "../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import { Pagination } from "@mui/material";
+import TablePagination from '@mui/material/TablePagination';
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
-
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [statusValue, setStatusValue] = useState();
-  const [data, setData] = useState(null); // Initialize data as null
+  const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
 
@@ -78,13 +82,9 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  // const { data, isPending, isFetching, isLoading  } = useGetList("rechargeRecordsExport", {
-  //   sort: { field: "transactionDate", order: "DESC" },
-  //   filter: {
-  //     ...(searchValue && { username: searchValue }),
-  //     ...(statusValue && { status: statusValue }),
-  //   },
-  // });
+  useEffect(() => {
+    setFilters({}, {}); // Clears all filters
+  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -137,8 +137,8 @@ export const RechargeRecordsList = (props) => {
     }
   };
   const totalTransactionAmount =
-    data &&
-    data
+    Data &&
+    Data
       .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0);
 
@@ -168,7 +168,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportPDF = async () => {
-    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -190,7 +190,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportXLS = async () => {
-    const exportData = data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -221,17 +221,9 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleSearchChange = (e) => {
-    if (e) {
-      const value = e.target.value;
-      setSearchValue(value);
-    }
-  };
-
   const handleStatusChange = (e) => {
     if (e) {
-      setStatusValue(e.target.value);
-      console.log(e.target.value);
+      setStatusValue(e?.target?.value);
     }
   };
   const dataFilters = [
@@ -239,7 +231,9 @@ export const RechargeRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onBlur={handleSearchChange}
+      onChange={(e) =>
+        setFilters({ ...filterValues, username: e?.target?.value })
+      }
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -253,9 +247,11 @@ export const RechargeRecordsList = (props) => {
           { id: 1, name: "Pending Confirmation" },
           { id: 2, name: "Confirmed" },
           { id: 3, name: "Coins Credited" },
-          { id: 4, name: "Status Unknown" },
+          { id: 9, name: "Expired" },
         ]}
-        onBlur={handleStatusChange}
+        onChange={(e) =>
+          setFilters({ ...filterValues, status: e?.target?.value })
+        }
       />
     ),
   ].filter(Boolean);
@@ -383,7 +379,9 @@ export const RechargeRecordsList = (props) => {
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
+        pagination={false}
       >
+       
         <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />
           <NumberField
@@ -511,6 +509,33 @@ export const RechargeRecordsList = (props) => {
             }
           />
         </Datagrid>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <TablePagination
+  component="div"
+  count={Math.ceil((total || 0) / perPage)}
+  page={page}
+  //onPageChange={handleChangePage}
+  rowsPerPage={perPage}
+  onRowsPerPageChange={(event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  }}
+  nextIconButtonProps={{ style: { display: "none" } }}
+  backIconButtonProps={{ style: { display: "none" } }}
+/>
+        <Pagination
+          page={page}
+          count={Math.ceil((total || 0) / perPage)} // Total pages
+          onChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setPerPage(parseInt(event.target.value, 10));
+            setPage(1);
+          }}
+          rowsPerPage={perPage}
+          variant="outlined"
+          color="secondary"
+        />
+      </Box>
         <CoinsCreditDialog
           open={creditCoinDialogOpen}
           onClose={() => setCreditCoinDialogOpen(false)}

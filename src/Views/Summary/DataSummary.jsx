@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   useGetIdentity,
   useGetList,
@@ -10,7 +10,6 @@ import {
   AutocompleteInput,
   DateInput,
   SimpleForm,
-  TextField,
   SimpleShowLayout,
   useListContext,
   ListBase,
@@ -19,7 +18,9 @@ import {
   maxValue,
 } from "react-admin";
 import { Loader, KPILoader } from "../Loader";
-
+import debounce from "lodash/debounce"; // Import Lodash debounce
+import { Autocomplete, TextField } from "@mui/material";
+import EventIcon from "@mui/icons-material/Event";
 // mui
 import {
   Typography,
@@ -52,12 +53,51 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const Summary = () => {
-  const { data, isFetching, isLoading } = useListContext();
+const Summary = ({ selectedUser ,startDate , endDate}) => {
+  const shouldFetch = startDate && endDate;
+  const { data, isLoading } = useGetList(
+    "summary",
+    shouldFetch
+      ? { filter: { username: selectedUser?.id, startDate, endDate } }
+      : { enabled: false } // Disable the request if dates are missing
+  );
   const { identity } = useGetIdentity();
   const role = localStorage.getItem("role");
   const [selectedRechargeType, setSelectedRechargeType] = useState("all"); // State for recharge type selection
 
+  if (!shouldFetch) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Card
+          sx={{
+            padding: "20px",
+            textAlign: "center",
+            maxWidth: "400px",
+            backgroundColor: "#f9f9f9",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+            borderRadius: "10px",
+          }}
+        >
+          <CardContent>
+            <Box display="flex" justifyContent="center" mb={2}>
+              <EventIcon color="primary" sx={{ fontSize: 40 }} />
+            </Box>
+            <Typography variant="h6" fontWeight="bold">
+              Select a Date Range
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Please select both start and end dates to view the summary data.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }  
   if (isLoading || !data) {
     return (
       <Box
@@ -472,38 +512,63 @@ const Summary = () => {
 export const DataSummary = () => {
   const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
-  const { data, isFetching, isLoading } = useGetList(
-    "users",
-    {
-      pagination: { page: 1, perPage: 10000 },
-      sort: { field: "roleName", order: "ASC" },
-      // filter: { userReferralCode: "" },
-      // filter: {
-      //   //$or: [{ userReferralCode: "" }, { userReferralCode: null }],
-      // },
-    },
-    {
-      refetchOnWindowFocus: false, // Prevent refetch on focus
-      refetchOnReconnect: false,
-    }
-  );
   const [menuAnchor, setMenuAnchor] = React.useState(null);
   const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
   const [isExporting, setIsExporting] = useState(false); // Track export progress
   const [exportdData, setExportData] = useState(null); // Store export data
   const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
 
-  const newData = data?.map(
-    (item) =>
-      item?.id !== identity?.objectId && {
-        ...item,
-        optionName: "".concat(item.name, " (", item.roleName, ")"),
-      }
-  );
+  const [choices, setChoices] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const perPage = 10;
+  const [selectedUser, setSelectedUser] = useState(null); // Store selected user
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [tempStartDate, setTempStartDate] = useState(null);
+  const [tempEndDate, setTempEndDate] = useState(null);
+  const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
+
+  const handleUserChange = (selectedId) => {
+    setSelectedUsertemp(selectedId);
+  };
+
+  const fetchUsers = async (search = "", pageNum = 1) => {
+    setLoading(true);
+    try {
+      const { data } = await dataProvider.getList("users", {
+        pagination: { page: pageNum, perPage },
+        sort: { field: "username", order: "ASC" },
+        filter: search ? { username: search,  $or: [{ userReferralCode: "" }, { userReferralCode: null }] } : {
+          $or: [{ userReferralCode: "" }, { userReferralCode: null }]
+       },
+      });
+
+      const formattedData = data
+        ?.map(
+          (item) =>
+            item?.id !== identity?.objectId && {
+              ...item,
+              optionName: `${item.username} (${item.roleName})`,
+            }
+        )
+        .filter(Boolean); // Remove `false` values (filtered-out identities)
+
+      setChoices(formattedData);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchUsers(); // Initial load
+  }, []);
 
   const loadAndExportData = async () => {
     const filters = {
-      startdate: document.querySelector('input[name="startdate"]')?.value || null,
+      startdate:
+        document.querySelector('input[name="startdate"]')?.value || null,
       enddate: document.querySelector('input[name="enddate"]')?.value || null,
     };
     setIsExporting(true); // Set exporting state
@@ -513,9 +578,9 @@ export const DataSummary = () => {
       const { data } = await dataProvider.getList("summaryExport", {
         pagination: { page: 1, perPage: 1000 },
         sort: { field: "transactionDate", order: "DESC" },
-        filter: {...filters},
+        filter: { ...filters },
       }); // Call the service to fetch export data
-      console.log(data,"datafrijijrijee")
+      console.log(data, "datafrijijrijee");
       if (data) {
         setExportData(data); // Save the fetched data
         return data; // Return the fetched data
@@ -641,7 +706,7 @@ export const DataSummary = () => {
   };
 
   const handleExportRedeemXLS = async () => {
-    const exportData =await loadAndExportData(); // Use existing data or fetch if null
+    const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
     // Combine wallet and others data for Excel
     const combinedData = [
@@ -680,7 +745,7 @@ export const DataSummary = () => {
     );
   };
   const handleExportRechargePDF = async () => {
-    const exportData =await loadAndExportData(); // Use existing data or fetch if null
+    const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
     const doc = new jsPDF();
 
@@ -819,7 +884,7 @@ export const DataSummary = () => {
     // Flatten and combine all data
     const combinedData = exportData.map((item) => ({
       "Transaction ID": item.id,
-      "type": item?.type,
+      type: item?.type,
       Amount: item.transactionAmount,
       "Transaction Date": formatDateForExcel(item.transactionDate),
       Status: item.status,
@@ -827,10 +892,10 @@ export const DataSummary = () => {
       "Redeem Service Fee": item.redeemServiceFee,
       "Agent Name": item?.agentName,
       "User Name": item?.username,
-      "isCashout": item?.isCashOut,
-      "paymentMode": item?.paymentMode,
-      "paymentMethodType": item?.paymentMethodType,
-      "remark": item?.remark,
+      isCashout: item?.isCashOut,
+      paymentMode: item?.paymentMode,
+      paymentMethodType: item?.paymentMethodType,
+      remark: item?.remark,
       "Redeem Remark": item?.redeemRemarks,
     }));
 
@@ -841,54 +906,87 @@ export const DataSummary = () => {
 
     // Write Excel file
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    saveAs(new Blob([xlsData], { type: "application/octet-stream" }), "AllData.xlsx");
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "AllData.xlsx"
+    );
   };
   // Function to map wallet data for export
-const mapWalletDataForExport = (walletData) => {
-  return walletData.map((item) => ({
-    "Wallet ID": item.id,                      // Wallet record ID
-    "User ID": item.userID,                    // User ID associated with wallet
-    "Agent Name": item?.agentName,             // Assuming agentName is available
-    "User Name": item?.username,               // Assuming username is available
-    "Balance": item?.balance,                  // Wallet balance
-    "Zelle ID": item?.zelleId,                 // Zelle ID from wallet
-    "Paypal ID": item?.paypalId,               // Paypal ID from wallet
-    "Venmo ID": item?.venmoId,                 // Venmo ID from wallet
-    "CashApp ID": item?.cashAppId,             // CashApp ID from wallet
-    "Date": item?.createdAt
-  }));
-};
+  const mapWalletDataForExport = (walletData) => {
+    return walletData.map((item) => ({
+      "Wallet ID": item.id, // Wallet record ID
+      "User ID": item.userID, // User ID associated with wallet
+      "Agent Name": item?.agentName, // Assuming agentName is available
+      "User Name": item?.username, // Assuming username is available
+      Balance: item?.balance, // Wallet balance
+      "Zelle ID": item?.zelleId, // Zelle ID from wallet
+      "Paypal ID": item?.paypalId, // Paypal ID from wallet
+      "Venmo ID": item?.venmoId, // Venmo ID from wallet
+      "CashApp ID": item?.cashAppId, // CashApp ID from wallet
+      Date: item?.createdAt,
+    }));
+  };
 
-// Function to handle the export to XLSX (wallet data only)
-const handleExportWalletDataXLS = async () => {
-  const walletData = await loadAndExportData(); // Fetch wallet data (replace with actual function)
+  // Function to handle the export to XLSX (wallet data only)
+  const handleExportWalletDataXLS = async () => {
+    const walletData = await loadAndExportData(); // Fetch wallet data (replace with actual function)
 
-  // Map wallet data for export
-  const combinedData = mapWalletDataForExport(walletData);
+    // Map wallet data for export
+    const combinedData = mapWalletDataForExport(walletData);
 
-  // Create worksheet and workbook
-  const worksheet = XLSX.utils.json_to_sheet(combinedData);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Wallet Data");
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Wallet Data");
 
-  // Write Excel file
-  const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-  saveAs(new Blob([xlsData], { type: "application/octet-stream" }), "WalletData.xlsx");
-};
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "WalletData.xlsx"
+    );
+  };
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
 
+  const debouncedFetchUsers = useCallback(debounce(fetchUsers, 500), []);
   const dataFilters = [
-    <AutocompleteInput
-      label="User"
+    <Autocomplete
       source="username"
-      choices={newData}
-      optionText="optionName"
-      optionValue="id"
+      sx={{ width: 300 }}
+      options={choices}
+      getOptionLabel={(option) => option.optionName}
+      isOptionEqualToValue={(option, value) => option.id === value?.id}
+      loading={loading}
+      loadingText="....Loading"
+      value={selectedUsertemp}
+      onChange={(event, newValue) => handleUserChange(newValue)}
+      onInputChange={(event, newInputValue, reason) => {
+        if (reason === "input") {
+          // Only trigger when user types, not on selection
+          debouncedFetchUsers(newInputValue, 1);
+          setSelectedUsertemp(null);
+        }
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Username"
+          variant="outlined"
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {loading ? <CircularProgress size={20} /> : null}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
       alwaysOn
       resettable
-      emptyText="All"
     />,
     <DateInput
       label="Start date"
@@ -902,6 +1000,7 @@ const handleExportWalletDataXLS = async () => {
           max: today, // Maximum allowed date
         },
       }}
+      onChange={(event) => setTempStartDate(event.target.value)}
     />,
     <DateInput
       label="End date"
@@ -909,6 +1008,7 @@ const handleExportWalletDataXLS = async () => {
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
+      onChange={(event) => setTempEndDate(event.target.value)}
       InputProps={{
         inputProps: {
           min: startDateLimit, // Minimum allowed date
@@ -920,144 +1020,142 @@ const handleExportWalletDataXLS = async () => {
     // <SearchSelectUsersFilter />,
   ];
 
+  const handleFilterSubmit = () => {
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setSelectedUser(selectedUsertemp)
+  };
   return (
     <React.Fragment>
-      {isLoading || !data ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="50vh"
-        >
-          <Loading />
-        </Box>
-      ) : (
-        <>
-         
-          <ListBase>
-            <FilterForm
-              filters={dataFilters}
-              sx={{
-                flex: "0 2 auto !important",
-                padding: "0px 0px 0px 0px !important",
-                alignItems: "flex-start",
-              }}
-            /> {role === "Super-User" && (
-              <Box
-                display="flex"
-                justifyContent="flex-end"
-                sx={{ mb: 2, marginTop: "-40px" }}
+      <ListBase resource="users" filter={{ username: selectedUser?.id }}>
+      <Box
+            display="flex"
+            
+          >
+        <FilterForm
+          filters={dataFilters}
+          sx={{
+            flex: "0 2 auto !important",
+            padding: "0px 0px 0px 0px !important",
+            alignItems: "flex-start",
+          }}
+        />{" "}
+         <Box
+            display="flex"
+            justifyContent="flex-end"
+            sx={{ mb: 2, marginTop: "10px" }}
+          >
+  <Button
+    source="date"
+    variant="contained"
+    onClick={handleFilterSubmit}
+    sx={{  mb: 2,marginRight: "10px",whiteSpace:"nowrap"  }} // Adds left margin for spacing
+  >
+    Apply Filter
+  </Button></Box>
+  </Box>
+        {role === "Super-User" && (
+          <Box
+            display="flex"
+            justifyContent="flex-start"
+            sx={{ mb: 2 }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<GetAppIcon />}
+              onClick={handleMenuRedeemOpen}
+              style={{ marginRight: "10px" }}
+            >
+              Redeem Data Export
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<GetAppIcon />}
+              onClick={handleMenuOpen}
+            >
+              Recharge Data Export
+            </Button>
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem
+                onClick={() => {
+                  handleExportRechargePDF();
+                  // handleMenuClose();
+                }}
+                disabled={isExporting}
               >
-                <Button
-                  variant="contained"
-                  startIcon={<GetAppIcon />}
-                  onClick={handleMenuRedeemOpen}
-                  style={{ marginRight: "10px" }}
-                >
-                  Redeem Data Export
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={<GetAppIcon />}
-                  onClick={handleMenuOpen}
-                >
-                  Recharge Data Export
-                </Button>
-                <Menu
-                  anchorEl={menuAnchor}
-                  open={Boolean(menuAnchor)}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem
-                    onClick={() => {
-                      handleExportRechargePDF();
-                      // handleMenuClose();
-                    }}
-                    disabled={isExporting}
-                  >
-                    <ListItemIcon>
-                      {isExporting ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <PictureAsPdfIcon fontSize="small" />
-                      )}
-                    </ListItemIcon>
-                    PDF
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      handleExportRechargeXLS();
-                      //  handleMenuClose();
-                    }}
-                    disabled={isExporting}
-                  >
-                    <ListItemIcon>
-                      {isExporting ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <BackupTableIcon fontSize="small" />
-                      )}
-                    </ListItemIcon>
-                    Excel
-                  </MenuItem>
-                </Menu>
-  
-                <Menu
-                  anchorEl={menuAnchorRedeem}
-                  open={Boolean(menuAnchorRedeem)}
-                  onClose={handleMenuRedeemClose}
-                >
-                  <MenuItem
-                    onClick={() => {
-                      handleExportRedeemPDF();
-                      //handleMenuRedeemClose();
-                    }}
-                    disabled={isExporting}
-                  >
-                    <ListItemIcon>
-                      {isExporting ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <PictureAsPdfIcon fontSize="small" />
-                      )}
-                    </ListItemIcon>
-                    PDF
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      handleExportRedeemXLS();
-                      //  handleMenuRedeemClose();
-                    }}
-                    disabled={isExporting}
-                  >
-                    <ListItemIcon>
-                      {isExporting ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <BackupTableIcon fontSize="small" />
-                      )}
-                    </ListItemIcon>
-                    Excel
-                  </MenuItem>
-                </Menu>
-              </Box>
-            )}
+                <ListItemIcon>
+                  {isExporting ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <PictureAsPdfIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                PDF
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleExportRechargeXLS();
+                  //  handleMenuClose();
+                }}
+                disabled={isExporting}
+              >
+                <ListItemIcon>
+                  {isExporting ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <BackupTableIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                Excel
+              </MenuItem>
+            </Menu>
 
-            {isFetching ? (
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                minHeight="50vh"
+            <Menu
+              anchorEl={menuAnchorRedeem}
+              open={Boolean(menuAnchorRedeem)}
+              onClose={handleMenuRedeemClose}
+            >
+              <MenuItem
+                onClick={() => {
+                  handleExportRedeemPDF();
+                  //handleMenuRedeemClose();
+                }}
+                disabled={isExporting}
               >
-                <Loading />
-              </Box>
-            ) : (
-              <Summary />
-            )}
-          </ListBase>
-        </>
-      )}
+                <ListItemIcon>
+                  {isExporting ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <PictureAsPdfIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                PDF
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleExportRedeemXLS();
+                  //  handleMenuRedeemClose();
+                }}
+                disabled={isExporting}
+              >
+                <ListItemIcon>
+                  {isExporting ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <BackupTableIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                Excel
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
+        <Summary selectedUser={selectedUser} startDate={startDate} endDate={endDate} />
+      </ListBase>
     </React.Fragment>
   );
 };

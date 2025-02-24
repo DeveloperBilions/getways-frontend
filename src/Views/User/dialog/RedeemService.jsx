@@ -109,7 +109,6 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
     onClose();
   };
 
-  console.log(identity, "identityidentityidentityidentity");
   return (
     <React.Fragment>
       {loading ? (

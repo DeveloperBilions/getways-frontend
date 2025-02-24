@@ -48,11 +48,13 @@ function App() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Disabling automatic refetching on window focus
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: false, // Prevent unnecessary API calls
+        retry: false, // Optional: Prevent retries on errors
+        staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
       },
     },
   });
+  
   if (Config?.maintenance) {
     return (
       <Admin>
@@ -72,7 +74,7 @@ function App() {
       loginPage={LoginPage}
       layout={MyLayout}
       theme={MyTheme}
-      queryClient={queryClient}
+     // queryClient={queryClient}
     >
       {(permissions) => {
         if (permissions && permissions !== "Player") {

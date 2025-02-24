@@ -16,6 +16,7 @@ import {
 } from "reactstrap";
 //react admin
 import { useGetIdentity, usePermissions, useRefresh } from "react-admin";
+import { Grid, Alert } from "@mui/material";
 // mui icon
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -112,13 +113,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
 
     setLoading(true);
     try {
+      let response
       if (permissions === "Super-User") {
         if (userType === "Agent") {
           if (!identity?.objectId && !identity?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
           }
-          await Parse.Cloud.run("createUser", {
+          response = await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
             name,
@@ -129,17 +131,13 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             userParentName: parentType?.name,
             redeemService: 5,
           });
-          onClose();
-          fetchAllUsers();
-          resetFields();
-          refresh();
-          setLoading(false);
+        
         } else if (userType === "Player") {
           if (!parentType?.id && !parentType?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
           }
-          await Parse.Cloud.run("createUser", {
+          response = await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
             name,
@@ -149,17 +147,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             userParentId: parentType?.id,
             userParentName: parentType?.name,
           });
-          onClose();
-          fetchAllUsers();
-          resetFields();
-          refresh();
-          setLoading(false);
         } else if (userType === "Master-Agent") {
           if (!parentType?.id && !parentType?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
           }
-          await Parse.Cloud.run("createUser", {
+          response =  await Parse.Cloud.run("createUser", {
             roleName: userType,
             username: userName,
             name,
@@ -170,14 +163,9 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
             userParentName: identity?.name,
             redeemService: 5,
           });
-          onClose();
-          fetchAllUsers();
-          resetFields();
-          refresh();
-          setLoading(false);
         }
       } else if (permissions === "Agent") {
-        await Parse.Cloud.run("createUser", {
+        response= await Parse.Cloud.run("createUser", {
           roleName: "Player",
           username: userName,
           name,
@@ -187,30 +175,42 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           userParentId: identity?.objectId,
           userParentName: identity?.name,
         });
-        onClose();
-        fetchAllUsers();
-        resetFields();
-        refresh();
-        setLoading(false);
-      } else if (permissions === "Master-Agent") {
-        await Parse.Cloud.run("createUser", {
-          roleName: "Player",
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: identity?.objectId,
-          userParentName: identity?.name,
-        });
-        onClose();
-        fetchAllUsers();
-        resetFields();
-        refresh();
-        setLoading(false);
       }
+      else if (permissions === "Master-Agent") {
+        response = await Parse.Cloud.run("createUser", {
+          roleName: "Player",
+          username: userName,
+          name,
+          phoneNumber,
+          email,
+          password,
+          userParentId: identity?.objectId,
+          userParentName: identity?.name,
+        });
+      }
+
+      if(response?.code != 200){
+        setErrorMessage(response.message);
+        return;
+      }
+      else{
+        onClose();
+    fetchAllUsers();
+    resetFields();
+    refresh();
+      }
+      console.log("API Response:", response);
     } catch (error) {
-      console.error("Error Creating User details", error);
+      console.error("Error Creating User:", error);
+  
+      // Handle Parse-specific errors
+      if (error?.code && error?.message) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -232,20 +232,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
       type: selectedParent?.role || identity?.role,
     });
   };
-
-    useEffect(() => {
-      fetchUsersByRole();
-      if (identity) {
-        setParentType({
-          id: identity.objectId,
-          name: identity.name,
-          type: identity?.role,
-        });
-      }
-    }, [identity]);
-
-  console.log(combinedOptions, "combinedOptions");
-
   return (
     <React.Fragment>
       {loading ? (
@@ -255,8 +241,15 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
           <ModalHeader toggle={handleCancel} className="border-bottom-0">
             Add New user
           </ModalHeader>
+ 
           <ModalBody>
             <Form onSubmit={handleSubmit}>
+            {errorMessage && (
+  <Grid item xs={12}>
+    <Alert severity="error">{errorMessage}</Alert>
+  </Grid>
+)}
+
               <Row>
                 <Col md={6}>
                   <FormGroup>
@@ -452,7 +445,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                   </FormGroup>
                 </Col>
 
-                {errorMessage && (
+                {/* {errorMessage && (
                   <Col sm={12}>
                     <Label
                       for="errorResponse"
@@ -462,7 +455,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                       {errorMessage}
                     </Label>
                   </Col>
-                )}
+                )} */}
 
                 <Col md={12}>
                   <div className="d-flex justify-content-end">

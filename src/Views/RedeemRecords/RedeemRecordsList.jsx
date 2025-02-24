@@ -14,6 +14,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -47,11 +48,16 @@ import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
 import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import { Pagination } from "@mui/material";
+import TablePagination from '@mui/material/TablePagination';
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
@@ -68,16 +74,14 @@ export const RedeemRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
-
   const role = localStorage.getItem("role");
-  const { data, isFetching } = useGetList("redeemRecords", {
-    pagination: { page: 1, perPage: 10 },
-    sort: { field: "transactionDate", order: "DESC" },
-  });
+ 
   if (!role) {
     navigate("/login");
   }
-
+  useEffect(() => {
+    setFilters({}, {}); // Clears all filters
+  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -135,6 +139,7 @@ export const RedeemRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
+   
   useEffect(() => {
     const interval = setInterval(() => {
       handleRefresh();
@@ -218,15 +223,15 @@ export const RedeemRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onBlur={handleSearchChange}
     />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
         source="status"
-        emptyText="All"
+        emptyText={"All"}
         alwaysOn
-        resettablea
+        resettable
+        // value={filterValues?.status ?? null} // Explicitly handle undefined case
         choices={[
           { id: 5, name: "Failed" },
           { id: 6, name: "Pending Approval" },
@@ -241,11 +246,9 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-        onBlur={handleStatusChange}
-      />
+          />
     ),
   ].filter(Boolean);
-
   const postListActions = (
     <TopToolbar>
       <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
@@ -315,18 +318,6 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-  if (isFetching) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="50vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
   return (
     <>
       <Box
@@ -376,8 +367,26 @@ export const RedeemRecordsList = (props) => {
         {...props}
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
+        pagination={false}
+        key={filterValues} // Changing key forces component remount
       >
-        <Datagrid size="small" bulkActionButtons={false}>
+         {isLoading || !data ? (
+          <Loader />
+        ) : (
+        <Datagrid size="small" bulkActionButtons={false} data={data}
+        sx={{
+          minWidth: "1000px", // Ensures the table is wide enough to scroll
+          tableLayout: "fixed", // Fix column sizes
+          "& .RaDatagrid-table": {
+            width: "100%", // Ensures table fills the available space
+          },
+          "& .column-paymentMethodType": {
+            minWidth: "150px", // Ensure this column is wide enough
+            maxWidth: "150px",
+            whiteSpace: "nowrap"
+          },
+        }}
+        >
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -444,7 +453,6 @@ export const RedeemRecordsList = (props) => {
             }}
           />
           <DateField source="transactionDate" label="RedeemDate" showTime />
-          <TextField source="responseMessage" label="Message" />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
@@ -536,7 +544,34 @@ export const RedeemRecordsList = (props) => {
               ) : null
             }
           />
-        </Datagrid>
+        </Datagrid> )}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <TablePagination
+  component="div"
+  count={Math.ceil((total || 0) / perPage)}
+  page={page}
+  //onPageChange={handleChangePage}
+  rowsPerPage={perPage}
+  onRowsPerPageChange={(event) => {
+    setPerPage(parseInt(event.target.value, 10));
+    setPage(1);
+  }}
+  nextIconButtonProps={{ style: { display: "none" } }}
+  backIconButtonProps={{ style: { display: "none" } }}
+/>
+        <Pagination
+          page={page}
+          count={Math.ceil((total || 0) / perPage)} // Total pages
+          onChange={(event, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(event) => {
+            setPerPage(parseInt(event.target.value, 10));
+            setPage(1);
+          }}
+          rowsPerPage={perPage}
+          variant="outlined"
+          color="secondary"
+        />
+      </Box>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

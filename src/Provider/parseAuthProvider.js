@@ -62,11 +62,11 @@ export const authProvider = {
       }
       return null;
     }
-    if (!roleName) {
-      const error = new Error();
-      error.redirectTo = "/login";
-      throw new Error("login.required");
-    }
+    // if (!roleName) {
+    //   const error = new Error();
+    //   error.redirectTo = "/login";
+    //   throw new Error("login.required");
+    // }
 
     // const currentUser = Parse.User.current();
     // if (!currentUser) {

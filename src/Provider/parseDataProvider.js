@@ -164,7 +164,7 @@ export const dataProvider = {
     try {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
-        // query.notEqualTo("isDeleted", true);
+        query.notEqualTo("isDeleted", true);
 
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
@@ -180,14 +180,16 @@ export const dataProvider = {
           // Step 2: Find all users (agents + players under those agents)
           query.containedIn("userParentId", [userid, ...agentIds]);
         }
-
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
+        if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+          Object.keys(filter).forEach((f) => {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "username") query.matches(f, String(filter[f]), "i");
+              else query.equalTo(f, filter[f]);
+            }
           });
+        }            
         count = await query.count({ useMasterKey: true });
-      } else if (resource === "redeemRecords") {
+      }else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -226,7 +228,7 @@ export const dataProvider = {
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...filter };
+        filter = { type: "recharge", ...filter};
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&
@@ -273,6 +275,12 @@ export const dataProvider = {
         const queryPipeline = [
           {
             $match: {
+              ...((filter?.startDate || filter?.endDate) && {
+                createdAt: {
+                  $gte: new Date(`${filter.startDate}T00:00:00Z`),
+                  $lte: new Date(`${filter.endDate}T23:59:59Z`),
+                },
+              }),              
             },
           },
           {
@@ -519,17 +527,17 @@ export const dataProvider = {
 
         const matchConditions = [];
 
-        if (filter.startdate) {
+        if (filter.startDate) {
           matchConditions.push({
-            transactionDate: {
-              $gte: new Date(`${filter.startdate}T00:00:00Z`),
+            createdAt: {
+              $gte: new Date(`${filter.startDate}T00:00:00Z`),
             },
           });
         }
 
-        if (filter.enddate) {
+        if (filter.endDate) {
           matchConditions.push({
-            transactionDate: { $lte: new Date(`${filter.enddate}T23:59:59Z`) },
+            createdAt: { $lte: new Date(`${filter.endDate}T23:59:59Z`) },
           });
         }
         if (queryPipeline[0]["$match"]["userId"]) {
@@ -1197,15 +1205,14 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      filter &&
-        Object.keys(filter).map((f) => {
-          console.log("===== fffff", f);
-          if (f === "username") query.matches(f, filter[f], "i");
-          else query.equalTo(f, filter[f]);
+      if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+        Object.keys(filter).forEach((f) => {
+          if (filter[f] !== undefined && filter[f] !== null) {
+            if (f === "username") query.matches(f, String(filter[f]), "i");
+            else query.equalTo(f, filter[f]);
+          }
         });
-
-      console.log("!!!", filter);
-
+      }      
       results =
         resource === "users"
           ? await query.find({ useMasterKey: true })
