@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import {
   useLogin,
@@ -46,6 +46,8 @@ const LoginPage = () => {
   const refresh = useRefresh();
   const redirect = useRedirect();
   const location = useLocation();
+  const login = useLogin();
+  const notify = useNotify();
 
   const searchParams = new URLSearchParams(location.search);
   const emailPhoneParams = searchParams.get("emailPhone");
@@ -54,39 +56,59 @@ const LoginPage = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm();
 
-  const login = useLogin();
-  const notify = useNotify();
-
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    // Retrieve saved credentials if "Remember me" was checked
+    const savedEmailPhone = localStorage.getItem("emailPhone");
+    const savedPassword = localStorage.getItem("password");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (savedRememberMe && savedEmailPhone && savedPassword) {
+      setValue("password", savedPassword);
+      setValue("password", savedPassword);
+      setRememberMe(true);
+    }
+  }, [setValue]);
 
   const onSubmit = async (data) => {
-    const password = data?.password;
     setLoading(true);
     try {
-      const response = await login({ email: emailPhoneParams, password });
+      const response = await login({
+        email: emailPhoneParams,
+        password: data.password,
+      });
       await refetch();
-      await refresh()
-      setTimeout(() => {
-      // Handle redirection based on role
-      if (response?.role === "Player") {
-        redirect("/playerDashboard");
-      } else if (response?.role === "Super-User" || response?.role === "Agent" || response?.role === "Master-Agent" ) {
-        redirect("/users");
+      await refresh();
+
+      if (rememberMe) {
+        localStorage.setItem("emailPhone", emailPhoneParams);
+        localStorage.setItem("password", data.password);
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("emailPhone");
+        localStorage.removeItem("password");
+        localStorage.removeItem("rememberMe");
       }
-    },5)
+
+      setTimeout(() => {
+        if (response?.role === "Player") {
+          redirect("/playerDashboard");
+        } else if (["Super-User", "Agent"].includes(response?.role)) {
+          redirect("/users");
+        }
+      }, 5);
     } catch (error) {
       notify(error?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
-      // Adding a small delay before refresh
-      setTimeout(() => {
-        refresh();
-      }, 0); // Delay is set to 0 ms, just deferring it to the next event loop
+      setTimeout(() => refresh(), 0);
     }
   };
-  
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -97,128 +119,133 @@ const LoginPage = () => {
   }
   return (
     <>
-    <Grid container component="main" sx={{ height: "100vh" }}>
-      <CssBaseline />
-      <Grid
-        item
-        xs={false}
-        sm={4}
-        md={7}
-        sx={{
-          backgroundImage: "url(/assets/login.jpg)",
-          backgroundRepeat: "no-repeat",
-          backgroundColor: (t) =>
-            t.palette.mode === "light"
-              ? t.palette.grey[50]
-              : t.palette.grey[900],
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <Grid
-        item
-        xs={12}
-        sm={8}
-        md={5}
-        component={Paper}
-        elevation={6}
-        square
-        sx={{
-          backgroundColor: "#e6e6e6",
-        }}
-      >
-        <Box
+      <Grid container component="main" sx={{ height: "100vh" }}>
+        <CssBaseline />
+        <Grid
+          item
+          xs={false}
+          sm={4}
+          md={7}
           sx={{
-            my: 20,
-            mx: 8,
-            display: "flex",
-            justifyContent: "center",
-            flexDirection: "column",
-            alignItems: "left",
-            border: "1px solid grey",
-            backgroundColor: "white",
-            borderRadius: "2px",
-            padding: 3,
+            backgroundImage: "url(/assets/login.jpg)",
+            backgroundRepeat: "no-repeat",
+            backgroundColor: (t) =>
+              t.palette.mode === "light"
+                ? t.palette.grey[50]
+                : t.palette.grey[900],
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <Grid
+          item
+          xs={12}
+          sm={8}
+          md={5}
+          component={Paper}
+          elevation={6}
+          square
+          sx={{
+            backgroundColor: "#e6e6e6",
           }}
         >
-          <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
-            Sign in
-          </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-            <Typography htmlFor="email" sx={{ mb: 0, mt: 1 }}>
-              Email / Phone
-            </Typography>
-            <OutlinedInput
-              margin="normal"
-              required
-              fullWidth
-              label="emailPhone"
-              type="text"
-              name="emailPhone"
-              id="emailPhone"
-              autoComplete="off"
-              sx={{ mt: 0 }}
-              disabled
-              value={emailPhoneParams}
-            />
-
-            <Typography htmlFor="password" sx={{ mb: 0 }}>
-              Password
-            </Typography>
-            <OutlinedInput
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              autoComplete="current-password"
-              sx={{ mt: 0 }}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-              {...register("password", inputValidations["password"])}
-            />
-            {errors.password && (
-              <FormHelperText>{errors.password.message}</FormHelperText>
-            )}
-            <Grid container spacing={2}>
-              <Grid item xs={7}>
-                <FormControlLabel
-                  control={<Checkbox value="remember" color="primary" />}
-                  label="Remember me"
-                />
-              </Grid>
-            </Grid>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 1 }}
-            >
+          <Box
+            sx={{
+              my: 20,
+              mx: 8,
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              alignItems: "left",
+              border: "1px solid grey",
+              backgroundColor: "white",
+              borderRadius: "2px",
+              padding: 3,
+            }}
+          >
+            <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
               Sign in
-            </Button>
+            </Typography>
+            <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
+              <Typography htmlFor="email" sx={{ mb: 0, mt: 1 }}>
+                Email / Phone
+              </Typography>
+              <OutlinedInput
+                margin="normal"
+                required
+                fullWidth
+                label="emailPhone"
+                type="text"
+                name="emailPhone"
+                id="emailPhone"
+                autoComplete="off"
+                sx={{ mt: 0 }}
+                disabled
+                value={emailPhoneParams}
+              />
 
+              <Typography htmlFor="password" sx={{ mb: 0 }}>
+                Password
+              </Typography>
+              <OutlinedInput
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                autoComplete="current-password"
+                sx={{ mt: 0 }}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                {...register("password", inputValidations["password"])}
+              />
+              {errors.password && (
+                <FormHelperText>{errors.password.message}</FormHelperText>
+              )}
+              <Grid container spacing={2}>
+                <Grid item xs={7}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                    }
+                    label="Remember me"
+                  />
+                </Grid>
+              </Grid>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 1 }}
+              >
+                Sign in
+              </Button>
+
+              <Button
+                fullWidth
+                variant="contained"
+                sx={{ mt: 1 }}
+                onClick={() => redirect("/login")}
+              >
+                Back
+              </Button>
+            </Box>
             <Button
-              fullWidth
-              variant="contained"
-              sx={{ mt: 1 }}
-              onClick={() => redirect("/login")}
-            >
-              Back
-            </Button>
-          </Box>
-          <Button
               fullWidth
               variant="outlined"
               sx={{ mt: 1 }}
@@ -226,13 +253,10 @@ const LoginPage = () => {
             >
               Need Help? Watch Videos
             </Button>
-        </Box>
+          </Box>
+        </Grid>
       </Grid>
-    </Grid>
-    <HelpVideoModal
-        open={helpOpen}
-        handleClose={() => setHelpOpen(false)}
-      />
+      <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </>
   );
 };
