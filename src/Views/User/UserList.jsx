@@ -18,6 +18,7 @@ import {
   useListContext,
   useListController,
   SelectInput,
+  Pagination
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -38,8 +39,6 @@ import { Parse } from "parse";
 import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
-import Pagination from "@mui/material/Pagination";
-import TablePagination from "@mui/material/TablePagination";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -369,6 +368,10 @@ if (role === "Super-User") {
   }, [identity]);
 
   useEffect(() => {
+    refresh(); // ✅ Forces a fresh request
+}, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       refresh();
     }, 60000); // Refresh every 60 seconds
@@ -376,81 +379,57 @@ if (role === "Super-User") {
     return () => clearInterval(interval);
   }, [refresh]);
 
+  if(isLoading) {
+    return(
+      <><Loader /></>
+    )
+  }
+  
   return (
-    <List
-      title="User Management"
-      filters={dataFilters}
-      actions={<PostListActions />}
-      emptyWhileLoading={true}
-      empty={false}
-      {...props}
-      pagination={
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mt: 2,
-            border: "none",
-            boxShadow: "none",
-          }}
-        >
-          <TablePagination
-            component="div"
-            count={Math.ceil((total || 0) / perPage)}
-            page={page}
-            //onPageChange={handleChangePage}
-            rowsPerPage={perPage}
-            onRowsPerPageChange={(event) => {
-              setPerPage(parseInt(event.target.value, 10));
-              setPage(1);
-            }}
-            nextIconButtonProps={{ style: { display: "none" } }}
-            backIconButtonProps={{ style: { display: "none" } }}
-          />
-          <Pagination
-            page={page}
-            rowsPerPage={perPage}
-            onChange={(event, newPage) => setPage(newPage)}
-            count={Math.ceil((total || 0) / perPage)}
-            variant="outlined"
-            color="secondary"
-            rows
-          />
-        </Box>
-      }
-    >
-      <Datagrid
-        size="small"
-        bulkActionButtons={false}
-        // data={data}
+      <List
+  title="User Management"
+  filters={dataFilters}
+  actions={<PostListActions />}
+  emptyWhileLoading={true}
+  empty={false}
+  filter={{$or: [{ userReferralCode: "" }, { userReferralCode: null },{username:""}]}}
+  {...props}
+    pagination={<Pagination />}
+          sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
       >
-        <TextField source="username" label="User Name" />
-        <TextField source="email" label="Email" />
-        {(identity?.role === "Super-User" ||
-          identity?.role === "Master-Agent") && (
-          <TextField source="userParentName" label="Parent User" />
-        )}
-        {(identity?.role === "Super-User" ||
-          identity?.role === "Master-Agent") && (
-          <TextField source="roleName" label="User Type" />
-        )}
-        <DateField source="createdAt" label="Date" showTime />
-        <WrapperField label="Actions">
-          <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-        </WrapperField>
-      </Datagrid>
-
-      <CreateUserDialog
-        open={userCreateDialogOpen}
-        onClose={() => setUserCreateDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
-      />
-      <ReferralDialog
-        open={referralDialogOpen}
-        onClose={() => setReferralDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
-        referralCode={referralCode}
-      />
-    </List>
+        
+          <Datagrid
+            size="small"
+            bulkActionButtons={false}
+            // data={data}
+          >
+            <TextField source="username" label="User Name" />
+            <TextField source="email" label="Email" />
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
+              <TextField source="userParentName" label="Parent User" />
+            )}
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
+              <TextField source="roleName" label="User Type" />
+            )}
+            <DateField source="createdAt" label="Date" showTime sortable/>
+            <WrapperField label="Actions">
+              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
+            </WrapperField>
+          </Datagrid>
+     
+        <CreateUserDialog
+          open={userCreateDialogOpen}
+          onClose={() => setUserCreateDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+        />
+        <ReferralDialog
+          open={referralDialogOpen}
+          onClose={() => setReferralDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+          referralCode={referralCode}
+        />
+      </List>
   );
 };

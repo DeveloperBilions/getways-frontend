@@ -28,7 +28,7 @@ import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
+const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
@@ -62,6 +62,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     return passwordRegex.test(password);
   };
 
+  const validateUserName = (userName) => {
+    const userNameRegex = /^[a-zA-Z0-9 _.-]+$/; // Allows letters, numbers, spaces, underscores, and dots
+    return userNameRegex.test(userName);
+  };
+
   const handleCancel = () => {
     onClose();
     resetFields();
@@ -93,6 +98,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
   // Function to create a new user in Parse
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!validateUserName(userName)) {
+      setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
+      return;
+    }
 
     if (!validatePassword(password)) {
       setErrorMessage("Password must be at least 6 characters long.");
@@ -191,6 +201,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
     fetchAllUsers();
     resetFields();
     refresh();
+    handleRefresh()
       }
       console.log("API Response:", response);
     } catch (error) {
@@ -255,7 +266,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers }) => {
                       type="text"
                       autoComplete="off"
                       value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setUserName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>

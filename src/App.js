@@ -83,20 +83,20 @@ function App() {
               <Resource
                 name="users"
                 list={UserList}
-                options={{ label: "User Management" }}
+                options={{ label: "User Management", defaultQuery: { sort: "createdAt", order: "DESC" } }}
                 icon={PersonIcon}
               />
               <Resource
                 name="rechargeRecords"
                 list={RechargeRecordsList}
-                options={{ label: "Recharge Records" }}
+                options={{ label: "Recharge Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
                 icon={LocalAtmIcon}
               />
               <Resource
                 name="redeemRecords"
                 recordRepresentation="redeemRecords"
                 list={RedeemRecordsList}
-                options={{ label: "Redeem Records" }}
+                options={{ label: "Redeem Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
                 icon={LocalAtmIcon}
               />
               <Resource
