@@ -46,49 +46,38 @@ const LoginPage = () => {
     if (recaptchaRef.current) {
       setIsCaptchaReady(true); // Set ready status to true when ref is available
     }
-    if(localStorage.getItem("emailPhone")){
-      setValue("emailPhone", localStorage.getItem("emailPhone"));
+    const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+    
+    if (savedAccounts.length > 0) {
+      const lastUsedAccount = savedAccounts[savedAccounts.length - 1]; // Get last used account
+      setValue("emailPhone", lastUsedAccount.email);
     }
   }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
   const onSubmit = async (data) => {
-    // if (!captchaValue) {
-    //   notify("Please verify the reCAPTCHA");
-    //   return;
-    // }
-    console.log(data);
     try {
-      setLoading(true);
+        setLoading(true);
+        const response = await Parse.Cloud.run("checkpresence", data);
 
-      const storedEmailPhone = localStorage.getItem("emailPhone");
-      const storedPassword = localStorage.getItem("password");
-      const storedRemember = localStorage.getItem("remember");
-
-      const response = await Parse.Cloud.run("checkpresence", data);
-
-      if (storedEmailPhone !== data.emailPhone) {
-        localStorage.clear();
-      } else {
-        if (storedRemember === "true") {
-          localStorage.setItem("emailPhone", data.emailPhone);
-          localStorage.setItem("password", storedPassword);
-          localStorage.setItem("remember", storedRemember);
+        if (response?.fromAgentExcel) {
+            redirect(
+              `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
+            );
+        } else {
+            redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
         }
-      }
-
-      if (response?.fromAgentExcel) {
-        redirect(
-          `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
-        );
-      } else {
-        redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
-      }
+        let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+        const existingAccount = savedAccounts.find(acc => acc.email === data.emailPhone);
+        if (!existingAccount) {
+            savedAccounts.push({ email: data.emailPhone });
+        }
+        localStorage.setItem("accounts", JSON.stringify(savedAccounts));
     } catch (error) {
-      notify(error?.message || "User Checking failed. Please try again.");
+        notify(error?.message || "User Checking failed. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   if (loading) {
     return <Loader />;
