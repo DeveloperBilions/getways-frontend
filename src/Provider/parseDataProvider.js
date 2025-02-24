@@ -189,10 +189,10 @@ export const dataProvider = {
           });
         }            
         count = await query.count({ useMasterKey: true });
-      } else if (resource === "redeemRecords") {
+      }else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "redeem", ...(filter?.status ? { status: filter.status } : {}) };
+        filter = { type: "redeem", ...filter };
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&
@@ -228,7 +228,7 @@ export const dataProvider = {
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...(filter?.status ? { status: filter.status } : {})};
+        filter = { type: "recharge", ...filter};
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&
@@ -272,12 +272,6 @@ export const dataProvider = {
           throw new Error("Start date cannot be greater than end date");
         }
 
-        const now = new Date(); // Get current local date and time
-        
-        // If endDate is not provided, set it to the current local date
-        if (!filter?.endDate) {
-          filter.endDate = now.toISOString().split("T")[0]; // Get YYYY-MM-DD format
-        }
         const queryPipeline = [
           {
             $match: {

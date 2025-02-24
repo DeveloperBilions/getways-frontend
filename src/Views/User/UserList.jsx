@@ -15,6 +15,8 @@ import {
   useGetList,
   SearchInput,
   useRefresh,
+  useListContext,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -222,27 +224,26 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 };
 
 export const UserList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
   // const [create, { isPending, error }] = useCreate();
-
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
   const role = localStorage.getItem("role");
-  const [filterValues, setFilters] = useState();
 
   if (!role) {
     navigate("/login");
   }
-  const { data, isLoading, total } = useGetList("users", {
-    pagination: { page, perPage }, // Ensure correct pagination parameters
-    sort: { field: "createdAt", order: "DESC" },
-    filter: {
-      ...filterValues,
-      $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-    },
-  });
+  // const { data, isLoading, total } = useGetList("users", {
+  //   pagination: { page, perPage }, // Ensure correct pagination parameters
+  //   sort: { field: "createdAt", order: "DESC" },
+  //   filter: {
+  //     ...filterValues,
+  //     $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+  //   },
+  // });
 
   const [userData, setUserData] = useState();
   const [referralCode, setReferralCode] = useState();
@@ -255,6 +256,12 @@ export const UserList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
+
+  useEffect(() => {
+    setFilters({
+      $or: [{ userReferralCode: "" }, { userReferralCode: null }] // ✅ Add these filters on mount
+    }, {});
+  }, []);  
 
   function generateRandomString() {
     const characters =
@@ -298,9 +305,6 @@ export const UserList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onChange={(e) =>
-        setFilters({ ...filterValues, username: e?.target?.value })
-      }
     />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
@@ -345,51 +349,14 @@ export const UserList = (props) => {
   }, [refresh]);
 
   return (
-    <Box
-    // sx={{
-    //   display: "flex",
-    //   justifyContent: "space-between",
-    //   alignItems: "center",
-    //   width: "100%"
-    // }}
-     sx={{ pt: 1 ,border:"none",boxShadow:"none"}}
-    >
       <List
         title="User Management"
         filters={dataFilters}
-        sx={{ pt: 1 ,border:"none",boxShadow:"none"}}
         actions={<PostListActions />}
-        pagination={false}
         emptyWhileLoading={true}
         empty={false}
-      >
-        {isLoading || !data ? (
-          <Loader />
-        ) : (
-          <Datagrid
-            size="small"
-            rowClick={false}
-            bulkActionButtons={false}
-            data={data}
-          >
-            <TextField source="username" label="User Name" />
-            <TextField source="email" label="Email" />
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="userParentName" label="Parent User" />
-            )}
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="roleName" label="User Type" />
-            )}
-            <DateField source="createdAt" label="Date" showTime />
-            <WrapperField label="Actions">
-              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-            </WrapperField>
-          </Datagrid>
-        )}
-
-        <Box
+        {...props}
+        pagination={   <Box
           sx={{
             display: "flex",
             justifyContent: "flex-end",
@@ -415,17 +382,35 @@ export const UserList = (props) => {
             page={page}
             rowsPerPage={perPage}
             onChange={(event, newPage) => setPage(newPage)}
-            onRowsPerPageChange={(event) => {
-              setPerPage(parseInt(event.target.value, 10));
-              setPage(1);
-            }}
             count={Math.ceil((total || 0) / perPage)}
             variant="outlined"
             color="secondary"
             rows
-            rowsPerPageOptions={[10, 20, 50, 100]} // ✅ Add this line
           />
-        </Box>
+        </Box>}
+      >
+        
+          <Datagrid
+            size="small"
+            bulkActionButtons={false}
+            // data={data}
+          >
+            <TextField source="username" label="User Name" />
+            <TextField source="email" label="Email" />
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
+              <TextField source="userParentName" label="Parent User" />
+            )}
+            {(identity?.role === "Super-User" ||
+              identity?.role === "Master-Agent") && (
+              <TextField source="roleName" label="User Type" />
+            )}
+            <DateField source="createdAt" label="Date" showTime />
+            <WrapperField label="Actions">
+              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
+            </WrapperField>
+          </Datagrid>
+     
         <CreateUserDialog
           open={userCreateDialogOpen}
           onClose={() => setUserCreateDialogOpen(false)}
@@ -438,6 +423,5 @@ export const UserList = (props) => {
           referralCode={referralCode}
         />
       </List>
-    </Box>
   );
 };

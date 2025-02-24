@@ -527,8 +527,10 @@ export const DataSummary = () => {
   const [endDate, setEndDate] = useState(null);
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
+  const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
+
   const handleUserChange = (selectedId) => {
-    setSelectedUser(selectedId);
+    setSelectedUsertemp(selectedId);
   };
 
   const fetchUsers = async (search = "", pageNum = 1) => {
@@ -958,13 +960,13 @@ export const DataSummary = () => {
       isOptionEqualToValue={(option, value) => option.id === value?.id}
       loading={loading}
       loadingText="....Loading"
-      value={selectedUser}
+      value={selectedUsertemp}
       onChange={(event, newValue) => handleUserChange(newValue)}
       onInputChange={(event, newInputValue, reason) => {
         if (reason === "input") {
           // Only trigger when user types, not on selection
           debouncedFetchUsers(newInputValue, 1);
-          setSelectedUser(null);
+          setSelectedUsertemp(null);
         }
       }}
       renderInput={(params) => (
@@ -1021,6 +1023,7 @@ export const DataSummary = () => {
   const handleFilterSubmit = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
+    setSelectedUser(selectedUsertemp)
   };
   return (
     <React.Fragment>

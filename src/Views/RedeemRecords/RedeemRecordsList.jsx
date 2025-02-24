@@ -14,6 +14,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -55,6 +56,8 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
@@ -71,22 +74,14 @@ export const RedeemRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
-  const [filterValues, setFilters] = useState();
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10); // Default 10 rows per page
   const role = localStorage.getItem("role");
-  const { data, isLoading , total } = useGetList("redeemRecords", {
-    pagination: { page, perPage },
-    sort: { field: "transactionDate", order: "DESC" },
-    filter: {
-      ...filterValues,
-      // $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-    }
-  });
+ 
   if (!role) {
     navigate("/login");
   }
-
+  useEffect(() => {
+    setFilters({}, {}); // Clears all filters
+  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -144,6 +139,7 @@ export const RedeemRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
+   
   useEffect(() => {
     const interval = setInterval(() => {
       handleRefresh();
@@ -226,10 +222,7 @@ export const RedeemRecordsList = (props) => {
     <SearchInput
       source="username"
       alwaysOn
-      onChange={(e) =>
-        setFilters({ ...filterValues, username: e?.target?.value })
-      }
-      value={filterValues?.username}
+      resettable
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -253,10 +246,7 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-        onChange={(e) => {
-          const newValue = e?.target?.value ?? null; // Ensure null if undefined
-          setFilters({ ...filterValues, status: newValue });
-        }}    />
+          />
     ),
   ].filter(Boolean);
   const postListActions = (

@@ -14,6 +14,7 @@ import {
   useGetList,
   useRefresh,
   SelectInput,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -59,12 +60,12 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { permissions } = usePermissions();
   const { identity } = useGetIdentity();
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10); // Default 10 rows per page
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
@@ -74,7 +75,6 @@ export const RechargeRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
-  const [filterValues, setFilters] = useState();
 
   const role = localStorage.getItem("role");
 
@@ -82,14 +82,9 @@ export const RechargeRecordsList = (props) => {
     navigate("/login");
   }
 
-  const { data, total, isLoading } = useGetList("rechargeRecords", {
-    pagination: { page, perPage },
-    sort: { field: "transactionDate", order: "DESC" },
-    filter: {
-      ...filterValues,
-      // $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-    }
-  });
+  useEffect(() => {
+    setFilters({}, {}); // Clears all filters
+  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -252,7 +247,7 @@ export const RechargeRecordsList = (props) => {
           { id: 1, name: "Pending Confirmation" },
           { id: 2, name: "Confirmed" },
           { id: 3, name: "Coins Credited" },
-          { id: 4, name: "Status Unknown" },
+          { id: 9, name: "Expired" },
         ]}
         onChange={(e) =>
           setFilters({ ...filterValues, status: e?.target?.value })
@@ -386,10 +381,8 @@ export const RechargeRecordsList = (props) => {
         emptyWhileLoading={true}
         pagination={false}
       >
-        {isLoading || !data ? (
-          <Loader />
-        ) : (
-        <Datagrid size="small" bulkActionButtons={false} data={data}>
+       
+        <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
@@ -515,7 +508,7 @@ export const RechargeRecordsList = (props) => {
               ) : null
             }
           />
-        </Datagrid>)}
+        </Datagrid>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
             <TablePagination
   component="div"
