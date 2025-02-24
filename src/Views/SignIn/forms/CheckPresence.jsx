@@ -35,6 +35,7 @@ const LoginPage = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
 
@@ -44,6 +45,9 @@ const LoginPage = () => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
     if (recaptchaRef.current) {
       setIsCaptchaReady(true); // Set ready status to true when ref is available
+    }
+    if(localStorage.getItem("emailPhone")){
+      setValue("emailPhone", localStorage.getItem("emailPhone"));
     }
   }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
