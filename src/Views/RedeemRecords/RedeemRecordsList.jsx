@@ -15,6 +15,7 @@ import {
   useRefresh,
   SelectInput,
   useListController,
+  Pagination
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -48,8 +49,6 @@ import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
 import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
-import { Pagination } from "@mui/material";
-import TablePagination from '@mui/material/TablePagination';
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -79,9 +78,6 @@ export const RedeemRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
-  useEffect(() => {
-    setFilters({}, {}); // Clears all filters
-  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -318,6 +314,11 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
+  if(isLoading) {
+    return(
+      <><Loader /></>
+    )
+  }
   return (
     <>
       <Box
@@ -354,26 +355,24 @@ export const RedeemRecordsList = (props) => {
         )}
       </Box>
       <List
-        title="Redeem Records"
+
+
+title="Redeem Records"
         filters={dataFilters}
-        filter={
-          identity?.role !== "Player"
-            ? { type: "redeem" }
-            : { type: "redeem", status: 6 }
-        }
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
         {...props}
+        filter={identity?.role !== "Player"
+        ? { type: "redeem" }
+        : { type: "redeem", status: 6 }
+        }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
-        pagination={false}
-        key={filterValues} // Changing key forces component remount
+        pagination={<Pagination />}
       >
-         {isLoading || !data ? (
-          <Loader />
-        ) : (
-        <Datagrid size="small" bulkActionButtons={false} data={data}
+        
+        <Datagrid size="small" bulkActionButtons={false}
         sx={{
           minWidth: "1000px", // Ensures the table is wide enough to scroll
           tableLayout: "fixed", // Fix column sizes
@@ -452,7 +451,7 @@ export const RedeemRecordsList = (props) => {
               );
             }}
           />
-          <DateField source="transactionDate" label="RedeemDate" showTime />
+          <DateField source="transactionDate" label="RedeemDate" showTime sortable />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
@@ -544,34 +543,7 @@ export const RedeemRecordsList = (props) => {
               ) : null
             }
           />
-        </Datagrid> )}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-          <TablePagination
-  component="div"
-  count={Math.ceil((total || 0) / perPage)}
-  page={page}
-  //onPageChange={handleChangePage}
-  rowsPerPage={perPage}
-  onRowsPerPageChange={(event) => {
-    setPerPage(parseInt(event.target.value, 10));
-    setPage(1);
-  }}
-  nextIconButtonProps={{ style: { display: "none" } }}
-  backIconButtonProps={{ style: { display: "none" } }}
-/>
-        <Pagination
-          page={page}
-          count={Math.ceil((total || 0) / perPage)} // Total pages
-          onChange={(event, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(event) => {
-            setPerPage(parseInt(event.target.value, 10));
-            setPage(1);
-          }}
-          rowsPerPage={perPage}
-          variant="outlined"
-          color="secondary"
-        />
-      </Box>
+        </Datagrid> 
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

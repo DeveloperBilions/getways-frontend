@@ -15,6 +15,7 @@ import {
   useRefresh,
   SelectInput,
   useListController,
+  Pagination
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -52,8 +53,6 @@ import { Loader } from "../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
-import { Pagination } from "@mui/material";
-import TablePagination from '@mui/material/TablePagination';
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -81,10 +80,6 @@ export const RechargeRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
-
-  useEffect(() => {
-    setFilters({}, {}); // Clears all filters
-  }, []); 
   const fetchDataForExport = async () => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -231,9 +226,6 @@ export const RechargeRecordsList = (props) => {
       source="username"
       alwaysOn
       resettable
-      onChange={(e) =>
-        setFilters({ ...filterValues, username: e?.target?.value })
-      }
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -249,9 +241,6 @@ export const RechargeRecordsList = (props) => {
           { id: 3, name: "Coins Credited" },
           { id: 9, name: "Expired" },
         ]}
-        onChange={(e) =>
-          setFilters({ ...filterValues, status: e?.target?.value })
-        }
       />
     ),
   ].filter(Boolean);
@@ -335,6 +324,11 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
+  if(isLoading) {
+    return(
+      <><Loader /></>
+    )
+  }
   return (
     <>
       <Box
@@ -379,7 +373,7 @@ export const RechargeRecordsList = (props) => {
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
-        pagination={false}
+        pagination={<Pagination />}
       >
        
         <Datagrid size="small" bulkActionButtons={false}>
@@ -445,7 +439,7 @@ export const RechargeRecordsList = (props) => {
               }}
             />
           )}
-          <DateField source="transactionDate" label="RechargeDate" showTime />
+          <DateField source="transactionDate" label="RechargeDate" showTime sortable/>
           <FunctionField
             label="Action"
             render={(record) =>
@@ -509,33 +503,6 @@ export const RechargeRecordsList = (props) => {
             }
           />
         </Datagrid>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-            <TablePagination
-  component="div"
-  count={Math.ceil((total || 0) / perPage)}
-  page={page}
-  //onPageChange={handleChangePage}
-  rowsPerPage={perPage}
-  onRowsPerPageChange={(event) => {
-    setPerPage(parseInt(event.target.value, 10));
-    setPage(1);
-  }}
-  nextIconButtonProps={{ style: { display: "none" } }}
-  backIconButtonProps={{ style: { display: "none" } }}
-/>
-        <Pagination
-          page={page}
-          count={Math.ceil((total || 0) / perPage)} // Total pages
-          onChange={(event, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(event) => {
-            setPerPage(parseInt(event.target.value, 10));
-            setPage(1);
-          }}
-          rowsPerPage={perPage}
-          variant="outlined"
-          color="secondary"
-        />
-      </Box>
         <CoinsCreditDialog
           open={creditCoinDialogOpen}
           onClose={() => setCreditCoinDialogOpen(false)}

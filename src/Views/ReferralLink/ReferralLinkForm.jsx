@@ -71,11 +71,20 @@ const ReferralLinkForm = () => {
     const passwordRegex = /^.{6,}$/;
     return passwordRegex.test(password);
   };
+  const validateUserName = (userName) => {
+    const userNameRegex = /^[a-zA-Z0-9 _.-]+$/; // Allows letters, numbers, spaces, underscores, and dots
+    return userNameRegex.test(userName);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setDisableButtonState(true);
 
+    if (!validateUserName(userName)) {
+      setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
+      setDisableButtonState(false);
+      return;
+    }
     if (!validatePassword(password)) {
       setErrorMessage("Password must be at least 6 characters long.");
       setDisableButtonState(false);
@@ -175,7 +184,12 @@ const ReferralLinkForm = () => {
                           type="text"
                           autoComplete="off"
                           value={userName}
-                          onChange={(e) => setUserName(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                              setUserName(value);
+                            }
+                          }}
                           required
                         />
                       </FormGroup>
