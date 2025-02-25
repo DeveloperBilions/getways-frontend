@@ -420,6 +420,8 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
                     return "error";
                   case 13:
                     return "error";
+                    case 14:
+                    return "primary";
                   case 6:
                     return "warning";
                   case 7:
@@ -440,6 +442,7 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
                 11: "Cashouts",
                 12: "Cashout Successfully",
                 13: "Cashout Reject",
+                14: "Cashout transferring"
               }[record.status];
               return (
                 <Chip
