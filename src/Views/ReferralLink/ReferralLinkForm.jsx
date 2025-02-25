@@ -158,12 +158,12 @@ const ReferralLinkForm = () => {
             <div className="testimonial-text"></div>
           </div>
 
-          <div className="right-section">
+          <div className="right-section ">
             <Card className="mt-5 card-overrid">
               <CardBody>
                 <Form onSubmit={handleSubmit}>
                   <Row>
-                    <Label className="fs-3 fw-normal">Get Stated</Label>
+                    <Label className="fs-3 fw-normal">Get Started</Label>
                     <Col md={12}>
                       <FormGroup>
                         <Label for="userName" className="pb-0 mb-0">
@@ -195,7 +195,6 @@ const ReferralLinkForm = () => {
                           onChange={(e) => {
                             const value = e.target.value;
                             if (/^[a-zA-Z0-9 _.-]*$/.test(value)) {
-                              // Prevents invalid characters from being typed
                               setUserName(value);
                             }
                           }}
@@ -327,7 +326,7 @@ const ReferralLinkForm = () => {
                       <Col sm={12}>
                         <Label
                           for="errorResponse"
-                          invalid={true}
+                          invalid
                           className="text-danger mb-2"
                         >
                           {errorMessage}
