@@ -1,6 +1,7 @@
 import { Parse } from "parse";
 import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
 import Stripe from "stripe";
+import { sendMoneyToPayPal } from "../Utils/sendMoney";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -966,6 +967,7 @@ export const dataProvider = {
           "redeemRemarks",
           "username"
         );
+        
         transactionQuery.limit(100000);
         var results = await transactionQuery.find();
       
@@ -1470,6 +1472,8 @@ export const dataProvider = {
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
+      const paymentMode = transaction.get("paymentMode");
+      const paymentMethodType = transaction.get("paymentMethodType"); // PayPal ID
 
       if (transaction && transaction.get("status") === 11) {
         // Update transaction status
@@ -1477,6 +1481,7 @@ export const dataProvider = {
         if (redeemRemarks) {
           transaction.set("redeemRemarks", redeemRemarks);
         }
+
         // Get transaction amount and redeem service fee percentage
         const transactionAmount = transaction.get("transactionAmount") || 0;
         const redeemServiceFeePercentage =
@@ -1513,6 +1518,26 @@ export const dataProvider = {
         }
         transaction.set("transactionAmount", tempAmount); 
         // Save the transaction and wallet updates
+        if ((paymentMode === "paypalId" || paymentMode === "venmoId") && paymentMethodType) {
+          const type =  paymentMode === "paypalId" ? "PAYPAL" : "VENMO"
+
+          const paypalResponse = await sendMoneyToPayPal("sb-0zh2m38000684@personal.example.com", transactionAmount, "USD", type);
+
+          if (!paypalResponse.success) {
+            throw new Error(`PayPal payment failed: ${paypalResponse.error || "Unknown error"}`);
+          }
+
+          // Store PayPal payout batch ID for future verification
+          transaction.set("paypalPayoutBatchId", paypalResponse.payoutBatchId);
+          if(paypalResponse?.paypalStatus === "SUCCESS"){
+            transaction.set("status",12)
+          }
+          else if(paypalResponse?.paypalStatus === "PENDING")
+          {
+            transaction.set("status",14)
+          }
+      }
+
         await transaction.save(null);
 
         return {
@@ -1528,6 +1553,7 @@ export const dataProvider = {
         };
       }
     } catch (error) {
+      console.log(error,"paypalerrro")
       console.error("Final approval error:", error);
       throw error;
     }
