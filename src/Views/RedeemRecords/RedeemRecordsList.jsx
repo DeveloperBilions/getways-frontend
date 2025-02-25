@@ -15,11 +15,12 @@ import {
   useRefresh,
   SelectInput,
   useListController,
-  Pagination
+  Pagination,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
 import {
+  Alert,
   Chip,
   Button,
   Menu,
@@ -49,14 +50,25 @@ import FinalRejectRedeemDialog from "./dialog/FinalRejectRedeemDialog";
 import FinalApproveRedeemDialog from "./dialog/FinalApproveRedeemDialog";
 import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
-
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+  } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
@@ -74,7 +86,7 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
- 
+
   if (!role) {
     navigate("/login");
   }
@@ -135,7 +147,7 @@ export const RedeemRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
-   
+
   useEffect(() => {
     const interval = setInterval(() => {
       handleRefresh();
@@ -215,11 +227,7 @@ export const RedeemRecordsList = (props) => {
     }
   };
   const dataFilters = [
-    <SearchInput
-      source="username"
-      alwaysOn
-      resettable
-    />,
+    <SearchInput source="username" alwaysOn resettable />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
@@ -242,7 +250,7 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-          />
+      />
     ),
   ].filter(Boolean);
   const postListActions = (
@@ -314,13 +322,21 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
   return (
     <>
+      {(identity?.role === "Master-Agent" || identity?.role === "Agent") &&
+        identity?.balance < 500 && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Your balance is too low to approve transactions.
+          </Alert>
+        )}
       <Box
         sx={{
           display: "flex",
@@ -355,49 +371,190 @@ export const RedeemRecordsList = (props) => {
         )}
       </Box>
       <List
-
-
-title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" }
+        title={
+          identity?.role !== "Player"
+            ? "Redeem Records"
+            : "Pending Redeem Request"
+        }
         filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={identity?.role !== "Player"
-        ? { type: "redeem" }
-        : { type: "redeem", status: 6 }
+        filter={
+          identity?.role !== "Player"
+            ? { type: "redeem" }
+            : { type: "redeem", status: 6 }
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-        
-        <Datagrid size="small" bulkActionButtons={false}
-        sx={{
-          minWidth: "1000px", // Ensures the table is wide enough to scroll
-          tableLayout: "fixed", // Fix column sizes
-          "& .RaDatagrid-table": {
-            width: "100%", // Ensures table fills the available space
-          },
-          "& .column-paymentMethodType": {
-            minWidth: "150px", // Ensure this column is wide enough
-            maxWidth: "150px",
-            whiteSpace: "nowrap"
-          },
-        }}
+        <Datagrid
+          size="small"
+          bulkActionButtons={false}
+          sx={{
+            minWidth: "1000px", // Ensures the table is wide enough to scroll
+            tableLayout: "fixed", // Fix column sizes
+            "& .RaDatagrid-table": {
+              width: "100%", // Ensures table fills the available space
+            },
+            "& .column-paymentMethodType": {
+              minWidth: "150px", // Ensure this column is wide enough
+              maxWidth: "150px",
+              whiteSpace: "nowrap",
+            },
+          }}
+          rowStyle={(record) => {
+            if (identity?.role === "Super-User" && record?.status === 11) {
+              if (record?.userParentBalance < record?.transactionAmount) {
+                return { backgroundColor: "rgba(255, 0, 0, 0.1)" }; // Red
+              } else if (
+                record?.userParentBalance <
+                record?.transactionAmount * 1.2
+              ) {
+                return { backgroundColor: "rgba(255, 165, 0, 0.1)" }; // Orange
+              } else {
+                return { backgroundColor: "rgba(0, 128, 0, 0.1)" }; // Green
+              }
+            }
+            return {};
+          }}
         >
+<FunctionField
+  label="Action"
+  source="action"
+  render={(record) => {
+    const isCashoutPending = record?.status === 6;
+    const isSuperUserCashout =
+      record?.status === 11 && identity?.role === "Super-User";
+
+    const isBalanceLow =
+      (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
+      record?.userParentBalance < 500;
+
+    return (
+      <>
+        {isCashoutPending &&
+          (identity?.role === "Agent" ||
+            identity?.role === "Master-Agent") &&
+          identity?.objectId === record?.userParentId && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1, // Space between buttons
+                alignItems: "center",
+              }}
+            >
+             <Button
+  size="small"
+  sx={{
+    minWidth: "40px",
+    minHeight: "40px",
+    backgroundColor: isBalanceLow ? "#E0E0E0" : "#CCFFD6", // Gray if disabled
+    border: `1px solid ${isBalanceLow ? "#BDBDBD" : "#4CAF50"}`, // Gray border if disabled
+    color: isBalanceLow ? "#9E9E9E" : "#4CAF50", // Gray text/icon if disabled
+    borderRadius: "8px",
+    "&:hover": {
+      backgroundColor: isBalanceLow ? "#E0E0E0" : "#B2FFC4", // No hover effect when disabled
+    },
+  }}
+  onClick={() => {
+    setSelectedRecord({
+      ...record,
+      userParentId: identity?.objectId,
+    });
+    setRedeemDialogOpen(true);
+  }}
+  disabled={isBalanceLow}
+>
+  <CheckIcon />
+</Button>
+
+
+              <Button
+                size="small"
+                sx={{
+                  minWidth: "40px",
+                  minHeight: "40px",
+                  backgroundColor: "#FFD6D6", // Soft red background
+                  border: "1px solid #FF5252", // Darker red border
+                  color: "#FF5252", // Red close icon color
+                  borderRadius: "8px",
+                  "&:hover": { backgroundColor: "#FFBFBF" }, // Slightly darker on hover
+                }}
+                onClick={() => {
+                  setSelectedRecord(record);
+                  setRejectDialogOpen(true);
+                }}
+              >
+                <CloseIcon />
+              </Button>
+            </Box>
+          )}
+
+        {isSuperUserCashout && (
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Button
+              size="small"
+              sx={{
+                minWidth: "40px",
+                minHeight: "40px",
+                backgroundColor: "#CCFFD6",
+                border: "1px solid #4CAF50",
+                color: "#4CAF50",
+                borderRadius: "8px",
+                "&:hover": { backgroundColor: "#B2FFC4" },
+              }}
+              onClick={() => {
+                setSelectedRecord({
+                  ...record,
+                  userParentId: identity?.objectId,
+                });
+                setFinalRedeemDialogOpen(true);
+              }}
+            >
+              <CheckIcon />
+            </Button>
+
+            <Button
+              size="small"
+              sx={{
+                minWidth: "40px",
+                minHeight: "40px",
+                backgroundColor: "#FFD6D6",
+                border: "1px solid #FF5252",
+                color: "#FF5252",
+                borderRadius: "8px",
+                "&:hover": { backgroundColor: "#FFBFBF" },
+              }}
+              onClick={() => {
+                setSelectedRecord(record);
+                setFinalRejectDialogOpen(true);
+                setCashout(true);
+              }}
+            >
+              <CloseIcon />
+            </Button>
+          </Box>
+        )}
+      </>
+    );
+  }}
+/>
+
           <TextField source="username" label="Account" />
           <NumberField
             source="transactionAmount"
             label="Redeemed"
             textAlign="left"
           />
-           <FunctionField
-              label="Parent"
-              render={(record) => {
-                return record?.userParentName;
-              }}
-            />
+          <FunctionField
+            label="Parent"
+            render={(record) => {
+              return record?.userParentName;
+            }}
+          />
           <FunctionField
             source="redeemServiceFee"
             label="ServiceFee"
@@ -406,147 +563,20 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
             }
           />
           <TextField source="remark" label="Remark" />
-          <FunctionField
-            label="Status"
-            source="status"
-            render={(record) => {
-              const getColor = (status) => {
-                switch (status) {
-                  case 4:
-                    return "success";
-                  case 12:
-                    return "success";
-                  case 5:
-                    return "error";
-                  case 13:
-                    return "error";
-                    case 14:
-                    return "primary";
-                  case 6:
-                    return "warning";
-                  case 7:
-                    return "error";
-                  case 8:
-                    return "success";
-                  default:
-                    return "default";
-                }
-              };
-              const statusMessage = {
-                4: "Success",
-                5: "Fail",
-                6: "Pending Approval",
-                7: "Rejected",
-                8: "Redeem Successfully",
-                9: "Expired",
-                11: "Cashouts",
-                12: "Cashout Successfully",
-                13: "Cashout Reject",
-                14: "Cashout transferring"
-              }[record.status];
-              return (
-                <Chip
-                  label={statusMessage}
-                  color={getColor(record.status)}
-                  size="small"
-                  variant="outlined"
-                />
-              );
-            }}
+          
+          <DateField
+            source="transactionDate"
+            label="RedeemDate"
+            showTime
+            sortable
           />
-          <DateField source="transactionDate" label="RedeemDate" showTime sortable />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
           {identity?.role === "Super-User" && (
             <TextField source="paymentMethodType" label="Payment Id" />
           )}
-          <FunctionField
-            label="Action"
-            source="action"
-            render={(record) =>
-              (record?.status === 6 && identity?.role === "Agent") ||
-              (record?.status === 6 &&
-                identity?.role === "Master-Agent" &&
-                identity?.objectId === record?.userParentId) ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setRedeemDialogOpen(true);
-                    }}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setRejectDialogOpen(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : record?.status === 11 && identity?.role === "Super-User" ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setFinalRedeemDialogOpen(true);
-                    }}
-                  >
-                    Success
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setFinalRejectDialogOpen(true);
-                      setCashout(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : null
-            }
-          />
-        </Datagrid> 
+        </Datagrid>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

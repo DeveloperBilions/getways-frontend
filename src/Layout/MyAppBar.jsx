@@ -57,6 +57,7 @@ export default function MyAppBar({ props }) {
   const handleCloseRechargeLimit = () => {
     setOpenRechargeLimit(false);
   };
+  console.log(identity,"identity")
   return (
     <AppBar
       sx={{
@@ -87,6 +88,14 @@ export default function MyAppBar({ props }) {
       {/* <RefreshIconButton /> */}
       {/* <NotificationsNoneIcon /> */}
       {/* <AccountCircleIcon /> */}
+      {(role === "Master-Agent" || role === "Agent") && identity?.balance !== undefined && (
+          <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+            <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+            <span style={{ fontWeight: 600, color: "#fff" }}>
+              Balance: {identity.balance}
+            </span>
+          </Box>
+        )}
       <Box sx={{ ml: 0, minWidth: 0 }}>
         <b
           noWrap
@@ -105,6 +114,7 @@ export default function MyAppBar({ props }) {
           </Typography>
         )} */}
       </Box>
+      
       <RefreshButton label="" icon={<RefreshIcon sx={{fontSize: "24px !important", marginRight: "-6px"}} />}  sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end"}}/>
       <UserMenu>
         {( role === "Agent" || role === "Player" || role === "Master-Agent") && 

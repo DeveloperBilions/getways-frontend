@@ -1228,43 +1228,70 @@ export const dataProvider = {
           // Fetch users from Parse.User table
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds);
-          userQuery.select("objectId", "userParentId", "name","userParentName"); // Include userParentId and name
+          userQuery.select("objectId", "userParentId", "name", "userParentName"); // Include userParentId and userParentName
           const userResults = await userQuery.find({ useMasterKey: true });
-
+        
           // Create a map: userId -> userParentId & userParentName
           const userMap = {};
+          const parentIds = new Set(); // To store unique parent IDs
+        
           userResults.forEach((user) => {
+            const userParentId = user.get("userParentId") || null;
             userMap[user.id] = {
-              userParentId: user.get("userParentId") || null,
+              userParentId,
               userParentName: user.get("userParentName") || null,
             };
+        
+            if (userParentId) {
+              parentIds.add(userParentId); // Collect unique parent IDs
+            }
           });
-
-          console.log(
-            "userMap - Ensuring userParentId & userParentName:",
-            userMap
-          );
-
-          // Debug: Check if transaction.get("userId") exists in userMap
+        
+          console.log("userMap - Ensuring userParentId & userParentName:", userMap);
+        
+          // Fetch balance for userParentIds
+          let parentBalanceMap = {};
+          if (parentIds.size > 0) {
+            const parentQuery = new Parse.Query(Parse.User);
+            parentQuery.containedIn("objectId", Array.from(parentIds));
+            parentQuery.select("objectId", "balance"); // Fetch balance
+        
+            const parentResults = await parentQuery.find({ useMasterKey: true });
+        
+            parentResults.forEach((parent) => {
+              parentBalanceMap[parent.id] = parent.get("balance") || 0; // Default to 0 if balance is missing
+            });
+          }
+        
+          console.log("Parent balance map:", parentBalanceMap);
+        
+          // Map transactions with userParentId, userParentName, and userParentBalance
           results = results.map((transaction) => {
             const userId = transaction.get("userId");
+            const userParentId = userMap[userId]?.userParentId || null;
+            const userParentBalance = parentBalanceMap[userParentId] || null;
+        
             console.log(
               "Processing transaction for userId:",
               userId,
               "Mapped Data:",
-              userMap[userId]
+              userMap[userId],
+              "Parent Balance:",
+              userParentBalance
             ); // Debug
-
+        
             return {
               id: transaction.id,
               ...transaction.attributes,
-              userParentId: userMap[userId]?.userParentId || null,
+              userParentId,
               userParentName: userMap[userId]?.userParentName || null,
+              userParentBalance, // Include balance
             };
           });
+        
           console.log("Final results after mapping:", results); // Debug final output
           return { data: results, total: count };
-        }
+        }        
       }
       let res = null;
       if (resource !== "users") {
