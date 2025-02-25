@@ -23,7 +23,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
 import { Parse } from "parse";
-import { validateUpdateUser } from "../../Validators/user.validator";
+import { validateCreateUser } from "../../Validators/user.validator";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -80,6 +80,21 @@ const ReferralLinkForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setDisableButtonState(true);
+
+    const validationData = {
+      username: userName,
+      name,
+      phoneNumber,
+      email,
+      password,
+    }
+
+    const validationResponse = validateCreateUser(validationData);
+      if (!validationResponse.isValid) {
+        setErrorMessage(Object.values(validationResponse.errors).join(" "));
+        setDisableButtonState(false);
+        return;
+      }
 
     if (!validateUserName(userName)) {
       setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
@@ -207,7 +222,12 @@ const ReferralLinkForm = () => {
                           type="text"
                           autoComplete="off"
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                              setName(value);
+                            }
+                          }}
                           required
                         />
                       </FormGroup>
@@ -221,10 +241,15 @@ const ReferralLinkForm = () => {
                         <Input
                           id="phoneNumber"
                           name="phoneNumber"
-                          type="text"
+                          type="number"
                           autoComplete="off"
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || /^(\+?[1-9]\d{0,13})$/.test(value) || value === "+") {
+                              setPhoneNumber(value);
+                            }
+                          }}
                           required
                         />
                       </FormGroup>

@@ -192,10 +192,11 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
-                      type="text"
+                      type="number"
                       autoComplete="off"
-                      min="0"
+                      min="1"
                       value={redeemAmount}
+                      required
                       onChange={(e) => {
                         let value = e.target.value;
                         if (value === '' || /^\d*$/.test(value)) {
@@ -217,7 +218,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           e.preventDefault();
                         }
                       }}
-                      required
+                      // required
                     />
                   </FormGroup>
                 </Col>

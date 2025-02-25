@@ -100,6 +100,20 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const validationData = {
+      username:userName,
+      name,
+      phoneNumber,
+      email,
+      password,
+    }
+
+    const validationResponse = validateCreateUser(validationData);
+    if (!validationResponse.isValid) {
+      setErrorMessage(Object.values(validationResponse.errors).join(" "));
+      return;
+    }
+
     if (!validateUserName(userName)) {
       setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
       return;
@@ -286,7 +300,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
                       type="text"
                       autoComplete="off"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>
@@ -303,7 +322,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
                       type="text"
                       autoComplete="off"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || /^(\+?[1-9]\d{0,13})$/.test(value) || value === "+") {
+                          setPhoneNumber(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>

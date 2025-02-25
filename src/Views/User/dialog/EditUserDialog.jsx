@@ -139,7 +139,12 @@ const EditUserDialog = ({
                       type="text"
                       autoComplete="off"
                       value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setUserName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>
@@ -154,7 +159,12 @@ const EditUserDialog = ({
                       type="text"
                       autoComplete="off"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>
