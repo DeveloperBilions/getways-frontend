@@ -279,7 +279,7 @@ export const UserList = (props) => {
       userReferralCode: referralCode,
       signedUp: false,
       userParentId: identity.objectId,
-      userParentName: identity.username,
+      userParentName: identity.name,
     });
   };
 
