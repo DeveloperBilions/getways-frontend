@@ -23,6 +23,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
 import { Parse } from "parse";
+import { validateUpdateUser } from "../../Validators/user.validator";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
