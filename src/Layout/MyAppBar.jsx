@@ -25,6 +25,7 @@ import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDi
 import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
+import GuidelineModal from "../Views/User/dialog/GuidelineModal";
 
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
@@ -38,6 +39,7 @@ export default function MyAppBar({ props }) {
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false); // New state for Help Video Modal
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
+  const [openGuideline, setOpenGuideline] = React.useState(false); // State for Guideline Modal
 
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
@@ -143,6 +145,7 @@ export default function MyAppBar({ props }) {
         </MenuItem>
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
+      <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/> 
       <ChangePassword open={open} onClose={handleCloseModal} />
       <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
       <DisablePaymentMethodDialog
@@ -151,6 +154,7 @@ export default function MyAppBar({ props }) {
       />
       <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
       <AllRedeemService open={openRedeemService} onClose={() => setOpenRedeemService(false)} />
+      <GuidelineModal open={openGuideline} onClose={() => setOpenGuideline(false)} />
     </AppBar>
   );
 }
