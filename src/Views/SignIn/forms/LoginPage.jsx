@@ -21,6 +21,7 @@ import {
   FormControlLabel,
   IconButton,
   Checkbox,
+  useMediaQuery,
 } from "@mui/material";
 // mui icon
 import Visibility from "@mui/icons-material/Visibility";
@@ -42,6 +43,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const LoginPage = () => {
   const { permissions, refetch } = usePermissions();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
+   const isSmallScreen = useMediaQuery("(max-width:900px)");
 
   const refresh = useRefresh();
   const redirect = useRedirect();
@@ -140,32 +142,38 @@ const LoginPage = () => {
     <>
       <Grid container component="main" sx={{ height: "100vh" }}>
         <CssBaseline />
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundImage: "url(/assets/login.jpg)",
-            backgroundRepeat: "no-repeat",
-            backgroundColor: (t) =>
-              t.palette.mode === "light"
-                ? t.palette.grey[50]
-                : t.palette.grey[900],
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        {!isSmallScreen && (
+          <Grid
+            item
+            xs={false}
+            sm={4}
+            md={7}
+            sx={{
+              backgroundImage: "url(/assets/login.jpg)",
+              backgroundRepeat: "no-repeat",
+              backgroundColor: (t) =>
+                t.palette.mode === "light"
+                  ? t.palette.grey[50]
+                  : t.palette.grey[900],
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        )}
         <Grid
           item
           xs={12}
-          sm={8}
-          md={5}
+          sm={isSmallScreen ? 12 : 8}
+          md={isSmallScreen ? 12 : 5}
           component={Paper}
           elevation={6}
           square
           sx={{
             backgroundColor: "#e6e6e6",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
           }}
         >
           <Box
@@ -203,7 +211,7 @@ const LoginPage = () => {
                 value={emailPhoneParams}
               />
 
-              <Typography htmlFor="password" sx={{ mb: 0 }}>
+              <Typography htmlFor="password" sx={{ mb: 0, mt: 1 }}>
                 Password
               </Typography>
               <OutlinedInput
@@ -233,8 +241,8 @@ const LoginPage = () => {
               {errors.password && (
                 <FormHelperText>{errors.password.message}</FormHelperText>
               )}
-              <Grid container spacing={2}>
-                <Grid item xs={7}>
+              <Grid container spacing={1}>
+                <Grid item>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -250,7 +258,7 @@ const LoginPage = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 3, mb: 1 }}
+                sx={{ mt: 1, mb: 1 }}
               >
                 Sign in
               </Button>
@@ -258,7 +266,7 @@ const LoginPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, mb: 1 }}
                 onClick={() => redirect("/login")}
               >
                 Back

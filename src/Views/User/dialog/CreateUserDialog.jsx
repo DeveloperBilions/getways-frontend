@@ -25,11 +25,12 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import { validateCreateUser } from "../../../Validators/user.validator";
+import { validatePassword } from "../../../Validators/Password";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
+const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
   const { permissions } = usePermissions();
@@ -48,6 +49,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   const resetFields = () => {
     setUserName("");
@@ -58,9 +61,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
     setErrorMessage("");
   };
 
-  const validatePassword = (password) => {
-    const passwordRegex = /^.{6,}$/;
-    return passwordRegex.test(password);
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setIsTyping(true);
+    validatePassword(newPassword, setPasswordErrors);
+    if (validatePassword(newPassword, setPasswordErrors)) {
+      setIsTyping(false);
+    }
   };
 
   const validateUserName = (userName) => {
@@ -115,12 +123,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
     }
 
     if (!validateUserName(userName)) {
-      setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
+      setErrorMessage(
+        "Username can only contain letters, numbers, spaces, underscores (_), and dots (.)"
+      );
       return;
     }
 
-    if (!validatePassword(password)) {
-      setErrorMessage("Password must be at least 6 characters long.");
+    if (!validatePassword(password, setPasswordErrors)) {
+      setErrorMessage("Please fix all password requirements.");
       return;
     }
 
@@ -132,69 +142,45 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
     setLoading(true);
     try {
       let response;
-      if (permissions === "Super-User") {
-        if (userType === "Agent") {
-          if (!identity?.objectId && !identity?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-            redeemService: 5,
-          });
-        } else if (userType === "Player") {
-          if (!parentType?.id && !parentType?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-          });
-        } else if (userType === "Master-Agent") {
-          if (!parentType?.id && !parentType?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: identity?.objectId,
-            userParentName: identity?.name,
-            redeemService: 5,
-          });
+    if (permissions === "Super-User") {
+      if (userType === "Agent") {
+        if (!identity?.objectId && !identity?.name) {
+          setErrorMessage("Parent User data is not valid");
+          return;
         }
-      } else if (permissions === "Agent") {
         response = await Parse.Cloud.run("createUser", {
-          roleName: "Player",
+          roleName: userType,
           username: userName,
           name,
           phoneNumber,
           email,
           password,
-          userParentId: identity?.objectId,
-          userParentName: identity?.name,
+          userParentId: parentType?.id,
+          userParentName: parentType?.name,
+          redeemService: 5,
         });
-      } else if (permissions === "Master-Agent") {
+      } else if (userType === "Player") {
+        if (!parentType?.id && !parentType?.name) {
+          setErrorMessage("Parent User data is not valid");
+          return;
+        }
         response = await Parse.Cloud.run("createUser", {
-          roleName: "Player",
+          roleName: userType,
+          username: userName,
+          name,
+          phoneNumber,
+          email,
+          password,
+          userParentId: parentType?.id,
+          userParentName: parentType?.name,
+        });
+      } else if (userType === "Master-Agent") {
+        if (!parentType?.id && !parentType?.name) {
+          setErrorMessage("Parent User data is not valid");
+          return;
+        }
+        response = await Parse.Cloud.run("createUser", {
+          roleName: userType,
           username: userName,
           name,
           phoneNumber,
@@ -202,18 +188,42 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
           password,
           userParentId: identity?.objectId,
           userParentName: identity?.name,
+          redeemService: 5,
         });
       }
-
-      if (response?.code != 200) {
-        setErrorMessage(response.message);
+    } else if (permissions === "Agent") {
+      response = await Parse.Cloud.run("createUser", {
+        roleName: "Player",
+        username: userName,
+        name,
+        phoneNumber,
+        email,
+        password,
+        userParentId: identity?.objectId,
+        userParentName: identity?.name,
+      });
+    } else if (permissions === "Master-Agent") {
+      response = await Parse.Cloud.run("createUser", {
+        roleName: "Player",
+        username: userName,
+        name,
+        phoneNumber,
+        email,
+        password,
+        userParentId: identity?.objectId,
+        userParentName: identity?.name,
+      });
+    }
+      console.log("API Response:", response);
+      if (!response?.success) {
+        setErrorMessage(response?.message);
         return;
       } else {
         onClose();
-    fetchAllUsers();
-    resetFields();
-    refresh();
-    handleRefresh()
+        fetchAllUsers();
+        resetFields();
+        refresh();
+        handleRefresh();
       }
       console.log("API Response:", response);
     } catch (error) {
@@ -229,7 +239,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
       setLoading(false);
     }
   };
-
   // Combine parentOptions with identity
   const combinedOptions = [
     { id: identity?.objectId, name: identity?.name, role: identity?.role },
@@ -280,7 +289,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
                       value={userName}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                        if (/^[a-zA-Z0-9 _.-]*$/.test(value)) {
+                          // Prevents invalid characters from being typed
                           setUserName(value);
                         }
                       }}
@@ -423,7 +433,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
                         type={showPassword ? "text" : "password"}
                         autoComplete="off"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={handlePasswordChange}
                         required
                       />
                       <InputGroupText
@@ -433,9 +443,15 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </InputGroupText>
                     </InputGroup>
-                    <FormText>
-                      Password must be at least 6 characters long.
-                    </FormText>
+                    {isTyping && passwordErrors.length > 0 && (
+                      <div className="mt-1" style={{ fontSize: "0.875rem" }}>
+                        {passwordErrors.map((error, index) => (
+                          <div key={index} className="text-danger">
+                            • {error}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </FormGroup>
                 </Col>
 

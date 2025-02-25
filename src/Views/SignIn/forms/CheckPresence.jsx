@@ -10,6 +10,7 @@ import {
   Typography,
   FormHelperText,
   OutlinedInput,
+  useMediaQuery,
 } from "@mui/material";
 // hook form
 import { useForm } from "react-hook-form";
@@ -30,8 +31,9 @@ const LoginPage = () => {
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
   const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef();
-  const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
-  const [isCaptchaReady, setIsCaptchaReady] = useState(false); // Track captcha load status
+  const [captchaVerified, setCaptchaVerified] = useState(false);  // Track captcha verification
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false);  // Track captcha load status
+  const isSmallScreen = useMediaQuery("(max-width:900px)");
   const {
     register,
     handleSubmit,
@@ -87,31 +89,37 @@ const LoginPage = () => {
     <React.Fragment>
       <Grid container component="main" sx={{ height: "100vh" }}>
         <CssBaseline />
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundImage: "url(/assets/login.jpg)",
-            backgroundRepeat: "no-repeat",
-            backgroundColor: (t) =>
-              t.palette.mode === "light"
-                ? t.palette.grey[50]
-                : t.palette.grey[900],
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        {!isSmallScreen && (
+          <Grid
+            item
+            xs={false}
+            sm={4}
+            md={7}
+            sx={{
+              backgroundImage: "url(/assets/login.jpg)",
+              backgroundRepeat: "no-repeat",
+              backgroundColor: (t) =>
+                t.palette.mode === "light"
+                  ? t.palette.grey[50]
+                  : t.palette.grey[900],
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        )}
         <Grid
           item
           xs={12}
-          sm={8}
-          md={5}
+          sm={isSmallScreen ? 12 : 8}
+          md={isSmallScreen ? 12 : 5}
           component={Paper}
           elevation={6}
           square
           sx={{
+            display: "flex",
+            height: "100%",
+            justifyContent: "center",
+            flexDirection: "column",
             backgroundColor: "#e6e6e6",
           }}
         >
