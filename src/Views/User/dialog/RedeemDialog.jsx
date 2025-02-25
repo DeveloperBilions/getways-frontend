@@ -36,6 +36,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [isReedeemZeroAllowed,setisReedeemZeroAllowed]= useState(false);
   const role = localStorage.getItem("role");
   const [feeError, setFeeError] = useState("");
+  const [amountError, setAmountError] = useState("");
+  const [serviceError, setServiceError] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -79,6 +81,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [redeemAmount, redeemFees, editedFees]);
 
   const handleConfirmClick = () => {
+       if (!redeemAmount || redeemAmount === "") {
+         setAmountError("Redeem amount cannot be empty");
+         return;
+       }
     if ((role === "Agent"  || role === "Master-Agent") && !isReedeemZeroAllowed && (editedFees < 5 || editedFees > 20)) {
       setFeeError(
         "As an Agent, the redeem service fee must be between 5% and 20%."
@@ -192,33 +198,40 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
-                      type="text"
+                      type="number"
                       autoComplete="off"
-                      min="0"
+                      onChange={(e) => setRedeemAmount(e.target.value)}
+                      min="1"
+                      max="100"
                       value={redeemAmount}
-                      onChange={(e) => {
-                        let value = e.target.value;
-                        if (value === '' || /^\d*$/.test(value)) {
-                          if(value === ''){
-                            setRedeemAmount(value);
-                          }
-                          else if (value.includes('.')) {
-                            value = Math.floor(parseFloat(value));
-                            setRedeemAmount(value);
-                          }
-                          else if (/^\d*$/.test(value)) {
-                            setRedeemAmount(value);
-                          }
+                      onInput={(e) => {
+                        let value = e.target.value.replace(/[^\d]/g, "");
+                        if (parseInt(value) > 100) {
+                          setAmountError(
+                            "Redeem amount cannot be greater than 100"
+                          );
+                          value = "100";
+                        } else if (parseInt(value) < 1) {
+                          setAmountError(
+                            "Redeem amount cannot be smaller than 1"
+                          );
+                          value = "1";
+                        } else {
+                          setAmountError("");
                         }
+
+                        setRedeemAmount(value);
                       }}
-                      onKeyDown={(e) =>{
+                      onKeyDown={(e) => {
                         if (e.keyCode === 190) {
-                          // Prevent the default behavior of typing a decimal
                           e.preventDefault();
                         }
                       }}
                       required
                     />
+                    {amountError && (
+                      <small className="text-danger">{amountError}</small>
+                    )}
                   </FormGroup>
                 </Col>
                 {isEditingFees && (
@@ -233,7 +246,18 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           min={role === "Agent" ? "5" : "0"}
                           max={role === "Agent" ? "20" : "100"}
                           value={editedFees}
-                          onChange={(e) => setEditedFees(e.target.value)}
+                          onChange={(e) => {
+                            let value = parseFloat(e.target.value);
+                            if (value > 20) {
+                              setEditedFees(20);
+                              setServiceError(
+                                "Redeem Service Fee cannot exceed 20%"
+                              );
+                            } else {
+                              setServiceError("");
+                              setEditedFees(value);
+                            }
+                          }}
                         />
                         <Button
                           color="success"
@@ -341,6 +365,9 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       Cancel
                     </Button>
                   </div>
+                  {serviceError && (
+                    <small className="text-danger">{serviceError}</small>
+                  )}
                 </Col>
               </Row>
             </Form>

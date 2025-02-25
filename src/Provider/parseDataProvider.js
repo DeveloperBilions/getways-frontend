@@ -191,13 +191,45 @@ export const dataProvider = {
         ) {
           Object.keys(filter).forEach((f) => {
             if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username") query.matches(f, String(filter[f]), "i");
-              else query.equalTo(f, filter[f]);
+              if (f === "username") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+
+                const emailQuery = new Parse.Query(Parse.User);
+                emailQuery.matches("email", searchRegex);
+
+                const usernameQuery = new Parse.Query(Parse.User);
+                usernameQuery.matches("username", searchRegex);
+
+                const userParentNameQuery = new Parse.Query(Parse.User);
+                userParentNameQuery.matches("userParentName", searchRegex);
+
+                // Combine both username and email query results
+                const combinedQuery = Parse.Query.or(
+                  emailQuery,
+                  usernameQuery,
+                  userParentNameQuery
+                );
+                query = Parse.Query.and(query, combinedQuery);;
+              } else if (f === "role") {
+                const role = filter[f];
+                if (
+                  role &&
+                  (role === "Player" ||
+                    role === "Agent" ||
+                    role === "Super-User")
+                ) {
+                  console.log(role);
+                  query.equalTo("roleName", role);
+                }
+              } else {
+                query.equalTo(f, filter[f]);
+              }
             }
           });
         }
         count = await query.count({ useMasterKey: true });
-      }else if (resource === "redeemRecords") {
+      } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -227,16 +259,49 @@ export const dataProvider = {
           query.containedIn("userId", ids);
           query.notEqualTo("isCashOut", true);
         }
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
+        if (
+          filter &&
+          typeof filter === "object" &&
+          Object.keys(filter).length > 0
+        ) {
+          Object.keys(filter).forEach((f) => {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "username") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+
+                const usernameQuery = new Parse.Query("TransactionRecords");
+                usernameQuery.matches("username", searchRegex);
+
+                const transactionAmountQuery = new Parse.Query(
+                  "TransactionRecords"
+                );
+                transactionAmountQuery.matches(
+                  "transactionAmount",
+                  searchRegex
+                );
+
+                const remarkQuery = new Parse.Query("TransactionRecords");
+                remarkQuery.matches("remark", searchRegex);
+
+                // Combine both username and email query results
+                const combinedQuery = Parse.Query.or(
+                  transactionAmountQuery,
+                  usernameQuery,
+                  remarkQuery
+                );
+                query = combinedQuery;
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            }
           });
+        }
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...filter};
+        filter = { type: "recharge", ...filter };
         if (role === "Player") {
           filter = { userId: userid, ...filter };
           filter &&
@@ -263,11 +328,44 @@ export const dataProvider = {
           query.containedIn("userId", ids);
         }
 
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
+        if (
+          filter &&
+          typeof filter === "object" &&
+          Object.keys(filter).length > 0
+        ) {
+          Object.keys(filter).forEach((f) => {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "username") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+
+                const usernameQuery = new Parse.Query("TransactionRecords");
+                usernameQuery.matches("username", searchRegex);
+
+                const transactionAmountQuery = new Parse.Query(
+                  "TransactionRecords"
+                );
+                transactionAmountQuery.matches(
+                  "transactionAmount",
+                  searchRegex
+                );
+
+                const remarkQuery = new Parse.Query("TransactionRecords");
+                remarkQuery.matches("remark", searchRegex);
+
+                // Combine both username and email query results
+                const combinedQuery = Parse.Query.or(
+                  transactionAmountQuery,
+                  usernameQuery,
+                  remarkQuery
+                );
+                query = combinedQuery;
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            }
           });
+        }
         count = await query.count();
       } else if (resource === "summary") {
         var result = null;
@@ -1232,18 +1330,14 @@ export const dataProvider = {
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      if (
-        filter &&
-        typeof filter === "object" &&
-        Object.keys(filter).length > 0
-      ) {
-        Object.keys(filter).forEach((f) => {
-          if (filter[f] !== undefined && filter[f] !== null) {
-            if (f === "username") query.matches(f, String(filter[f]), "i");
-            else query.equalTo(f, filter[f]);
-          }
-        });
-      }
+      // if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+      //   Object.keys(filter).forEach((f) => {
+      //     if (filter[f] !== undefined && filter[f] !== null) {
+      //       if (f === "username") query.matches(f, String(filter[f]), "i");
+      //       else query.equalTo(f, filter[f]);
+      //     }
+      //   });
+      // }
       results =
         resource === "users"
           ? await query.find({ useMasterKey: true })
