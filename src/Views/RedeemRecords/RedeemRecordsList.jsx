@@ -394,18 +394,22 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
           },
         }}
         >
-          <TextField source="username" label="Account" />
+          {identity?.role !== "Player" && (
+            <TextField source="username" label="Account" />
+          )}
           <NumberField
             source="transactionAmount"
             label="Redeemed"
             textAlign="left"
           />
-           <FunctionField
+          {identity?.role !== "Player" && (
+            <FunctionField
               label="Parent"
               render={(record) => {
                 return record?.userParentName;
               }}
             />
+          )}
           <FunctionField
             source="redeemServiceFee"
             label="ServiceFee"
@@ -466,6 +470,7 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
           {identity?.role === "Super-User" && (
             <TextField source="paymentMethodType" label="Payment Id" />
           )}
+          {identity?.role !== "Player" && (
           <FunctionField
             label="Action"
             source="action"
@@ -551,6 +556,7 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
               ) : null
             }
           />
+          )}
         </Datagrid> 
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (

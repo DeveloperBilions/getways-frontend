@@ -377,7 +377,9 @@ filters={dataFilters}
       >
        
         <Datagrid size="small" bulkActionButtons={false}>
+        {identity?.role !== "Player" && (
           <TextField source="username" label="Account" />
+        )}
           <NumberField
             source="transactionAmount"
             label="Recharged"
@@ -424,13 +426,14 @@ filters={dataFilters}
               );
             }}
           />
+          {identity?.role !== "Player" && (
             <FunctionField
               label="Parent"
               render={(record) => {
                 return record?.userParentName;
               }}
             />
-          
+          )}
           {role === "Super-User" && (
             <FunctionField
               label="Mode"
