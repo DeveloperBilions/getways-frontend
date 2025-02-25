@@ -63,52 +63,71 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
-    // Retrieve saved credentials if "Remember me" was checked
-    const savedEmailPhone = localStorage.getItem("emailPhone");
-    const savedPassword = localStorage.getItem("password");
-    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-
-    if (savedRememberMe && savedEmailPhone && savedPassword) {
-      setValue("password", savedPassword);
-      setValue("password", savedPassword);
-      setRememberMe(true);
+    if (emailPhoneParams) {
+        const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+        const matchedAccount = savedAccounts.find(acc => acc.email === emailPhoneParams);
+        if (matchedAccount) {
+            setValue("emailPhone", matchedAccount.email);
+            if (matchedAccount.password) {
+                setValue("password", matchedAccount.password);
+                setRememberMe(true);
+            }
+        }
     }
-  }, [setValue]);
+  },[]);
+
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
       const response = await login({
-        email: emailPhoneParams,
-        password: data.password,
+          email: emailPhoneParams,
+          password: data.password,
       });
       await refetch();
       await refresh();
-
+      // Retrieve existing saved accounts
+      let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+      // Check if the current account exists
+      const existingIndex = savedAccounts.findIndex(acc => acc.email === emailPhoneParams);
       if (rememberMe) {
-        localStorage.setItem("emailPhone", emailPhoneParams);
-        localStorage.setItem("password", data.password);
-        localStorage.setItem("rememberMe", "true");
+          if (existingIndex !== -1) {
+              // Update the existing account with a new password
+              savedAccounts[existingIndex].password = data.password;
+          } else {
+              // Add new account with email & password
+              savedAccounts.push({
+                  email: emailPhoneParams,
+                  password: data.password,
+              });
+          }
+          // Save updated accounts to localStorage
+          localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+          localStorage.setItem("rememberMe", "true");
       } else {
-        localStorage.removeItem("emailPhone");
-        localStorage.removeItem("password");
-        localStorage.removeItem("rememberMe");
+          // Remove password for non-remembered accounts
+          if (existingIndex !== -1) {
+                savedAccounts.splice(existingIndex, 1);
+          }
+          localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+          localStorage.removeItem("rememberMe");
       }
-
+      // Redirect based on user role
       setTimeout(() => {
-        if (response?.role === "Player") {
-          redirect("/playerDashboard");
-        } else if (["Super-User", "Agent"].includes(response?.role)) {
-          redirect("/users");
-        }
+          if (response?.role === "Player") {
+              redirect("/playerDashboard");
+          } else if (["Super-User", "Agent"].includes(response?.role)) {
+              redirect("/users");
+          }
       }, 5);
     } catch (error) {
-      notify(error?.message || "Login failed. Please try again.");
+        notify(error?.message || "Login failed. Please try again.");
     } finally {
-      setLoading(false);
-      setTimeout(() => refresh(), 0);
+        setLoading(false);
+        setTimeout(() => refresh(), 0);
     }
   };
+
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword((show) => !show);
