@@ -69,7 +69,7 @@ const GuidelineModal = ({ open, onClose }) => {
         <Typography variant="body2">Maximum Cashout per day: <b>$1000</b></Typography>
         <Typography variant="body2">Minimum Cashout per transaction: <b>$15</b></Typography>
         <Typography variant="body2">
-          Processing Time: <b>Cashouts may take up to 6 hours in certain cases.</b>
+          Processing Time: <b>Cashouts may take minimum 2 hours to maximum upto 6 hours in certain cases.</b>
         </Typography>
         <Typography variant="caption" sx={{ mt: 1, fontStyle: "italic" }}>
           Refund Notice: If a refund is processed through any of our payment gateways, it might take up to <b>24 hours</b> for the refunded money to reflect in your wallet, depending on the payment mode used.
@@ -86,7 +86,7 @@ const GuidelineModal = ({ open, onClose }) => {
           <b>Existing Agents (Accounts Older Than 30 Days):</b> A minimum balance of $500 is required for cashouts for their players.
         </Typography>
         <Typography variant="body2">
-          <b>Cashout Schedule for Agents:</b> Cashouts are processed monthly on the 6th of each month.
+          <b>Cashout Schedule for Agents:</b> Cashouts are processed monthly on the 6th of next month.
         </Typography>
       </DialogContent>
 
