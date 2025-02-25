@@ -130,6 +130,9 @@ const LoginPage = () => {
           sx={{
             backgroundColor: "#e6e6e6",
             height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
           }}
         >
           <Box

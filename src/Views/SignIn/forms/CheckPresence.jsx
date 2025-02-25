@@ -113,6 +113,10 @@ const LoginPage = () => {
           elevation={6}
           square
           sx={{
+            display: "flex",
+            height: "100%",
+            justifyContent: "center",
+            flexDirection: "column",
             backgroundColor: "#e6e6e6",
           }}
         >
