@@ -1255,12 +1255,12 @@ export const dataProvider = {
           if (parentIds.size > 0) {
             const parentQuery = new Parse.Query(Parse.User);
             parentQuery.containedIn("objectId", Array.from(parentIds));
-            parentQuery.select("objectId", "balance"); // Fetch balance
+            parentQuery.select("objectId", "potBalance"); // Fetch balance
         
             const parentResults = await parentQuery.find({ useMasterKey: true });
         
             parentResults.forEach((parent) => {
-              parentBalanceMap[parent.id] = parent.get("balance") || 0; // Default to 0 if balance is missing
+              parentBalanceMap[parent.id] = parent.get("potBalance") || 0; // Default to 0 if balance is missing
             });
           }
         
