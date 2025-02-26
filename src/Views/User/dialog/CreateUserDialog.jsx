@@ -24,7 +24,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
-import { validatePassword } from "../../Validator/Password";
+import { validatePassword } from "../../../Validator/Password";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;

@@ -74,6 +74,7 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
+  const [searchBy, setSearchBy] = useState("username");
  
   if (!role) {
     navigate("/login");
@@ -223,10 +224,20 @@ export const RedeemRecordsList = (props) => {
     }
   };
   const dataFilters = [
-    <SearchInput
-      source="username"
+    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SelectInput
+      source="searchBy"
+      label="Search By"
+      emptyText={""}
       alwaysOn
       resettable
+      value={searchBy || "username"}
+      onChange={(e) => setSearchBy(e?.target?.value || "username")}
+      choices={[
+        { id: "username", name: "Account" },
+        { id: "transactionAmount", name: "Redeem" },
+        { id: "remark", name: "Remark" },
+      ]}
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -250,7 +261,7 @@ export const RedeemRecordsList = (props) => {
               ]
             : []),
         ]}
-          />
+      />
     ),
   ].filter(Boolean);
   const postListActions = (

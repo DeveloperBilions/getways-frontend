@@ -1,5 +1,8 @@
 import { Parse } from "parse";
-import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
+import {
+  calculateDataSummaries,
+  calculateDataSummariesForSummary,
+} from "../utils";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
@@ -172,58 +175,48 @@ export const dataProvider = {
           // Step 1: Find all agents under the Master-Agent
           const agentQuery = new Parse.Query(Parse.User);
           agentQuery.equalTo("userParentId", userid);
-          // agentQuery.notEqualTo("isDeleted", true);
           agentQuery.equalTo("roleName", "Agent");
 
           const agents = await agentQuery.find({ useMasterKey: true });
           const agentIds = agents.map((agent) => agent.id);
+
           // Step 2: Find all users (agents + players under those agents)
           query.containedIn("userParentId", [userid, ...agentIds]);
         }
+
+        console.log("Applied Filters:", filter);
+
         if (
           filter &&
           typeof filter === "object" &&
           Object.keys(filter).length > 0
         ) {
           Object.keys(filter).forEach((f) => {
-            if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username") {
-                const searchValue = String(filter[f]);
-                const searchRegex = new RegExp(searchValue, "i");
+            const value = filter[f];
 
-                const emailQuery = new Parse.Query(Parse.User);
-                emailQuery.matches("email", searchRegex);
-
-                const usernameQuery = new Parse.Query(Parse.User);
-                usernameQuery.matches("username", searchRegex);
-
-                const userParentNameQuery = new Parse.Query(Parse.User);
-                userParentNameQuery.matches("userParentName", searchRegex);
-
-                // Combine both username and email query results
-                const combinedQuery = Parse.Query.or(
-                  emailQuery,
-                  usernameQuery,
-                  userParentNameQuery
-                );
-                query = combinedQuery;
-              } else if (f === "role") {
-                const role = filter[f];
-                if (
-                  role &&
-                  (role === "Player" ||
-                    role === "Agent" ||
-                    role === "Super-User")
-                ) {
-                  console.log(role);
-                  query.equalTo("roleName", role);
+            if (value !== undefined && value !== null && value !== "") {
+              // Ignore empty text values
+              if (f === "username" || f === "email" || f === "userParentName") {
+                const searchValue = String(value).trim(); // Trim to avoid accidental spaces
+                if (searchValue.length > 0) {
+                  // Ensure valid input before applying regex
+                  const searchRegex = new RegExp(searchValue, "i");
+                  query.matches(f, searchRegex);
                 }
+              } else if (f === "role") {
+                if (["Player", "Agent", "Super-User"].includes(value)) {
+                  query.equalTo("roleName", value);
+                }
+                console.log(query);
+              } else if (f === "searchBy") {
+                console.log(`Applying search on field: ${f}`);
               } else {
-                query.equalTo(f, filter[f]);
+                query.equalTo(f, value);
               }
             }
           });
         }
+
         count = await query.count({ useMasterKey: true });
       } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -262,33 +255,29 @@ export const dataProvider = {
         ) {
           Object.keys(filter).forEach((f) => {
             if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username") {
-                const searchValue = String(filter[f]);
-                const searchRegex = new RegExp(searchValue, "i");
-
-                const usernameQuery = new Parse.Query("TransactionRecords");
-                usernameQuery.matches("username", searchRegex);
-
-                const transactionAmountQuery = new Parse.Query(
-                  "TransactionRecords"
-                );
-                transactionAmountQuery.matches(
-                  "transactionAmount",
-                  searchRegex
-                );
-
-                const remarkQuery = new Parse.Query("TransactionRecords");
-                remarkQuery.matches("remark", searchRegex);
-
-                // Combine both username and email query results
-                const combinedQuery = Parse.Query.or(
-                  transactionAmountQuery,
-                  usernameQuery,
-                  remarkQuery
-                );
-                query = combinedQuery;
-              } else {
-                query.equalTo(f, filter[f]);
+              if (filter[f] !== undefined && filter[f] !== null) {
+                if (f === "username" || f === "remark") {
+                  const searchValue = String(filter[f]);
+                  const searchRegex = new RegExp(searchValue, "i");
+                  query.matches(f, searchRegex);
+                  console.log(`Search query: ${JSON.stringify(query)}`);
+                } else if (f === "transactionAmount") {
+                  const transactionAmount = Number(filter[f]);
+                  if (!isNaN(transactionAmount)) {
+                    query.equalTo(f, transactionAmount);
+                    console.log(
+                      `Search query for transactionAmount: ${transactionAmount}`
+                    );
+                  } else {
+                    console.warn(
+                      `Invalid transactionAmount value: ${filter[f]}`
+                    );
+                  }
+                } else if (f === "searchBy") {
+                  console.log(`Applying search on field: ${f}`);
+                } else {
+                  query.equalTo(f, filter[f]);
+                }
               }
             }
           });
@@ -331,31 +320,23 @@ export const dataProvider = {
         ) {
           Object.keys(filter).forEach((f) => {
             if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username") {
+              if (f === "username" || f === "remark") {
                 const searchValue = String(filter[f]);
                 const searchRegex = new RegExp(searchValue, "i");
-
-                const usernameQuery = new Parse.Query("TransactionRecords");
-                usernameQuery.matches("username", searchRegex);
-
-                const transactionAmountQuery = new Parse.Query(
-                  "TransactionRecords"
-                );
-                transactionAmountQuery.matches(
-                  "transactionAmount",
-                  searchRegex
-                );
-
-                const remarkQuery = new Parse.Query("TransactionRecords");
-                remarkQuery.matches("remark", searchRegex);
-
-                // Combine both username and email query results
-                const combinedQuery = Parse.Query.or(
-                  transactionAmountQuery,
-                  usernameQuery,
-                  remarkQuery
-                );
-                query = combinedQuery;
+                query.matches(f, searchRegex);
+                console.log(`Search query: ${JSON.stringify(query)}`);
+              } else if (f === "transactionAmount") {
+                const transactionAmount = Number(filter[f]);
+                if (!isNaN(transactionAmount)) {
+                  query.equalTo(f, transactionAmount);
+                  console.log(
+                    `Search query for transactionAmount: ${transactionAmount}`
+                  );
+                } else {
+                  console.warn(`Invalid transactionAmount value: ${filter[f]}`);
+                }
+              } else if (f === "searchBy") {
+                console.log(`Applying search on field: ${f}`);
               } else {
                 query.equalTo(f, filter[f]);
               }
@@ -1583,7 +1564,7 @@ export const dataProvider = {
 
     throw new Error("Unsupported resource for getLink");
   },
-  finalApprove: async (orderId, redeemRemarks,tempAmount) => {
+  finalApprove: async (orderId, redeemRemarks, tempAmount) => {
     try {
       // Fetch the transaction record
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
@@ -1614,9 +1595,8 @@ export const dataProvider = {
           };
         }
 
-
-         // If the tempAmount is different, refund the difference to the user's wallet
-         if (tempAmount < transactionAmount) {
+        // If the tempAmount is different, refund the difference to the user's wallet
+        if (tempAmount < transactionAmount) {
           const refundAmount = transactionAmount - tempAmount;
 
           // Fetch the user wallet
@@ -1625,13 +1605,12 @@ export const dataProvider = {
           walletQuery.equalTo("userID", transaction.get("userId"));
           let wallet = await walletQuery.first();
 
-            // Update wallet balance
-            const currentBalance = wallet.get("balance") || 0;
-            wallet.set("balance", currentBalance + refundAmount);
-            await wallet.save(null);
-      
+          // Update wallet balance
+          const currentBalance = wallet.get("balance") || 0;
+          wallet.set("balance", currentBalance + refundAmount);
+          await wallet.save(null);
         }
-        transaction.set("transactionAmount", tempAmount); 
+        transaction.set("transactionAmount", tempAmount);
         // Save the transaction and wallet updates
         await transaction.save(null);
 
@@ -1652,7 +1631,7 @@ export const dataProvider = {
       throw error;
     }
   },
-  finalReject: async (orderId,remark) => {
+  finalReject: async (orderId, remark) => {
     try {
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const Wallet = Parse.Object.extend("Wallet");
@@ -1862,11 +1841,10 @@ export const dataProvider = {
       };
     }
   },
-  summaryReport:async(params)=> {
+  summaryReport: async (params) => {
     const queryPipeline = [
       {
-        $match: {
-        },
+        $match: {},
       },
       { $limit: 10000 },
       {
@@ -1881,12 +1859,12 @@ export const dataProvider = {
             },
           ],
           totalRedeemAmount: [
-            { 
-              $match: { 
-                type: "redeem", 
-                status: { $in: [4, 8] }, 
-                transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
-              } 
+            {
+              $match: {
+                type: "redeem",
+                status: { $in: [4, 8] },
+                transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+              },
             },
             {
               $group: {
@@ -1894,17 +1872,16 @@ export const dataProvider = {
                 total: { $sum: "$transactionAmount" },
               },
             },
-          ]
+          ],
         },
       },
     ];
-    const newResults = await new Parse.Query(
-      "TransactionRecords"
-    ).aggregate(queryPipeline);
+    const newResults = await new Parse.Query("TransactionRecords").aggregate(
+      queryPipeline
+    );
 
-    console.log(newResults,"nwResule")
-
-  }
+    console.log(newResults, "nwResule");
+  },
   // refundTransaction: async (params) => {
   //   const { sessionId, amount, remark, redeemServiceFee } = params; // Include additional parameters if needed
 

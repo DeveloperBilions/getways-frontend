@@ -18,7 +18,8 @@ import {
   useListContext,
   useListController,
   Pagination,
-  SelectInput
+  SelectInput,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -225,7 +226,17 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+  } = listContext;
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -249,13 +260,14 @@ export const UserList = (props) => {
   const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+  const [searchBy, setSearchBy] = useState("username");
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
   };
   const handleRefresh = async () => {
     refresh();
-  }
+  };
 
   function generateRandomString() {
     const characters =
@@ -295,26 +307,41 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-  <SearchInput source="username" alwaysOn resettable />,
-];
-
-// Conditionally add SelectInput if role is "Super-User"
-if (role === "Super-User") {
-  dataFilters.push(
+    <SearchInput source={searchBy} alwaysOn resettable />,
     <SelectInput
-      source="role"
-      label="Role"
-      emptyText={"All"}
+      source="searchBy"
+      label="Search By"
+      validate={required()}
       alwaysOn
-      resettable
+      // resettable 
+      value={searchBy || "username"}
+      onChange={(e) => setSearchBy(e?.target?.value || "username")}
       choices={[
-        { id: "Super-User", name: "Super-User" },
-        { id: "Player", name: "Player" },
-        { id: "Agent", name: "Agent" },
+        { id: "username", name: "Username" },
+        { id: "email", name: "Email" },
+        { id: "userParentName", name: "Parent Name" },
       ]}
-    />
-  );
-}
+      // defaultValue="username"
+    />,
+  ];
+
+  // Conditionally add SelectInput if role is "Super-User"
+  if (role === "Super-User") {
+    dataFilters.push(
+      <SelectInput
+        source="role"
+        label="Role"
+        emptyText={"All"}
+        alwaysOn
+        resettable
+        choices={[
+          { id: "Super-User", name: "Super-User" },
+          { id: "Player", name: "Player" },
+          { id: "Agent", name: "Agent" },
+        ]}
+      />
+    );
+  }
 
   const PostListActions = () => (
     <TopToolbar>
@@ -349,7 +376,7 @@ if (role === "Super-User") {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
-}, []);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -359,57 +386,65 @@ if (role === "Super-User") {
     return () => clearInterval(interval);
   }, [refresh]);
 
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
-  
+
   return (
-      <List
-  title="User Management"
-  filters={dataFilters}
-  actions={<PostListActions />}
-  emptyWhileLoading={true}
-  empty={false}
-  filter={{$or: [{ userReferralCode: "" }, { userReferralCode: null },{username:""}]}}
-  {...props}
-    pagination={<Pagination />}
-          sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+    <List
+      title="User Management"
+      filters={dataFilters}
+      actions={<PostListActions />}
+      emptyWhileLoading={true}
+      empty={false}
+      filter={{
+        $or: [
+          { userReferralCode: "" },
+          { userReferralCode: null },
+          { username: "" },
+        ],
+      }}
+      filterDefaultValues={{searchBy: "username"}}
+      {...props}
+      pagination={<Pagination />}
+      sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+    >
+      <Datagrid
+        size="small"
+        bulkActionButtons={false}
+        // data={data}
       >
-        
-          <Datagrid
-            size="small"
-            bulkActionButtons={false}
-            // data={data}
-          >
-            <TextField source="username" label="User Name" />
-            <TextField source="email" label="Email" />
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="userParentName" label="Parent User" />
-            )}
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="roleName" label="User Type" />
-            )}
-            <DateField source="createdAt" label="Date" showTime sortable/>
-            <WrapperField label="Actions">
-              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-            </WrapperField>
-          </Datagrid>
-     
-        <CreateUserDialog
-          open={userCreateDialogOpen}
-          onClose={() => setUserCreateDialogOpen(false)}
-          fetchAllUsers={fetchAllUsers}
-        />
-        <ReferralDialog
-          open={referralDialogOpen}
-          onClose={() => setReferralDialogOpen(false)}
-          fetchAllUsers={fetchAllUsers}
-          referralCode={referralCode}
-        />
-      </List>
+        <TextField source="username" label="User Name" />
+        <TextField source="email" label="Email" />
+        {(identity?.role === "Super-User" ||
+          identity?.role === "Master-Agent") && (
+          <TextField source="userParentName" label="Parent User" />
+        )}
+        {(identity?.role === "Super-User" ||
+          identity?.role === "Master-Agent") && (
+          <TextField source="roleName" label="User Type" />
+        )}
+        <DateField source="createdAt" label="Date" showTime sortable />
+        <WrapperField label="Actions">
+          <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
+        </WrapperField>
+      </Datagrid>
+
+      <CreateUserDialog
+        open={userCreateDialogOpen}
+        onClose={() => setUserCreateDialogOpen(false)}
+        fetchAllUsers={fetchAllUsers}
+      />
+      <ReferralDialog
+        open={referralDialogOpen}
+        onClose={() => setReferralDialogOpen(false)}
+        fetchAllUsers={fetchAllUsers}
+        referralCode={referralCode}
+      />
+    </List>
   );
 };

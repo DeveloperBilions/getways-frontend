@@ -15,7 +15,7 @@ import {
   useRefresh,
   SelectInput,
   useListController,
-  Pagination
+  Pagination,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -60,7 +60,17 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+  } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { permissions } = usePermissions();
@@ -74,6 +84,7 @@ export const RechargeRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
+  const [searchBy, setSearchBy] = useState("username");
 
   const role = localStorage.getItem("role");
 
@@ -93,7 +104,7 @@ export const RechargeRecordsList = (props) => {
           ...(statusValue && { status: statusValue }),
         },
       });
-      console.log(data,"datafromrechargeRecordsExport")
+      console.log(data, "datafromrechargeRecordsExport");
       setData(data);
       return data; // Return the fetched data
     } catch (error) {
@@ -133,9 +144,10 @@ export const RechargeRecordsList = (props) => {
   };
   const totalTransactionAmount =
     Data &&
-    Data
-      .filter((item) => item.status === 2 || item.status === 3)
-      .reduce((sum, item) => sum + item.transactionAmount, 0);
+    Data.filter((item) => item.status === 2 || item.status === 3).reduce(
+      (sum, item) => sum + item.transactionAmount,
+      0
+    );
 
   const handleRefresh = async () => {
     refresh();
@@ -144,9 +156,9 @@ export const RechargeRecordsList = (props) => {
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
-  
+
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);  
+  }, []);
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
     setCreditCoinDialogOpen(true);
@@ -222,10 +234,20 @@ export const RechargeRecordsList = (props) => {
     }
   };
   const dataFilters = [
-    <SearchInput
-      source="username"
+    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SelectInput
+      source="searchBy"
+      label="Search By"
+      emptyText={""}
       alwaysOn
       resettable
+      value={searchBy || "username"}
+      onChange={(e) => setSearchBy(e?.target?.value || "username")}
+      choices={[
+        { id: "username", name: "Account" },
+        { id: "transactionAmount", name: "Recharge" },
+        { id: "remark", name: "Remark" },
+      ]}
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -305,7 +327,7 @@ export const RechargeRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportXLS();
-           // handleMenuClose();
+            // handleMenuClose();
           }}
           disabled={isExporting}
         >
@@ -324,10 +346,12 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
   return (
     <>
@@ -360,8 +384,12 @@ export const RechargeRecordsList = (props) => {
         )}
       </Box>
       <List
-title={identity?.role !== "Player" ? "Recharge Records": "Pending Recharge Request" }
-filters={dataFilters}
+        title={
+          identity?.role !== "Player"
+            ? "Recharge Records"
+            : "Pending Recharge Request"
+        }
+        filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
@@ -375,7 +403,6 @@ filters={dataFilters}
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-       
         <Datagrid size="small" bulkActionButtons={false}>
           <TextField source="username" label="Account" />
           <NumberField
@@ -424,22 +451,37 @@ filters={dataFilters}
               );
             }}
           />
-            <FunctionField
-              label="Parent"
-              render={(record) => {
-                return record?.userParentName;
-              }}
-            />
-          
+          <FunctionField
+            label="Parent"
+            render={(record) => {
+              return record?.userParentName;
+            }}
+          />
+
           {role === "Super-User" && (
             <FunctionField
               label="Mode"
               render={(record) => {
-                return <Chip label={ record?.referralLink?.toLowerCase().includes("aog") ? "AOG" : record?.useWallet ? "Wallet" : "Stripe"} />;
+                return (
+                  <Chip
+                    label={
+                      record?.referralLink?.toLowerCase().includes("aog")
+                        ? "AOG"
+                        : record?.useWallet
+                        ? "Wallet"
+                        : "Stripe"
+                    }
+                  />
+                );
               }}
             />
           )}
-          <DateField source="transactionDate" label="RechargeDate" showTime sortable/>
+          <DateField
+            source="transactionDate"
+            label="RechargeDate"
+            showTime
+            sortable
+          />
           <FunctionField
             label="Action"
             render={(record) =>
