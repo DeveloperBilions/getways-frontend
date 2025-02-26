@@ -52,6 +52,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import EmergencyNotices from "../../Layout/EmergencyNotices";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -331,6 +332,8 @@ export const RedeemRecordsList = (props) => {
   }
   return (
     <>
+  {(role === "Master-Agent" || role  === "Agent" )&& 
+    <EmergencyNotices /> }
       {(identity?.role === "Master-Agent" || identity?.role === "Agent") &&
         identity?.balance < 500 && (
           <Alert severity="error" sx={{ mb: 2 }}>

@@ -26,7 +26,8 @@ import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMetho
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 import GuidelineModal from "../Views/User/dialog/GuidelineModal";
-
+import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
+import AnnouncementIcon from '@mui/icons-material/Announcement';
 //to be used when we create custom user menu
 const MyUserMenu = React.forwardRef((props, ref) => {
   return <></>;
@@ -40,6 +41,7 @@ export default function MyAppBar({ props }) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false); // New state for Help Video Modal
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openGuideline, setOpenGuideline] = React.useState(false); // State for Guideline Modal
+  const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false); // State for Guideline Modal
 
   const role = localStorage.getItem("role")
   const navigate = useNavigate()
@@ -56,6 +58,9 @@ export default function MyAppBar({ props }) {
 
   const handleCloseRechargeLimit = () => {
     setOpenRechargeLimit(false);
+  };
+  const handleCloseEmergencymodal = () => {
+    setOpenEmergencyModal(false);
   };
   console.log(identity,"identity")
   return (
@@ -141,6 +146,17 @@ export default function MyAppBar({ props }) {
             Payment Methods
           </MenuItem>
         )}
+        {role === "Super-User" && (
+          <MenuItem
+            onClick={(e) =>{
+              setOpenEmergencyModal(true)
+            }}
+            style={{ color: "#0000008a" }}
+          >
+            <AnnouncementIcon sx={{ marginRight: 1 }} />
+            Emergency Message
+          </MenuItem>
+        )}
          {identity?.redeemServiceEnabled && role === "Master-Agent" && (
           <MenuItem onClick={() => setOpenRedeemService(true)} style={{ color: "#0000008a" }}>
             <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
@@ -165,6 +181,7 @@ export default function MyAppBar({ props }) {
       <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
       <AllRedeemService open={openRedeemService} onClose={() => setOpenRedeemService(false)} />
       <GuidelineModal open={openGuideline} onClose={() => setOpenGuideline(false)} />
+      <EmergencyMessageDialog open={openEmergencyModal} onClose={() => setOpenEmergencyModal(false)} />
     </AppBar>
   );
 }

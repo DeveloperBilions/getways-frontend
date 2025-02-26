@@ -52,6 +52,7 @@ import BackupTableIcon from "@mui/icons-material/BackupTable";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
+import EmergencyNotices from "../../Layout/EmergencyNotices";
 
 const Summary = ({ selectedUser ,startDate , endDate}) => {
   const shouldFetch = startDate && endDate;
@@ -1027,6 +1028,8 @@ export const DataSummary = () => {
   };
   return (
     <React.Fragment>
+       {(role === "Master-Agent" || role  === "Agent" )&& 
+    <EmergencyNotices /> }
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
       <Box
             display="flex"

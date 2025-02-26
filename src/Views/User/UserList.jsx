@@ -38,6 +38,7 @@ import { Parse } from "parse";
 import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
+import EmergencyNotices from "../../Layout/EmergencyNotices";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -352,6 +353,9 @@ export const UserList = (props) => {
   }
   
   return (
+    <>
+    {(role === "Master-Agent" || role  === "Agent" )&& 
+    <EmergencyNotices /> }
       <List
   title="User Management"
   filters={dataFilters}
@@ -397,5 +401,6 @@ export const UserList = (props) => {
           referralCode={referralCode}
         />
       </List>
+      </>
   );
 };
