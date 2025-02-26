@@ -136,7 +136,7 @@ export const authProvider = {
         redeemServiceEnabled: user.get("redeemServiceEnabled"),
         isDeleted: user.get("isDeleted"),
         isBlackListed:user.get("isBlackListed"),
-        balance:user.get("balance")
+        balance:user.get("potBalance")
       };
     } catch (error) {
       console.error("Error getting user identity:", error?.message);

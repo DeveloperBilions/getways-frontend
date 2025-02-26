@@ -2,6 +2,7 @@ import { Parse } from "parse";
 import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
 import Stripe from "stripe";
 import { sendMoneyToPayPal } from "../Utils/sendMoney";
+import { getParentUserId, updatePotBalance } from "../Utils/utils";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1545,25 +1546,25 @@ export const dataProvider = {
         }
         transaction.set("transactionAmount", tempAmount); 
         // Save the transaction and wallet updates
-        if ((paymentMode === "paypalId" || paymentMode === "venmoId") && paymentMethodType) {
-          const type =  paymentMode === "paypalId" ? "PAYPAL" : "VENMO"
+      //   if ((paymentMode === "paypalId" || paymentMode === "venmoId") && paymentMethodType) {
+      //     const type =  paymentMode === "paypalId" ? "PAYPAL" : "VENMO"
 
-          const paypalResponse = await sendMoneyToPayPal("sb-0zh2m38000684@personal.example.com", transactionAmount, "USD", type);
+      //     const paypalResponse = await sendMoneyToPayPal("sb-0zh2m38000684@personal.example.com", transactionAmount, "USD", type);
 
-          if (!paypalResponse.success) {
-            throw new Error(`PayPal payment failed: ${paypalResponse.error || "Unknown error"}`);
-          }
+      //     if (!paypalResponse.success) {
+      //       throw new Error(`PayPal payment failed: ${paypalResponse.error || "Unknown error"}`);
+      //     }
 
-          // Store PayPal payout batch ID for future verification
-          transaction.set("paypalPayoutBatchId", paypalResponse.payoutBatchId);
-          if(paypalResponse?.paypalStatus === "SUCCESS"){
-            transaction.set("status",12)
-          }
-          else if(paypalResponse?.paypalStatus === "PENDING")
-          {
-            transaction.set("status",14)
-          }
-      }
+      //     // Store PayPal payout batch ID for future verification
+      //     transaction.set("paypalPayoutBatchId", paypalResponse.payoutBatchId);
+      //     if(paypalResponse?.paypalStatus === "SUCCESS"){
+      //       transaction.set("status",12)
+      //     }
+      //     else if(paypalResponse?.paypalStatus === "PENDING")
+      //     {
+      //       transaction.set("status",14)
+      //     }
+      // }
 
         await transaction.save(null);
 
@@ -1655,20 +1656,29 @@ export const dataProvider = {
           `Transaction record not found for session ID: ${sessionId}`
         );
       }
+      let newStatus = 1; // Default to pending
       // Update the transaction status based on the Stripe session status
       if (session.status === "complete") {
         transaction.set("status", 2); // Assuming 2 represents 'completed'
+              newStatus = 2; // Completed
       } else if (session.status === "pending" || session.status === "open") {
         transaction.set("status", 1); // Pending
+        newStatus = 1;
       } else if (session.status === "expired") {
         transaction.set("status", 9); // Expired
+        newStatus = 9; // Expired
       } else {
         transaction.set("status", 10); // Failed or canceled
+        newStatus = 10
         // Failed or canceled
       }
 
       await transaction.save(null);
 
+       if (newStatus === 2) {
+      const parentUserId = await getParentUserId(transaction.get("userId"));
+      await updatePotBalance(parentUserId, transaction.get("transactionAmount"), "recharge");
+    }
       return {
         transaction: { id: transaction.id, ...transaction.attributes },
         stripeSession: session,
@@ -1776,6 +1786,9 @@ export const dataProvider = {
         transactionDetails.set("transactionIdFromStripe", session.id);
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
+        const parentUserId = await getParentUserId(id);
+        await updatePotBalance(parentUserId,  (Math.floor(parseFloat(transactionAmount) * 100) / 100 / 100) ,"recharge" )
+
       }
 
       // Save the transaction record
