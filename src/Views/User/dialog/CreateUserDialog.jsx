@@ -56,6 +56,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     setUserName("");
     setName("");
     setEmail("");
+    setPhoneNumber("");
     setPassword("");
     setConfirmPassword("");
     setErrorMessage("");
@@ -334,10 +335,10 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                       value={phoneNumber}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (value === "" || /^(\+?[1-9]\d{0,13})$/.test(value) || value === "+") {
+                        if (/^\d{0,10}$/.test(value)) {
                           setPhoneNumber(value);
                         }
-                      }}
+                      }}                      
                       required
                     />
                   </FormGroup>

@@ -14,6 +14,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { useNotify } from "react-admin";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -27,6 +28,7 @@ const DeleteUserDialog = ({
 }) => {
   const [deleteInput, setDeleteInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const notify = useNotify();
 
   const handleInputChange = (event) => {
     setDeleteInput(event.target.value);
@@ -45,12 +47,14 @@ const DeleteUserDialog = ({
       await Parse.Cloud.run("deleteUser", {
         userId,
       });
+      notify("User deleted successfully", { type: "success", autoHideDuration: 5000 });
       onClose();
       setLoading(false);
       fetchAllUsers();
       handleRefresh();
     } catch (error) {
       console.error("Error Deleting User details", error);
+      notify("Error Deleting User details", { type: "warning", autoHideDuration: 5000 });
     } finally {
       setLoading(false);
     }

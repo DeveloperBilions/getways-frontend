@@ -1,6 +1,6 @@
 const usernameRegex = /^[a-zA-Z0-9 _.-]+$/;
-const nameRegex = /^[a-zA-Z\s]{1,50}$/;
-const phoneNumberRegex = /^(\+?[1-9]\d{0,14})$/;
+const nameRegex = /^[a-zA-Z\s]{1,25}$/;
+const phoneNumberRegex = /^\d{10}$/;
 const emailRegex = /^(?!.*\.\.)([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})$/;
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@.!_])[A-Za-z\d@.!_]{6,}$/;
 export function validateCreateUser(user) {
@@ -10,13 +10,13 @@ export function validateCreateUser(user) {
     if (!user.username) {
         errors.username = "Username is required";
     } else if (!usernameRegex.test(user.username)) {
-        errors.username = "Username must be 3-16 characters, alphanumeric, and may include underscores";
+        errors.username = "Username can only contain letters, numbers, spaces, underscores (_), and dots (.)";
     }
 
     if (!user.name) {
         errors.name = "Name is required";
     } else if (!nameRegex.test(user.name)) {
-        errors.name = "Name must contain only letters and spaces, up to 50 characters";
+        errors.name = "Name must contain only letters and spaces, up to 25 characters";
     }
 
     if (!user.phoneNumber) {

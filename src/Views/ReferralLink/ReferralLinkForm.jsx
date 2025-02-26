@@ -250,12 +250,12 @@ const ReferralLinkForm = () => {
                         <Input
                           id="phoneNumber"
                           name="phoneNumber"
-                          type="number"
+                          type="text"
                           autoComplete="off"
                           value={phoneNumber}
                           onChange={(e) => {
                             const value = e.target.value;
-                            if (value === "" || /^(\+?[1-9]\d{0,13})$/.test(value) || value === "+") {
+                            if (/^\d{0,10}$/.test(value)) {
                               setPhoneNumber(value);
                             }
                           }}
