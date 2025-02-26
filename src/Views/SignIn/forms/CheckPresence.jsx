@@ -11,6 +11,7 @@ import {
   FormHelperText,
   OutlinedInput,
   useMediaQuery,
+  Alert,
 } from "@mui/material";
 // hook form
 import { useForm } from "react-hook-form";
@@ -42,6 +43,7 @@ const LoginPage = () => {
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
@@ -59,6 +61,10 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
         setLoading(true);
+        if (data?.emailPhone === "") {
+          setErrorMessage("Please enter email or phone number");
+          return;
+        }
         const response = await Parse.Cloud.run("checkpresence", data);
 
         if (response?.fromAgentExcel) {
@@ -140,6 +146,13 @@ const LoginPage = () => {
             <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
               Sign in
             </Typography>
+            <Box mb={3}>
+              {errorMessage && (
+                <Alert severity="error" onClose={() => setErrorMessage("")}>
+                  {errorMessage}
+                </Alert>
+              )}
+            </Box>
             <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
               <Typography htmlFor="emailPhone" sx={{ mt: 1 }}>
                 Email / Phone

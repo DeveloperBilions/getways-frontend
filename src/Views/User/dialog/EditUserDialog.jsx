@@ -141,7 +141,7 @@ const EditUserDialog = ({
                       value={userName}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                        if (/^[a-zA-Z0-9_.-]*$/.test(value)) { // Prevents invalid characters from being typed
                           setUserName(value);
                         }
                       }}
