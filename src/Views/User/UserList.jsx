@@ -39,6 +39,7 @@ import WalletDialog from "./dialog/WalletDialog";
 import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
+import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -56,6 +57,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const [passwordPermissionDialogOpen, setPasswordPermissionDialogOpen] =
     useState(false);
   const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
+  const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
 
   const role = localStorage.getItem("role");
   const record = useRecordContext();
@@ -105,6 +107,10 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
     handleClose();
     setWalletDialogOpen(true); // Open the wallet modal
   };
+  const handleDrawer = () => {
+    handleClose();
+    setDrawerDialogOpen(true);
+  };
 
   return (
     <React.Fragment>
@@ -137,6 +143,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
               Redeem Service Fee
             </MenuItem>
           )}
+         
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") && (
           <MenuItem
@@ -149,6 +156,14 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           </MenuItem>
         )}
         <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
+            role === "Super-User") && (
+            <MenuItem onClick={handleDrawer}>
+              Drawer
+            </MenuItem>
+          )}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
         )}
@@ -219,6 +234,11 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         record={record}
         handleRefresh={handleRefresh}
       />
+      <TransactionSummaryModal
+  open={drawerDialogOpen}
+  onClose={() => setDrawerDialogOpen(false)}
+  record={record}
+  />
     </React.Fragment>
   );
 };
@@ -338,13 +358,13 @@ export const UserList = (props) => {
     refresh(); // ✅ Forces a fresh request
 }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refresh();
-    }, 60000); // Refresh every 60 seconds
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     refresh();
+  //   }, 60000); // Refresh every 60 seconds
 
-    return () => clearInterval(interval);
-  }, [refresh]);
+  //   return () => clearInterval(interval);
+  // }, [refresh]);
 
   if(isLoading) {
     return(
