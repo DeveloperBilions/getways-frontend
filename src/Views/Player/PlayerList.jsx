@@ -29,6 +29,7 @@ import RechargeDialog from "../RechargeRecords/dialog/RechargeDialog";
 import RedeemDialog from "./dialog/PlayerRedeemDialog";
 // loader
 import { Loader } from "../Loader";
+import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
 
 export const PlayerList = () => {
   const { data, isLoading } = useGetList("playerDashboard");
@@ -81,13 +82,13 @@ export const PlayerList = () => {
       id: 2,
       name: "Total Redeems",
       value:  totalRedeems,
-      icon: MoneyReciveDarkIcon,
+      icon: AOGSymbol,
     },
     {
       id: 3,
       name: "Pending Recharges",
       value:  pendingRecharges,
-      icon: MoneySendDarkIcon,
+      icon: AOGSymbol,
       url: "rechargeRecords",
     },
     {

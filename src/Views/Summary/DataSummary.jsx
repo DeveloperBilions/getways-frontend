@@ -54,7 +54,7 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 
-const Summary = ({ selectedUser ,startDate , endDate}) => {
+const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
   const { data, isLoading } = useGetList(
     "summary",
@@ -98,7 +98,7 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
         </Card>
       </Box>
     );
-  }  
+  }
   if (isLoading || !data) {
     return (
       <Box
@@ -540,9 +540,14 @@ export const DataSummary = () => {
       const { data } = await dataProvider.getList("users", {
         pagination: { page: pageNum, perPage },
         sort: { field: "username", order: "ASC" },
-        filter: search ? { username: search,  $or: [{ userReferralCode: "" }, { userReferralCode: null }] } : {
-          $or: [{ userReferralCode: "" }, { userReferralCode: null }]
-       },
+        filter: search
+          ? {
+              username: search,
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+            }
+          : {
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+            },
       });
 
       const formattedData = data
@@ -1024,140 +1029,143 @@ export const DataSummary = () => {
   const handleFilterSubmit = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
-    setSelectedUser(selectedUsertemp)
+    setSelectedUser(selectedUsertemp);
   };
   return (
     <React.Fragment>
-       {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-      <Box
-            display="flex"
-            
-          >
-        <FilterForm
-          filters={dataFilters}
-          sx={{
-            flex: "0 2 auto !important",
-            padding: "0px 0px 0px 0px !important",
-            alignItems: "flex-start",
-          }}
-        />{" "}
-         <Box
+        <Box display="flex">
+          <FilterForm
+            filters={dataFilters}
+            sx={{
+              flex: "0 2 auto !important",
+              padding: "0px 0px 0px 0px !important",
+              alignItems: "flex-start",
+            }}
+          />{" "}
+          <Box
             display="flex"
             justifyContent="flex-end"
             sx={{ mb: 2, marginTop: "10px" }}
           >
-  <Button
-    source="date"
-    variant="contained"
-    onClick={handleFilterSubmit}
-    sx={{  mb: 2,marginRight: "10px",whiteSpace:"nowrap"  }} // Adds left margin for spacing
-  >
-    Apply Filter
-  </Button></Box>
-  </Box>
-        {role === "Super-User" && (
-          <Box
-            display="flex"
-            justifyContent="flex-start"
-            sx={{ mb: 2 }}
-          >
             <Button
+              source="date"
               variant="contained"
-              startIcon={<GetAppIcon />}
-              onClick={handleMenuRedeemOpen}
-              style={{ marginRight: "10px" }}
+              onClick={handleFilterSubmit}
+              sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
             >
-              Redeem Data Export
+              Apply Filter
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<GetAppIcon />}
-              onClick={handleMenuOpen}
-            >
-              Recharge Data Export
-            </Button>
-            <Menu
-              anchorEl={menuAnchor}
-              open={Boolean(menuAnchor)}
-              onClose={handleMenuClose}
-            >
-              <MenuItem
-                onClick={() => {
-                  handleExportRechargePDF();
-                  // handleMenuClose();
-                }}
-                disabled={isExporting}
-              >
-                <ListItemIcon>
-                  {isExporting ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <PictureAsPdfIcon fontSize="small" />
-                  )}
-                </ListItemIcon>
-                PDF
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleExportRechargeXLS();
-                  //  handleMenuClose();
-                }}
-                disabled={isExporting}
-              >
-                <ListItemIcon>
-                  {isExporting ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <BackupTableIcon fontSize="small" />
-                  )}
-                </ListItemIcon>
-                Excel
-              </MenuItem>
-            </Menu>
-
-            <Menu
-              anchorEl={menuAnchorRedeem}
-              open={Boolean(menuAnchorRedeem)}
-              onClose={handleMenuRedeemClose}
-            >
-              <MenuItem
-                onClick={() => {
-                  handleExportRedeemPDF();
-                  //handleMenuRedeemClose();
-                }}
-                disabled={isExporting}
-              >
-                <ListItemIcon>
-                  {isExporting ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <PictureAsPdfIcon fontSize="small" />
-                  )}
-                </ListItemIcon>
-                PDF
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleExportRedeemXLS();
-                  //  handleMenuRedeemClose();
-                }}
-                disabled={isExporting}
-              >
-                <ListItemIcon>
-                  {isExporting ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <BackupTableIcon fontSize="small" />
-                  )}
-                </ListItemIcon>
-                Excel
-              </MenuItem>
-            </Menu>
           </Box>
-        )}
-        <Summary selectedUser={selectedUser} startDate={startDate} endDate={endDate} />
+          {role === "Super-User" && (
+            <Box
+              display="flex"
+              justifyContent="flex-start"
+              sx={{ mb: 2, marginTop: "10px" }}
+            >
+              <Button
+                variant="contained"
+                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
+                onClick={handleMenuRedeemOpen}
+                sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
+              >
+                Redeem Export{" "}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
+                onClick={handleMenuOpen}
+                sx={{ mb: 2, whiteSpace: "nowrap" }}
+              >
+                Recharge Export
+              </Button>
+              <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleExportRechargePDF();
+                    // handleMenuClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PictureAsPdfIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  PDF
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRechargeXLS();
+                    //  handleMenuClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <BackupTableIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  Excel
+                </MenuItem>
+              </Menu>
+
+              <Menu
+                anchorEl={menuAnchorRedeem}
+                open={Boolean(menuAnchorRedeem)}
+                onClose={handleMenuRedeemClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleExportRedeemPDF();
+                    //handleMenuRedeemClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PictureAsPdfIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  PDF
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRedeemXLS();
+                    //  handleMenuRedeemClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <BackupTableIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  Excel
+                </MenuItem>
+              </Menu>
+            </Box>
+          )}
+        </Box>
+
+        <Summary
+          selectedUser={selectedUser}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </ListBase>
     </React.Fragment>
   );
