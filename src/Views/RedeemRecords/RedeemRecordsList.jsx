@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -15,7 +15,8 @@ import {
   useRefresh,
   SelectInput,
   useListController,
-  Pagination
+  Pagination,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -56,7 +57,17 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+  } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { identity } = useGetIdentity();
@@ -75,7 +86,9 @@ export const RedeemRecordsList = (props) => {
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
   const [searchBy, setSearchBy] = useState("username");
- 
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
+
   if (!role) {
     navigate("/login");
   }
@@ -144,7 +157,7 @@ export const RedeemRecordsList = (props) => {
   const handleRefresh = async () => {
     refresh();
   };
-   
+
   useEffect(() => {
     const interval = setInterval(() => {
       handleRefresh();
@@ -210,29 +223,85 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleSearchChange = (e) => {
-    if (e) {
-      const value = e.target.value;
-      setSearchValue(value);
+  const searchFields = ["username", "transactionAmount", "remark"];
+
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
     }
+
+    newFilters.searchBy = newSearchBy;
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    setFilters(newFilters, false);
   };
 
-  const handleStatusChange = (e) => {
-    if (e) {
-      setStatusValue(e.target.value);
-      console.log(e.target.value);
+  useEffect(() => {
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
+
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
     }
-  };
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter(
+        (key) =>
+          !searchFields.includes(key) || key === searchBy || key === "role"
+      )
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
     <SearchInput source={searchBy} alwaysOn resettable />,
     <SelectInput
       source="searchBy"
       label="Search By"
-      emptyText={""}
+      validate={required()}
       alwaysOn
-      resettable
-      value={searchBy || "username"}
-      onChange={(e) => setSearchBy(e?.target?.value || "username")}
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
       choices={[
         { id: "username", name: "Account" },
         { id: "transactionAmount", name: "Redeem" },
@@ -333,10 +402,12 @@ export const RedeemRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
   return (
     <>
@@ -374,36 +445,40 @@ export const RedeemRecordsList = (props) => {
         )}
       </Box>
       <List
-
-
-title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" }
+        title={
+          identity?.role !== "Player"
+            ? "Redeem Records"
+            : "Pending Redeem Request"
+        }
         filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={identity?.role !== "Player"
-        ? { type: "redeem" }
-        : { type: "redeem", status: 6 }
+        filter={
+          identity?.role !== "Player"
+            ? { type: "redeem" }
+            : { type: "redeem", status: 6 }
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-        
-        <Datagrid size="small" bulkActionButtons={false}
-        sx={{
-          minWidth: "1000px", // Ensures the table is wide enough to scroll
-          tableLayout: "fixed", // Fix column sizes
-          "& .RaDatagrid-table": {
-            width: "100%", // Ensures table fills the available space
-          },
-          "& .column-paymentMethodType": {
-            minWidth: "150px", // Ensure this column is wide enough
-            maxWidth: "150px",
-            whiteSpace: "nowrap"
-          },
-        }}
+        <Datagrid
+          size="small"
+          bulkActionButtons={false}
+          sx={{
+            minWidth: "1000px", // Ensures the table is wide enough to scroll
+            tableLayout: "fixed", // Fix column sizes
+            "& .RaDatagrid-table": {
+              width: "100%", // Ensures table fills the available space
+            },
+            "& .column-paymentMethodType": {
+              minWidth: "150px", // Ensure this column is wide enough
+              maxWidth: "150px",
+              whiteSpace: "nowrap",
+            },
+          }}
         >
           <TextField source="username" label="Account" />
           <NumberField
@@ -411,12 +486,12 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
             label="Redeemed"
             textAlign="left"
           />
-           <FunctionField
-              label="Parent"
-              render={(record) => {
-                return record?.userParentName;
-              }}
-            />
+          <FunctionField
+            label="Parent"
+            render={(record) => {
+              return record?.userParentName;
+            }}
+          />
           <FunctionField
             source="redeemServiceFee"
             label="ServiceFee"
@@ -470,7 +545,12 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
               );
             }}
           />
-          <DateField source="transactionDate" label="RedeemDate" showTime sortable />
+          <DateField
+            source="transactionDate"
+            label="RedeemDate"
+            showTime
+            sortable
+          />
           {identity?.role === "Super-User" && (
             <TextField source="paymentMode" label="Payment Method" />
           )}
@@ -562,7 +642,7 @@ title={identity?.role !== "Player" ? "Redeem Records": "Pending Redeem Request" 
               ) : null
             }
           />
-        </Datagrid> 
+        </Datagrid>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

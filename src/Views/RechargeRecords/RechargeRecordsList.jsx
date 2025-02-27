@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -16,6 +16,7 @@ import {
   SelectInput,
   useListController,
   Pagination,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -85,6 +86,8 @@ export const RechargeRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   const role = localStorage.getItem("role");
 
@@ -228,21 +231,84 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleStatusChange = (e) => {
-    if (e) {
-      setStatusValue(e?.target?.value);
+  const searchFields = ["username", "transactionAmount", "remark"];
+
+const handleSearchByChange = (newSearchBy) => {
+  setSearchBy(newSearchBy);
+  setPrevSearchBy(newSearchBy);
+
+  const currentSearchValue = filterValues[prevSearchBy] || "";
+  const newFilters = {};
+
+  Object.keys(filterValues).forEach((key) => {
+    if (key !== prevSearchBy && !searchFields.includes(key)) {
+      newFilters[key] = filterValues[key];
     }
+  });
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[newSearchBy] = currentSearchValue;
+  }
+
+  newFilters.searchBy = newSearchBy;
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  setFilters(newFilters, false);
+};
+
+useEffect(() => {
+  // Compare current filterValues with previous filterValues
+  const prevFilterValues = prevFilterValuesRef.current;
+  const filterValuesChanged =
+    JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+  // Update the ref with current filterValues for the next run
+  prevFilterValuesRef.current = filterValues;
+
+  // Skip if no meaningful change
+  if (!filterValuesChanged) {
+    return;
+  }
+  const currentSearchValue = filterValues[searchBy] || "";
+  const newFilters = {
+    searchBy,
   };
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[searchBy] = currentSearchValue;
+  }
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  const cleanedFilters = Object.keys(filterValues)
+    .filter(
+      (key) => !searchFields.includes(key) || key === searchBy || key === "role"
+    )
+    .reduce((obj, key) => {
+      obj[key] = filterValues[key];
+      return obj;
+    }, {});
+
+  setFilters({ ...cleanedFilters, ...newFilters }, false);
+}, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
     <SearchInput source={searchBy} alwaysOn resettable />,
     <SelectInput
       source="searchBy"
       label="Search By"
-      emptyText={""}
+      validate={required()}
       alwaysOn
-      resettable
-      value={searchBy || "username"}
-      onChange={(e) => setSearchBy(e?.target?.value || "username")}
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
       choices={[
         { id: "username", name: "Account" },
         { id: "transactionAmount", name: "Recharge" },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -261,6 +261,8 @@ export const UserList = (props) => {
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
@@ -306,6 +308,72 @@ export const UserList = (props) => {
     }
   };
 
+const searchFields = ["username", "email", "userParentName"];
+
+const handleSearchByChange = (newSearchBy) => {
+  setSearchBy(newSearchBy);
+  setPrevSearchBy(newSearchBy);
+
+  const currentSearchValue = filterValues[prevSearchBy] || "";
+  const newFilters = {};
+
+  Object.keys(filterValues).forEach((key) => {
+    if (key !== prevSearchBy && !searchFields.includes(key)) {
+      newFilters[key] = filterValues[key];
+    }
+  });
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[newSearchBy] = currentSearchValue;
+  }
+
+  newFilters.searchBy = newSearchBy;
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  setFilters(newFilters, false);
+};
+
+useEffect(() => {
+  // Compare current filterValues with previous filterValues
+  const prevFilterValues = prevFilterValuesRef.current;
+  const filterValuesChanged =
+    JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+  // Update the ref with current filterValues for the next run
+  prevFilterValuesRef.current = filterValues;
+
+  // Skip if no meaningful change
+  if (!filterValuesChanged) {
+    return;
+  }
+  const currentSearchValue = filterValues[searchBy] || "";
+  const newFilters = {
+    searchBy,
+  };
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[searchBy] = currentSearchValue;
+  }
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  const cleanedFilters = Object.keys(filterValues)
+    .filter(
+      (key) => !searchFields.includes(key) || key === searchBy || key === "role"
+    )
+    .reduce((obj, key) => {
+      obj[key] = filterValues[key];
+      return obj;
+    }, {});
+
+  setFilters({ ...cleanedFilters, ...newFilters }, false);
+}, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
     <SearchInput source={searchBy} alwaysOn resettable />,
     <SelectInput
@@ -313,18 +381,25 @@ export const UserList = (props) => {
       label="Search By"
       validate={required()}
       alwaysOn
-      // resettable 
-      value={searchBy || "username"}
-      onChange={(e) => setSearchBy(e?.target?.value || "username")}
-      choices={[
-        { id: "username", name: "Username" },
-        { id: "email", name: "Email" },
-        { id: "userParentName", name: "Parent Name" },
-      ]}
-      // defaultValue="username"
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
+      choices={
+        role === "superuser"
+          ? [
+              { id: "username", name: "Username" },
+              { id: "email", name: "Email" },
+              { id: "userParentName", name: "Parent Name" },
+            ]
+          : [
+              { id: "username", name: "Username" },
+              { id: "email", name: "Email" },
+            ]
+      }
     />,
   ];
-
   // Conditionally add SelectInput if role is "Super-User"
   if (role === "Super-User") {
     dataFilters.push(
@@ -408,7 +483,6 @@ export const UserList = (props) => {
           { username: "" },
         ],
       }}
-      filterDefaultValues={{searchBy: "username"}}
       {...props}
       pagination={<Pagination />}
       sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
