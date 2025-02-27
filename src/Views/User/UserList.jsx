@@ -245,7 +245,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters,setSort } = listContext;
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -356,6 +356,11 @@ export const UserList = (props) => {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
+}, []);
+
+useEffect(() => {
+  setFilters({}, {}); // Clear filters when the component mounts
+  setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
 }, []);
 
   // useEffect(() => {
