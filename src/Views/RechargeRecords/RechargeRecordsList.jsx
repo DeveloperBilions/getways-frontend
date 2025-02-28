@@ -53,6 +53,7 @@ import { Loader } from "../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import EmergencyNotices from "../../Layout/EmergencyNotices";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -331,6 +332,8 @@ export const RechargeRecordsList = (props) => {
   }
   return (
     <>
+     {(role === "Master-Agent" || role  === "Agent" )&& 
+    <EmergencyNotices /> }
       <Box
         sx={{
           display: "flex",

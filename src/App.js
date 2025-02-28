@@ -45,6 +45,27 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { Reports } from "./Views/Reports/Reports";
 
 function App() {
+  useEffect(() => {
+    // Disable right-click
+    const disableRightClick = (event) => event.preventDefault();
+    document.addEventListener("contextmenu", disableRightClick);
+
+    // Detect DevTools open
+    const checkDevTools = () => {
+      if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+        alert("DevTools is open! Closing the page for security.");
+        //window.location.href = "about:blank"; // Redirect or block
+      }
+    };
+
+    const interval = setInterval(checkDevTools, 1000); // Check every second
+
+    return () => {
+      document.removeEventListener("contextmenu", disableRightClick);
+      clearInterval(interval);
+    };
+  }, []);
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

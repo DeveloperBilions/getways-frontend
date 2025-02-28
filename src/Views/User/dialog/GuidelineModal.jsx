@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import AOGSymbol from "../../../Assets/icons/AOGsymbol.png";
 
 const GuidelineModal = ({ open, onClose }) => {
   return (
@@ -45,29 +46,57 @@ const GuidelineModal = ({ open, onClose }) => {
         <Typography variant="subtitle2" sx={{ fontWeight: "bold", mt: 1 }}>
           Recharge through portals
         </Typography>
-        <Typography variant="body2">Maximum Amount per transaction: <b>$500</b></Typography>
-        <Typography variant="body2">Minimum Amount per transaction: <b>$15</b></Typography>
+        <Typography variant="body2">Maximum Amount per transaction: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px" }}
+                /> 500</b></Typography>
+        <Typography variant="body2">Minimum Amount per transaction: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 15</b></Typography>
         <Divider sx={{ my: 1.5 }} />
 
         <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
           Recharge through Wallet
         </Typography>
-        <Typography variant="body2">Maximum Amount per transaction: <b>$500</b></Typography>
+        <Typography variant="body2">Maximum Amount per transaction: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 500</b></Typography>
         <Typography variant="body2">Minimum Amount: <b>No limit</b></Typography>
         <Divider sx={{ my: 1.5 }} />
 
         <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
           Redeems
         </Typography>
-        <Typography variant="body2">Maximum Amount per day: <b>$2000</b></Typography>
-        <Typography variant="body2">Minimum Amount per transaction: <b>$15</b></Typography>
+        <Typography variant="body2">Maximum Amount per day: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 2000</b></Typography>
+        <Typography variant="body2">Minimum Amount per transaction: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 15</b></Typography>
         <Divider sx={{ my: 1.5 }} />
 
         <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
           Cashout for Players
         </Typography>
-        <Typography variant="body2">Maximum Cashout per day: <b>$1000</b></Typography>
-        <Typography variant="body2">Minimum Cashout per transaction: <b>$15</b></Typography>
+        <Typography variant="body2">Maximum Cashout per day: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 1000</b></Typography>
+        <Typography variant="body2">Minimum Cashout per transaction: <b><img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 15</b></Typography>
         <Typography variant="body2">
           Processing Time: <b>Cashouts may take minimum 2 hours to maximum upto 6 hours in certain cases.</b>
         </Typography>
@@ -80,10 +109,18 @@ const GuidelineModal = ({ open, onClose }) => {
           Cashout for Agents
         </Typography>
         <Typography variant="body2">
-          <b>New Agents:</b> A pot balance of $200 is required to enable cashouts for their players.
+          <b>New Agents:</b> A pot balance of <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 200 is required to enable cashouts for their players.
         </Typography>
         <Typography variant="body2">
-          <b>Existing Agents (Accounts Older Than 30 Days):</b> A minimum balance of $500 is required for cashouts for their players.
+          <b>Existing Agents (Accounts Older Than 30 Days):</b> A minimum balance of <img
+                  src={AOGSymbol}
+                  alt="AOG Symbol"
+                  style={{ width: "15px", height: "15px"}}
+                /> 500 is required for cashouts for their players.
         </Typography>
         <Typography variant="body2">
           <b>Cashout Schedule for Agents:</b> Cashouts are processed monthly on the 6th of next month.

@@ -5,6 +5,8 @@ import {
 } from "../utils";
 import Stripe from "stripe";
 import { validatePositiveNumber } from "../Validators/number.validator";
+import { sendMoneyToPayPal } from "../Utils/sendMoney";
+import { getParentUserId, updatePotBalance } from "../Utils/utils";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1081,6 +1083,7 @@ export const dataProvider = {
           "redeemRemarks",
           "username"
         );
+        
         transactionQuery.limit(100000);
         var results = await transactionQuery.find();
 
@@ -1359,41 +1362,68 @@ export const dataProvider = {
             "userParentName"
           ); // Include userParentId and name
           const userResults = await userQuery.find({ useMasterKey: true });
-
+        
           // Create a map: userId -> userParentId & userParentName
           const userMap = {};
+          const parentIds = new Set(); // To store unique parent IDs
+        
           userResults.forEach((user) => {
+            const userParentId = user.get("userParentId") || null;
             userMap[user.id] = {
-              userParentId: user.get("userParentId") || null,
+              userParentId,
               userParentName: user.get("userParentName") || null,
             };
+        
+            if (userParentId) {
+              parentIds.add(userParentId); // Collect unique parent IDs
+            }
           });
-
-          console.log(
-            "userMap - Ensuring userParentId & userParentName:",
-            userMap
-          );
-
-          // Debug: Check if transaction.get("userId") exists in userMap
+        
+          console.log("userMap - Ensuring userParentId & userParentName:", userMap);
+        
+          // Fetch balance for userParentIds
+          let parentBalanceMap = {};
+          if (parentIds.size > 0) {
+            const parentQuery = new Parse.Query(Parse.User);
+            parentQuery.containedIn("objectId", Array.from(parentIds));
+            parentQuery.select("objectId", "potBalance"); // Fetch balance
+        
+            const parentResults = await parentQuery.find({ useMasterKey: true });
+        
+            parentResults.forEach((parent) => {
+              parentBalanceMap[parent.id] = parent.get("potBalance") || 0; // Default to 0 if balance is missing
+            });
+          }
+        
+          console.log("Parent balance map:", parentBalanceMap);
+        
+          // Map transactions with userParentId, userParentName, and userParentBalance
           results = results.map((transaction) => {
             const userId = transaction.get("userId");
+            const userParentId = userMap[userId]?.userParentId || null;
+            const userParentBalance = parentBalanceMap[userParentId] || null;
+        
             console.log(
               "Processing transaction for userId:",
               userId,
               "Mapped Data:",
-              userMap[userId]
+              userMap[userId],
+              "Parent Balance:",
+              userParentBalance
             ); // Debug
-
+        
             return {
               id: transaction.id,
               ...transaction.attributes,
-              userParentId: userMap[userId]?.userParentId || null,
+              userParentId,
               userParentName: userMap[userId]?.userParentName || null,
+              userParentBalance, // Include balance
             };
           });
+        
           console.log("Final results after mapping:", results); // Debug final output
           return { data: results, total: count };
-        }
+        }        
       }
       let res = null;
       if (resource !== "users") {
@@ -1601,6 +1631,8 @@ export const dataProvider = {
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
+      const paymentMode = transaction.get("paymentMode");
+      const paymentMethodType = transaction.get("paymentMethodType"); // PayPal ID
 
       if (transaction && transaction.get("status") === 11) {
         // Update transaction status
@@ -1608,6 +1640,7 @@ export const dataProvider = {
         if (redeemRemarks) {
           transaction.set("redeemRemarks", redeemRemarks);
         }
+
         // Get transaction amount and redeem service fee percentage
         const transactionAmount = transaction.get("transactionAmount") || 0;
         const redeemServiceFeePercentage =
@@ -1642,6 +1675,26 @@ export const dataProvider = {
         }
         transaction.set("transactionAmount", tempAmount);
         // Save the transaction and wallet updates
+      //   if ((paymentMode === "paypalId" || paymentMode === "venmoId") && paymentMethodType) {
+      //     const type =  paymentMode === "paypalId" ? "PAYPAL" : "VENMO"
+
+      //     const paypalResponse = await sendMoneyToPayPal("sb-0zh2m38000684@personal.example.com", transactionAmount, "USD", type);
+
+      //     if (!paypalResponse.success) {
+      //       throw new Error(`PayPal payment failed: ${paypalResponse.error || "Unknown error"}`);
+      //     }
+
+      //     // Store PayPal payout batch ID for future verification
+      //     transaction.set("paypalPayoutBatchId", paypalResponse.payoutBatchId);
+      //     if(paypalResponse?.paypalStatus === "SUCCESS"){
+      //       transaction.set("status",12)
+      //     }
+      //     else if(paypalResponse?.paypalStatus === "PENDING")
+      //     {
+      //       transaction.set("status",14)
+      //     }
+      // }
+
         await transaction.save(null);
 
         return {
@@ -1657,6 +1710,7 @@ export const dataProvider = {
         };
       }
     } catch (error) {
+      console.log(error,"paypalerrro")
       console.error("Final approval error:", error);
       throw error;
     }
@@ -1731,20 +1785,29 @@ export const dataProvider = {
           `Transaction record not found for session ID: ${sessionId}`
         );
       }
+      let newStatus = 1; // Default to pending
       // Update the transaction status based on the Stripe session status
       if (session.status === "complete") {
         transaction.set("status", 2); // Assuming 2 represents 'completed'
+              newStatus = 2; // Completed
       } else if (session.status === "pending" || session.status === "open") {
         transaction.set("status", 1); // Pending
+        newStatus = 1;
       } else if (session.status === "expired") {
         transaction.set("status", 9); // Expired
+        newStatus = 9; // Expired
       } else {
         transaction.set("status", 10); // Failed or canceled
+        newStatus = 10
         // Failed or canceled
       }
 
       await transaction.save(null);
 
+       if (newStatus === 2) {
+      const parentUserId = await getParentUserId(transaction.get("userId"));
+      await updatePotBalance(parentUserId, transaction.get("transactionAmount"), "recharge");
+    }
       return {
         transaction: { id: transaction.id, ...transaction.attributes },
         stripeSession: session,
@@ -1869,6 +1932,9 @@ export const dataProvider = {
         transactionDetails.set("transactionIdFromStripe", session.id);
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
+        const parentUserId = await getParentUserId(id);
+        await updatePotBalance(parentUserId,  (Math.floor(parseFloat(transactionAmount) * 100) / 100 / 100) ,"recharge" )
+
       }
 
       // Save the transaction record
