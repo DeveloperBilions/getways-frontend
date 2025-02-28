@@ -803,7 +803,12 @@ export const dataProvider = {
               "redeemServiceFee",
               "isCashOut",
               "transactionIdFromStripe",
-              "transactionDate"
+              "transactionDate",
+              "paymentMode",
+              "paymentMethodType",
+              "remark",
+              "redeemRemarks",
+              "username"
             );
             transactionQuery.containedIn("userId", ids);
 
@@ -829,17 +834,23 @@ export const dataProvider = {
 
             //transaction
             const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-              "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate"
-            );
+           transactionQuery.select(
+             "userId",
+             "status",
+             "transactionAmount",
+             "type",
+             "useWallet",
+             "redeemServiceFee",
+             "isCashOut",
+             "transactionIdFromStripe",
+             "transactionDate",
+             "paymentMode",
+             "paymentMethodType",
+             "remark",
+             "redeemRemarks",
+             "username"
+           );
+
             filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",

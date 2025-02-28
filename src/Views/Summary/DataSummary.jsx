@@ -513,8 +513,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
 export const DataSummary = () => {
   const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
-  const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [menuAnchorRecharge, setMenuAnchorRecharge] = React.useState(null);
   const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
+  const [menuAnchor, setMenuAnchor] = React.useState(null);
   const [isExporting, setIsExporting] = useState(false); // Track export progress
   const [exportdData, setExportData] = useState(null); // Store export data
   const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
@@ -600,12 +601,13 @@ export const DataSummary = () => {
       setLoadingData(false); // Hide loading state once data is fetched
     }
   };
-  const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
+
+  const handleMenuRechargeOpen = (event) => {
+    setMenuAnchorRecharge(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
+  const handleMenuRechargeClose = () => {
+    setMenuAnchorRecharge(null);
   };
   const handleMenuRedeemOpen = (event) => {
     setMenuAnchorRedeem(event.currentTarget);
@@ -613,6 +615,13 @@ export const DataSummary = () => {
 
   const handleMenuRedeemClose = () => {
     setMenuAnchorRedeem(null);
+  };
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
   };
   const formatDateForExcel = (date) => {
     if (!date) return date; // Keep the original value if it's null or undefined
@@ -886,19 +895,28 @@ export const DataSummary = () => {
 
   const handleExportAllDataXLS = async () => {
     const exportData = await loadAndExportData(); // Fetch data
+    console.log(exportData, "exportData");
+
+    const newData = [
+      ...exportData[0]?.totalRechargeByTypeData?.wallet,
+      ...exportData[0]?.totalRechargeByTypeData?.others,
+      ...exportData[0]?.totalRedeemByTypeData?.wallet,
+      ...exportData[0]?.totalRedeemByTypeData?.others,
+    ];
+    console.log(newData)
 
     // Flatten and combine all data
-    const combinedData = exportData.map((item) => ({
-      "Transaction ID": item.id,
+    const combinedData = newData?.map((item) => ({
+      "Transaction ID": item.transactionId,
       type: item?.type,
-      Amount: item.transactionAmount,
+      Amount: item.amount,
       "Transaction Date": formatDateForExcel(item.transactionDate),
       Status: item.status,
-      "Stripe Transaction ID": item.transactionIdFromStripe,
+      "Stripe Transaction ID": item.stripeTransactionId,
       "Redeem Service Fee": item.redeemServiceFee,
       "Agent Name": item?.agentName,
-      "User Name": item?.username,
-      isCashout: item?.isCashOut,
+      "User Name": item?.userName,
+      isCashout: item?.isCashout,
       paymentMode: item?.paymentMode,
       paymentMethodType: item?.paymentMethodType,
       remark: item?.remark,
@@ -960,7 +978,7 @@ export const DataSummary = () => {
   const dataFilters = [
     <Autocomplete
       source="username"
-      sx={{ width: 300 }}
+      sx={{ width: 230 }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -1075,15 +1093,45 @@ export const DataSummary = () => {
               <Button
                 variant="contained"
                 startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
+                onClick={handleMenuRechargeOpen}
+                sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }}
+              >
+                Recharge Export
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
                 onClick={handleMenuOpen}
                 sx={{ mb: 2, whiteSpace: "nowrap" }}
               >
-                Recharge Export
+                Export All
               </Button>
               <Menu
                 anchorEl={menuAnchor}
                 open={Boolean(menuAnchor)}
                 onClose={handleMenuClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleExportAllDataXLS();
+                    //  handleMenuRechargeClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <BackupTableIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  Excel
+                </MenuItem>
+              </Menu>
+              <Menu
+                anchorEl={menuAnchorRecharge}
+                open={Boolean(menuAnchorRecharge)}
+                onClose={handleMenuRechargeClose}
               >
                 <MenuItem
                   onClick={() => {
@@ -1104,7 +1152,7 @@ export const DataSummary = () => {
                 <MenuItem
                   onClick={() => {
                     handleExportRechargeXLS();
-                    //  handleMenuClose();
+                    //  handleMenuRechargeClose();
                   }}
                   disabled={isExporting}
                 >
@@ -1118,7 +1166,6 @@ export const DataSummary = () => {
                   Excel
                 </MenuItem>
               </Menu>
-
               <Menu
                 anchorEl={menuAnchorRedeem}
                 open={Boolean(menuAnchorRedeem)}
