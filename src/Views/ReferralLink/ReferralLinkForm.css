@@ -5,7 +5,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: auto;
   background-color: #f6f4f4;
 }
 
@@ -13,7 +13,7 @@
 .left-section {
   width: 40%;
   display: grid;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   position: relative;
 }
@@ -46,10 +46,20 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 0 80px;
 }
 
 .card-overrid {
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.1)!important;
   border-radius: 8px!important;
   border: none !important;
+}
+
+@media (max-width: 1400px) {
+  .left-section {
+    display: none;
+  }
+.right-section {
+  width: 100%;
+}
 }

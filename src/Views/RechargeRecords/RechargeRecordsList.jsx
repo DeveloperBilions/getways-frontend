@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -15,7 +15,8 @@ import {
   useRefresh,
   SelectInput,
   useListController,
-  Pagination
+  Pagination,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -61,7 +62,17 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+  } = listContext;
   const navigate = useNavigate();
   const refresh = useRefresh();
   const { permissions } = usePermissions();
@@ -75,6 +86,9 @@ export const RechargeRecordsList = (props) => {
   const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
+  const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   const role = localStorage.getItem("role");
 
@@ -94,7 +108,7 @@ export const RechargeRecordsList = (props) => {
           ...(statusValue && { status: statusValue }),
         },
       });
-      console.log(data,"datafromrechargeRecordsExport")
+      console.log(data, "datafromrechargeRecordsExport");
       setData(data);
       return data; // Return the fetched data
     } catch (error) {
@@ -134,9 +148,10 @@ export const RechargeRecordsList = (props) => {
   };
   const totalTransactionAmount =
     Data &&
-    Data
-      .filter((item) => item.status === 2 || item.status === 3)
-      .reduce((sum, item) => sum + item.transactionAmount, 0);
+    Data.filter((item) => item.status === 2 || item.status === 3).reduce(
+      (sum, item) => sum + item.transactionAmount,
+      0
+    );
 
   const handleRefresh = async () => {
     refresh();
@@ -145,9 +160,9 @@ export const RechargeRecordsList = (props) => {
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
-  
+
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);  
+  }, []);
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
     setCreditCoinDialogOpen(true);
@@ -217,16 +232,104 @@ export const RechargeRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleStatusChange = (e) => {
-    if (e) {
-      setStatusValue(e?.target?.value);
+  const searchFields = [
+    "username",
+    "transactionAmount",
+    "remark",
+    "userParentName",
+  ];
+
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
     }
+
+    newFilters.searchBy = newSearchBy;
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    setFilters(newFilters, false);
   };
+
+  useEffect(() => {
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
+
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
+    }
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter(
+        (key) =>
+          !searchFields.includes(key) || key === searchBy || key === "role"
+      )
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
-    <SearchInput
-      source="username"
+    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SelectInput
+      source="searchBy"
+      label="Search By"
+      validate={required()}
       alwaysOn
-      resettable
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
+      choices={
+        role === "Super-User"
+          ? [
+              { id: "username", name: "Account" },
+              { id: "transactionAmount", name: "Recharge" },
+              { id: "remark", name: "Remark" },
+              { id: "userParentName", name: "Parent Name" },
+            ]
+          : [
+              { id: "username", name: "Account" },
+              { id: "transactionAmount", name: "Recharge" },
+              { id: "remark", name: "Remark" },
+            ]
+      }
     />,
     permissions !== "Player" && (
       <SelectInput
@@ -306,7 +409,7 @@ export const RechargeRecordsList = (props) => {
         <MenuItem
           onClick={() => {
             handleExportXLS();
-           // handleMenuClose();
+            // handleMenuClose();
           }}
           disabled={isExporting}
         >
@@ -325,15 +428,16 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
   return (
     <>
-     {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <Box
         sx={{
           display: "flex",
@@ -363,8 +467,12 @@ export const RechargeRecordsList = (props) => {
         )}
       </Box>
       <List
-title={identity?.role !== "Player" ? "Recharge Records": "Pending Recharge Request" }
-filters={dataFilters}
+        title={
+          identity?.role !== "Player"
+            ? "Recharge Records"
+            : "Pending Recharge Request"
+        }
+        filters={dataFilters}
         actions={postListActions}
         sx={{ pt: 1 }}
         empty={false}
@@ -378,11 +486,10 @@ filters={dataFilters}
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-       
         <Datagrid size="small" bulkActionButtons={false}>
-        {identity?.role !== "Player" && (
-          <TextField source="username" label="Account" />
-        )}
+          {identity?.role !== "Player" && (
+            <TextField source="username" label="Account" />
+          )}
           <NumberField
             source="transactionAmount"
             label="Recharged"
@@ -441,11 +548,26 @@ filters={dataFilters}
             <FunctionField
               label="Mode"
               render={(record) => {
-                return <Chip label={ record?.referralLink?.toLowerCase().includes("aog") ? "AOG" : record?.useWallet ? "Wallet" : "Stripe"} />;
+                return (
+                  <Chip
+                    label={
+                      record?.referralLink?.toLowerCase().includes("aog")
+                        ? "AOG"
+                        : record?.useWallet
+                        ? "Wallet"
+                        : "Stripe"
+                    }
+                  />
+                );
               }}
             />
           )}
-          <DateField source="transactionDate" label="RechargeDate" showTime sortable/>
+          <DateField
+            source="transactionDate"
+            label="RechargeDate"
+            showTime
+            sortable
+          />
           <FunctionField
             label="Action"
             render={(record) =>
