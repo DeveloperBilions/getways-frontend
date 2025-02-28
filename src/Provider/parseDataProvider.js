@@ -204,7 +204,11 @@ export const dataProvider = {
                   query.matches(f, searchRegex);
                 }
               } else if (f === "role") {
-                if (["Player", "Agent", "Super-User"].includes(value)) {
+                if (
+                  ["Player", "Agent", "Super-User", "Master-Agent"].includes(
+                    value
+                  )
+                ) {
                   query.equalTo("roleName", value);
                 }
                 console.log(query);
