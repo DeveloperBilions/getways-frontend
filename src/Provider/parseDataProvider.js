@@ -217,7 +217,8 @@ export const dataProvider = {
                   role &&
                   (role === "Player" ||
                     role === "Agent" ||
-                    role === "Super-User")
+                    role === "Super-User" ||
+                    role === "Master-Agent")
                 ) {
                   console.log(role);
                   query.equalTo("roleName", role);

@@ -319,6 +319,7 @@ export const UserList = (props) => {
           { id: "Super-User", name: "Super-User" },
           { id: "Player", name: "Player" },
           { id: "Agent", name: "Agent" },
+          { id: "Master-Agent", name: "Master-Agent" },
         ]}
       />
     );
