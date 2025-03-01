@@ -37,13 +37,15 @@ export const MySidebar = ({ children }) => {
         width: drawerWidth,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          position: "static",
+          position: "fixed",
           width: drawerWidth,
           boxSizing: "border-box",
           // backgroundColor: "blue",
           backgroundColor: "#272E3E",
           overflow: "hidden",
-          marginTop: "5px",
+          top: "3.5em",
+          bottom: 0,
+          left: 0,    
         },
         "& .MuiMenuItem-root": {
           color: "#c0c7d8",

@@ -380,7 +380,7 @@ export const RedeemRecordsList = (props) => {
         }
         filters={dataFilters}
         actions={postListActions}
-        sx={{ pt: 1 }}
+        sx={{ pt: 1,overflow: "auto" }}
         empty={false}
         {...props}
         filter={

@@ -60,7 +60,7 @@ export const PlayerList = () => {
 
   const totalRedeems =
     data
-      ?.filter((item) => item.type === "redeem" && item.status === 4)
+      ?.filter((item) => item.type === "redeem" && (item.status === 4 || item?.status === 8))
       .reduce((sum, item) => sum + item.transactionAmount, 0) || " ---";
 
   const pendingRecharges =

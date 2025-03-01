@@ -19,6 +19,7 @@ import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -39,6 +40,7 @@ const LoginPage = () => {
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
@@ -47,7 +49,15 @@ const LoginPage = () => {
     }
   }, [recaptchaRef.current]);  // Watch the ref to ensure it is correctly initialized
 
-  
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const currentUser = Parse.User.current();
+    if (currentUser) {
+      navigate("/"); // Redirect to default route
+    }
+  }, [navigate]);
+
   const onSubmit = async (data) => {
     // if (!captchaValue) {
     //   notify("Please verify the reCAPTCHA");

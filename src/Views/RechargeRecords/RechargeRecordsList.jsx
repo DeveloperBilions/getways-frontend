@@ -366,7 +366,7 @@ export const RechargeRecordsList = (props) => {
 title={identity?.role !== "Player" ? "Recharge Records": "Pending Recharge Request" }
 filters={dataFilters}
         actions={postListActions}
-        sx={{ pt: 1 }}
+        sx={{ pt: 1,overflow: "auto" }} // Ensure scrolling
         empty={false}
         {...props}
         filter={
