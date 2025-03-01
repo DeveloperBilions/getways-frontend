@@ -145,7 +145,7 @@ export default function MyAppBar({ props }) {
         </MenuItem>
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
-      <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/> 
+      {/* <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/>  */}
       <ChangePassword open={open} onClose={handleCloseModal} />
       <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
       <DisablePaymentMethodDialog
@@ -154,7 +154,7 @@ export default function MyAppBar({ props }) {
       />
       <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
       <AllRedeemService open={openRedeemService} onClose={() => setOpenRedeemService(false)} />
-      <GuidelineModal open={openGuideline} onClose={() => setOpenGuideline(false)} />
+      {/* <GuidelineModal open={openGuideline} onClose={() => setOpenGuideline(false)} /> */}
     </AppBar>
   );
 }
