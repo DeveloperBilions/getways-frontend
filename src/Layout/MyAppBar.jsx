@@ -171,7 +171,7 @@ export default function MyAppBar({ props }) {
         </MenuItem>
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
-      <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/> 
+      {/* <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/>  */}
       <ChangePassword open={open} onClose={handleCloseModal} />
       <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
       <DisablePaymentMethodDialog

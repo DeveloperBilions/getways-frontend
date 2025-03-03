@@ -936,10 +936,11 @@ export const dataProvider = {
         return result;
       }else if (resource === "summaryData") {
         var result = null;
-      
+        const startDate = new Date("2025-02-23T00:00:00Z");
+        const endDate = new Date("2025-03-01T06:00:00Z");
         // Fetch all users in one query
         const userQuery = new Parse.Query(Parse.User);
-        userQuery.limit(10000);
+        userQuery.limit(100000);
         const users = await userQuery.find({useMasterKey:true});
 
         // Create a map for quick user lookup by userId
@@ -968,6 +969,8 @@ export const dataProvider = {
           "redeemRemarks",
           "username"
         );
+        transactionQuery.greaterThanOrEqualTo("transactionDate", startDate);
+        transactionQuery.lessThan("transactionDate", endDate);
         
         transactionQuery.limit(100000);
         var results = await transactionQuery.find();
