@@ -257,43 +257,41 @@ export const dataProvider = {
           typeof filter === "object" &&
           Object.keys(filter).length > 0
         ) {
-           for (const f of Object.keys(filter)) {
-             if (filter[f] !== undefined && filter[f] !== null) {
-               if (f === "username" || f === "remark") {
-                 const searchValue = String(filter[f]);
-                 const searchRegex = new RegExp(searchValue, "i");
-                 query.matches(f, searchRegex);
-                 console.log(`Search query: ${JSON.stringify(query)}`);
-               } else if (f === "transactionAmount") {
-                 const transactionAmount = Number(filter[f]);
-                 if (!isNaN(transactionAmount)) {
-                   query.equalTo(f, transactionAmount);
-                 } else {
-                   console.warn(
-                     `Invalid transactionAmount value: ${filter[f]}`
-                   );
-                 }
-               } else if (f === "userParentName") {
-                 const userQuery = new Parse.Query(Parse.User);
-                 userQuery.select("userParentName");
-                 const parentNameRegex = new RegExp(filter[f], "i");
-                 userQuery.matches(f, parentNameRegex);
+          for (const f of Object.keys(filter)) {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "username" || f === "remark") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+                query.matches(f, searchRegex);
+                console.log(`Search query: ${JSON.stringify(query)}`);
+              } else if (f === "transactionAmount") {
+                const transactionAmount = Number(filter[f]);
+                if (!isNaN(transactionAmount)) {
+                  query.equalTo(f, transactionAmount);
+                } else {
+                  console.warn(`Invalid transactionAmount value: ${filter[f]}`);
+                }
+              } else if (f === "userParentName") {
+                const userQuery = new Parse.Query(Parse.User);
+                userQuery.select("userParentName");
+                const parentNameRegex = new RegExp(filter[f], "i");
+                userQuery.matches(f, parentNameRegex);
 
-                 const users = await userQuery.find({ useMasterKey: true });
-                 const userIds = users.map((user) => user.id);
+                const users = await userQuery.find({ useMasterKey: true });
+                const userIds = users.map((user) => user.id);
 
-                 if (userIds.length > 0) {
-                   query.containedIn("userId", userIds);
-                 } else {
-                   query.containedIn("userId", []);
-                 }
-               } else if (f === "searchBy") {
-                 console.log(`Applying search on field: ${f}`);
-               } else {
-                 query.equalTo(f, filter[f]);
-               }
-             }
-           }
+                if (userIds.length > 0) {
+                  query.containedIn("userId", userIds);
+                } else {
+                  query.containedIn("userId", []);
+                }
+              } else if (f === "searchBy") {
+                console.log(`Applying search on field: ${f}`);
+              } else {
+                query.equalTo(f, filter[f]);
+              }
+            }
+          }
         }
         count = await query.count();
       } else if (resource === "rechargeRecords") {
@@ -812,16 +810,29 @@ export const dataProvider = {
             );
             transactionQuery.containedIn("userId", ids);
 
-            filter.startdate &&
+            if (filter.startdate && filter.starttime) {
+              transactionQuery.greaterThanOrEqualTo(
+                "transactionDate",
+                new Date(`${filter.startdate}T${filter.starttime}:00Z`)
+              );
+            } else if (filter.startdate) {
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
                 new Date(filter.startdate + "T00:00:00Z")
               );
-            filter.enddate &&
+            }
+
+            if (filter.enddate && filter.endtime) {
+              transactionQuery.lessThanOrEqualTo(
+                "transactionDate",
+                new Date(`${filter.enddate}T${filter.endtime}:00Z`)
+              );
+            } else if (filter.enddate) {
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
+            }
             transactionQuery.limit(100000);
             var results = await transactionQuery.find();
           } else {
@@ -834,33 +845,46 @@ export const dataProvider = {
 
             //transaction
             const transactionQuery = new Parse.Query("TransactionRecords");
-           transactionQuery.select(
-             "userId",
-             "status",
-             "transactionAmount",
-             "type",
-             "useWallet",
-             "redeemServiceFee",
-             "isCashOut",
-             "transactionIdFromStripe",
-             "transactionDate",
-             "paymentMode",
-             "paymentMethodType",
-             "remark",
-             "redeemRemarks",
-             "username"
-           );
+            transactionQuery.select(
+              "userId",
+              "status",
+              "transactionAmount",
+              "type",
+              "useWallet",
+              "redeemServiceFee",
+              "isCashOut",
+              "transactionIdFromStripe",
+              "transactionDate",
+              "paymentMode",
+              "paymentMethodType",
+              "remark",
+              "redeemRemarks",
+              "username"
+            );
 
-            filter.startdate &&
+            if (filter.startdate && filter.starttime) {
+              transactionQuery.greaterThanOrEqualTo(
+                "transactionDate",
+                new Date(`${filter.startdate}T${filter.starttime}:00Z`)
+              );
+            } else if (filter.startdate) {
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
                 new Date(filter.startdate + "T00:00:00Z")
               );
-            filter.enddate &&
+            }
+
+            if (filter.enddate && filter.endtime) {
+              transactionQuery.lessThanOrEqualTo(
+                "transactionDate",
+                new Date(`${filter.enddate}T${filter.endtime}:00Z`)
+              );
+            } else if (filter.enddate) {
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
                 new Date(filter.enddate + "T23:59:59Z")
               );
+            }
             transactionQuery.limit(100000);
             var results = await transactionQuery.find();
             console.log(results, "results");
@@ -944,16 +968,29 @@ export const dataProvider = {
             "isCashOut"
           );
           transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
-            );
+         if (filter.startdate && filter.starttime) {
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.startdate}T${filter.starttime}:00Z`)
+           );
+         } else if (filter.startdate) {
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.startdate + "T00:00:00Z")
+           );
+         }
+
+         if (filter.enddate && filter.endtime) {
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.enddate}T${filter.endtime}:00Z`)
+           );
+         } else if (filter.enddate) {
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.enddate + "T23:59:59Z")
+           );
+         }
           /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
@@ -1008,16 +1045,29 @@ export const dataProvider = {
             "isCashOut"
           );
           transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
+          if (filter.startdate && filter.starttime) {
             transactionQuery.greaterThanOrEqualTo(
               "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
+              new Date(`${filter.startdate}T${filter.starttime}:00Z`)
             );
-          filter.enddate &&
+          } else if (filter.startdate) {
+            transactionQuery.greaterThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.startdate + "T00:00:00Z")
+            );
+          }
+
+          if (filter.enddate && filter.endtime) {
             transactionQuery.lessThanOrEqualTo(
               "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
+              new Date(`${filter.enddate}T${filter.endtime}:00Z`)
             );
+          } else if (filter.enddate) {
+            transactionQuery.lessThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.enddate + "T23:59:59Z")
+            );
+          }
           /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
