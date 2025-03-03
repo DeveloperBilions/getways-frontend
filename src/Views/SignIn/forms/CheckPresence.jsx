@@ -30,8 +30,8 @@ const LoginPage = () => {
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
   const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef();
-  const [captchaVerified, setCaptchaVerified] = useState(false);  // Track captcha verification
-  const [isCaptchaReady, setIsCaptchaReady] = useState(false);  // Track captcha load status
+  const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false); // Track captcha load status
   const {
     register,
     handleSubmit,
@@ -43,11 +43,10 @@ const LoginPage = () => {
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
     if (recaptchaRef.current) {
-      setIsCaptchaReady(true);  // Set ready status to true when ref is available
+      setIsCaptchaReady(true); // Set ready status to true when ref is available
     }
-  }, [recaptchaRef.current]);  // Watch the ref to ensure it is correctly initialized
+  }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
-  
   const onSubmit = async (data) => {
     // if (!captchaValue) {
     //   notify("Please verify the reCAPTCHA");
@@ -57,17 +56,28 @@ const LoginPage = () => {
     try {
       setLoading(true);
 
+      const storedEmailPhone = localStorage.getItem("emailPhone");
+      const storedPassword = localStorage.getItem("password");
+      const storedRemember = localStorage.getItem("remember");
+
       const response = await Parse.Cloud.run("checkpresence", data);
-      localStorage.clear()
-      setCaptchaVerified(true); // Set captcha as verified
+
+      if (storedEmailPhone !== data.emailPhone) {
+        localStorage.clear();
+      } else {
+        if (storedRemember === "true") {
+          localStorage.setItem("emailPhone", data.emailPhone);
+          localStorage.setItem("password", storedPassword);
+          localStorage.setItem("remember", storedRemember);
+        }
+      }
+
       if (response?.fromAgentExcel) {
         redirect(
           `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
         );
-        ///window.location.reload()
       } else {
         redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
-       // window.location.reload()
       }
     } catch (error) {
       notify(error?.message || "User Checking failed. Please try again.");
@@ -169,7 +179,7 @@ const LoginPage = () => {
                 Next
               </Button>
             </Box>
-              {/* <Button
+            {/* <Button
               fullWidth
               variant="outlined"
               sx={{ mt: 1 }}
@@ -180,10 +190,7 @@ const LoginPage = () => {
           </Box>
         </Grid>
       </Grid>
-      <HelpVideoModal
-        open={helpOpen}
-        handleClose={() => setHelpOpen(false)}
-      />
+      <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </React.Fragment>
   );
 };
