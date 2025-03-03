@@ -57,7 +57,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
     setConfirmPassword("");
     setErrorMessage("");
     setUserType("")
-    setParentType({})
+    // setParentType({})
   };
 
   const validatePassword = (password) => {
