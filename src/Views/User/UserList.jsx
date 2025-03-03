@@ -418,6 +418,7 @@ useEffect(() => {
           open={userCreateDialogOpen}
           onClose={() => setUserCreateDialogOpen(false)}
           fetchAllUsers={fetchAllUsers}
+          handleRefresh={handleRefresh}
         />
         <ReferralDialog
           open={referralDialogOpen}

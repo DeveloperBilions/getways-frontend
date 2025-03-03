@@ -19,12 +19,14 @@ import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const redirect = useRedirect();
   const notify = useNotify();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
@@ -39,6 +41,14 @@ const LoginPage = () => {
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const currentUser = Parse.User.current();
+    if (currentUser) {
+      navigate("/"); // Redirect to default route
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset

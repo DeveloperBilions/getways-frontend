@@ -53,8 +53,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers,handleRefresh }) => {
     setName("");
     setEmail("");
     setPassword("");
+    setPhoneNumber("")
     setConfirmPassword("");
     setErrorMessage("");
+    setUserType("")
+    setParentType({})
   };
 
   const validatePassword = (password) => {

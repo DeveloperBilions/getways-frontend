@@ -936,9 +936,9 @@ export const dataProvider = {
         return result;
       }else if (resource === "summaryData") {
         var result = null;
-        const startDate = new Date("2025-02-23T00:00:00Z");
-        const endDate = new Date("2025-03-01T06:00:00Z");
-        // Fetch all users in one query
+        const startDate = new Date("2025-03-01T00:00:00Z");
+        const endDate = new Date("2025-03-03T23:59:59.999Z"); // Directly setting end of the day in UTC
+                   // Fetch all users in one query
         const userQuery = new Parse.Query(Parse.User);
         userQuery.limit(100000);
         const users = await userQuery.find({useMasterKey:true});
@@ -1599,7 +1599,7 @@ export const dataProvider = {
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
 
-      if (transaction && transaction.get("status") === 11) {
+      if (transaction && (transaction.get("status") === 11 || transaction.get("status") === 12)) {
         // Fetch the user ID and transaction amount
         const walletId = transaction.get("walletId");
         const transactionAmount = transaction.get("transactionAmount");

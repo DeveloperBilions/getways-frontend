@@ -215,3 +215,176 @@ export const fetchDrawerAgentHistory = async (userId, page = 0, limit = 10) => {
     return { data: [], total: 0 };
   }
 };
+
+export const getAgentRechargeReport = async (fromDate, toDate, page = 1, limit = 50) => {
+  const userQuery = new Parse.Query(Parse.User);
+  userQuery.equalTo("roleName", "Agent");
+  userQuery.select("objectId", "username"); // Include username
+  userQuery.limit(100000);
+  const agents = await userQuery.find({ useMasterKey: true });
+
+  const agentIds = agents.map(agent => agent.id);
+  if (agentIds.length === 0) return [];
+
+  // Find players under these agents
+  const playerQuery = new Parse.Query(Parse.User);
+  playerQuery.containedIn("userParentId", agentIds);
+  playerQuery.select("objectId", "userParentId"); // Select player ID and parent agent ID
+  playerQuery.limit(100000);
+  const players = await playerQuery.find({ useMasterKey: true });
+
+  if (players.length === 0) return [];
+
+  // Create a mapping of players to their agents
+  const playerAgentMap = {};
+  players.forEach(player => {
+    playerAgentMap[player.id] = player.get("userParentId");
+  });
+
+  const playerIds = players.map(player => player.id);
+
+  // Find recharge transactions for these players
+  const Transaction = Parse.Object.extend("TransactionRecords");
+  const transactionQuery = new Parse.Query(Transaction);
+
+  if (fromDate) {
+    transactionQuery.greaterThanOrEqualTo("transactionDate", new Date(fromDate));
+  }
+  if (toDate) {
+    transactionQuery.lessThanOrEqualTo("transactionDate", new Date(toDate));
+  }
+
+  transactionQuery.containedIn("userId", playerIds);
+  transactionQuery.equalTo("type", "recharge");
+  transactionQuery.containedIn("status", [2, 3]); // Only successful transactions
+  transactionQuery.limit(100000);
+
+  // Aggregate total recharge amount per agent
+  const pipeline = [
+    {
+      $match: {
+        userId: { $in: playerIds },
+        transactionDate: {
+          $gte: fromDate ? new Date(fromDate) : new Date("1970-01-01"),
+          $lte: toDate ? new Date(toDate) : new Date(),
+        },
+        type: "recharge",
+        status: { $in: [2, 3] },
+      },
+    },
+    {
+      $group: {
+        _id: "$userId", // Group by player ID first
+        totalRechargeAmount: { $sum: "$transactionAmount" },
+      },
+    },
+  ];
+
+  const results = await transactionQuery.aggregate(pipeline);
+
+  // Map player transactions to their respective agents
+  const agentRechargeMap = {};
+
+  results.forEach(result => {
+    const agentId = playerAgentMap[result._id]; // Get agent ID from player ID
+    if (agentId) {
+      if (!agentRechargeMap[agentId]) {
+        agentRechargeMap[agentId] = 0;
+      }
+      agentRechargeMap[agentId] += result.totalRechargeAmount; // Sum recharge per agent
+    }
+  });
+
+  // Convert to array and sort
+  const finalResults = Object.entries(agentRechargeMap)
+    .map(([agentId, totalRechargeAmount]) => {
+      const agent = agents.find(a => a.id === agentId);
+      return {
+        agentId,
+        agentName: agent ? agent.get("username") : "Unknown Agent",
+        totalRechargeAmount: totalRechargeAmount.toFixed(2),
+      };
+    })
+    .sort((a, b) => b.totalRechargeAmount - a.totalRechargeAmount) // Sort by recharge amount
+    .slice((page - 1) * limit, page * limit); // Paginate results
+
+  console.log(finalResults, "Final Agent Recharge Data");
+  return finalResults;
+};
+
+
+export const fetchTransactionsofAgent = async ({
+  sortOrder = "desc",
+  startDate,
+  endDate,
+} = {}) => {
+  console.log(startDate,endDate,"datetklwio")
+    try {
+  
+      // Step 1: Fetch User-Agent Mapping
+      const userQuery = new Parse.Query(Parse.User);
+      userQuery.select("objectId", "userParentName");
+      userQuery.limit(10000); // Adjust limit as needed
+      const users = await userQuery.find({ useMasterKey: true });
+  
+      // Create a mapping of userId -> agentName
+      const userAgentMap = {};
+      for (const user of users) {
+        userAgentMap[user.id] = user.get("userParentName");
+      }
+  
+      const userIds = Object.keys(userAgentMap);
+      if (userIds.length === 0) {
+        return { status: "success", data: [] };
+      }
+  
+      const start = new Date(startDate);
+start.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+
+const end = new Date(endDate);
+end.setHours(23, 59, 59, 999); // Set to 23:59:59.999
+
+      // Step 2: Use Aggregation Pipeline on Transactions
+      const pipeline = [
+        { $match: { 
+            userId: { $in: userIds },
+            status: { $in: [2,3] },
+            createdAt: { 
+              $gte: start, 
+              $lte: end
+            },
+           transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
+        }},
+        { $group: {
+            _id: "$userId",
+            totalAmount: { $sum: "$transactionAmount" }
+        }},
+      ];
+  
+      const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+  
+      // Step 3: Map Transactions to Agents
+      const agentTransactionMap = {};
+      for (const transaction of transactions) {
+        console.log("Transaction:", transaction);
+        const userId = transaction.objectId;
+        const agentName = userAgentMap[userId];
+        console.log("Agent Name:", agentName);
+  
+        if (agentName) {
+          agentTransactionMap[agentName] = (agentTransactionMap[agentName] || 0) + transaction.totalAmount;
+        }
+      }
+      // Step 4: Sort the result at JavaScript level (since MongoDB doesn’t sort Maps)
+      const sortedData = Object.entries(agentTransactionMap)
+        .sort((a, b) => sortOrder === "asc" ? a[1] - b[1] : b[1] - a[1])
+        .map(([agentName, totalAmount]) => ({ agentName, totalAmount }));
+  
+      return { status: "success", data: sortedData };
+    } catch (error) {
+      console.error("Error fetching transactions:", error.message);
+      return { status: "error", code: 500, message: error.message };
+    }
+};
+
+
