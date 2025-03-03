@@ -23,6 +23,7 @@ import {
   SelectInput,
   useListController,
   Pagination,
+  TextField as AdminTextField
 } from "react-admin";
 import { useEffect, useState } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
@@ -187,19 +188,8 @@ export const Reports = () => {
             <div style={{ height: 400, width: "100%" }}>
             <List title="Agent Transactions" exporter={false} actions={false}>
   <Datagrid data={rechargeData}>
-    <FunctionField
-            label="agentName"
-            render={(record) => {
-              return record?.agentName;
-            }}
-          />
-          <FunctionField
-            label="totalTransactionAmount"
-            render={(record) => {
-              return record?.totalAmount;
-            }}
-            sortable
-          />
+  <AdminTextField source="agentName" label="Agent Name" />
+  <AdminTextField source="totalAmount" label="Total Transaction Amount" sortable />
   </Datagrid>
 </List>
             </div>

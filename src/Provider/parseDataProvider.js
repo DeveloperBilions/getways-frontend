@@ -1755,6 +1755,7 @@ export const dataProvider = {
       );
       transactionDetails.set("remark", remark);
       transactionDetails.set("useWallet", !!useWallet); // Store whether wallet was used
+      transactionDetails.set("userParentId", user.get("userParentId")); // Store whether wallet was used
 
       let session = null;
 

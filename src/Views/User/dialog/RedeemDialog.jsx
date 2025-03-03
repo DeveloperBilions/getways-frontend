@@ -90,6 +90,12 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       );
       return false;
     }
+    if(!redeemAmount || redeemAmount < 0)
+    {
+      setFeeError(
+        "Redeem amount must be greater than zero."
+      );
+    }
     setFeeError(""); // Clear error if input is valid
 
     // Check if the redeem fees were changed by the user

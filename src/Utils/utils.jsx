@@ -318,73 +318,71 @@ export const fetchTransactionsofAgent = async ({
   startDate,
   endDate,
 } = {}) => {
-  console.log(startDate,endDate,"datetklwio")
-    try {
-  
-      // Step 1: Fetch User-Agent Mapping
-      const userQuery = new Parse.Query(Parse.User);
-      userQuery.select("objectId", "userParentName");
-      userQuery.limit(10000); // Adjust limit as needed
-      const users = await userQuery.find({ useMasterKey: true });
-  
-      // Create a mapping of userId -> agentName
-      const userAgentMap = {};
-      for (const user of users) {
-        userAgentMap[user.id] = user.get("userParentName");
-      }
-  
-      const userIds = Object.keys(userAgentMap);
-      if (userIds.length === 0) {
-        return { status: "success", data: [] };
-      }
-  
-      const start = new Date(startDate);
-start.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+  try {
+    // Step 1: Set start and end date with correct hours
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0); // Start of the day
 
-const end = new Date(endDate);
-end.setHours(23, 59, 59, 999); // Set to 23:59:59.999
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // End of the day
 
-      // Step 2: Use Aggregation Pipeline on Transactions
-      const pipeline = [
-        { $match: { 
-            userId: { $in: userIds },
-            status: { $in: [2,3] },
-            createdAt: { 
-              $gte: start, 
-              $lte: end
-            },
-           transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
-        }},
-        { $group: {
-            _id: "$userId",
-            totalAmount: { $sum: "$transactionAmount" }
-        }},
-      ];
-  
-      const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
-  
-      // Step 3: Map Transactions to Agents
-      const agentTransactionMap = {};
-      for (const transaction of transactions) {
-        console.log("Transaction:", transaction);
-        const userId = transaction.objectId;
-        const agentName = userAgentMap[userId];
-        console.log("Agent Name:", agentName);
-  
-        if (agentName) {
-          agentTransactionMap[agentName] = (agentTransactionMap[agentName] || 0) + transaction.totalAmount;
+    // Step 2: Fetch transactions grouped by userParentId
+    const pipeline = [
+      { 
+        $match: { 
+          userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
+          status: { $in: [2, 3] },
+          createdAt: { $gte: start, $lte: end },
+          transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+        } 
+      },
+      { 
+        $group: {
+          _id: "$userParentId", // Group by userParentId (agent)
+          totalAmount: { $sum: "$transactionAmount" }
         }
       }
-      // Step 4: Sort the result at JavaScript level (since MongoDB doesn’t sort Maps)
-      const sortedData = Object.entries(agentTransactionMap)
-        .sort((a, b) => sortOrder === "asc" ? a[1] - b[1] : b[1] - a[1])
-        .map(([agentName, totalAmount]) => ({ agentName, totalAmount }));
-  
-      return { status: "success", data: sortedData };
-    } catch (error) {
-      console.error("Error fetching transactions:", error.message);
-      return { status: "error", code: 500, message: error.message };
+    ];
+
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
     }
+    const agentIds = transactions.map(trx => trx.objectId).filter(id => id);
+    console.log("Extracted agentIds:", agentIds);
+    
+    // Step 3: Fetch agent names from the User table using userParentId
+    //const agentIds = transactions.map((trx) => trx.objectId); // _id contains userParentId
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.containedIn("objectId", agentIds);
+    agentQuery.select("objectId", "username"); // Fetch only required fields
+    agentQuery.limit(10000);
+
+    const agents = await agentQuery.find({ useMasterKey: true });
+
+    // Step 4: Map userParentId (_id) -> username
+    const agentMap = {};
+    agents.forEach((agent) => {
+      agentMap[agent.id] = agent.get("username") || "Unknown Agent";
+    });
+
+    // Step 5: Map transactions to agents correctly
+    const sortedData = transactions.map((transaction) => ({
+      agentName: agentMap[transaction.objectId] || "Unknown Agent", // Corrected key
+      totalAmount: transaction.totalAmount
+    }))
+    .sort((a, b) => sortOrder === "asc" ? a.totalAmount - b.totalAmount : b.totalAmount - a.totalAmount);
+    
+    return { status: "success", data: sortedData };
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
 };
+
+
+
+
 
 
