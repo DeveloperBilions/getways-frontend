@@ -15,7 +15,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
-
+import {Alert} from "@mui/material"
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -35,6 +35,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [isReedeemZeroAllowed,setisReedeemZeroAllowed]= useState(false);
   const role = localStorage.getItem("role");
   const [feeError, setFeeError] = useState("");
+  const [amountError, setAmountError] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -92,9 +93,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     }
     if(!redeemAmount || redeemAmount < 0)
     {
-      setFeeError(
+      setAmountError(
         "Redeem amount must be greater than zero."
       );
+      return false;
     }
     setFeeError(""); // Clear error if input is valid
 
@@ -166,6 +168,11 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             Redeem Amount
           </ModalHeader>
           <ModalBody>
+            {amountError && 
+              <Alert severity="error" sx={{ mb: 1 }}>
+              {amountError}
+            </Alert>
+            }
             <FormText className="font-weight-bold">
               Redeems may take up to 2 hours
             </FormText>
