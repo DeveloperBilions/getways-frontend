@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mui/x-charts": "^7.27.1",
     "@stripe/stripe-js": "^5.4.0",
     "@tanstack/react-query": "^5.51.1",
     "@testing-library/jest-dom": "^5.17.0",

@@ -15,6 +15,7 @@ import {
   TableSortLabel,
   Paper
 } from "@mui/material";
+import { BarChart } from "@mui/x-charts/BarChart";
 import PersonIcon from "@mui/icons-material/Person";
 import {
   Datagrid,
@@ -207,6 +208,83 @@ export const Reports = () => {
                 </Grid>
               ))}
             </Grid>
+
+            <Grid container spacing={2} sx={{ mt: 4 }}>
+  <Grid item xs={12}>
+    <Card>
+      <CardContent>
+        {loading ? (
+          <Grid container justifyContent="center">
+            <CircularProgress />
+          </Grid>
+        ) : (
+          <div style={{ overflowX: "auto", width: "100%" }}> 
+          <Typography variant="h6" gutterBottom>
+          Agent Recharge Overview
+        </Typography>
+            <BarChart
+              xAxis={[
+                {
+                  data: rechargeData.map((item) => item.agentName),
+                  scaleType: "band",
+                },
+              ]}
+              series={[
+                {
+                  data: rechargeData.map((item) => item.totalRecharge),
+                  color: "#4caf50",
+                },
+              ]}
+              height={400}
+              width= {1200}// Adjust width dynamically
+              margin={{ left: 100, right: 50, bottom: 50 }}
+            />
+            <Typography variant="h6" gutterBottom>
+          Agent Redeem Overview
+        </Typography>
+            <BarChart
+              xAxis={[
+                {
+                  data: rechargeData.map((item) => item.agentName),
+                  scaleType: "band",
+                },
+              ]}
+              series={[
+                {
+                  data: rechargeData.map((item) => item.totalCashout),
+                  color: "#4caf50",
+                },
+              ]}
+              height={400}
+              width= {1200}// Adjust width dynamically
+              margin={{ left: 100, right: 50, bottom: 50 }}
+            />
+            <Typography variant="h6" gutterBottom>
+          Agent Cashout Overview
+        </Typography>
+             <BarChart
+              xAxis={[
+                {
+                  data: rechargeData.map((item) => item.agentName),
+                  scaleType: "band",
+                },
+              ]}
+              series={[
+                {
+                  data: rechargeData.map((item) => item.totalRedeem),
+                  color: "#4caf50",
+                },
+              ]}
+              height={400}
+              width= {1200}// Adjust width dynamically
+              margin={{ left: 100, right: 50, bottom: 50 }}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </Grid>
+</Grid>
 
             {/* Data Grid for Agent Recharge Report */}
             <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
