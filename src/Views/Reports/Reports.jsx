@@ -5,7 +5,15 @@ import {
   Grid,
   CircularProgress,
   Button,
-  TextField
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Paper
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import {
@@ -36,7 +44,9 @@ export const Reports = () => {
   const [toDate, setToDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
+  const {identity} = useGetIdentity()
+  const [sortColumn, setSortColumn] = useState("totalRecharge");
+  const [sortOrder, setSortOrder] = useState("desc");
   const fetchData = async () => {
     try {
       console.log(fromDate,toDate,"date")
@@ -101,14 +111,32 @@ export const Reports = () => {
     },
   ];
 
-  const columns = [
-    { field: "agentName", headerName: "Agent Name", width: 200 },
-    { field: "totalAmount", headerName: "Total Recharge", width: 200 },
-  ];
+  const handleSort = (column) => {
+    setSortColumn(column);
+    setSortOrder((prevSortOrder) => {
+      const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
+  
+      setRechargeData((prevData) => {
+        const sortedData = [...prevData].sort((a, b) => {
+          if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
+          if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
+          return 0;
+        });
+        return sortedData;
+      });
+  
+      return newSortOrder; // Update the state with the new order
+    });
+  };
+  
+
+  console.log(sortColumn,sortOrder,"sort Ordereree Date")
 
   return (
     <>
       {/* Date Filters */}
+      {identity?.email === "zen@zen.com" && 
+      <>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} md={4}>
           <TextField
@@ -142,7 +170,6 @@ export const Reports = () => {
         </Grid>
       </Grid>
 
-      {/* Loading State */}
       {loading ? (
         <Grid container justifyContent="center">
           <CircularProgress />
@@ -185,17 +212,66 @@ export const Reports = () => {
             <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
               Agent Recharge Report
             </Typography>
-            <div style={{ height: 400, width: "100%" }}>
-            <List title="Agent Transactions" exporter={false} actions={false}>
-  <Datagrid data={rechargeData}>
-  <AdminTextField source="agentName" label="Agent Name" />
-  <AdminTextField source="totalAmount" label="Total Transaction Amount" sortable />
-  </Datagrid>
-</List>
-            </div>
+            <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortColumn === "agentName"}
+                            direction={sortOrder}
+                            onClick={() => handleSort("agentName")}
+                          >
+                            Agent Name
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortColumn === "totalRecharge"}
+                            direction={sortOrder}
+                            onClick={() => handleSort("totalRecharge")}
+                          >
+                            Total Recharge
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortColumn === "totalRedeem"}
+                            direction={sortOrder}
+                            onClick={() => handleSort("totalRedeem")}
+                          >
+                            Total Redeem
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortColumn === "totalCashout"}
+                            direction={sortOrder}
+                            onClick={() => handleSort("totalCashout")}
+                          >
+                            Total Cashout
+                          </TableSortLabel>
+                        </TableCell>
+
+                      </TableRow>
+                      
+                    </TableHead>
+                    <TableBody>
+                    {rechargeData.map((row, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{row.agentName}</TableCell>
+                          <TableCell>{row.totalRecharge}</TableCell>
+                          <TableCell>{row.totalRedeem}</TableCell>
+                          <TableCell>{row.totalCashout}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
           </>
         )
-      )}
+      )}</>
+                  }
     </>
   );
 };

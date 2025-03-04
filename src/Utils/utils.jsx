@@ -331,7 +331,7 @@ export const fetchTransactionsofAgent = async ({
       { 
         $match: { 
           userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
-          status: { $in: [2, 3] },
+          status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
           createdAt: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
         } 
@@ -339,7 +339,15 @@ export const fetchTransactionsofAgent = async ({
       { 
         $group: {
           _id: "$userParentId", // Group by userParentId (agent)
-          totalAmount: { $sum: "$transactionAmount" }
+          totalRecharge: { 
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
+          }, // Sum only recharge transactions
+          totalRedeem: { 
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+          }, // Sum only redeem transactions
+          totalCashout: { 
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
+          } // Sum only cashout transactions
         }
       }
     ];
@@ -349,11 +357,11 @@ export const fetchTransactionsofAgent = async ({
     if (transactions.length === 0) {
       return { status: "success", data: [] };
     }
+
     const agentIds = transactions.map(trx => trx.objectId).filter(id => id);
     console.log("Extracted agentIds:", agentIds);
-    
+
     // Step 3: Fetch agent names from the User table using userParentId
-    //const agentIds = transactions.map((trx) => trx.objectId); // _id contains userParentId
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.containedIn("objectId", agentIds);
     agentQuery.select("objectId", "username"); // Fetch only required fields
@@ -369,10 +377,12 @@ export const fetchTransactionsofAgent = async ({
 
     // Step 5: Map transactions to agents correctly
     const sortedData = transactions.map((transaction) => ({
-      agentName: agentMap[transaction.objectId] || "Unknown Agent", // Corrected key
-      totalAmount: transaction.totalAmount
-    }))
-    .sort((a, b) => sortOrder === "asc" ? a.totalAmount - b.totalAmount : b.totalAmount - a.totalAmount);
+      agentName: agentMap[transaction.objectId] || "Unknown Agent", // Correct agent mapping
+      totalRecharge: Math.floor(transaction.totalRecharge || 0),
+      totalRedeem: Math.floor(transaction.totalRedeem || 0),
+      totalCashout: Math.floor(transaction.totalCashout || 0),
+    }))    
+    .sort((a, b) => sortOrder === "asc" ? a.totalRecharge - b.totalRecharge : b.totalRecharge - a.totalRecharge);
     
     return { status: "success", data: sortedData };
   } catch (error) {
