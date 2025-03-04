@@ -605,11 +605,9 @@ export const DataSummary = () => {
     // Prepare wallet data for PDF
     const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
       (item, index) => [
-        item.transactionId,
         item.amount,
         new Date(item.transactionDate).toLocaleString(),
         item.status,
-        item.transactionIdFromStripe,
         item.redeemServiceFee,
         item?.agentName,
         item?.userName,
@@ -619,11 +617,9 @@ export const DataSummary = () => {
     // Prepare others data for PDF
     const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
       (item, index) => [
-        item.transactionId,
         item.amount,
         new Date(item.transactionDate).toLocaleString(),
         item.status,
-        item.transactionIdFromStripe,
         item.redeemServiceFee,
         item?.agentName,
         item?.userName,
@@ -635,7 +631,6 @@ export const DataSummary = () => {
     doc.autoTable({
       head: [
         [
-          "ID",
           "Amount",
           "Transaction Date",
           "Status",
@@ -660,7 +655,6 @@ export const DataSummary = () => {
     doc.autoTable({
       head: [
         [
-          "ID",
           "Amount",
           "Transaction Date",
           "Status",

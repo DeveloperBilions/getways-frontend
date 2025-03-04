@@ -99,23 +99,22 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   const [showHistoryModal, setShowHistoryModal] = useState(false); // State for history modal
 
   useEffect(() => {
-    const fetchSummary = async () => {
-      if (open && record) {
-        setLoading(true);
-        try {
-          const data = await fetchTransactionSummary(record?.id);
-          setSummary(data);
-        } catch (error) {
-          console.error("Error fetching transaction summary:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     fetchSummary();
   }, [open, record]);
 
+  const fetchSummary = async () => {
+    if (open && record) {
+      setLoading(true);
+      try {
+        const data = await fetchTransactionSummary(record?.id);
+        setSummary(data);
+      } catch (error) {
+        console.error("Error fetching transaction summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
   if (loading) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -137,7 +136,7 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   const conversionFee = (totalRechargeAmount * conversionFeePercent) / 100;
   const redeemServiceFee = (totalRedeemAmount * redeemServiceFeePercent) / 100;
   const totalAgentTicketPaid =
-    totalRechargeAmount - totalRedeemAmount - conversionFee - (redeemFeeEnabled ? redeemServiceFee : 0);
+    totalRechargeAmount - totalRedeemAmount - conversionFee - (redeemFeeEnabled ? redeemServiceFee : 0) - drawerAgentResults ;
 
   return (
     <>
@@ -171,13 +170,17 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
 
       <DrawerAgentHistoryModal
         open={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
+        onClose={() => {
+          fetchSummary()
+          setShowHistoryModal(false)}}
         record={record}
       />
       {/* Pay Modal */}
       <PayModal
         open={payModalOpen}
-        onClose={() => setPayModalOpen(false)}
+        onClose={() => {
+          fetchSummary()
+          setPayModalOpen(false)}}
         userId={record?.id}
       />
     </>
