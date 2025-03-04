@@ -92,6 +92,10 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
       const user = users.find((user) => user.id === userId);
       return user ? user.userParentName : "Unknown";
     }; 
+    const getUserAgentPerentName = (userId) => {
+      const user = users.find((user) => user.id === userId);
+      return user ? getUserParentName(user.userParentId) : "Unknown";
+    };
     const getUserName = (userId) => {
       const user = users.find((user) => user.id === userId);
       return user ? user.username : "Unknown";
@@ -118,6 +122,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           redeemRemarks: item?.redeemRemarks,
           agentName: getUserParentName(item?.userId),
           userName: item?.username,
+          agentParentName: getUserAgentPerentName(item?.userId),
         })),
       others: transactions
         .filter((item) => item.type === "redeem" && item.status === 12)
@@ -137,6 +142,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           redeemRemarks: item?.redeemRemarks,
           agentName: getUserParentName(item?.userId),
           userName: item?.username,
+          agentParentName: getUserAgentPerentName(item?.userId),
         })),
     };
     const totalRechargeByTypeData = {
@@ -164,6 +170,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           redeemRemarks: item?.redeemRemarks,
           agentName: getUserParentName(item?.userId),
           userName: item?.username,
+          agentParentName: getUserAgentPerentName(item?.userId),
         })),
       others: transactions
         .filter(
@@ -191,6 +198,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           redeemRemarks: item?.redeemRemarks,
           agentName: getUserParentName(item?.userId),
           userName: item?.username,
+          agentParentName: getUserAgentPerentName(item?.userId),
         })),
     };
     const totalFeesCharged = transactions

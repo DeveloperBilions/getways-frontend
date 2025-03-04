@@ -43,6 +43,7 @@ import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Reports } from "./Views/Reports/Reports";
+import { TransactionData } from "./Views/TransactionData/TransactionData";
 
 function App() {
   useEffect(() => {
@@ -104,20 +105,29 @@ function App() {
               <Resource
                 name="users"
                 list={UserList}
-                options={{ label: "User Management", defaultQuery: { sort: "createdAt", order: "DESC" } }}
+                options={{
+                  label: "User Management",
+                  defaultQuery: { sort: "createdAt", order: "DESC" },
+                }}
                 icon={PersonIcon}
               />
               <Resource
                 name="rechargeRecords"
                 list={RechargeRecordsList}
-                options={{ label: "Recharge Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
+                options={{
+                  label: "Recharge Records",
+                  defaultQuery: { sort: "transactionDate", order: "DESC" },
+                }}
                 icon={LocalAtmIcon}
               />
               <Resource
                 name="redeemRecords"
                 recordRepresentation="redeemRecords"
                 list={RedeemRecordsList}
-                options={{ label: "Redeem Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
+                options={{
+                  label: "Redeem Records",
+                  defaultQuery: { sort: "transactionDate", order: "DESC" },
+                }}
                 icon={LocalAtmIcon}
               />
               <Resource
@@ -126,13 +136,21 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
-              { permissions === "Super-User" &&
-               <Resource
-                name="Reports"
-                list={Reports}
-                options={{ label: "Reports" }}
+              <Resource
+                name="transactionData"
+                recordRepresentation="transactionData"
+                list={TransactionData}
+                options={{ label: "Transaction Data" }}
                 icon={SummarizeIcon}
-              />}
+              />
+              {permissions === "Super-User" && (
+                <Resource
+                  name="Reports"
+                  list={Reports}
+                  options={{ label: "Reports" }}
+                  icon={SummarizeIcon}
+                />
+              )}
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>
@@ -148,7 +166,11 @@ function App() {
               />
               <Resource
                 name="Wallet"
-                list={ <Authenticated><Wallet /></Authenticated>}
+                list={
+                  <Authenticated>
+                    <Wallet />
+                  </Authenticated>
+                }
                 options={{ label: "Wallet" }}
                 icon={SummarizeIcon}
               />
@@ -174,6 +196,14 @@ function App() {
                   element={
                     <Authenticated>
                       <RedeemRecordsList resource="redeemRecords" />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/transactionData"
+                  element={
+                    <Authenticated>
+                      <TransactionData resource="transactionData" />
                     </Authenticated>
                   }
                 />
