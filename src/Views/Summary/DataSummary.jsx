@@ -53,7 +53,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const Summary = ({ selectedUser ,startDate , endDate}) => {
+const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
   const { data, isLoading } = useGetList(
     "summary",
@@ -71,13 +71,13 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Card
           sx={{
-            padding: "20px",
+            padding: { xs: "10px", sm: "20px" },
             textAlign: "center",
-            maxWidth: "400px",
+            maxWidth: { xs: "90%", sm: "400px" },
             backgroundColor: "#f9f9f9",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
             borderRadius: "10px",
@@ -85,26 +85,38 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
         >
           <CardContent>
             <Box display="flex" justifyContent="center" mb={2}>
-              <EventIcon color="primary" sx={{ fontSize: 40 }} />
+              <EventIcon
+                color="primary"
+                sx={{ fontSize: { xs: 30, sm: 40 } }}
+              />
             </Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+            >
               Select a Date Range
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+            >
               Please select both start and end dates to view the summary data.
             </Typography>
           </CardContent>
         </Card>
       </Box>
     );
-  }  
+  }
+
   if (isLoading || !data) {
     return (
       <Box
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Loading />
       </Box>
@@ -123,18 +135,16 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
-    ...(role === "Super-User"
+    ...(role === "Super-User" || role === "Agent"
       ? [
           {
             id: 3,
             name: "Total Recharge (Filtered)",
             value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="flex-start"
               >
                 <img
                   src={AOGSymbol}
@@ -142,51 +152,25 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
                 />
                 <span>{filteredRechargeValue}</span>
-              </div>
+              </Box>
             ),
             bgColor: "#EBF9F0",
             borderColor: "#9CDAB8",
             icon: <PaidIcon color="secondary" />,
-            filter: (
-              <FormControl fullWidth>
-                <Select
-                  labelId="recharge-type-select-label"
-                  value={selectedRechargeType}
-                  onChange={(e) => setSelectedRechargeType(e.target.value)}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="wallet">Wallet</MenuItem>
-                  <MenuItem value="others">Others</MenuItem>
-                </Select>
-              </FormControl>
-            ),
-          },
-        ]
-      : []),
-    ...(role === "Agent"
-      ? [
-          {
-            id: 3,
-            name: "Total Recharge (Filtered)",
-            value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
-                <span>{filteredRechargeValue}</span>
-              </div>
-            ),
-            bgColor: "#EBF9F0",
-            borderColor: "#9CDAB8",
-            icon: <PaidIcon color="secondary" />,
+            filter:
+              role === "Super-User" ? (
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedRechargeType}
+                    onChange={(e) => setSelectedRechargeType(e.target.value)}
+                    sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="wallet">Wallet</MenuItem>
+                    <MenuItem value="others">Others</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : null,
           },
         ]
       : []),
@@ -444,68 +428,80 @@ const Summary = ({ selectedUser ,startDate , endDate}) => {
   identity.role === "Agent" && finalData.splice(1, 1);
 
   return (
-    <>
-      <Grid container spacing={2} mt>
-        {finalData?.map((item) => (
-          <Grid item xs={12} md={4} key={item?.id}>
-            <Card
-              sx={{
-                backgroundColor: item?.bgColor,
-                border: 2,
-                borderColor: item?.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item?.icon}
-                  &nbsp;{item?.name}
-                </Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {item?.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {recharge.map((item) => (
-          <Grid item xs={12} md={4} key={item.id}>
-            <Card
-              sx={{
-                backgroundColor: item.bgColor,
-                border: 2,
-                borderColor: item.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item.icon}
-                  &nbsp;{item.name}
-                </Typography>
-                {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
-                <Typography
-                  variant="h4"
-                  sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
-                >
-                  {item.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </>
+    <Grid container spacing={{ xs: 1, sm: 2 }} mt={{ xs: 1, sm: 2 }}>
+      {finalData?.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item?.icon} {item?.name}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 1,
+                  fontWeight: "bold",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+      {recharge.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item.id}>
+          <Card
+            sx={{
+              backgroundColor: item.bgColor,
+              border: 2,
+              borderColor: item.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item.icon} {item.name}
+              </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 2,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
   );
 };
 
@@ -539,9 +535,14 @@ export const DataSummary = () => {
       const { data } = await dataProvider.getList("users", {
         pagination: { page: pageNum, perPage },
         sort: { field: "username", order: "ASC" },
-        filter: search ? { username: search,  $or: [{ userReferralCode: "" }, { userReferralCode: null }] } : {
-          $or: [{ userReferralCode: "" }, { userReferralCode: null }]
-       },
+        filter: search
+          ? {
+              username: search,
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+            }
+          : {
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+            },
       });
 
       const formattedData = data
@@ -954,7 +955,7 @@ export const DataSummary = () => {
   const dataFilters = [
     <Autocomplete
       source="username"
-      sx={{ width: 300 }}
+      sx={{ width: { xs: "100%", md: 300 } }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -991,6 +992,7 @@ export const DataSummary = () => {
     <DateInput
       label="Start date"
       source="startdate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
@@ -1005,6 +1007,7 @@ export const DataSummary = () => {
     <DateInput
       label="End date"
       source="enddate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
       // validate={maxValue(currentDate)}
@@ -1023,48 +1026,54 @@ export const DataSummary = () => {
   const handleFilterSubmit = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
-    setSelectedUser(selectedUsertemp)
+    setSelectedUser(selectedUsertemp);
   };
   return (
-    <React.Fragment>
-      <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-      <Box
-            display="flex"
-            
+    <ListBase resource="users" filter={{ username: selectedUser?.id }}>
+      <Box sx={{ px: { xs: 1, sm: 2 } }}>
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", md: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "stretch", md: "center" }}
+          gap={{ xs: 1, md: 2 }}
+        >
+          <FilterForm
+            filters={dataFilters}
+            sx={{
+              flex: "1 1 auto",
+              padding: "0 !important",
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 1,
+              alignItems: { xs: "stretch", md: "flex-start" },
+            }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleFilterSubmit}
+            sx={{
+              mt: { xs: 1, md: 0 },
+              width: { xs: "100%", md: "auto" },
+              whiteSpace: "nowrap",
+            }}
           >
-        <FilterForm
-          filters={dataFilters}
-          sx={{
-            flex: "0 2 auto !important",
-            padding: "0px 0px 0px 0px !important",
-            alignItems: "flex-start",
-          }}
-        />{" "}
-         <Box
-            display="flex"
-            justifyContent="flex-end"
-            sx={{ mb: 2, marginTop: "10px" }}
-          >
-  <Button
-    source="date"
-    variant="contained"
-    onClick={handleFilterSubmit}
-    sx={{  mb: 2,marginRight: "10px",whiteSpace:"nowrap"  }} // Adds left margin for spacing
-  >
-    Apply Filter
-  </Button></Box>
-  </Box>
+            Apply Filter
+          </Button>
+        </Box>
+
         {role === "Super-User" && (
           <Box
             display="flex"
-            justifyContent="flex-start"
-            sx={{ mb: 2 }}
+            flexDirection={{ xs: "column", sm: "row" }}
+            gap={1}
+            mt={2}
           >
             <Button
               variant="contained"
               startIcon={<GetAppIcon />}
               onClick={handleMenuRedeemOpen}
-              style={{ marginRight: "10px" }}
+              fullWidth={role === "Super-User" ? true : false}
             >
               Redeem Data Export
             </Button>
@@ -1072,81 +1081,63 @@ export const DataSummary = () => {
               variant="contained"
               startIcon={<GetAppIcon />}
               onClick={handleMenuOpen}
+              fullWidth={role === "Super-User" ? true : false}
             >
               Recharge Data Export
             </Button>
             <Menu
               anchorEl={menuAnchor}
               open={Boolean(menuAnchor)}
-              onClose={handleMenuClose}
+              onClose={() => setMenuAnchor(null)}
             >
               <MenuItem
-                onClick={() => {
-                  handleExportRechargePDF();
-                  // handleMenuClose();
-                }}
+                onClick={handleExportRechargePDF}
                 disabled={isExporting}
               >
                 <ListItemIcon>
                   {isExporting ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <PictureAsPdfIcon fontSize="small" />
+                    <PictureAsPdfIcon />
                   )}
                 </ListItemIcon>
                 PDF
               </MenuItem>
               <MenuItem
-                onClick={() => {
-                  handleExportRechargeXLS();
-                  //  handleMenuClose();
-                }}
+                onClick={handleExportRechargeXLS}
                 disabled={isExporting}
               >
                 <ListItemIcon>
                   {isExporting ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <BackupTableIcon fontSize="small" />
+                    <BackupTableIcon />
                   )}
                 </ListItemIcon>
                 Excel
               </MenuItem>
             </Menu>
-
             <Menu
               anchorEl={menuAnchorRedeem}
               open={Boolean(menuAnchorRedeem)}
-              onClose={handleMenuRedeemClose}
+              onClose={() => setMenuAnchorRedeem(null)}
             >
-              <MenuItem
-                onClick={() => {
-                  handleExportRedeemPDF();
-                  //handleMenuRedeemClose();
-                }}
-                disabled={isExporting}
-              >
+              <MenuItem onClick={handleExportRedeemPDF} disabled={isExporting}>
                 <ListItemIcon>
                   {isExporting ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <PictureAsPdfIcon fontSize="small" />
+                    <PictureAsPdfIcon />
                   )}
                 </ListItemIcon>
                 PDF
               </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleExportRedeemXLS();
-                  //  handleMenuRedeemClose();
-                }}
-                disabled={isExporting}
-              >
+              <MenuItem onClick={handleExportRedeemXLS} disabled={isExporting}>
                 <ListItemIcon>
                   {isExporting ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <BackupTableIcon fontSize="small" />
+                    <BackupTableIcon />
                   )}
                 </ListItemIcon>
                 Excel
@@ -1154,8 +1145,13 @@ export const DataSummary = () => {
             </Menu>
           </Box>
         )}
-        <Summary selectedUser={selectedUser} startDate={startDate} endDate={endDate} />
-      </ListBase>
-    </React.Fragment>
+
+        <Summary
+          selectedUser={selectedUser}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      </Box>
+    </ListBase>
   );
 };
