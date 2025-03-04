@@ -279,9 +279,9 @@ export const dataProvider = {
             $match: {
               ...((filter?.startDate || filter?.endDate) && {
                 createdAt: {
-                  $gte: new Date(`${filter.startDate}T00:00:00Z`),
-                  $lte: new Date(`${filter.endDate}T23:59:59Z`),
-                },
+                  $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+                  $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
+                }                
               }),              
             },
           },
@@ -529,19 +529,15 @@ export const dataProvider = {
 
         const matchConditions = [];
 
-        if (filter.startDate) {
+        if (filter.startDate && filter.endDate) {
           matchConditions.push({
             createdAt: {
-              $gte: new Date(`${filter.startDate}T00:00:00Z`),
-            },
+              $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+              $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
+            }            
           });
         }
 
-        if (filter.endDate) {
-          matchConditions.push({
-            createdAt: { $lte: new Date(`${filter.endDate}T23:59:59Z`) },
-          });
-        }
         if (queryPipeline[0]["$match"]["userId"]) {
           matchConditions.push({
             userId: queryPipeline[0]["$match"]["userId"],
