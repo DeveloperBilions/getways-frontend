@@ -301,33 +301,6 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       borderColor: "#FF9C9C",
       icon: <ErrorIcon color="error" />,
     },
-    ...(role === "Agent"
-      ? [
-          {
-            id: 7,
-            name: "Total Cashout Redeems Successful",
-            value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
-                <span>{data[0].totalCashoutRedeemsSuccess}</span>
-              </div>
-            ),
-            bgColor: "#E3F2FD",
-            borderColor: "#7EB9FB",
-            icon: <PaidIcon color="primary" />,
-          },
-        ]
-      : []),
     ...(role === "Super-User"
       ? [
           {
