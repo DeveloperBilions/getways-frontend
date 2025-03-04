@@ -387,7 +387,7 @@ useEffect(() => {
         handleSearchByChange(newSearchBy);
       }}
       choices={
-        role === "superuser"
+        role === "Super-User"
           ? [
               { id: "username", name: "Username" },
               { id: "email", name: "Email" },
