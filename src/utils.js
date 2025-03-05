@@ -22,6 +22,7 @@ export const mapTransactionStatus = (status) => {
 };
 
 export const calculateDataSummaries = ({ id, users, transactions,walletBalances }) => {
+  console.log(users);
   const totalBalance = users.reduce((sum, user) => {
     return sum + (walletBalances[user?.id] || 0);
   }, 0);
@@ -56,6 +57,7 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
       })
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalRecords = transactions?.length;
+  console.log(totalRecords)
   const totalAmt =
     transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalCashoutRedeemsSuccess = transactions.filter(
@@ -88,14 +90,32 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
         )
         .reduce((sum, item) => sum + item.transactionAmount, 0),
     }; 
-    const getUserParentName = (userId) => {
-      const user = users.find((user) => user.id === userId);
-      return user ? user.userParentName : "Unknown";
-    }; 
-    const getUserAgentPerentName = (userId) => {
-      const user = users.find((user) => user.id === userId);
-      return user ? getUserParentName(user.userParentId) : "Unknown";
-    };
+   const getUserParentName = (userId) => {
+     if (!userId) {
+       console.log("User ID is undefined or null");
+       return "Unknown";
+     }
+     const user = users.find((user) => user.id === userId);
+     if (!user) {
+       console.log(`User with ID ${userId} not found`);
+       return "Unknown";
+     }
+     return user.userParentName || "Unknown";
+   };
+
+   const getUserAgentPerentName = (userId) => {
+     if (!userId) {
+       console.log("User ID is undefined or null");
+       return "Unknown";
+     }
+     const user = users.find((user) => user.id === userId);
+     if (!user) {
+       console.log(`User with ID ${userId} not found`);
+       return "Unknown";
+     }
+     return getUserParentName(user.userParentId);
+   };
+
     const getUserName = (userId) => {
       const user = users.find((user) => user.id === userId);
       return user ? user.username : "Unknown";
@@ -201,6 +221,28 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
           agentParentName: getUserAgentPerentName(item?.userId),
         })),
     };
+
+    const totalTransactionByTypeData = {
+      recharge: transactions.map((item) => ({
+        transactionId: item.id,
+        type: item?.type,
+        amount: item.transactionAmount,
+        status: item.status,
+        paymentType: item?.type,
+        transactionIdFromStripe: item?.transactionIdFromStripe,
+        transactionDate: item?.transactionDate,
+        isCashout: item.status === 12,
+        redeemServiceFee: item?.redeemServiceFee,
+        paymentMode: item?.paymentMode,
+        paymentMethodType: item?.paymentMethodType,
+        remark: item?.remark,
+        redeemRemarks: item?.redeemRemarks,
+        agentName: getUserParentName(item?.userId),
+        userName: item?.username,
+        agentParentName: getUserAgentPerentName(item?.userId),
+      })),
+    };
+    console.log(totalTransactionByTypeData);
     const totalFeesCharged = transactions
     .filter((item) => item.type === "redeem" && (item.status === 8 || item.status === 4)) // Only consider redeems
     .reduce((sum, item) => {
@@ -231,7 +273,8 @@ export const calculateDataSummaries = ({ id, users, transactions,walletBalances 
         walletBalances,
         totalBalance,
         totalRechargeByTypeData,
-        totalRedeemByTypeData
+        totalRedeemByTypeData,
+        totalTransactionByTypeData,
       },
     ],
     total: null,

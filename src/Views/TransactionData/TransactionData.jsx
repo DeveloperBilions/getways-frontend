@@ -24,7 +24,7 @@ import EmergencyNotices from "../../Layout/EmergencyNotices";
 
 export const TransactionData = () => {
   const role = localStorage.getItem("role");
-  const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -34,6 +34,7 @@ export const TransactionData = () => {
   const [tempEndTime, setTempEndTime] = useState(null);
 
   const loadAndExportData = async () => {
+    if (isExporting) return;
     const filters = {
       startdate:
         document.querySelector('input[name="startdate"]')?.value || null,
@@ -72,20 +73,15 @@ export const TransactionData = () => {
   };
 
   const handleExportAllDataXLS = async () => {
-    const exportData = await loadAndExportData(); // Fetch data
-    console.log(exportData, "exportData");
+    const exportData = await loadAndExportData();
+    // console.log(exportData, "exportData");
 
-    const newData = [
-      ...exportData[0]?.totalRechargeByTypeData?.wallet,
-      ...exportData[0]?.totalRechargeByTypeData?.others,
-      ...exportData[0]?.totalRedeemByTypeData?.wallet,
-      ...exportData[0]?.totalRedeemByTypeData?.others,
-    ];
+    const newData = [...exportData[0]?.totalTransactionByTypeData.recharge];
     console.log(newData);
 
     // Flatten and combine all data
     const combinedData = newData?.map((item) => ({
-      "Transaction ID": item.transactionId,
+      "Transaction ID": item.transactionId, 
       type: item?.type,
       Amount: item.amount,
       "Transaction Date": formatDateForExcel(item.transactionDate),
@@ -113,6 +109,7 @@ export const TransactionData = () => {
       new Blob([xlsData], { type: "application/octet-stream" }),
       "AllData.xlsx"
     );
+    handleMenuClose();
   };
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD

@@ -780,7 +780,7 @@ export const dataProvider = {
       } else if (resource === "summaryExport") {
         var result = null;
         if (role === "Super-User") {
-        
+          console.log("object")
           if (filter?.username) {
             // console.log("IN IF");
             var userQuery = new Parse.Query(Parse.User);
@@ -834,7 +834,8 @@ export const dataProvider = {
             var results = await transactionQuery.findAll();
           } else {
             var userQuery = new Parse.Query(Parse.User);
-            var results = await userQuery.findAll({ useMasterKey: true });
+            userQuery.limit(100000);
+            var results = await userQuery.find({ useMasterKey: true });
             var data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
             data.push({ id: userid, ...currentUser.attributes });
@@ -857,6 +858,7 @@ export const dataProvider = {
               "redeemRemarks",
               "username"
             );
+            transactionQuery.limit(100000);
 
             if (filter.startdate && filter.starttime) {
               transactionQuery.greaterThanOrEqualTo(
@@ -881,14 +883,14 @@ export const dataProvider = {
                 new Date(filter.enddate + "T23:59:59Z")
               );
             }
-            var results = await transactionQuery.findAll();
+            var results = await transactionQuery.find();
           }
           // Fetch wallet balances for the users
           const walletQuery = new Parse.Query("Wallet");
           const userIds = data.map((user) => user.id);
           walletQuery.containedIn("userID", userIds);
 
-          const walletResults = await walletQuery.findAll({ useMasterKey: true });
+          const walletResults = await walletQuery.find({ useMasterKey: true });
           const walletBalances = walletResults.reduce((acc, wallet) => {
             acc[wallet.get("userID")] = wallet.get("balance") || 0;
             return acc;
@@ -901,6 +903,7 @@ export const dataProvider = {
             walletBalances,
           });
         }
+        console.log(result)
         return result;
       } else if (resource === "summaryData") {
         var result = null;
