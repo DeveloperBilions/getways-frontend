@@ -136,20 +136,25 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
-              <Resource
-                name="transactionData"
-                recordRepresentation="transactionData"
-                list={TransactionData}
-                options={{ label: "Transaction Data" }}
-                icon={SummarizeIcon}
-              />
               {permissions === "Super-User" && (
-                <Resource
-                  name="Reports"
-                  list={Reports}
-                  options={{ label: "Reports" }}
-                  icon={SummarizeIcon}
-                />
+                <>
+                  <Resource
+                    name="Reports"
+                    list={Reports}
+                    options={{ label: "Reports" }}
+                    icon={SummarizeIcon}
+                  />
+                  <CustomRoutes>
+                    <Route
+                      path="/transactionData"
+                      element={
+                        <Authenticated>
+                          <TransactionData resource="transactionData" />
+                        </Authenticated>
+                      }
+                    />
+                  </CustomRoutes>
+                </>
               )}
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
@@ -196,14 +201,6 @@ function App() {
                   element={
                     <Authenticated>
                       <RedeemRecordsList resource="redeemRecords" />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path="/transactionData"
-                  element={
-                    <Authenticated>
-                      <TransactionData resource="transactionData" />
                     </Authenticated>
                   }
                 />

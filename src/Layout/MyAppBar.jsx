@@ -84,8 +84,10 @@ export default function MyAppBar({ props }) {
         color: "white",
       }}
     >
-      <Toolbar sx={{ width: "15em" ,cursor: "pointer"}}       onClick={() => navigate("/")}
->
+      <Toolbar
+        sx={{ width: "15em", cursor: "pointer" }}
+        onClick={() => navigate("/")}
+      >
         <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
       </Toolbar>
 
@@ -93,7 +95,8 @@ export default function MyAppBar({ props }) {
       {/* <RefreshIconButton /> */}
       {/* <NotificationsNoneIcon /> */}
       {/* <AccountCircleIcon /> */}
-      {(role === "Master-Agent" || role === "Agent") && identity?.balance !== undefined && (
+      {(role === "Master-Agent" || role === "Agent") &&
+        identity?.balance !== undefined && (
           <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
             <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
             <span style={{ fontWeight: 600, color: "#fff" }}>
@@ -119,14 +122,24 @@ export default function MyAppBar({ props }) {
           </Typography>
         )} */}
       </Box>
-      
-      <RefreshButton label="" icon={<RefreshIcon sx={{fontSize: "24px !important", marginRight: "-6px"}} />}  sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end"}}/>
+
+      <RefreshButton
+        label=""
+        icon={
+          <RefreshIcon
+            sx={{ fontSize: "24px !important", marginRight: "-6px" }}
+          />
+        }
+        sx={{ color: "white", minWidth: "40px", justifyContent: "flex-end" }}
+      />
       <UserMenu>
-        {( role === "Agent" || role === "Player" || role === "Master-Agent") && 
-        <MenuItem onClick={handleOpenModal} style={{color:"#0000008a"}}> 
-        <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
-          Change Password</MenuItem>}
-          {(role === "Agent" || role === "Master-Agent")&& (
+        {(role === "Agent" || role === "Player" || role === "Master-Agent") && (
+          <MenuItem onClick={handleOpenModal} style={{ color: "#0000008a" }}>
+            <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
+            Change Password
+          </MenuItem>
+        )}
+        {(role === "Agent" || role === "Master-Agent") && (
           <MenuItem
             onClick={handleOpenRechargeLimit}
             style={{ color: "#0000008a" }}
@@ -135,10 +148,10 @@ export default function MyAppBar({ props }) {
             Recharge Limit
           </MenuItem>
         )}
-         {role === "Super-User" && (
+        {role === "Super-User" && (
           <MenuItem
-            onClick={(e) =>{
-              setDisableDialogOpen(true)
+            onClick={(e) => {
+              setDisableDialogOpen(true);
             }}
             style={{ color: "#0000008a" }}
           >
@@ -147,41 +160,73 @@ export default function MyAppBar({ props }) {
           </MenuItem>
         )}
         {role === "Super-User" && (
+          <>
+            <MenuItem
+              onClick={(e) => {
+                setOpenEmergencyModal(true);
+              }}
+              style={{ color: "#0000008a" }}
+            >
+              <AnnouncementIcon sx={{ marginRight: 1 }} />
+              Emergency Message
+            </MenuItem>
+            <MenuItem
+              onClick={(e) => {
+                navigate("/transactionData");
+              }}
+              style={{ color: "#0000008a" }}
+            >
+              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
+              Transaction Export
+            </MenuItem>
+          </>
+        )}
+        {identity?.redeemServiceEnabled && role === "Master-Agent" && (
           <MenuItem
-            onClick={(e) =>{
-              setOpenEmergencyModal(true)
-            }}
+            onClick={() => setOpenRedeemService(true)}
             style={{ color: "#0000008a" }}
           >
-            <AnnouncementIcon sx={{ marginRight: 1 }} />
-            Emergency Message
-          </MenuItem>
-        )}
-         {identity?.redeemServiceEnabled && role === "Master-Agent" && (
-          <MenuItem onClick={() => setOpenRedeemService(true)} style={{ color: "#0000008a" }}>
             <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
           </MenuItem>
         )}
-         <MenuItem
+        <MenuItem
           onClick={() => setOpenHelpVideo(true)}
           style={{ color: "#0000008a" }}
         >
           <HelpOutlineIcon sx={{ marginRight: 1 }} />
           Help Videos
         </MenuItem>
-        <Logout style={{color:"#0000008a"}} />
+        <Logout style={{ color: "#0000008a" }} />
       </UserMenu>
-      <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/> 
+      <HelpOutlineIcon
+        style={{ cursor: "pointer" }}
+        onClick={() => setOpenGuideline(true)}
+      />
       <ChangePassword open={open} onClose={handleCloseModal} />
-      <RechargeLimitDialog open={openRechargeLimit} onClose={handleCloseRechargeLimit} />
+      <RechargeLimitDialog
+        open={openRechargeLimit}
+        onClose={handleCloseRechargeLimit}
+      />
       <DisablePaymentMethodDialog
         open={disableDialogOpen}
         onClose={() => setDisableDialogOpen(false)}
       />
-      <HelpVideoModal open={openHelpVideo} handleClose={() => setOpenHelpVideo(false)} />
-      <AllRedeemService open={openRedeemService} onClose={() => setOpenRedeemService(false)} />
-      <GuidelineModal open={openGuideline} onClose={() => setOpenGuideline(false)} />
-      <EmergencyMessageDialog open={openEmergencyModal} onClose={() => setOpenEmergencyModal(false)} />
+      <HelpVideoModal
+        open={openHelpVideo}
+        handleClose={() => setOpenHelpVideo(false)}
+      />
+      <AllRedeemService
+        open={openRedeemService}
+        onClose={() => setOpenRedeemService(false)}
+      />
+      <GuidelineModal
+        open={openGuideline}
+        onClose={() => setOpenGuideline(false)}
+      />
+      <EmergencyMessageDialog
+        open={openEmergencyModal}
+        onClose={() => setOpenEmergencyModal(false)}
+      />
     </AppBar>
   );
 }
