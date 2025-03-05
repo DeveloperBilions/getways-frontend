@@ -43,6 +43,7 @@ import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Reports } from "./Views/Reports/Reports";
+import { TransactionData } from "./Views/TransactionData/TransactionData";
 
 function App() {
   useEffect(() => {
@@ -128,13 +129,26 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
+             
               { permissions === "Super-User" &&
+              <>
                <Resource
                 name="Reports"
                 list={Reports}
                 options={{ label: "Reports" }}
                 icon={SummarizeIcon}
-              />}
+              />
+                <CustomRoutes>
+                    <Route
+                      path="/transactionData"
+                      element={
+                        <Authenticated>
+                          <TransactionData resource="transactionData" />
+                        </Authenticated>
+                      }
+                    />
+                  </CustomRoutes>
+              </>}
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>

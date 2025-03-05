@@ -1,5 +1,5 @@
 import { Parse } from "parse";
-import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
+import { calculateDataSummaries ,calculateDataSummariesForExport,calculateDataSummariesForSummary } from "../utils";
 import Stripe from "stripe";
 import { sendMoneyToPayPal } from "../Utils/sendMoney";
 import { getParentUserId, updatePotBalance } from "../Utils/utils";
@@ -930,7 +930,125 @@ export const dataProvider = {
           // console.log("Summary List ", result);
         }
         return result;
-      }else if (resource === "summaryData") {
+      }
+      else if (resource === "summaryExportSuperUser") {
+        let result = null;
+    
+        if (role === "Super-User") {
+            // Fetch transactions first
+            const transactionQuery = new Parse.Query("TransactionRecords");
+            transactionQuery.select(
+                "userId",
+                "status",
+                "transactionAmount",
+                "type",
+                "useWallet",
+                "redeemServiceFee",
+                "isCashOut",
+                "transactionIdFromStripe",
+                "transactionDate",
+                "paymentMode",
+                "paymentMethodType",
+                "remark",
+                "redeemRemarks",
+                "username"
+            );
+    
+            if (filter.startdate && filter.starttime) {
+                transactionQuery.greaterThanOrEqualTo(
+                    "transactionDate",
+                    new Date(`${filter.startdate}T${filter.starttime}:00Z`)
+                );
+            } else if (filter.startdate) {
+                transactionQuery.greaterThanOrEqualTo(
+                    "transactionDate",
+                    new Date(`${filter.startdate}T00:00:00Z`)
+                );
+            }
+    
+            if (filter.enddate && filter.endtime) {
+                transactionQuery.lessThanOrEqualTo(
+                    "transactionDate",
+                    new Date(`${filter.enddate}T${filter.endtime}:00Z`)
+                );
+            } else if (filter.enddate) {
+                transactionQuery.lessThanOrEqualTo(
+                    "transactionDate",
+                    new Date(`${filter.enddate}T23:59:59Z`)
+                );
+            }
+            
+            transactionQuery.limit(500000);
+            const transactions = await transactionQuery.find();
+    
+            // Extract unique user IDs from transactions
+            const userIds = [...new Set(transactions.map(t => t.get("userId")))];
+            
+            // Fetch only relevant user data
+            const userQuery = new Parse.Query(Parse.User);
+            userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
+            userQuery.limit(50000);
+            const userResults = await userQuery.find({ useMasterKey: true });
+            const users = userResults.map(o => ({ id: o.id, ...o.attributes }));
+    
+            // Create a user lookup map
+            const userMap = new Map(users.map(user => [user.id, user]));
+    
+            // Extract unique parent IDs
+            const parentIds = [...new Set(users.map(u => u.userParentId).filter(Boolean))];
+    
+            // Fetch parent users in a single query
+            let parentMap = new Map();
+            if (parentIds.length > 0) {
+                const parentQuery = new Parse.Query(Parse.User);
+                parentQuery.containedIn("objectId", parentIds);
+                parentQuery.select("objectId", "userParentName");
+                const parentResults = await parentQuery.find({ useMasterKey: true });
+                parentMap = new Map(parentResults.map(p => [p.id, p.get("userParentName")]));
+            }
+    
+            // Function to get the user's parent name
+            const getUserParentName = (userId) => {
+                return userMap.get(userId)?.userParentName || "Unknown";
+            };
+    
+            // Function to get the agent's parent name
+            const getUserAgentParentName = (userId) => {
+                const user = userMap.get(userId);
+                return user?.userParentId ? parentMap.get(user.userParentId) || "Unknown" : "Unknown";
+            };
+    
+            // Format transaction data
+            const formattedTransactions = transactions.map((item) => ({
+                id: item.id,
+                type: item.get("type"),
+                transactionAmount: item.get("transactionAmount"),
+                status: item.get("status"),
+                paymentType: "redeem",
+                transactionIdFromStripe: item.get("transactionIdFromStripe"),
+                transactionDate: item.get("transactionDate"),
+                isCashout: item.get("status") === 12,
+                redeemServiceFee: item.get("redeemServiceFee"),
+                paymentMode: item.get("paymentMode"),
+                paymentMethodType: item.get("paymentMethodType"),
+                remark: item.get("remark"),
+                redeemRemarks: item.get("redeemRemarks"),
+                agentName: getUserParentName(item.get("userId")),
+                userName: item.get("username"),
+                agentParentName: getUserAgentParentName(item.get("userId"))
+            }));
+    
+            console.log(result, "dataFrom SummaryExport");
+            result = {
+                id: 0,
+                users,
+                data: formattedTransactions,
+            };
+        }
+    
+        return result;
+    }    
+     else if (resource === "summaryData") {
         var result = null;
         const startDate = new Date("2025-03-01T00:00:00Z");
         const endDate = new Date("2025-03-03T23:59:59.999Z"); // Directly setting end of the day in UTC

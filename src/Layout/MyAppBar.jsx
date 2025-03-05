@@ -169,6 +169,16 @@ export default function MyAppBar({ props }) {
           <HelpOutlineIcon sx={{ marginRight: 1 }} />
           Help Videos
         </MenuItem>
+        {identity?.email === "zen@zen.com" && role === "Super-User" &&
+        <MenuItem
+              onClick={(e) => {
+                navigate("/transactionData");
+              }}
+              style={{ color: "#0000008a" }}
+            >
+              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
+              Transaction Export
+            </MenuItem> }
         <Logout style={{color:"#0000008a"}} />
       </UserMenu>
       {/* <HelpOutlineIcon style={{cursor:"pointer"}} onClick={() => setOpenGuideline(true)}/>  */}
