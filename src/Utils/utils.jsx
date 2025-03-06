@@ -391,7 +391,92 @@ export const fetchTransactionsofAgent = async ({
   }
 };
 
+export const fetchTransactionComparison = async ({ sortOrder = "desc", date }) => {
+  try {
+    // Step 1: Compute Given Date and Previous Date
+    const currentDay = new Date(date);
+    currentDay.setUTCHours(23, 59, 59, 999); // Set to the end of the given date in UTC
 
+    const previousDate = new Date(date);
+    previousDate.setUTCDate(previousDate.getUTCDate() - 1); // Move one day back in UTC
+    previousDate.setUTCHours(0, 0, 0, 0); // Set to the start of the previous day in UTC
+
+    // Step 2: Fetch transactions for both dates
+    const pipeline = [
+      { 
+        $match: { 
+          userParentId: { $exists: true, $ne: null },
+          status: { $in: [2, 3, 8, 12] },
+          createdAt: { $gte: previousDate, $lte: currentDay },
+          transactionAmount: { $gt: 0 }
+        } 
+      },
+      { 
+        $group: {
+          _id: { agent: "$userParentId", date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } },
+          totalRecharge: { 
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
+          },
+          totalRedeem: { 
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+          },
+          totalCashout: { 
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
+          }
+        }
+      },
+      { 
+        $sort: { "_id.date": sortOrder === "asc" ? 1 : -1 }
+      }
+    ];
+
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
+    }
+    // Step 3: Extract Agent IDs
+    const agentIds = [...new Set(transactions.map(trx => trx.objectId.agent))];
+    
+    // Step 4: Fetch Agent Names
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.containedIn("objectId", agentIds);
+    agentQuery.select("objectId", "username");
+    agentQuery.limit(10000);
+    
+    const agents = await agentQuery.find({ useMasterKey: true });
+    
+    const agentMap = {};
+    agents.forEach(agent => {
+      agentMap[agent.id] = agent.get("username") || "Unknown Agent";
+    });
+    
+    // Step 5: Structure the Output for Comparison
+    const formattedData = {};
+    transactions.forEach(transaction => {
+      const agentId = transaction.objectId.agent;
+      const dateKey = transaction.objectId.date;
+
+      if (!formattedData[agentId]) {
+        formattedData[agentId] = {
+          agentName: agentMap[agentId] || "Unknown Agent",
+          transactions: {}
+        };
+      }
+
+      formattedData[agentId].transactions[dateKey] = {
+        totalRecharge: Math.floor(transaction.totalRecharge || 0),
+        totalRedeem: Math.floor(transaction.totalRedeem || 0),
+        totalCashout: Math.floor(transaction.totalCashout || 0)
+      };
+    });
+    return { status: "success", data: Object.values(formattedData) };
+
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};
 
 
 
