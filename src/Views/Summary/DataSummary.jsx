@@ -72,13 +72,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Card
           sx={{
-            padding: "20px",
+            padding: { xs: "10px", sm: "20px" },
             textAlign: "center",
-            maxWidth: "400px",
+            maxWidth: { xs: "90%", sm: "400px" },
             backgroundColor: "#f9f9f9",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
             borderRadius: "10px",
@@ -86,12 +86,23 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         >
           <CardContent>
             <Box display="flex" justifyContent="center" mb={2}>
-              <EventIcon color="primary" sx={{ fontSize: 40 }} />
+              <EventIcon
+                color="primary"
+                sx={{ fontSize: { xs: 30, sm: 40 } }}
+              />
             </Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+            >
               Select a Date Range
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+            >
               Please select both start and end dates to view the summary data.
             </Typography>
           </CardContent>
@@ -105,7 +116,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Loading />
       </Box>
@@ -124,18 +135,16 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
-    ...(role === "Super-User"
+    ...(role === "Super-User" || role === "Agent"
       ? [
           {
             id: 3,
             name: "Total Recharge (Filtered)",
             value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="flex-start"
               >
                 <img
                   src={AOGSymbol}
@@ -143,51 +152,25 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
                 />
                 <span>{filteredRechargeValue}</span>
-              </div>
+              </Box>
             ),
             bgColor: "#EBF9F0",
             borderColor: "#9CDAB8",
             icon: <PaidIcon color="secondary" />,
-            filter: (
-              <FormControl fullWidth>
-                <Select
-                  labelId="recharge-type-select-label"
-                  value={selectedRechargeType}
-                  onChange={(e) => setSelectedRechargeType(e.target.value)}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="wallet">Wallet</MenuItem>
-                  <MenuItem value="others">Others</MenuItem>
-                </Select>
-              </FormControl>
-            ),
-          },
-        ]
-      : []),
-    ...(role === "Agent"
-      ? [
-          {
-            id: 3,
-            name: "Total Recharge (Filtered)",
-            value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
-                <span>{filteredRechargeValue}</span>
-              </div>
-            ),
-            bgColor: "#EBF9F0",
-            borderColor: "#9CDAB8",
-            icon: <PaidIcon color="secondary" />,
+            filter:
+              role === "Super-User" ? (
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedRechargeType}
+                    onChange={(e) => setSelectedRechargeType(e.target.value)}
+                    sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="wallet">Wallet</MenuItem>
+                    <MenuItem value="others">Others</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : null,
           },
         ]
       : []),
@@ -445,68 +428,80 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
   identity.role === "Agent" && finalData.splice(1, 1);
 
   return (
-    <>
-      <Grid container spacing={2} mt>
-        {finalData?.map((item) => (
-          <Grid item xs={12} md={4} key={item?.id}>
-            <Card
-              sx={{
-                backgroundColor: item?.bgColor,
-                border: 2,
-                borderColor: item?.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item?.icon}
-                  &nbsp;{item?.name}
-                </Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {item?.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {recharge.map((item) => (
-          <Grid item xs={12} md={4} key={item.id}>
-            <Card
-              sx={{
-                backgroundColor: item.bgColor,
-                border: 2,
-                borderColor: item.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item.icon}
-                  &nbsp;{item.name}
-                </Typography>
-                {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
-                <Typography
-                  variant="h4"
-                  sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
-                >
-                  {item.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </>
+    <Grid container spacing={{ xs: 1, sm: 2 }} mt={{ xs: 1, sm: 2 }}>
+      {finalData?.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item?.icon} {item?.name}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 1,
+                  fontWeight: "bold",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+      {recharge.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item.id}>
+          <Card
+            sx={{
+              backgroundColor: item.bgColor,
+              border: 2,
+              borderColor: item.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item.icon} {item.name}
+              </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 2,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
   );
 };
 
@@ -982,7 +977,7 @@ export const DataSummary = () => {
   const dataFilters = [
     <Autocomplete
       source="username"
-      sx={{ width: 230 }}
+      sx={{ width: { xs: "100%", md: 300 } }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -1019,6 +1014,7 @@ export const DataSummary = () => {
     <DateInput
       label="Start date"
       source="startdate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
       InputProps={{
@@ -1044,6 +1040,7 @@ export const DataSummary = () => {
     <DateInput
       label="End date"
       source="enddate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
       InputProps={{
@@ -1078,11 +1075,14 @@ export const DataSummary = () => {
     <React.Fragment>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-        <Box display="flex" flexDirection="column">
-          {" "}
-          {/* Changed to column for vertical layout */}
-          {/* Top Section: Apply Filter and Redeem Export */}
-          <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Box sx={{ px: { xs: 1, sm: 2 } }}>
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", md: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "stretch", md: "center" }}
+          gap={{ xs: 1, md: 2 }}
+        >
             <FilterForm
               filters={dataFilters}
               sx={{
