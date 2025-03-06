@@ -287,7 +287,7 @@ export const Wallet = () => {
           </Typography>
 
           {/* Ensure horizontal scrolling for smaller screens */}
-          <div
+          <Box
             style={{
               width: "100%",
               overflowX: "auto",
@@ -308,7 +308,7 @@ export const Wallet = () => {
                   setPerPage: handlePageSizeChange,
                 }}
               >
-                <div
+                <Box
                   style={{
                     width: "100%",
                     overflowX: "auto",
@@ -469,10 +469,10 @@ export const Wallet = () => {
                       label="Redeem / Cashout Remark"
                     />
                   </Datagrid>
-                </div>
+                </Box>
               </ListContextProvider>
             )}
-          </div>
+          </Box>
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
             <TablePagination
               component="div"

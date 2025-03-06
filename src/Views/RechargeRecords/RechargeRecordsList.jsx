@@ -449,6 +449,7 @@ useEffect(() => {
           </>
         )}
       </Box>
+
       <List
         title={
           identity?.role !== "Player"
@@ -469,148 +470,185 @@ useEffect(() => {
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-        <Datagrid size="small" bulkActionButtons={false}>
-          <TextField source="username" label="Account" />
-          <NumberField
-            source="transactionAmount"
-            label="Recharged"
-            textAlign="left"
-          />
-          <TextField source="remark" label="Remark" />
-          <FunctionField
-            label="Status"
-            source="status"
-            render={(record) => {
-              const getColor = (status) => {
-                switch (status) {
-                  case 3:
-                    return "success";
-                  case 2:
-                    return "primary";
-                  case 1:
-                    return "warning";
-                  case 0:
-                    return "error";
-                  case 9:
-                    return "error";
-                  case 10:
-                    return "error";
-                  default:
-                    return "default";
-                }
-              };
-              const statusMessage = {
-                0: "Pending Referral Link",
-                1: "Pending Confirmation",
-                2: "Confirmed",
-                3: "Coins Credited",
-                9: "Expired",
-                10: "Failed Transaction",
-              }[record.status];
-              return (
-                <Chip
-                  label={statusMessage}
-                  color={getColor(record.status)}
-                  size="small"
-                  variant="outlined"
-                />
-              );
+        <Box
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            position: "relative",
+            height: "600px",
+          }}
+        >
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "hidden", // Prevent vertical scrolling
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
             }}
-          />
-          <FunctionField
-            label="Parent"
-            render={(record) => {
-              return record?.userParentName;
-            }}
-          />
-
-          {role === "Super-User" && (
-            <FunctionField
-              label="Mode"
-              render={(record) => {
-                return (
-                  <Chip
-                    label={
-                      record?.referralLink?.toLowerCase().includes("aog")
-                        ? "AOG"
-                        : record?.useWallet
-                        ? "Wallet"
-                        : "Stripe"
-                    }
-                  />
-                );
+          >
+            <Datagrid
+              size="small"
+              bulkActionButtons={false}
+              sx={{
+                minWidth: "1000px", // Ensures the table is wide enough to scroll
+                tableLayout: "fixed", // Fix column sizes
+                "& .RaDatagrid-table": {
+                  width: "100%", // Ensures table fills the available space
+                },
+                "& .column-paymentMethodType": {
+                  minWidth: "150px", // Ensure this column is wide enough
+                  maxWidth: "150px",
+                  whiteSpace: "nowrap",
+                },
               }}
-            />
-          )}
-          <DateField
-            source="transactionDate"
-            label="RechargeDate"
-            showTime
-            sortable
-          />
-          <FunctionField
-            label="Action"
-            render={(record) =>
-              record?.status === 2 && identity?.role !== "Player" ? (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  startIcon={<MonetizationOnIcon />}
-                  onClick={() => handleCoinCredit(record)}
-                >
-                  Coins Credit
-                </Button>
-              ) : record.status === 1 ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+            >
+              <TextField source="username" label="Account" />
+              <NumberField
+                source="transactionAmount"
+                label="Recharged"
+                textAlign="left"
+              />
+              <TextField source="remark" label="Remark" />
+              <FunctionField
+                label="Status"
+                source="status"
+                render={(record) => {
+                  const getColor = (status) => {
+                    switch (status) {
+                      case 3:
+                        return "success";
+                      case 2:
+                        return "primary";
+                      case 1:
+                        return "warning";
+                      case 0:
+                        return "error";
+                      case 9:
+                        return "error";
+                      case 10:
+                        return "error";
+                      default:
+                        return "default";
+                    }
+                  };
+                  const statusMessage = {
+                    0: "Pending Referral Link",
+                    1: "Pending Confirmation",
+                    2: "Confirmed",
+                    3: "Coins Credited",
+                    9: "Expired",
+                    10: "Failed Transaction",
+                  }[record.status];
+                  return (
+                    <Chip
+                      label={statusMessage}
+                      color={getColor(record.status)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  );
+                }}
+              />
+              <FunctionField
+                label="Parent"
+                render={(record) => {
+                  return record?.userParentName;
+                }}
+              />
+
+              {role === "Super-User" && (
+                <FunctionField
+                  label="Mode"
+                  render={(record) => {
+                    return (
+                      <Chip
+                        label={
+                          record?.referralLink?.toLowerCase().includes("aog")
+                            ? "AOG"
+                            : record?.useWallet
+                            ? "Wallet"
+                            : "Stripe"
+                        }
+                      />
+                    );
                   }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    startIcon={<ContentCopyIcon />}
-                    onClick={() => handleUrlClick(record)}
-                  >
-                    Copy
-                  </Button>
-                  {identity?.role === "Player" && (
+                />
+              )}
+              <DateField
+                source="transactionDate"
+                label="RechargeDate"
+                showTime
+                sortable
+              />
+              <FunctionField
+                label="Action"
+                render={(record) =>
+                  record?.status === 2 && identity?.role !== "Player" ? (
                     <Button
                       variant="outlined"
                       color="primary"
                       size="small"
-                      sx={{
-                        pr: 2,
-                        pl: 2,
-                      }}
-                      startIcon={<LanguageIcon />}
-                      onClick={() => handleUrlRedirect(record)}
+                      startIcon={<MonetizationOnIcon />}
+                      onClick={() => handleCoinCredit(record)}
                     >
-                      Recharge
+                      Coins Credit
                     </Button>
-                  )}
-                </Box>
-              ) : record.status === 0 ? (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  startIcon={<LinkIcon />}
-                  onClick={() => handleUrlClick(record)}
-                >
-                  Generate Link
-                </Button>
-              ) : null
-            }
-          />
-        </Datagrid>
+                  ) : record.status === 1 ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        sx={{
+                          mr: 1,
+                        }}
+                        startIcon={<ContentCopyIcon />}
+                        onClick={() => handleUrlClick(record)}
+                      >
+                        Copy
+                      </Button>
+                      {identity?.role === "Player" && (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          sx={{
+                            pr: 2,
+                            pl: 2,
+                          }}
+                          startIcon={<LanguageIcon />}
+                          onClick={() => handleUrlRedirect(record)}
+                        >
+                          Recharge
+                        </Button>
+                      )}
+                    </Box>
+                  ) : record.status === 0 ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<LinkIcon />}
+                      onClick={() => handleUrlClick(record)}
+                    >
+                      Generate Link
+                    </Button>
+                  ) : null
+                }
+              />
+            </Datagrid>
+          </Box>
+        </Box>
+        </List>
         <CoinsCreditDialog
           open={creditCoinDialogOpen}
           onClose={() => setCreditCoinDialogOpen(false)}
@@ -624,7 +662,6 @@ useEffect(() => {
             handleRefresh={handleRefresh}
           />
         )}
-      </List>
     </>
   );
 };

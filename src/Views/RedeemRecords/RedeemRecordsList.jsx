@@ -464,185 +464,207 @@ export const RedeemRecordsList = (props) => {
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-        <Datagrid
-          size="small"
-          bulkActionButtons={false}
-          sx={{
-            minWidth: "1000px", // Ensures the table is wide enough to scroll
-            tableLayout: "fixed", // Fix column sizes
-            "& .RaDatagrid-table": {
-              width: "100%", // Ensures table fills the available space
-            },
-            "& .column-paymentMethodType": {
-              minWidth: "150px", // Ensure this column is wide enough
-              maxWidth: "150px",
-              whiteSpace: "nowrap",
-            },
+        <Box
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            position: "relative",
+            height: "600px",
           }}
         >
-          <TextField source="username" label="Account" />
-          <NumberField
-            source="transactionAmount"
-            label="Redeemed"
-            textAlign="left"
-          />
-          <FunctionField
-            label="Parent"
-            render={(record) => {
-              return record?.userParentName;
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "hidden", // Prevent vertical scrolling
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
             }}
-          />
-          <FunctionField
-            source="redeemServiceFee"
-            label="ServiceFee"
-            render={(record) =>
-              record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
-            }
-          />
-          <TextField source="remark" label="Remark" />
-          <FunctionField
-            label="Status"
-            source="status"
-            render={(record) => {
-              const getColor = (status) => {
-                switch (status) {
-                  case 4:
-                    return "success";
-                  case 12:
-                    return "success";
-                  case 5:
-                    return "error";
-                  case 13:
-                    return "error";
-                  case 6:
-                    return "warning";
-                  case 7:
-                    return "error";
-                  case 8:
-                    return "success";
-                  default:
-                    return "default";
+          >
+            <Datagrid
+              size="small"
+              bulkActionButtons={false}
+              sx={{
+                minWidth: "1000px", // Ensures the table is wide enough to scroll
+                tableLayout: "fixed", // Fix column sizes
+                "& .RaDatagrid-table": {
+                  width: "100%", // Ensures table fills the available space
+                },
+                "& .column-paymentMethodType": {
+                  minWidth: "150px", // Ensure this column is wide enough
+                  maxWidth: "150px",
+                  whiteSpace: "nowrap",
+                },
+              }}
+            >
+              <TextField source="username" label="Account" />
+              <NumberField
+                source="transactionAmount"
+                label="Redeemed"
+                textAlign="left"
+              />
+              <FunctionField
+                label="Parent"
+                render={(record) => {
+                  return record?.userParentName;
+                }}
+              />
+              <FunctionField
+                source="redeemServiceFee"
+                label="ServiceFee"
+                render={(record) =>
+                  record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
                 }
-              };
-              const statusMessage = {
-                4: "Success",
-                5: "Fail",
-                6: "Pending Approval",
-                7: "Rejected",
-                8: "Redeem Successfully",
-                9: "Expired",
-                11: "Cashouts",
-                12: "Cashout Successfully",
-                13: "Cashout Reject",
-              }[record.status];
-              return (
-                <Chip
-                  label={statusMessage}
-                  color={getColor(record.status)}
-                  size="small"
-                  variant="outlined"
-                />
-              );
-            }}
-          />
-          <DateField
-            source="transactionDate"
-            label="RedeemDate"
-            showTime
-            sortable
-          />
-          {identity?.role === "Super-User" && (
-            <TextField source="paymentMode" label="Payment Method" />
-          )}
-          {identity?.role === "Super-User" && (
-            <TextField source="paymentMethodType" label="Payment Id" />
-          )}
-          <FunctionField
-            label="Action"
-            source="action"
-            render={(record) =>
-              (record?.status === 6 && identity?.role === "Agent") ||
-              (record?.status === 6 &&
-                identity?.role === "Master-Agent" &&
-                identity?.objectId === record?.userParentId) ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setRedeemDialogOpen(true);
-                    }}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setRejectDialogOpen(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : record?.status === 11 && identity?.role === "Super-User" ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    onClick={() => {
-                      setSelectedRecord({
-                        ...record,
-                        userParentId: identity?.objectId,
-                      });
-                      setFinalRedeemDialogOpen(true);
-                    }}
-                  >
-                    Success
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => {
-                      setSelectedRecord(record);
-                      setFinalRejectDialogOpen(true);
-                      setCashout(true);
-                    }}
-                  >
-                    Reject
-                  </Button>
-                </Box>
-              ) : null
-            }
-          />
-        </Datagrid>
+              />
+              <TextField source="remark" label="Remark" />
+              <FunctionField
+                label="Status"
+                source="status"
+                render={(record) => {
+                  const getColor = (status) => {
+                    switch (status) {
+                      case 4:
+                        return "success";
+                      case 12:
+                        return "success";
+                      case 5:
+                        return "error";
+                      case 13:
+                        return "error";
+                      case 6:
+                        return "warning";
+                      case 7:
+                        return "error";
+                      case 8:
+                        return "success";
+                      default:
+                        return "default";
+                    }
+                  };
+                  const statusMessage = {
+                    4: "Success",
+                    5: "Fail",
+                    6: "Pending Approval",
+                    7: "Rejected",
+                    8: "Redeem Successfully",
+                    9: "Expired",
+                    11: "Cashouts",
+                    12: "Cashout Successfully",
+                    13: "Cashout Reject",
+                  }[record.status];
+                  return (
+                    <Chip
+                      label={statusMessage}
+                      color={getColor(record.status)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  );
+                }}
+              />
+              <DateField
+                source="transactionDate"
+                label="RedeemDate"
+                showTime
+                sortable
+              />
+              {identity?.role === "Super-User" && (
+                <TextField source="paymentMode" label="Payment Method" />
+              )}
+              {identity?.role === "Super-User" && (
+                <TextField source="paymentMethodType" label="Payment Id" />
+              )}
+              <FunctionField
+                label="Action"
+                source="action"
+                render={(record) =>
+                  (record?.status === 6 && identity?.role === "Agent") ||
+                  (record?.status === 6 &&
+                    identity?.role === "Master-Agent" &&
+                    identity?.objectId === record?.userParentId) ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        size="small"
+                        sx={{
+                          mr: 1,
+                        }}
+                        onClick={() => {
+                          setSelectedRecord({
+                            ...record,
+                            userParentId: identity?.objectId,
+                          });
+                          setRedeemDialogOpen(true);
+                        }}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => {
+                          setSelectedRecord(record);
+                          setRejectDialogOpen(true);
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  ) : record?.status === 11 &&
+                    identity?.role === "Super-User" ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        size="small"
+                        sx={{
+                          mr: 1,
+                        }}
+                        onClick={() => {
+                          setSelectedRecord({
+                            ...record,
+                            userParentId: identity?.objectId,
+                          });
+                          setFinalRedeemDialogOpen(true);
+                        }}
+                      >
+                        Success
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => {
+                          setSelectedRecord(record);
+                          setFinalRejectDialogOpen(true);
+                          setCashout(true);
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  ) : null
+                }
+              />
+            </Datagrid>
+          </Box>
+        </Box>
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>
