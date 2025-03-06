@@ -135,6 +135,15 @@ export default function MyAppBar({ props }) {
           gap: { xs: 0.5, md: 1 }, // Reduce gap on mobile
         }}
       >
+        {(role === "Master-Agent" || role === "Agent") &&
+          identity?.balance !== undefined && (
+            <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+              <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+              <span style={{ fontWeight: 600, color: "#fff" }}>
+                Balance: {identity.balance}
+              </span>
+            </Box>
+          )}
         <Box sx={{ ml: 0, minWidth: 0 }}>
           <Typography
             noWrap
@@ -209,6 +218,17 @@ export default function MyAppBar({ props }) {
           {role === "Super-User" && (
             <MenuItem
               onClick={(e) => {
+                navigate("/transactionData");
+              }}
+              style={{ color: "#0000008a" }}
+            >
+              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
+              Transaction Export
+            </MenuItem>
+          )}
+          {role === "Super-User" && (
+            <MenuItem
+              onClick={(e) => {
                 setOpenEmergencyModal(true);
               }}
               style={{ color: "#0000008a" }}
@@ -234,11 +254,11 @@ export default function MyAppBar({ props }) {
           </MenuItem>
           <Logout style={{ color: "#0000008a" }} />
         </UserMenu>
-      <HelpOutlineIcon
-        style={{ cursor: "pointer" }}
-        onClick={() => setOpenGuideline(true)}
+        <HelpOutlineIcon
+          style={{ cursor: "pointer" }}
+          onClick={() => setOpenGuideline(true)}
         />
-        </Box>
+      </Box>
       <ChangePassword open={openModal} onClose={handleCloseModal} />
       <RechargeLimitDialog
         open={openRechargeLimit}
