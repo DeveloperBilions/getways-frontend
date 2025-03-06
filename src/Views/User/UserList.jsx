@@ -395,7 +395,12 @@ useEffect(() => {
 }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SearchInput
+      source={searchBy}
+      alwaysOn
+      resettable
+      sx={{ width: { xs: "100%", sm: "auto" } }}
+    />,
     <SelectInput
       source="searchBy"
       label="Search By"
@@ -406,6 +411,7 @@ useEffect(() => {
         const newSearchBy = e.target.value || "username";
         handleSearchByChange(newSearchBy);
       }}
+      sx={{ width: { xs: "100%", sm: "auto" } }}
       choices={
         role === "Super-User"
           ? [
@@ -428,6 +434,7 @@ useEffect(() => {
         label="Role"
         emptyText={"All"}
         alwaysOn
+        sx={{ width: { xs: "100%", sm: "auto" } }}
         resettable
         choices={[
           { id: "Super-User", name: "Super-User" },
@@ -439,30 +446,44 @@ useEffect(() => {
     );
   }
 
-  const PostListActions = () => (
-    <TopToolbar>
-      {role != "Super-User" && (
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          startIcon={<AddIcon />}
-          onClick={handleGenerateLink}
-        >
-          Referral Link
-        </Button>
-      )}
+const PostListActions = () => (
+  <TopToolbar
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+      alignItems: "center",
+      justifyContent: "flex-end", // Align buttons to the right
+      gap: 2, // Add space between buttons
+      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+      width: "100%", // Ensure full width for the toolbar
+    }}
+  >
+    {role !== "Super-User" && (
       <Button
         variant="contained"
         color="primary"
         size="small"
         startIcon={<AddIcon />}
-        onClick={handleCreateUser}
+        onClick={handleGenerateLink}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
-        Add New User
+        Referral Link
       </Button>
-    </TopToolbar>
-  );
+    )}
+
+    <Button
+      variant="contained"
+      color="primary"
+      size="small"
+      startIcon={<AddIcon />}
+      onClick={handleCreateUser}
+      sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+    >
+      Add New User
+    </Button>
+  </TopToolbar>
+);
+
 
   useEffect(() => {
     if (identity) {
@@ -515,27 +536,77 @@ useEffect(() => {
         pagination={<Pagination />}
         sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
       >
-        <Datagrid
-          size="small"
-          bulkActionButtons={false}
-          // data={data}
+        <Box
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            position: "relative",
+            height: "560px",
+          }}
         >
-          <TextField source="username" label="User Name" />
-          <TextField source="email" label="Email" />
-          {(identity?.role === "Super-User" ||
-            identity?.role === "Master-Agent") && (
-            <TextField source="userParentName" label="Parent User" />
-          )}
-          {(identity?.role === "Super-User" ||
-            identity?.role === "Master-Agent") && (
-            <TextField source="roleName" label="User Type" />
-          )}
-          <DateField source="createdAt" label="Date" showTime sortable />
-          <WrapperField label="Actions">
-            <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-          </WrapperField>
-        </Datagrid>
-
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "hidden", // Prevent vertical scrolling
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+            }}
+          >
+            <Datagrid
+              size="small"
+              bulkActionButtons={false}
+              // data={data}
+              sx={{
+                minWidth: "900px", // Ensure full width for horizontal scroll
+                height: "560px", // Fixed height for the table body
+                overflowY: "auto", // Set a minimum width to ensure all columns fit
+                "& .RaDatagrid-row": {
+                  borderBottom: "1px solid #eaeaea",
+                  "&:hover": {
+                    backgroundColor: "#f9f9f9",
+                  },
+                },
+                "& .RaDatagrid-header": {
+                  backgroundColor: "#f5f5f5",
+                  fontWeight: 600,
+                  borderBottom: "2px solid #dedede",
+                },
+                "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                  padding: "8px", // Add consistent padding for readability
+                  textAlign: "left", // Align content to the left
+                },
+                "@media (max-width: 600px)": {
+                  // Ensure responsiveness for mobile screens
+                  "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                    padding: "6px", // Reduce padding on mobile
+                    height: "620px",
+                  },
+                },
+              }}
+            >
+              <TextField source="username" label="User Name" />
+              <TextField source="email" label="Email" />
+              {(identity?.role === "Super-User" ||
+                identity?.role === "Master-Agent") && (
+                <TextField source="userParentName" label="Parent User" />
+              )}
+              {(identity?.role === "Super-User" ||
+                identity?.role === "Master-Agent") && (
+                <TextField source="roleName" label="User Type" />
+              )}
+              <DateField source="createdAt" label="Date" showTime sortable />
+              <WrapperField label="Actions">
+                <CustomButton
+                  fetchAllUsers={fetchAllUsers}
+                  identity={identity}
+                />
+              </WrapperField>
+            </Datagrid>
+          </Box>
+        </Box>
         <CreateUserDialog
           open={userCreateDialogOpen}
           onClose={() => setUserCreateDialogOpen(false)}
