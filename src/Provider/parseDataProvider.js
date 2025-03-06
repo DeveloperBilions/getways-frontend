@@ -699,22 +699,21 @@ export const dataProvider = {
               "transactionDate"
             );
             transactionQuery.containedIn("userId", ids);
-
             filter.startdate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.startdate + "T00:00:00Z")
+                new Date(filter.startDate).setHours(0, 0, 0, 0)
               );
             filter.enddate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(filter.enddate + "T23:59:59Z")
+                new Date(filter.endDate).setHours(23, 59, 59, 999)
               );
             transactionQuery.limit(100000);
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
-            userQuery.limit(10000);
+            userQuery.limit(100000);
             var results = await userQuery.find({ useMasterKey: true });
             var data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
@@ -734,15 +733,15 @@ export const dataProvider = {
               "transactionDate"
             );
             filter.startdate &&
-              transactionQuery.greaterThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.startdate + "T00:00:00Z")
-              );
-            filter.enddate &&
-              transactionQuery.lessThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.enddate + "T23:59:59Z")
-              );
+            transactionQuery.greaterThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.startDate).setHours(0, 0, 0, 0)
+            );
+          filter.enddate &&
+            transactionQuery.lessThanOrEqualTo(
+              "transactionDate",
+              new Date(filter.endDate).setHours(23, 59, 59, 999)
+            );
             transactionQuery.limit(100000);
             var results = await transactionQuery.find();
             console.log(results, "results");
@@ -757,25 +756,6 @@ export const dataProvider = {
             acc[wallet.get("userID")] = wallet.get("balance") || 0;
             return acc;
           }, {});
-          console.log(
-            filter,
-            "filteration",
-            new Date(
-              Date.UTC(
-                new Date(filter.startdate + "T00:00:00Z").getUTCFullYear(),
-                new Date(filter.startdate + "T00:00:00Z").getUTCMonth(),
-                new Date(filter.startdate + "T00:00:00Z").getUTCDate()
-              )
-            ),
-            new Date(
-              Date.UTC(
-                new Date(filter.enddate + "T23:59:59Z").getUTCFullYear(),
-                new Date(filter.enddate + "T23:59:59Z").getUTCMonth(),
-                new Date(filter.enddate + "T23:59:59Z").getUTCDate()
-              )
-            )
-          );
-
           result = calculateDataSummaries({
             id: 0,
             users: data,
