@@ -64,7 +64,7 @@ export const calculateDataSummaries = ({
         }
       })
       .reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
-  const totalRecords = transactions.length;
+  const totalRecords = transactions?.length;
   const totalAmt =
     transactions.reduce((sum, item) => sum + item.transactionAmount, 0) || 0;
   const totalCashoutRedeemsSuccess =
@@ -78,7 +78,7 @@ export const calculateDataSummaries = ({
 
   const totalRedeemSuccessful = transactions.filter(
     (item) => item.status === 8
-  ).length;
+  )?.length;
   const totalRechargeByType = {
     wallet: transactions
       .filter(
@@ -117,27 +117,39 @@ export const calculateDataSummaries = ({
       )
       .map((item) => ({
         transactionId: item.id,
+        type: item?.type,
         amount: item.transactionAmount,
         status: item.status,
         paymentType: "redeem",
         transactionIdFromStripe: item?.transactionIdFromStripe,
         transactionDate: item?.transactionDate,
+        isCashout: item.status === 12,
         redeemServiceFee: item?.redeemServiceFee,
+        paymentMode: item?.paymentMode,
+        paymentMethodType: item?.paymentMethodType,
+        remark: item?.remark,
+        redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
-        userName: getUserName(item?.userId),
+        userName: item?.username,
       })),
     others: transactions
       .filter((item) => item.type === "redeem" && item.status === 12)
       .map((item) => ({
         transactionId: item.id,
+        type: item?.type,
         amount: item.transactionAmount,
         status: item.status,
         paymentType: "cashout",
         transactionIdFromStripe: item?.transactionIdFromStripe,
         transactionDate: item?.transactionDate,
+        isCashout: item.status === 12,
         redeemServiceFee: item?.redeemServiceFee,
+        paymentMode: item?.paymentMode,
+        paymentMethodType: item?.paymentMethodType,
+        remark: item?.remark,
+        redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
-        userName: getUserName(item?.userId),
+        userName: item?.username,
       })),
   };
   const totalRechargeByTypeData = {
@@ -151,14 +163,20 @@ export const calculateDataSummaries = ({
       )
       .map((item) => ({
         transactionId: item.id,
+        type: item?.type,
         amount: item.transactionAmount,
-        date: item.date,
         status: item.status,
         paymentType: "wallet",
         transactionIdFromStripe: item?.transactionIdFromStripe,
         transactionDate: item?.transactionDate,
+        isCashout: item.status === 12,
+        redeemServiceFee: item?.redeemServiceFee,
+        paymentMode: item?.paymentMode,
+        paymentMethodType: item?.paymentMethodType,
+        remark: item?.remark,
+        redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
-        userName: getUserName(item?.userId),
+        userName: item?.username,
       })),
     others: transactions
       .filter(
@@ -172,14 +190,20 @@ export const calculateDataSummaries = ({
       )
       .map((item) => ({
         transactionId: item.id,
+        type: item?.type,
         amount: item.transactionAmount,
-        date: item.date,
         status: item.status,
         paymentType: "others",
         transactionIdFromStripe: item?.transactionIdFromStripe,
         transactionDate: item?.transactionDate,
+        isCashout: item.status === 12,
+        redeemServiceFee: item?.redeemServiceFee,
+        paymentMode: item?.paymentMode,
+        paymentMethodType: item?.paymentMethodType,
+        remark: item?.remark,
+        redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
-        userName: getUserName(item?.userId),
+        userName: item?.username,
       })),
   };
   const totalFeesCharged = transactions
@@ -221,8 +245,6 @@ export const calculateDataSummaries = ({
     total: null,
   };
 };
-
-
 export const calculateDataSummariesForSummary = ({ id, users,walletBalances }) => {
 
   const totalBalance = users.reduce((sum, user) => {

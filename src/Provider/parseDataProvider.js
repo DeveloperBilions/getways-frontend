@@ -572,7 +572,7 @@ export const dataProvider = {
          const userIds = data.map((user) => user.id);
          walletQuery.containedIn("userID", userIds);
 
-         const walletResults = await walletQuery.find({ useMasterKey: true });
+         const walletResults = await walletQuery.findAll({ useMasterKey: true });
          const walletBalances = walletResults.reduce((acc, wallet) => {
            acc[wallet.get("userID")] = wallet.get("balance") || 0;
            return acc;
@@ -762,7 +762,6 @@ export const dataProvider = {
        result.data[0] = Object.assign(result.data[0], newsummaray);
        result.data[0]["totalFailRedeemAmount"] =
          Combinedresult[0]?.totalAmount || 0;
-       console.log("result", result);
        return result;
      } else if (resource === "summaryExport") {
        var result = null;
