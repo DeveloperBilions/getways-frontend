@@ -82,7 +82,7 @@ export default function MyAppBar({ props }) {
     >
       <Box sx={{ display: "flex", alignItems: "center" }}>
         {/* Hamburger Menu for small screens */}
-        {(role === "Agent" || role === "Master-Agent") &&
+        {/* {(role === "Player") && */}
         <IconButton
           edge="start"
           color="inherit"
@@ -92,7 +92,7 @@ export default function MyAppBar({ props }) {
         >
           <MenuIcon />
         </IconButton>
-        }
+        {/* } */}
         {/* Logo */}
         <Toolbar
           sx={{
