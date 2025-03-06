@@ -333,84 +333,97 @@ useEffect(() => {
     ),
   ].filter(Boolean);
 
-  const postListActions = (
-    <TopToolbar>
+const postListActions = (
+  <TopToolbar
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+      alignItems: "center",
+      justifyContent: "flex-end", // Align buttons to the right
+      gap: 2, // Add space between buttons
+      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+      width: "100%", // Ensure full width for the toolbar
+    }}
+  >
       {permissions === "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<AttachMoneyIcon />}
           onClick={() => setRechargeDialogOpen(true)}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Recharge
         </Button>
       )}
+
       <Button
         variant="contained"
         size="small"
         startIcon={<RefreshIcon />}
         onClick={handleRefresh}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
         Refresh
       </Button>
-      {permissions != "Player" && (
+
+      {permissions !== "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<GetAppIcon />}
           onClick={handleMenuOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Export
         </Button>
       )}
-
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
+    <Menu
+      anchorEl={menuAnchor}
+      open={Boolean(menuAnchor)}
+      onClose={handleMenuClose}
+      MenuListProps={{
+        "aria-labelledby": "basic-button",
+      }}
+    >
+      <MenuItem
+        onClick={() => {
+          handleExportPDF();
         }}
+        disabled={isExporting}
       >
-        <MenuItem
-          onClick={() => {
-            handleExportPDF();
-            //handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <PictureAsPdfIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            PDF file
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleExportXLS();
-            // handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <BackupTableIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Excel file
-          </Typography>
-        </MenuItem>
-      </Menu>
-    </TopToolbar>
-  );
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <PictureAsPdfIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          PDF file
+        </Typography>
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleExportXLS();
+        }}
+        disabled={isExporting}
+      >
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <BackupTableIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          Excel file
+        </Typography>
+      </MenuItem>
+    </Menu>
+  </TopToolbar>
+);
+
 
   if (isLoading) {
     return (

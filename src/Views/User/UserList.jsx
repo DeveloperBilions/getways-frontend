@@ -375,7 +375,12 @@ useEffect(() => {
 }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SearchInput
+      source={searchBy}
+      alwaysOn
+      resettable
+      sx={{ width: { xs: "100%", sm: "auto" } }}
+    />,
     <SelectInput
       source="searchBy"
       label="Search By"
@@ -386,6 +391,7 @@ useEffect(() => {
         const newSearchBy = e.target.value || "username";
         handleSearchByChange(newSearchBy);
       }}
+      sx={{ width: { xs: "100%", sm: "auto" } }}
       choices={
         role === "Super-User"
           ? [
@@ -408,6 +414,7 @@ useEffect(() => {
         label="Role"
         emptyText={"All"}
         alwaysOn
+        sx={{ width: { xs: "100%", sm: "auto" } }}
         resettable
         choices={[
           { id: "Super-User", name: "Super-User" },
@@ -419,30 +426,44 @@ useEffect(() => {
     );
   }
 
-  const PostListActions = () => (
-    <TopToolbar>
-      {role != "Super-User" && (
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          startIcon={<AddIcon />}
-          onClick={handleGenerateLink}
-        >
-          Referral Link
-        </Button>
-      )}
+const PostListActions = () => (
+  <TopToolbar
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+      alignItems: "center",
+      justifyContent: "flex-end", // Align buttons to the right
+      gap: 2, // Add space between buttons
+      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+      width: "100%", // Ensure full width for the toolbar
+    }}
+  >
+    {role !== "Super-User" && (
       <Button
         variant="contained"
         color="primary"
         size="small"
         startIcon={<AddIcon />}
-        onClick={handleCreateUser}
+        onClick={handleGenerateLink}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
-        Add New User
+        Referral Link
       </Button>
-    </TopToolbar>
-  );
+    )}
+
+    <Button
+      variant="contained"
+      color="primary"
+      size="small"
+      startIcon={<AddIcon />}
+      onClick={handleCreateUser}
+      sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+    >
+      Add New User
+    </Button>
+  </TopToolbar>
+);
+
 
   useEffect(() => {
     if (identity) {

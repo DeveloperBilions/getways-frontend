@@ -333,75 +333,106 @@ export const RedeemRecordsList = (props) => {
       />
     ),
   ].filter(Boolean);
-  const postListActions = (
-    <TopToolbar>
-      <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
+const postListActions = (
+  <TopToolbar
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" }, // Stack buttons on small screens
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 2, // Add spacing between elements
+      width: "100%", // Ensure the toolbar takes full width
+      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+    }}
+  >
+    <Typography
+      sx={{
+        // mr: { sm: 20, xs: 0 }, // Adjust margin on larger screens
+        textAlign: { xs: "center", sm: "left" }, // Center text on small screens
+        mb: { xs: 1, sm: 0 }, // Add margin-bottom on mobile for better spacing
+      }}
+    >
+      Redeems may take up to 2 hours
+    </Typography>
+
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        alignItems: "center",
+        flexDirection: { xs: "column", sm: "row" }, // Stack buttons on small screens
+        width: { xs: "100%", sm: "auto" }, // Full width on mobile
+      }}
+    >
       <Button
         variant="contained"
         size="small"
         startIcon={<RefreshIcon />}
         onClick={handleRefresh}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
         Refresh
       </Button>
+
       {permissions !== "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<GetAppIcon />}
           onClick={handleMenuOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Export
         </Button>
       )}
+    </Box>
 
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
+    <Menu
+      anchorEl={menuAnchor}
+      open={Boolean(menuAnchor)}
+      onClose={handleMenuClose}
+      MenuListProps={{
+        "aria-labelledby": "basic-button",
+      }}
+    >
+      <MenuItem
+        onClick={() => {
+          handleExportPDF();
         }}
+        disabled={isExporting}
       >
-        <MenuItem
-          onClick={() => {
-            handleExportPDF();
-            //handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <PictureAsPdfIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            PDF file
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleExportXLS();
-            //handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <BackupTableIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Excel file
-          </Typography>
-        </MenuItem>
-      </Menu>
-    </TopToolbar>
-  );
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <PictureAsPdfIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          PDF file
+        </Typography>
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleExportXLS();
+        }}
+        disabled={isExporting}
+      >
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <BackupTableIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          Excel file
+        </Typography>
+      </MenuItem>
+    </Menu>
+  </TopToolbar>
+);
+
   if (isLoading) {
     return (
       <>
