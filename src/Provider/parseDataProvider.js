@@ -164,605 +164,697 @@ export const dataProvider = {
     const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
 
     try {
-      if (resource === "users") {
-        query = new Parse.Query(Parse.User);
-        query.notEqualTo("isDeleted", true);
+     if (resource === "users") {
+       query = new Parse.Query(Parse.User);
+       query.notEqualTo("isDeleted", true);
 
-        if (role === "Agent") {
-          query.equalTo("userParentId", userid);
-        } else if (role === "Master-Agent") {
-          // Step 1: Find all agents under the Master-Agent
-          const agentQuery = new Parse.Query(Parse.User);
-          agentQuery.equalTo("userParentId", userid);
-          // agentQuery.notEqualTo("isDeleted", true);
-          agentQuery.equalTo("roleName", "Agent");
+       if (role === "Agent") {
+         query.equalTo("userParentId", userid);
+       } else if (role === "Master-Agent") {
+         // Step 1: Find all agents under the Master-Agent
+         const agentQuery = new Parse.Query(Parse.User);
+         agentQuery.equalTo("userParentId", userid);
+         agentQuery.equalTo("roleName", "Agent");
 
-          const agents = await agentQuery.find({ useMasterKey: true });
-          const agentIds = agents.map((agent) => agent.id);
-          // Step 2: Find all users (agents + players under those agents)
-          query.containedIn("userParentId", [userid, ...agentIds]);
-        }
-        if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
-          Object.keys(filter).forEach((f) => {
-            if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username") query.matches(f, String(filter[f]), "i");
-              else query.equalTo(f, filter[f]);
-            }
-          });
-        }            
-        count = await query.count({ useMasterKey: true });
-      }else if (resource === "redeemRecords") {
-        const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);
-        filter = { type: "redeem", ...filter };
-        if (role === "Player") {
-          filter = { userId: userid, ...filter };
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-        } else if (role === "Agent") {
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-          var { ids } = await fetchUsers();
-          query.containedIn("userId", ids);
-          query.notEqualTo("isCashOut", true);
-        } else if (role === "Master-Agent") {
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-          var { ids } = await fetchUsers(null, true);
-          query.containedIn("userId", ids);
-          query.notEqualTo("isCashOut", true);
-        }
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
-          });
-        count = await query.count();
-      } else if (resource === "rechargeRecords") {
-        const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...filter};
-        if (role === "Player") {
-          filter = { userId: userid, ...filter };
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-        } else if (role === "Agent") {
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-          var { ids } = await fetchUsers();
-          query.containedIn("userId", ids);
-        } else if (role === "Master-Agent") {
-          filter &&
-            Object.keys(filter).map((f) => {
-              if (f === "username") query.matches(f, filter[f], "i");
-              else query.equalTo(f, filter[f]);
-            });
-          var { ids } = await fetchUsers(null, true);
+         const agents = await agentQuery.find({ useMasterKey: true });
+         const agentIds = agents.map((agent) => agent.id);
 
-          query.containedIn("userId", ids);
-        }
+         // Step 2: Find all users (agents + players under those agents)
+         query.containedIn("userParentId", [userid, ...agentIds]);
+       }
 
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
-          });
-        count = await query.count();
-      } else if (resource === "summary") {
-        var result = null;
-        if (
-          filter?.startDate &&
-          filter?.endDate &&
-          new Date(`${filter.startdate}T00:00:00Z`) >
-            new Date(`${filter.endDate}T00:00:00Z`)
-        ) {
-          throw new Error("Start date cannot be greater than end date");
-        }
+       console.log("Applied Filters:", filter);
 
-        const queryPipeline = [
-          {
-            $match: {
-              ...((filter?.startDate || filter?.endDate) && {
-                createdAt: {
-                  $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
-                  $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
-                }                
-              }),              
-            },
-          },
-          {
-            $facet: {
-              totalRechargeAmount: [
-                { $match: { status: { $in: [2, 3] } } },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: "$transactionAmount" },
-                  },
-                },
-              ],
-              totalRedeemAmount: [
-                { 
-                  $match: { 
-                    type: "redeem", 
-                    status: { $in: [4, 8] }, 
-                    transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
-                  } 
-                },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: "$transactionAmount" },
-                  },
-                },
-              ],
-              totalPendingRechargeAmount: [
-                { $match: { status: 1 } },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: "$transactionAmount" },
-                  },
-                },
-              ],
-              totalCashoutRedeemsSuccess: [
-                { $match: { status: 12 } },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: "$transactionAmount" },
-                  },
-                },
-              ],
-              totalCashoutRedeemsInProgress: [
-                { $match: { status: 11 ,                    transactionAmount: { $gt: 0, $type: "number" } // Ensure positive finite numbers
-              } },
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: "$transactionAmount" },
-                  },
-                },
-              ],
-              totalRecords: [{ $count: "total" }],
-              totalAmt: [
-                {
-                  $group: {
-                    _id: null,
-                    total: { $sum: { $ifNull: ["$transactionAmount", 0] } },
-                  },
-                },
-              ]
-              ,
-              totalFeesCharged: [
-                {
-                  $match: {
-                    type: "redeem",
-                    status: { $in: [4, 8] },
-                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                    redeemServiceFee: { $gt: 0, $type: "number" }   // Ensure positive finite numbers
-                  },
-                },
-                {
-                  $project: {
-                    calculatedFee: {
-                      $floor: {
-                        $multiply: [
-                          { $divide: ["$redeemServiceFee", 100] },
-                          "$transactionAmount",
-                        ],
-                      },
-                    },
-                  },
-                },
-                {
-                  $group: { _id: null, total: { $sum: "$calculatedFee" } },
-                },
-              ]
-              ,
-              totalRedeemSuccessful: [
-                { $match: { status: 8 } },
-                { $count: "count" },
-              ],
+       if (
+         filter &&
+         typeof filter === "object" &&
+         Object.keys(filter).length > 0
+       ) {
+         Object.keys(filter).forEach((f) => {
+           const value = filter[f];
+           if (value !== undefined && value !== null && value !== "") {
+             if (f === "username" || f === "email" || f === "userParentName") {
+               const searchValue = String(value).trim(); // Trim to avoid accidental spaces
+               if (searchValue.length > 0) {
+                 const searchRegex = new RegExp(searchValue, "i");
+                 query.matches(f, searchRegex);
+               }
+             } else if (f === "role") {
+               if (
+                 ["Player", "Agent", "Super-User", "Master-Agent"].includes(
+                   value
+                 )
+               ) {
+                 query.equalTo("roleName", value);
+               }
+               console.log(query);
+             } else if (f === "searchBy") {
+               console.log(`Applying search on field: ${f}`);
+             } else {
+               query.equalTo(f, value);
+             }
+           }
+         });
+       }
 
-              totalRechargeByType: [
-                { $match: { type: "recharge", status: { $in: [2, 3] } } },
-                {
-                  $group: {
-                    _id: {
-                      wallet: { $ifNull: ["$useWallet", false] },
-                    },
-                    totalAmount: {
-                      $sum: { $ifNull: ["$transactionAmount", 0] },
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    _id: 0,
-                    wallet: {
-                      $cond: [
-                        { $eq: ["$_id.wallet", true] },
-                        "wallet",
-                        "others",
-                      ],
-                    },
-                    totalAmount: 1,
-                  },
-                },
-              ],
+       count = await query.count({ useMasterKey: true });
+     } else if (resource === "redeemRecords") {
+       const Resource = Parse.Object.extend("TransactionRecords");
+       query = new Parse.Query(Resource);
+       filter = { type: "redeem", ...filter };
+       if (role === "Player") {
+         filter = { userId: userid, ...filter };
+         filter &&
+           Object.keys(filter).map((f) => {
+             if (f === "username") query.matches(f, filter[f], "i");
+             else query.equalTo(f, filter[f]);
+           });
+       } else if (role === "Agent") {
+         // filter &&
+         //   Object.keys(filter).map((f) => {
+         //     if (f === "username") query.matches(f, filter[f], "i");
+         //     else query.equalTo(f, filter[f]);
+         //   });
+         var { ids } = await fetchUsers();
+         query.containedIn("userId", ids);
+         query.notEqualTo("isCashOut", true);
+       } else if (role === "Master-Agent") {
+         // filter &&
+         //   Object.keys(filter).map((f) => {
+         //     if (f === "username") query.matches(f, filter[f], "i");
+         //     else query.equalTo(f, filter[f]);
+         //   });
+         var { ids } = await fetchUsers(null, true);
+         query.containedIn("userId", ids);
+         query.notEqualTo("isCashOut", true);
+       }
+       if (
+         filter &&
+         typeof filter === "object" &&
+         Object.keys(filter).length > 0
+       ) {
+         for (const f of Object.keys(filter)) {
+           if (filter[f] !== undefined && filter[f] !== null) {
+             if (f === "username" || f === "remark") {
+               const searchValue = String(filter[f]);
+               const searchRegex = new RegExp(searchValue, "i");
+               query.matches(f, searchRegex);
+               console.log(`Search query: ${JSON.stringify(query)}`);
+             } else if (f === "transactionAmount") {
+               const transactionAmount = Number(filter[f]);
+               if (!isNaN(transactionAmount)) {
+                 query.equalTo(f, transactionAmount);
+               } else {
+                 console.warn(`Invalid transactionAmount value: ${filter[f]}`);
+               }
+             } else if (f === "userParentName") {
+               const userQuery = new Parse.Query(Parse.User);
+               userQuery.select("userParentName");
+               const parentNameRegex = new RegExp(filter[f], "i");
+               userQuery.matches(f, parentNameRegex);
 
-              totalRedeemByTypeData: [
-                {
-                  $match: {
-                    type: "redeem",
-                    status: { $in: [4, 8, 12] },
-                  },
-                },
-                {
-                  $project: {
-                    transactionId: "$id",
-                    amount: { $ifNull: ["$transactionAmount", 0] },
-                    status: 1,
-                    paymentType: {
-                      $cond: [{ $eq: ["$status", 12] }, "cashout", "redeem"],
-                    },
-                    transactionIdFromStripe: 1,
-                    transactionDate: 1,
-                    redeemServiceFee: 1,
-                  },
-                },
-              ],
+               const users = await userQuery.find({ useMasterKey: true });
+               const userIds = users.map((user) => user.id);
 
-              totalRechargeByTypeData: [
-                {
-                  $match: {
-                    type: "recharge",
-                    status: { $in: [2, 3] },
-                  },
-                },
-                {
-                  $project: {
-                    transactionId: "$id",
-                    amount: { $ifNull: ["$transactionAmount", 0] },
-                    date: "$date",
-                    status: 1,
-                    paymentType: {
-                      $cond: [
-                        { $eq: ["$useWallet", true] },
-                        "wallet",
-                        "others",
-                      ],
-                    },
-                    transactionIdFromStripe: 1,
-                    transactionDate: 1,
-                  },
-                },
-              ],
-            },
-          },
-        ];
-        if (role === "Super-User") {
-          //users
-          console.log("SU", filter);
+               if (userIds.length > 0) {
+                 query.containedIn("userId", userIds);
+               } else {
+                 query.containedIn("userId", []);
+               }
+             } else if (f === "searchBy") {
+               console.log(`Applying search on field: ${f}`);
+             } else {
+               query.equalTo(f, filter[f]);
+             }
+           }
+         }
+       }
+       count = await query.count();
+     } else if (resource === "rechargeRecords") {
+       const Resource = Parse.Object.extend("TransactionRecords");
+       query = new Parse.Query(Resource);
+       filter = { type: "recharge", ...filter };
 
-          if (filter?.username) {
-            var userQuery = new Parse.Query(Parse.User);
-            var selectedUser = await userQuery.get(filter.username, {
-              useMasterKey: true,
-            });
-            var { ids, data } = await fetchUsers(selectedUser,"yes");
-            queryPipeline[0]["$match"]["userId"] = { $in: ids };
-          } else {
-            var userQuery = new Parse.Query(Parse.User);
-            userQuery.limit(10000);
-            var results = await userQuery.find({ useMasterKey: true });
-            var data = results.map((o) => ({ id: o.id, ...o.attributes }));
-            const currentUser = await Parse.User.current();
-            data.push({ id: userid, ...currentUser.attributes });
-          }
-          // Fetch wallet balances for the users
-          const walletQuery = new Parse.Query("Wallet");
-          const userIds = data.map((user) => user.id);
-          walletQuery.containedIn("userID", userIds);
+       if (role === "Player") {
+         filter = { userId: userid, ...filter };
+         filter &&
+           Object.keys(filter).map((f) => {
+             if (f === "username") query.matches(f, filter[f], "i");
+             else query.equalTo(f, filter[f]);
+           });
+       } else if (role === "Agent") {
+         var { ids } = await fetchUsers();
+         query.containedIn("userId", ids);
+       } else if (role === "Master-Agent") {
+         var { ids } = await fetchUsers(null, true);
+         query.containedIn("userId", ids);
+       }
 
-          const walletResults = await walletQuery.find({ useMasterKey: true });
-          const walletBalances = walletResults.reduce((acc, wallet) => {
-            acc[wallet.get("userID")] = wallet.get("balance") || 0;
-            return acc;
-          }, {});
-          result = calculateDataSummariesForSummary({
-            id: 0,
-            users: data,
-            walletBalances,
-          });
-        }
-        if (role === "Agent") {
-          //users
-          const selectedUser =
-            filter && filter.username
-              ? await new Parse.Query(Parse.User).get(filter.username, {
-                  useMasterKey: true,
-                })
-              : null;
-          const { ids, data } = await fetchUsers(selectedUser);
-          queryPipeline[0]["$match"]["userId"] = { $in: ids };
-          const walletBalances = 0;
-          result = calculateDataSummariesForSummary({
-            id: 1,
-            users: data,
-            walletBalances,
-          });
-        }
-        if (role === "Master-Agent") {
-          //users
-          const selectedUser =
-            filter && filter.username
-              ? await new Parse.Query(Parse.User).get(filter.username, {
-                  useMasterKey: true,
-                })
-              : null;
-          const { ids, data } = await fetchUsers(selectedUser,true);
-          queryPipeline[0]["$match"]["userId"] = { $in: ids };
-          const walletBalances = 0;
-          result = calculateDataSummariesForSummary({
-            id: 1,
-            users: data,
-            walletBalances,
-          });
-        }
+       if (
+         filter &&
+         typeof filter === "object" &&
+         Object.keys(filter).length > 0
+       ) {
+         for (const f of Object.keys(filter)) {
+           if (filter[f] !== undefined && filter[f] !== null) {
+             if (f === "username" || f === "remark") {
+               const searchValue = String(filter[f]);
+               const searchRegex = new RegExp(searchValue, "i");
+               query.matches(f, searchRegex);
+               console.log(`Search query: ${JSON.stringify(query)}`);
+             } else if (f === "transactionAmount") {
+               const transactionAmount = Number(filter[f]);
+               if (!isNaN(transactionAmount)) {
+                 query.equalTo(f, transactionAmount);
+               } else {
+                 console.warn(`Invalid transactionAmount value: ${filter[f]}`);
+               }
+             } else if (f === "userParentName") {
+               const userQuery = new Parse.Query(Parse.User);
+               userQuery.select("userParentName");
+               const parentNameRegex = new RegExp(filter[f], "i");
+               userQuery.matches(f, parentNameRegex);
 
-        const matchConditions = [];
+               const users = await userQuery.find({ useMasterKey: true });
+               const userIds = users.map((user) => user.id);
 
-        if (filter.startDate && filter.endDate) {
-          matchConditions.push({
-            createdAt: {
-              $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
-              $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
-            }            
-          });
-        }
+               if (userIds.length > 0) {
+                 query.containedIn("userId", userIds);
+               } else {
+                 query.containedIn("userId", []);
+               }
+             } else if (f === "searchBy") {
+               console.log(`Applying search on field: ${f}`);
+             } else {
+               query.equalTo(f, filter[f]);
+             }
+           }
+         }
+       }
+       count = await query.count();
+     } else if (resource === "summary") {
+       var result = null;
+       if (
+         filter?.startDate &&
+         filter?.endDate &&
+         new Date(`${filter.startdate}T00:00:00Z`) >
+           new Date(`${filter.endDate}T00:00:00Z`)
+       ) {
+         throw new Error("Start date cannot be greater than end date");
+       }
 
-        if (queryPipeline[0]["$match"]["userId"]) {
-          matchConditions.push({
-            userId: queryPipeline[0]["$match"]["userId"],
-          });
-        }        
-        const pppipeline = [
-          {
-            $match: matchConditions.length > 0 ? { $and: matchConditions } : {},
-          },
-          {
-            $group: {
-              _id: null, // No grouping key since we want the total sum for all records
-              totalAmount: { $sum: "$transactionAmount" }, // Sum the transactionAmount
-            },
-          },
-        ];
+       const queryPipeline = [
+         {
+           $match: {
+             ...((filter?.startDate || filter?.endDate) && {
+               createdAt: {
+                 $gte: new Date(
+                   new Date(filter.startDate).setHours(0, 0, 0, 0)
+                 ),
+                 $lte: new Date(
+                   new Date(filter.endDate).setHours(23, 59, 59, 999)
+                 ),
+               },
+             }),
+           },
+         },
+         {
+           $facet: {
+             totalRechargeAmount: [
+               { $match: { status: { $in: [2, 3] } } },
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: "$transactionAmount" },
+                 },
+               },
+             ],
+             totalRedeemAmount: [
+               {
+                 $match: {
+                   type: "redeem",
+                   status: { $in: [4, 8] },
+                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                 },
+               },
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: "$transactionAmount" },
+                 },
+               },
+             ],
+             totalPendingRechargeAmount: [
+               { $match: { status: 1 } },
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: "$transactionAmount" },
+                 },
+               },
+             ],
+             totalCashoutRedeemsSuccess: [
+               { $match: { status: 12 } },
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: "$transactionAmount" },
+                 },
+               },
+             ],
+             totalCashoutRedeemsInProgress: [
+               {
+                 $match: {
+                   status: 11,
+                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                 },
+               },
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: "$transactionAmount" },
+                 },
+               },
+             ],
+             totalRecords: [{ $count: "total" }],
+             totalAmt: [
+               {
+                 $group: {
+                   _id: null,
+                   total: { $sum: { $ifNull: ["$transactionAmount", 0] } },
+                 },
+               },
+             ],
+             totalFeesCharged: [
+               {
+                 $match: {
+                   type: "redeem",
+                   status: { $in: [4, 8] },
+                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                   redeemServiceFee: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                 },
+               },
+               {
+                 $project: {
+                   calculatedFee: {
+                     $floor: {
+                       $multiply: [
+                         { $divide: ["$redeemServiceFee", 100] },
+                         "$transactionAmount",
+                       ],
+                     },
+                   },
+                 },
+               },
+               {
+                 $group: { _id: null, total: { $sum: "$calculatedFee" } },
+               },
+             ],
+             totalRedeemSuccessful: [
+               { $match: { status: 8 } },
+               { $count: "count" },
+             ],
 
-        if (matchConditions.length > 0) {
-          queryPipeline[0]["$match"] = {
-            $and: [
-              ...matchConditions,
-              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-            ],
-          };
-          pppipeline[0]["$match"] = {
-            $and: [
-              ...matchConditions,
-              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-              {
-                $or: [
-                  {
-                    transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
-                    status: 5,
-                  },
-                  {
-                    transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
-                    status: 7,
-                  },
-                ],
-              },
-            ],
-          };
-        } else {
-          pppipeline[0]["$match"] = {
-            $and: [
-              { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-              {
-                $or: [
-                  {
-                    transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
-                    status: 5,
-                  },
-                  {
-                    transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
-                    status: 7,
-                  },
-                ],
-              },
-            ],
-          };
-        }
+             totalRechargeByType: [
+               { $match: { type: "recharge", status: { $in: [2, 3] } } },
+               {
+                 $group: {
+                   _id: {
+                     wallet: { $ifNull: ["$useWallet", false] },
+                   },
+                   totalAmount: {
+                     $sum: { $ifNull: ["$transactionAmount", 0] },
+                   },
+                 },
+               },
+               {
+                 $project: {
+                   _id: 0,
+                   wallet: {
+                     $cond: [
+                       { $eq: ["$_id.wallet", true] },
+                       "wallet",
+                       "others",
+                     ],
+                   },
+                   totalAmount: 1,
+                 },
+               },
+             ],
 
-        const newResults = await new Parse.Query(
-          "TransactionRecords"
-        ).aggregate(queryPipeline, { useMasterKey: true });
+             totalRedeemByTypeData: [
+               {
+                 $match: {
+                   type: "redeem",
+                   status: { $in: [4, 8, 12] },
+                 },
+               },
+               {
+                 $project: {
+                   transactionId: "$id",
+                   amount: { $ifNull: ["$transactionAmount", 0] },
+                   status: 1,
+                   paymentType: {
+                     $cond: [{ $eq: ["$status", 12] }, "cashout", "redeem"],
+                   },
+                   transactionIdFromStripe: 1,
+                   transactionDate: 1,
+                   redeemServiceFee: 1,
+                 },
+               },
+             ],
 
-        const Combinedresult = await new Parse.Query(
-          "TransactionRecords"
-        ).aggregate(pppipeline, { useMasterKey: true });
+             totalRechargeByTypeData: [
+               {
+                 $match: {
+                   type: "recharge",
+                   status: { $in: [2, 3] },
+                 },
+               },
+               {
+                 $project: {
+                   transactionId: "$id",
+                   amount: { $ifNull: ["$transactionAmount", 0] },
+                   date: "$date",
+                   status: 1,
+                   paymentType: {
+                     $cond: [{ $eq: ["$useWallet", true] }, "wallet", "others"],
+                   },
+                   transactionIdFromStripe: 1,
+                   transactionDate: 1,
+                 },
+               },
+             ],
+           },
+         },
+       ];
+       if (role === "Super-User") {
+         //users
+         console.log("SU", filter);
 
-        const {
-          totalRechargeAmount,
-          totalRedeemAmount,
-          totalPendingRechargeAmount,
-          totalCashoutRedeemsSuccess,
-          totalCashoutRedeemsInProgress,
-          totalRecords,
-          totalAmt,
-          totalFeesCharged,
-          totalRedeemSuccessful,
-          totalRechargeByType,
-          totalRedeemByTypeData,
-          totalRechargeByTypeData,
-        } = newResults[0];
-        const newsummaray = {
-          totalRechargeAmount: totalRechargeAmount[0]?.total || 0,
-          totalRedeemAmount: totalRedeemAmount[0]?.total || 0,
-          totalPendingRechargeAmount: totalPendingRechargeAmount[0]?.total || 0,
-          totalCashoutRedeemsSuccess: totalCashoutRedeemsSuccess[0]?.total || 0,
-          totalCashoutRedeemsInProgress:
-            totalCashoutRedeemsInProgress[0]?.total || 0,
-          totalRecords: totalRecords[0]?.total || 0,
-          totalAmt: totalAmt[0]?.total || 0,
-          totalFeesCharged: totalFeesCharged[0]?.total || 0,
-          totalRedeemSuccessful: totalRedeemSuccessful[0]?.count || 0,
-          totalRechargeByType: totalRechargeByType,
-          totalRedeemByTypeData: totalRedeemByTypeData,
-          totalRechargeByTypeData: totalRechargeByTypeData,
-        };
-        const walletTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
-          (o) => o.paymentType === "wallet"
-        );
-        const othersTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
-          (o) => o.paymentType === "others"
-        );
-        newsummaray.totalRechargeByTypeData = {
-          wallet: walletTotalRecharge,
-          others: othersTotalRecharge,
-        };
-        newsummaray.totalRechargeByType = {
-          wallet:
-            newsummaray.totalRechargeByType.find((o) => o.wallet === "wallet")
-              ?.totalAmount || 0,
-          others:
-            newsummaray.totalRechargeByType.find((o) => o.wallet === "others")
-              ?.totalAmount || 0,
-        };
+         if (filter?.username) {
+           var userQuery = new Parse.Query(Parse.User);
+           var selectedUser = await userQuery.get(filter.username, {
+             useMasterKey: true,
+           });
+           var { ids, data } = await fetchUsers(selectedUser, "yes");
+           queryPipeline[0]["$match"]["userId"] = { $in: ids };
+         } else {
+           var userQuery = new Parse.Query(Parse.User);
+           userQuery.limit(10000);
+           var results = await userQuery.find({ useMasterKey: true });
+           var data = results.map((o) => ({ id: o.id, ...o.attributes }));
+           const currentUser = await Parse.User.current();
+           data.push({ id: userid, ...currentUser.attributes });
+         }
+         // Fetch wallet balances for the users
+         const walletQuery = new Parse.Query("Wallet");
+         const userIds = data.map((user) => user.id);
+         walletQuery.containedIn("userID", userIds);
 
-        const walletRedeem = newsummaray.totalRedeemByTypeData.filter(
-          (o) => o.paymentType === "redeem"
-        );
-        const othersRedeem = newsummaray.totalRedeemByTypeData.filter(
-          (o) => o.paymentType === "cashout"
-        );
-        newsummaray.totalRedeemByTypeData = {
-          wallet: walletRedeem,
-          others: othersRedeem,
-        };
+         const walletResults = await walletQuery.find({ useMasterKey: true });
+         const walletBalances = walletResults.reduce((acc, wallet) => {
+           acc[wallet.get("userID")] = wallet.get("balance") || 0;
+           return acc;
+         }, {});
+         result = calculateDataSummariesForSummary({
+           id: 0,
+           users: data,
+           walletBalances,
+         });
+       }
+       if (role === "Agent") {
+         //users
+         const selectedUser =
+           filter && filter.username
+             ? await new Parse.Query(Parse.User).get(filter.username, {
+                 useMasterKey: true,
+               })
+             : null;
+         const { ids, data } = await fetchUsers(selectedUser);
+         queryPipeline[0]["$match"]["userId"] = { $in: ids };
+         const walletBalances = 0;
+         result = calculateDataSummariesForSummary({
+           id: 1,
+           users: data,
+           walletBalances,
+         });
+       }
+       if (role === "Master-Agent") {
+         //users
+         const selectedUser =
+           filter && filter.username
+             ? await new Parse.Query(Parse.User).get(filter.username, {
+                 useMasterKey: true,
+               })
+             : null;
+         const { ids, data } = await fetchUsers(selectedUser, true);
+         queryPipeline[0]["$match"]["userId"] = { $in: ids };
+         const walletBalances = 0;
+         result = calculateDataSummariesForSummary({
+           id: 1,
+           users: data,
+           walletBalances,
+         });
+       }
 
-        result.data[0] = Object.assign(result.data[0], newsummaray);
-        result.data[0]["totalFailRedeemAmount"] =
-          Combinedresult[0]?.totalAmount || 0;
-        console.log("result", result);
-        return result;
-      }else if (resource === "summaryExport") {
-        var result = null;
-        if (role === "Super-User") {
-          //users
-          console.log("SU", filter);
+       const matchConditions = [];
 
-          if (filter?.username) {
-            // console.log("IN IF");
-            var userQuery = new Parse.Query(Parse.User);
-            var selectedUser = await userQuery.get(filter.username, {
-              useMasterKey: true,
-            });
-            var { ids, data } = await fetchUsers(selectedUser);
+       if (filter.startDate && filter.endDate) {
+         matchConditions.push({
+           createdAt: {
+             $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+             $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
+           },
+         });
+       }
 
-            const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-              "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate"
-            );
-            transactionQuery.containedIn("userId", ids);
-            filter.startdate &&
-              transactionQuery.greaterThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.startDate).setHours(0, 0, 0, 0)
-              );
-            filter.enddate &&
-              transactionQuery.lessThanOrEqualTo(
-                "transactionDate",
-                new Date(filter.endDate).setHours(23, 59, 59, 999)
-              );
-            transactionQuery.limit(100000);
-            var results = await transactionQuery.find();
-          } else {
-            var userQuery = new Parse.Query(Parse.User);
-            userQuery.limit(100000);
-            var results = await userQuery.find({ useMasterKey: true });
-            var data = results.map((o) => ({ id: o.id, ...o.attributes }));
-            const currentUser = await Parse.User.current();
-            data.push({ id: userid, ...currentUser.attributes });
+       if (queryPipeline[0]["$match"]["userId"]) {
+         matchConditions.push({
+           userId: queryPipeline[0]["$match"]["userId"],
+         });
+       }
+       const pppipeline = [
+         {
+           $match: matchConditions.length > 0 ? { $and: matchConditions } : {},
+         },
+         {
+           $group: {
+             _id: null, // No grouping key since we want the total sum for all records
+             totalAmount: { $sum: "$transactionAmount" }, // Sum the transactionAmount
+           },
+         },
+       ];
 
-            //transaction
-            const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-              "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate"
-            );
-            filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startDate).setHours(0, 0, 0, 0)
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.endDate).setHours(23, 59, 59, 999)
-            );
-            transactionQuery.limit(100000);
-            var results = await transactionQuery.find();
-            console.log(results, "results");
-          }
-          // Fetch wallet balances for the users
-          const walletQuery = new Parse.Query("Wallet");
-          const userIds = data.map((user) => user.id);
-          walletQuery.containedIn("userID", userIds);
+       if (matchConditions.length > 0) {
+         queryPipeline[0]["$match"] = {
+           $and: [
+             ...matchConditions,
+             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
+           ],
+         };
+         pppipeline[0]["$match"] = {
+           $and: [
+             ...matchConditions,
+             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
+             {
+               $or: [
+                 {
+                   transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
+                   status: 5,
+                 },
+                 {
+                   transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
+                   status: 7,
+                 },
+               ],
+             },
+           ],
+         };
+       } else {
+         pppipeline[0]["$match"] = {
+           $and: [
+             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
+             {
+               $or: [
+                 {
+                   transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
+                   status: 5,
+                 },
+                 {
+                   transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
+                   status: 7,
+                 },
+               ],
+             },
+           ],
+         };
+       }
 
-          const walletResults = await walletQuery.find({ useMasterKey: true });
-          const walletBalances = walletResults.reduce((acc, wallet) => {
-            acc[wallet.get("userID")] = wallet.get("balance") || 0;
-            return acc;
-          }, {});
-          result = calculateDataSummaries({
-            id: 0,
-            users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
-            walletBalances,
-          });
-          /*result = {
+       const newResults = await new Parse.Query("TransactionRecords").aggregate(
+         queryPipeline,
+         { useMasterKey: true }
+       );
+
+       const Combinedresult = await new Parse.Query(
+         "TransactionRecords"
+       ).aggregate(pppipeline, { useMasterKey: true });
+
+       const {
+         totalRechargeAmount,
+         totalRedeemAmount,
+         totalPendingRechargeAmount,
+         totalCashoutRedeemsSuccess,
+         totalCashoutRedeemsInProgress,
+         totalRecords,
+         totalAmt,
+         totalFeesCharged,
+         totalRedeemSuccessful,
+         totalRechargeByType,
+         totalRedeemByTypeData,
+         totalRechargeByTypeData,
+       } = newResults[0];
+       const newsummaray = {
+         totalRechargeAmount: totalRechargeAmount[0]?.total || 0,
+         totalRedeemAmount: totalRedeemAmount[0]?.total || 0,
+         totalPendingRechargeAmount: totalPendingRechargeAmount[0]?.total || 0,
+         totalCashoutRedeemsSuccess: totalCashoutRedeemsSuccess[0]?.total || 0,
+         totalCashoutRedeemsInProgress:
+           totalCashoutRedeemsInProgress[0]?.total || 0,
+         totalRecords: totalRecords[0]?.total || 0,
+         totalAmt: totalAmt[0]?.total || 0,
+         totalFeesCharged: totalFeesCharged[0]?.total || 0,
+         totalRedeemSuccessful: totalRedeemSuccessful[0]?.count || 0,
+         totalRechargeByType: totalRechargeByType,
+         totalRedeemByTypeData: totalRedeemByTypeData,
+         totalRechargeByTypeData: totalRechargeByTypeData,
+       };
+       const walletTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
+         (o) => o.paymentType === "wallet"
+       );
+       const othersTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
+         (o) => o.paymentType === "others"
+       );
+       newsummaray.totalRechargeByTypeData = {
+         wallet: walletTotalRecharge,
+         others: othersTotalRecharge,
+       };
+       newsummaray.totalRechargeByType = {
+         wallet:
+           newsummaray.totalRechargeByType.find((o) => o.wallet === "wallet")
+             ?.totalAmount || 0,
+         others:
+           newsummaray.totalRechargeByType.find((o) => o.wallet === "others")
+             ?.totalAmount || 0,
+       };
+
+       const walletRedeem = newsummaray.totalRedeemByTypeData.filter(
+         (o) => o.paymentType === "redeem"
+       );
+       const othersRedeem = newsummaray.totalRedeemByTypeData.filter(
+         (o) => o.paymentType === "cashout"
+       );
+       newsummaray.totalRedeemByTypeData = {
+         wallet: walletRedeem,
+         others: othersRedeem,
+       };
+
+       result.data[0] = Object.assign(result.data[0], newsummaray);
+       result.data[0]["totalFailRedeemAmount"] =
+         Combinedresult[0]?.totalAmount || 0;
+       console.log("result", result);
+       return result;
+     } else if (resource === "summaryExport") {
+       var result = null;
+       if (role === "Super-User") {
+         //users
+         console.log("SU", filter);
+
+         if (filter?.username) {
+           // console.log("IN IF");
+           var userQuery = new Parse.Query(Parse.User);
+           var selectedUser = await userQuery.get(filter.username, {
+             useMasterKey: true,
+           });
+           var { ids, data } = await fetchUsers(selectedUser);
+
+           const transactionQuery = new Parse.Query("TransactionRecords");
+           transactionQuery.select(
+             "userId",
+             "status",
+             "transactionAmount",
+             "type",
+             "useWallet",
+             "redeemServiceFee",
+             "isCashOut",
+             "transactionIdFromStripe",
+             "transactionDate"
+           );
+           transactionQuery.containedIn("userId", ids);
+           filter.startdate &&
+             transactionQuery.greaterThanOrEqualTo(
+               "transactionDate",
+               new Date(filter.startDate).setHours(0, 0, 0, 0)
+             );
+           filter.enddate &&
+             transactionQuery.lessThanOrEqualTo(
+               "transactionDate",
+               new Date(filter.endDate).setHours(23, 59, 59, 999)
+             );
+           transactionQuery.limit(100000);
+           var results = await transactionQuery.find();
+         } else {
+           var userQuery = new Parse.Query(Parse.User);
+           userQuery.limit(100000);
+           var results = await userQuery.find({ useMasterKey: true });
+           var data = results.map((o) => ({ id: o.id, ...o.attributes }));
+           const currentUser = await Parse.User.current();
+           data.push({ id: userid, ...currentUser.attributes });
+
+           //transaction
+           const transactionQuery = new Parse.Query("TransactionRecords");
+           transactionQuery.select(
+             "userId",
+             "status",
+             "transactionAmount",
+             "type",
+             "useWallet",
+             "redeemServiceFee",
+             "isCashOut",
+             "transactionIdFromStripe",
+             "transactionDate"
+           );
+           filter.startdate &&
+             transactionQuery.greaterThanOrEqualTo(
+               "transactionDate",
+               new Date(filter.startDate).setHours(0, 0, 0, 0)
+             );
+           filter.enddate &&
+             transactionQuery.lessThanOrEqualTo(
+               "transactionDate",
+               new Date(filter.endDate).setHours(23, 59, 59, 999)
+             );
+           transactionQuery.limit(100000);
+           var results = await transactionQuery.find();
+           console.log(results, "results");
+         }
+         // Fetch wallet balances for the users
+         const walletQuery = new Parse.Query("Wallet");
+         const userIds = data.map((user) => user.id);
+         walletQuery.containedIn("userID", userIds);
+
+         const walletResults = await walletQuery.find({ useMasterKey: true });
+         const walletBalances = walletResults.reduce((acc, wallet) => {
+           acc[wallet.get("userID")] = wallet.get("balance") || 0;
+           return acc;
+         }, {});
+         result = calculateDataSummaries({
+           id: 0,
+           users: data,
+           transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
+           walletBalances,
+         });
+         /*result = {
             data: [
               {
                 id: 0,
@@ -780,57 +872,57 @@ export const dataProvider = {
             result.data[0].users.length,
             result.data[0].transactions.length
           );*/
-        }
-        if (role === "Agent") {
-          console.log("Agent");
-          //users
-          const selectedUser =
-            filter && filter.username
-              ? await new Parse.Query(Parse.User).get(filter.username, {
-                  useMasterKey: true,
-                })
-              : null;
-          // console.log("selected user:", selectedUser);
-          const { ids, data } = await fetchUsers(selectedUser);
-          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          // console.log("fetchUsers", data);
-          //transactions
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          transactionQuery.select(
-            "userId",
-            "status",
-            "transactionAmount",
-            "type",
-            "useWallet",
-            "redeemServiceFee",
-            "isCashOut"
-          );
-          transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
-            );
-          /*filter && Object.keys(filter).map((f) => {
+       }
+       if (role === "Agent") {
+         console.log("Agent");
+         //users
+         const selectedUser =
+           filter && filter.username
+             ? await new Parse.Query(Parse.User).get(filter.username, {
+                 useMasterKey: true,
+               })
+             : null;
+         // console.log("selected user:", selectedUser);
+         const { ids, data } = await fetchUsers(selectedUser);
+         // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
+         // console.log("fetchUsers", data);
+         //transactions
+         const transactionQuery = new Parse.Query("TransactionRecords");
+         transactionQuery.select(
+           "userId",
+           "status",
+           "transactionAmount",
+           "type",
+           "useWallet",
+           "redeemServiceFee",
+           "isCashOut"
+         );
+         transactionQuery.containedIn("userId", ids);
+         filter.startdate &&
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.startdate + " 00:00:00")
+           );
+         filter.enddate &&
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.enddate + " 23:59:59")
+           );
+         /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(100000);
-          results = await transactionQuery.find();
-          const walletBalances = 0;
-          result = calculateDataSummaries({
-            id: 1,
-            users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
-            walletBalances,
-          });
+         transactionQuery.limit(100000);
+         results = await transactionQuery.find();
+         const walletBalances = 0;
+         result = calculateDataSummaries({
+           id: 1,
+           users: data,
+           transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
+           walletBalances,
+         });
 
-          /*result = {
+         /*result = {
             data: [
               {
                 id: 0,
@@ -843,58 +935,58 @@ export const dataProvider = {
             ],
             total: null,
           }; */
-          // console.log("Summary List ", result);
-        }
-        if (role === "Master-Agent") {
-          console.log("Agent");
-          //users
-          const selectedUser =
-            filter && filter.username
-              ? await new Parse.Query(Parse.User).get(filter.username, {
-                  useMasterKey: true,
-                })
-              : null;
-          // console.log("selected user:", selectedUser);
-          const { ids, data } = await fetchUsers(selectedUser, true);
-          // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
-          // console.log("fetchUsers", data);
-          //transactions
-          const transactionQuery = new Parse.Query("TransactionRecords");
-          transactionQuery.select(
-            "userId",
-            "status",
-            "transactionAmount",
-            "type",
-            "useWallet",
-            "redeemServiceFee",
-            "isCashOut"
-          );
-          transactionQuery.containedIn("userId", ids);
-          filter.startdate &&
-            transactionQuery.greaterThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.startdate + " 00:00:00")
-            );
-          filter.enddate &&
-            transactionQuery.lessThanOrEqualTo(
-              "transactionDate",
-              new Date(filter.enddate + " 23:59:59")
-            );
-          /*filter && Object.keys(filter).map((f) => {
+         // console.log("Summary List ", result);
+       }
+       if (role === "Master-Agent") {
+         console.log("Agent");
+         //users
+         const selectedUser =
+           filter && filter.username
+             ? await new Parse.Query(Parse.User).get(filter.username, {
+                 useMasterKey: true,
+               })
+             : null;
+         // console.log("selected user:", selectedUser);
+         const { ids, data } = await fetchUsers(selectedUser, true);
+         // const filteredData = filter?data.filter(obj => obj.id===filter.username):data;
+         // console.log("fetchUsers", data);
+         //transactions
+         const transactionQuery = new Parse.Query("TransactionRecords");
+         transactionQuery.select(
+           "userId",
+           "status",
+           "transactionAmount",
+           "type",
+           "useWallet",
+           "redeemServiceFee",
+           "isCashOut"
+         );
+         transactionQuery.containedIn("userId", ids);
+         filter.startdate &&
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.startdate + " 00:00:00")
+           );
+         filter.enddate &&
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(filter.enddate + " 23:59:59")
+           );
+         /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
               else transactionQuery.equalTo(f, filter[f]);
           });*/
-          transactionQuery.limit(100000);
-          results = await transactionQuery.find();
-          const walletBalances = 0;
-          result = calculateDataSummaries({
-            id: 1,
-            users: data,
-            transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
-            walletBalances,
-          });
+         transactionQuery.limit(100000);
+         results = await transactionQuery.find();
+         const walletBalances = 0;
+         result = calculateDataSummaries({
+           id: 1,
+           users: data,
+           transactions: results.map((o) => ({ id: o.id, ...o.attributes })),
+           walletBalances,
+         });
 
-          /*result = {
+         /*result = {
             data: [
               {
                 id: 0,
@@ -907,412 +999,427 @@ export const dataProvider = {
             ],
             total: null,
           }; */
-          // console.log("Summary List ", result);
-        }
-        return result;
-      }
-      else if (resource === "summaryExportSuperUser") {
-        let result = null;
-    
-        if (role === "Super-User") {
-            // Fetch transactions first
-            const transactionQuery = new Parse.Query("TransactionRecords");
-            transactionQuery.select(
-                "userId",
-                "status",
-                "transactionAmount",
-                "type",
-                "useWallet",
-                "redeemServiceFee",
-                "isCashOut",
-                "transactionIdFromStripe",
-                "transactionDate",
-                "paymentMode",
-                "paymentMethodType",
-                "remark",
-                "redeemRemarks",
-                "username"
-            );
-    
-            if (filter.startdate && filter.starttime) {
-                transactionQuery.greaterThanOrEqualTo(
-                    "transactionDate",
-                    new Date(`${filter.startdate}T${filter.starttime}:00Z`)
-                );
-            } else if (filter.startdate) {
-                transactionQuery.greaterThanOrEqualTo(
-                    "transactionDate",
-                    new Date(`${filter.startdate}T00:00:00Z`)
-                );
-            }
-    
-            if (filter.enddate && filter.endtime) {
-                transactionQuery.lessThanOrEqualTo(
-                    "transactionDate",
-                    new Date(`${filter.enddate}T${filter.endtime}:00Z`)
-                );
-            } else if (filter.enddate) {
-                transactionQuery.lessThanOrEqualTo(
-                    "transactionDate",
-                    new Date(`${filter.enddate}T23:59:59Z`)
-                );
-            }
-            
-            transactionQuery.limit(500000);
-            const transactions = await transactionQuery.find();
-    
-            // Extract unique user IDs from transactions
-            const userIds = [...new Set(transactions.map(t => t.get("userId")))];
-            
-            // Fetch only relevant user data
-            const userQuery = new Parse.Query(Parse.User);
-            userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
-            userQuery.limit(50000);
-            const userResults = await userQuery.find({ useMasterKey: true });
-            const users = userResults.map(o => ({ id: o.id, ...o.attributes }));
-    
-            // Create a user lookup map
-            const userMap = new Map(users.map(user => [user.id, user]));
-    
-            // Extract unique parent IDs
-            const parentIds = [...new Set(users.map(u => u.userParentId).filter(Boolean))];
-    
-            // Fetch parent users in a single query
-            let parentMap = new Map();
-            if (parentIds.length > 0) {
-                const parentQuery = new Parse.Query(Parse.User);
-                parentQuery.containedIn("objectId", parentIds);
-                parentQuery.select("objectId", "userParentName");
-                const parentResults = await parentQuery.find({ useMasterKey: true });
-                parentMap = new Map(parentResults.map(p => [p.id, p.get("userParentName")]));
-            }
-    
-            // Function to get the user's parent name
-            const getUserParentName = (userId) => {
-                return userMap.get(userId)?.userParentName || "Unknown";
-            };
-    
-            // Function to get the agent's parent name
-            const getUserAgentParentName = (userId) => {
-                const user = userMap.get(userId);
-                return user?.userParentId ? parentMap.get(user.userParentId) || "Unknown" : "Unknown";
-            };
-    
-            // Format transaction data
-            const formattedTransactions = transactions.map((item) => ({
-                id: item.id,
-                type: item.get("type"),
-                transactionAmount: item.get("transactionAmount"),
-                status: item.get("status"),
-                paymentType: "redeem",
-                transactionIdFromStripe: item.get("transactionIdFromStripe"),
-                transactionDate: item.get("transactionDate"),
-                isCashout: item.get("status") === 12,
-                redeemServiceFee: item.get("redeemServiceFee"),
-                paymentMode: item.get("paymentMode"),
-                paymentMethodType: item.get("paymentMethodType"),
-                remark: item.get("remark"),
-                redeemRemarks: item.get("redeemRemarks"),
-                agentName: getUserParentName(item.get("userId")),
-                userName: item.get("username"),
-                agentParentName: getUserAgentParentName(item.get("userId"))
-            }));
-    
-            console.log(result, "dataFrom SummaryExport");
-            result = {
-                id: 0,
-                users,
-                data: formattedTransactions,
-            };
-        }
-    
-        return result;
-    }    
-     else if (resource === "summaryData") {
-        var result = null;
-        const startDate = new Date("2025-03-01T00:00:00Z");
-        const endDate = new Date("2025-03-03T23:59:59.999Z"); // Directly setting end of the day in UTC
-                   // Fetch all users in one query
-        const userQuery = new Parse.Query(Parse.User);
-        userQuery.limit(100000);
-        const users = await userQuery.find({useMasterKey:true});
+         // console.log("Summary List ", result);
+       }
+       return result;
+     } else if (resource === "summaryExportSuperUser") {
+       let result = null;
 
-        // Create a map for quick user lookup by userId
-        const userMap = users.reduce((map, user) => {
-          map[user.id] = user;
-          return map;
-        }, {});
-        console.log("Users:", users);
-        console.log("User Map:", userMap);
-      
-        // transaction query
-        const transactionQuery = new Parse.Query("TransactionRecords");
-        transactionQuery.select(
-          "userId",
-          "status",
-          "transactionAmount",
-          "type",
-          "useWallet",
-          "redeemServiceFee",
-          "isCashOut",
-          "transactionIdFromStripe",
-          "transactionDate",
-          "paymentMode",
-          "paymentMethodType",
-          "remark",
-          "redeemRemarks",
-          "username"
-        );
-        transactionQuery.greaterThanOrEqualTo("transactionDate", startDate);
-        transactionQuery.lessThan("transactionDate", endDate);
-        
-        transactionQuery.limit(100000);
-        var results = await transactionQuery.find();
-      
-        // Process transactions and add agentName from the user map
-        result = results.map((o) => {
-          const transactionData = { id: o.id, ...o.attributes };
-      
-          // Get the user object from the map based on userId
-          const user = userMap[transactionData.userId];
-          console.log("User for transactionId:", transactionData.userId, "->", user);
-      
-          // Check if the user has the "userParentName" field
-          if (user) {
-            const agentName = user.get("userParentName");
-            console.log("Agent Name:", agentName);
-      
-            // Add the Agent Name to the transaction data
-            if (agentName) {
-              transactionData.agentName = agentName;
-            } else {
-              console.log("No userParentName found for user:", user.id);
-            }
-          } else {
-            console.log("User not found for userId:", transactionData.userId);
-          }
-      
-          return transactionData;
-        });
-      
-        return { data: result };
-      }else if (resource === "walletData") {
-        var result = null;
-      
-        // Fetch all users in one query
-        const userQuery = new Parse.Query(Parse.User);
-        userQuery.limit(10000);
-        const users = await userQuery.find({ useMasterKey: true });
-      
-        // Create a map for quick user lookup by userId
-        const userMap = users.reduce((map, user) => {
-          map[user.id] = user;
-          return map;
-        }, {});
-      
-        // Wallet query
-        const walletQuery = new Parse.Query("Wallet");
-        walletQuery.limit(10000);
-        const wallets = await walletQuery.find({ useMasterKey: true });
-      
-        // Process wallet data and add user-related information
-        result = wallets.map((o) => {
-          const walletData = { id: o.id, ...o.attributes };
-      
-          // Get the user object from the map based on userId
-          const user = userMap[walletData.userID];
-      
-          if (user) {
-            // Extract the required wallet data from the user object
-            const agentName = user.get("userParentName");
-            const username = user.get("username");
-            const userID = walletData.userID
-            const zelleId = walletData.zelleId;  // Assuming this comes from the Wallet table
-            const balance = walletData.balance;  // Assuming this comes from the Wallet table
-            const paypalId = walletData.paypalId; // Assuming this comes from the Wallet table
-            const venmoId = walletData.venmoId;  // Assuming this comes from the Wallet table
-            const cashAppId = walletData.cashAppId; // Assuming this comes from the Wallet table
-      
-            // Add user and wallet-related data to the wallet data
-            walletData.agentName = agentName;
-            walletData.username = username;
-            walletData.zelleId = zelleId;
-            walletData.balance = balance;
-            walletData.paypalId = paypalId;
-            walletData.venmoId = venmoId;
-            walletData.cashAppId = cashAppId;
-            walletData.userID = userID;
-            walletData.createdAt = walletData.createdAt;
-          } else {
-            console.log("User not found for userId:", walletData.userId);
-          }
-      
-          return walletData;
-        });
-      
-        return { data: result };
-      }
-       else if (resource === "playerDashboard") {
-        const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);
-        filter = { userId: userid };
+       if (role === "Super-User") {
+         // Fetch transactions first
+         const transactionQuery = new Parse.Query("TransactionRecords");
+         transactionQuery.select(
+           "userId",
+           "status",
+           "transactionAmount",
+           "type",
+           "useWallet",
+           "redeemServiceFee",
+           "isCashOut",
+           "transactionIdFromStripe",
+           "transactionDate",
+           "paymentMode",
+           "paymentMethodType",
+           "remark",
+           "redeemRemarks",
+           "username"
+         );
 
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.equalTo(f, filter[f]);
-            else query.equalTo(f, filter[f]);
-          });
+         if (filter.startdate && filter.starttime) {
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.startdate}T${filter.starttime}:00Z`)
+           );
+         } else if (filter.startdate) {
+           transactionQuery.greaterThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.startdate}T00:00:00Z`)
+           );
+         }
 
-        query.limit(100000);
+         if (filter.enddate && filter.endtime) {
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.enddate}T${filter.endtime}:00Z`)
+           );
+         } else if (filter.enddate) {
+           transactionQuery.lessThanOrEqualTo(
+             "transactionDate",
+             new Date(`${filter.enddate}T23:59:59Z`)
+           );
+         }
 
-        const response = await query.find();
-        const res = {
-          data: response.map((o) => ({ id: o.id, ...o.attributes })),
-          total: count,
-        };
-        return res;
-      } else if (resource === "rechargeRecordsExport") {
-        const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);
-        filter = { type: "recharge", ...filter };
-        if (role === "Player") {
-          filter = { userId: userid, ...filter };
-        } else if (role === "Agent") {
-          var { ids } = await fetchUsers();
-          query.containedIn("userId", ids);
-        } else if (role === "Master-Agent") {
-          var { ids } = await fetchUsers(null, true);
-          query.containedIn("userId", ids);
-        }
+         transactionQuery.limit(500000);
+         const transactions = await transactionQuery.find();
 
-        query.limit(30000);
-        query.descending(field);
+         // Extract unique user IDs from transactions
+         const userIds = [...new Set(transactions.map((t) => t.get("userId")))];
 
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
-          });
+         // Fetch only relevant user data
+         const userQuery = new Parse.Query(Parse.User);
+         userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
+         userQuery.limit(50000);
+         const userResults = await userQuery.find({ useMasterKey: true });
+         const users = userResults.map((o) => ({ id: o.id, ...o.attributes }));
 
-        const response = await query.find();
-        const res = {
-          data: response.map((o) => ({ id: o.id, ...o.attributes })),
-          total: count,
-        };
+         // Create a user lookup map
+         const userMap = new Map(users.map((user) => [user.id, user]));
 
-        return res;
-      } else if (resource === "redeemRecordsExport") {
-        const Resource = Parse.Object.extend("TransactionRecords");
-        query = new Parse.Query(Resource);
-        filter = { type: "redeem", ...filter };
-        if (role === "Player") {
-          filter = { userId: userid, ...filter };
-        } else if (role === "Agent") {
-          var { ids } = await fetchUsers();
-          query.containedIn("userId", ids);
-        } else if (role === "Master-Agent") {
-          var { ids } = await fetchUsers(null, true);
-          query.containedIn("userId", ids);
-        }
+         // Extract unique parent IDs
+         const parentIds = [
+           ...new Set(users.map((u) => u.userParentId).filter(Boolean)),
+         ];
 
-        query.limit(30000);
-        query.descending(field);
+         // Fetch parent users in a single query
+         let parentMap = new Map();
+         if (parentIds.length > 0) {
+           const parentQuery = new Parse.Query(Parse.User);
+           parentQuery.containedIn("objectId", parentIds);
+           parentQuery.select("objectId", "userParentName");
+           const parentResults = await parentQuery.find({ useMasterKey: true });
+           parentMap = new Map(
+             parentResults.map((p) => [p.id, p.get("userParentName")])
+           );
+         }
 
-        filter &&
-          Object.keys(filter).map((f) => {
-            if (f === "username") query.matches(f, filter[f], "i");
-            else query.equalTo(f, filter[f]);
-          });
+         // Function to get the user's parent name
+         const getUserParentName = (userId) => {
+           return userMap.get(userId)?.userParentName || "Unknown";
+         };
 
-        const response = await query.find();
-        const res = {
-          data: response.map((o) => ({ id: o.id, ...o.attributes })),
-          total: count,
-        };
-        return res;
-      } else if (resource === "Report") {
-        const { fromDate, toDate } = params.filter || {}; // Extract filter params
-    
-        // Define date filtering condition
-        const dateFilter = {};
-        if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
-        if (toDate) dateFilter.transactionDate = { 
-            ...dateFilter.transactionDate, 
-            $lte: new Date(toDate) 
-        };
-    
-        const queryPipeline = [
-          {
-            $match: dateFilter, // Apply date filter
-          },
-          {
-            $facet: {
-              // New Calculation for Fees (11% of Transaction Amount)
-              totalFeesAmount: [
-                {
-                  $match: {
-                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } },
-                  },
-                },
-              ],
-              // Calculation for Ticket Amount (Transaction Amount - Fees)
-              totalTicketAmount: [
-                {
-                  $match: {
-                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
-                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } }, // Sum of all fees
-                  },
-                },
-                {
-                  $project: {
-                    _id: 0,
-                    totalTicketAmount: { $subtract: ["$totalTransaction", "$totalFees"] }, // Ticket Amount Calculation
-                  },
-                },
-              ],
-            },
-          },
-        ];
-        
-        const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline);
-        return newResults;
-    }
-    
-      else {
-        const Resource = Parse.Object.extend(resource);
-        query = new Parse.Query(Resource);
-        filter &&
-          Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
-        var { ids } = await fetchUsers();
-        query.containedIn("userId", ids);
-        count = await query.count();
-      }
+         // Function to get the agent's parent name
+         const getUserAgentParentName = (userId) => {
+           const user = userMap.get(userId);
+           return user?.userParentId
+             ? parentMap.get(user.userParentId) || "Unknown"
+             : "Unknown";
+         };
+
+         // Format transaction data
+         const formattedTransactions = transactions.map((item) => ({
+           id: item.id,
+           type: item.get("type"),
+           transactionAmount: item.get("transactionAmount"),
+           status: item.get("status"),
+           paymentType: "redeem",
+           transactionIdFromStripe: item.get("transactionIdFromStripe"),
+           transactionDate: item.get("transactionDate"),
+           isCashout: item.get("status") === 12,
+           redeemServiceFee: item.get("redeemServiceFee"),
+           paymentMode: item.get("paymentMode"),
+           paymentMethodType: item.get("paymentMethodType"),
+           remark: item.get("remark"),
+           redeemRemarks: item.get("redeemRemarks"),
+           agentName: getUserParentName(item.get("userId")),
+           userName: item.get("username"),
+           agentParentName: getUserAgentParentName(item.get("userId")),
+         }));
+
+         console.log(result, "dataFrom SummaryExport");
+         result = {
+           id: 0,
+           users,
+           data: formattedTransactions,
+         };
+       }
+
+       return result;
+     } else if (resource === "summaryData") {
+       var result = null;
+       const startDate = new Date("2025-03-01T00:00:00Z");
+       const endDate = new Date("2025-03-03T23:59:59.999Z"); // Directly setting end of the day in UTC
+       // Fetch all users in one query
+       const userQuery = new Parse.Query(Parse.User);
+       userQuery.limit(100000);
+       const users = await userQuery.find({ useMasterKey: true });
+
+       // Create a map for quick user lookup by userId
+       const userMap = users.reduce((map, user) => {
+         map[user.id] = user;
+         return map;
+       }, {});
+       console.log("Users:", users);
+       console.log("User Map:", userMap);
+
+       // transaction query
+       const transactionQuery = new Parse.Query("TransactionRecords");
+       transactionQuery.select(
+         "userId",
+         "status",
+         "transactionAmount",
+         "type",
+         "useWallet",
+         "redeemServiceFee",
+         "isCashOut",
+         "transactionIdFromStripe",
+         "transactionDate",
+         "paymentMode",
+         "paymentMethodType",
+         "remark",
+         "redeemRemarks",
+         "username"
+       );
+       transactionQuery.greaterThanOrEqualTo("transactionDate", startDate);
+       transactionQuery.lessThan("transactionDate", endDate);
+
+       transactionQuery.limit(100000);
+       var results = await transactionQuery.find();
+
+       // Process transactions and add agentName from the user map
+       result = results.map((o) => {
+         const transactionData = { id: o.id, ...o.attributes };
+
+         // Get the user object from the map based on userId
+         const user = userMap[transactionData.userId];
+         console.log(
+           "User for transactionId:",
+           transactionData.userId,
+           "->",
+           user
+         );
+
+         // Check if the user has the "userParentName" field
+         if (user) {
+           const agentName = user.get("userParentName");
+           console.log("Agent Name:", agentName);
+
+           // Add the Agent Name to the transaction data
+           if (agentName) {
+             transactionData.agentName = agentName;
+           } else {
+             console.log("No userParentName found for user:", user.id);
+           }
+         } else {
+           console.log("User not found for userId:", transactionData.userId);
+         }
+
+         return transactionData;
+       });
+
+       return { data: result };
+     } else if (resource === "walletData") {
+       var result = null;
+
+       // Fetch all users in one query
+       const userQuery = new Parse.Query(Parse.User);
+       userQuery.limit(10000);
+       const users = await userQuery.find({ useMasterKey: true });
+
+       // Create a map for quick user lookup by userId
+       const userMap = users.reduce((map, user) => {
+         map[user.id] = user;
+         return map;
+       }, {});
+
+       // Wallet query
+       const walletQuery = new Parse.Query("Wallet");
+       walletQuery.limit(10000);
+       const wallets = await walletQuery.find({ useMasterKey: true });
+
+       // Process wallet data and add user-related information
+       result = wallets.map((o) => {
+         const walletData = { id: o.id, ...o.attributes };
+
+         // Get the user object from the map based on userId
+         const user = userMap[walletData.userID];
+
+         if (user) {
+           // Extract the required wallet data from the user object
+           const agentName = user.get("userParentName");
+           const username = user.get("username");
+           const userID = walletData.userID;
+           const zelleId = walletData.zelleId; // Assuming this comes from the Wallet table
+           const balance = walletData.balance; // Assuming this comes from the Wallet table
+           const paypalId = walletData.paypalId; // Assuming this comes from the Wallet table
+           const venmoId = walletData.venmoId; // Assuming this comes from the Wallet table
+           const cashAppId = walletData.cashAppId; // Assuming this comes from the Wallet table
+
+           // Add user and wallet-related data to the wallet data
+           walletData.agentName = agentName;
+           walletData.username = username;
+           walletData.zelleId = zelleId;
+           walletData.balance = balance;
+           walletData.paypalId = paypalId;
+           walletData.venmoId = venmoId;
+           walletData.cashAppId = cashAppId;
+           walletData.userID = userID;
+           walletData.createdAt = walletData.createdAt;
+         } else {
+           console.log("User not found for userId:", walletData.userId);
+         }
+
+         return walletData;
+       });
+
+       return { data: result };
+     } else if (resource === "playerDashboard") {
+       const Resource = Parse.Object.extend("TransactionRecords");
+       query = new Parse.Query(Resource);
+       filter = { userId: userid };
+
+       filter &&
+         Object.keys(filter).map((f) => {
+           if (f === "username") query.equalTo(f, filter[f]);
+           else query.equalTo(f, filter[f]);
+         });
+
+       query.limit(100000);
+
+       const response = await query.find();
+       const res = {
+         data: response.map((o) => ({ id: o.id, ...o.attributes })),
+         total: count,
+       };
+       return res;
+     } else if (resource === "rechargeRecordsExport") {
+       const Resource = Parse.Object.extend("TransactionRecords");
+       query = new Parse.Query(Resource);
+       filter = { type: "recharge", ...filter };
+       if (role === "Player") {
+         filter = { userId: userid, ...filter };
+       } else if (role === "Agent") {
+         var { ids } = await fetchUsers();
+         query.containedIn("userId", ids);
+       } else if (role === "Master-Agent") {
+         var { ids } = await fetchUsers(null, true);
+         query.containedIn("userId", ids);
+       }
+
+       query.limit(30000);
+       query.descending(field);
+
+       filter &&
+         Object.keys(filter).map((f) => {
+           if (f === "username") query.matches(f, filter[f], "i");
+           else query.equalTo(f, filter[f]);
+         });
+
+       const response = await query.find();
+       const res = {
+         data: response.map((o) => ({ id: o.id, ...o.attributes })),
+         total: count,
+       };
+
+       return res;
+     } else if (resource === "redeemRecordsExport") {
+       const Resource = Parse.Object.extend("TransactionRecords");
+       query = new Parse.Query(Resource);
+       filter = { type: "redeem", ...filter };
+       if (role === "Player") {
+         filter = { userId: userid, ...filter };
+       } else if (role === "Agent") {
+         var { ids } = await fetchUsers();
+         query.containedIn("userId", ids);
+       } else if (role === "Master-Agent") {
+         var { ids } = await fetchUsers(null, true);
+         query.containedIn("userId", ids);
+       }
+
+       query.limit(30000);
+       query.descending(field);
+
+       filter &&
+         Object.keys(filter).map((f) => {
+           if (f === "username") query.matches(f, filter[f], "i");
+           else query.equalTo(f, filter[f]);
+         });
+
+       const response = await query.find();
+       const res = {
+         data: response.map((o) => ({ id: o.id, ...o.attributes })),
+         total: count,
+       };
+       return res;
+     } else if (resource === "Report") {
+       const { fromDate, toDate } = params.filter || {}; // Extract filter params
+
+       // Define date filtering condition
+       const dateFilter = {};
+       if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
+       if (toDate)
+         dateFilter.transactionDate = {
+           ...dateFilter.transactionDate,
+           $lte: new Date(toDate),
+         };
+
+       const queryPipeline = [
+         {
+           $match: dateFilter, // Apply date filter
+         },
+         {
+           $facet: {
+             // New Calculation for Fees (11% of Transaction Amount)
+             totalFeesAmount: [
+               {
+                 $match: {
+                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                 },
+               },
+               {
+                 $group: {
+                   _id: null,
+                   totalFees: {
+                     $sum: { $multiply: ["$transactionAmount", 0.11] },
+                   },
+                 },
+               },
+             ],
+             // Calculation for Ticket Amount (Transaction Amount - Fees)
+             totalTicketAmount: [
+               {
+                 $match: {
+                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
+                 },
+               },
+               {
+                 $group: {
+                   _id: null,
+                   totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
+                   totalFees: {
+                     $sum: { $multiply: ["$transactionAmount", 0.11] },
+                   }, // Sum of all fees
+                 },
+               },
+               {
+                 $project: {
+                   _id: 0,
+                   totalTicketAmount: {
+                     $subtract: ["$totalTransaction", "$totalFees"],
+                   }, // Ticket Amount Calculation
+                 },
+               },
+             ],
+           },
+         },
+       ];
+
+       const newResults = await new Parse.Query("TransactionRecords").aggregate(
+         queryPipeline
+       );
+       return newResults;
+     } else {
+       const Resource = Parse.Object.extend(resource);
+       query = new Parse.Query(Resource);
+       filter &&
+         Object.keys(filter).map((f) => query.equalTo(f, filter[f], "i"));
+       var { ids } = await fetchUsers();
+       query.containedIn("userId", ids);
+       count = await query.count();
+     }
 
       query.limit(perPage);
       query.skip((page - 1) * perPage);
       if (order === "DESC") query.descending(field);
       else if (order === "ASC") query.ascending(field);
 
-      if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
-        Object.keys(filter).forEach((f) => {
-          if (filter[f] !== undefined && filter[f] !== null) {
-            if (f === "username") query.matches(f, String(filter[f]), "i");
-            else query.equalTo(f, filter[f]);
-          }
-        });
-      }      
+      // if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+      //   Object.keys(filter).forEach((f) => {
+      //     if (filter[f] !== undefined && filter[f] !== null) {
+      //       if (f === "username") query.matches(f, String(filter[f]), "i");
+      //       else query.equalTo(f, filter[f]);
+      //     }
+      //   });
+      // }      
       results =
         resource === "users"
           ? await query.find({ useMasterKey: true })
