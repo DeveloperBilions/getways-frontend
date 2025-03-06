@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -16,6 +16,7 @@ import {
   SelectInput,
   useListController,
   Pagination,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -87,6 +88,9 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
+  const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   if (!role) {
     navigate("/login");
@@ -220,21 +224,105 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const handleSearchChange = (e) => {
-    if (e) {
-      const value = e.target.value;
-      setSearchValue(value);
+  const searchFields = [
+    "username",
+    "transactionAmount",
+    "remark",
+    "userParentName",
+  ];
+
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
     }
+
+    newFilters.searchBy = newSearchBy;
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    setFilters(newFilters, false);
   };
 
-  const handleStatusChange = (e) => {
-    if (e) {
-      setStatusValue(e.target.value);
-      console.log(e.target.value);
+  useEffect(() => {
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
+
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
     }
-  };
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter(
+        (key) =>
+          !searchFields.includes(key) || key === searchBy || key === "role"
+      )
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
+    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SelectInput
+      source="searchBy"
+      label="Search By"
+      validate={required()}
+      alwaysOn
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
+      choices={
+        role === "Super-User"
+          ? [
+              { id: "username", name: "Account" },
+              { id: "transactionAmount", name: "Recharge" },
+              { id: "remark", name: "Remark" },
+              { id: "userParentName", name: "Parent Name" },
+            ]
+          : [
+              { id: "username", name: "Account" },
+              { id: "transactionAmount", name: "Recharge" },
+              { id: "remark", name: "Remark" },
+            ]
+      }
+    />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
@@ -621,7 +709,7 @@ export const RedeemRecordsList = (props) => {
           {identity?.role === "Super-User" && (
             <TextField source="paymentMethodType" label="Payment Id" />
           )}
-        </Datagrid>
+        </Datagrid> 
       </List>
       {(permissions === "Agent" || permissions === "Master-Agent") && (
         <>

@@ -16,6 +16,8 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import {Alert} from "@mui/material"
+import { validatePositiveNumber } from "../../../Validators/number.validator";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -36,6 +38,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const role = localStorage.getItem("role");
   const [feeError, setFeeError] = useState("");
   const [amountError, setAmountError] = useState("");
+  const [serviceError, setServiceError] = useState("");
 
   const resetFields = () => {
     setUserName("");
@@ -79,6 +82,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [redeemAmount, redeemFees, editedFees]);
 
   const handleConfirmClick = () => {
+       if (!redeemAmount || redeemAmount === "") {
+         setAmountError("Redeem amount cannot be empty");
+         return;
+       }
     if ((role === "Agent"  || role === "Master-Agent") && !isReedeemZeroAllowed && (editedFees < 5 || editedFees > 20)) {
       setFeeError(
         "As an Agent, the redeem service fee must be between 5% and 20%."
@@ -109,6 +116,12 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   };
 
   const handleSubmit = async () => {
+    
+    const validatorResponse = validatePositiveNumber(redeemAmount);
+    if (!validatorResponse.isValid) {
+      setResponseData(validatorResponse.error);
+      return;
+    }
     const rawData = {
       ...record,
       redeemServiceFee: parseFloat(editedFees), // Use edited fees in submission
@@ -198,10 +211,11 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
-                      type="text"
+                      type="number"
                       autoComplete="off"
-                      min="0"
+                      min="1"
                       value={redeemAmount}
+                      required
                       onChange={(e) => {
                         let value = e.target.value;
                         if (value === '' || /^\d*$/.test(value)) {
@@ -216,15 +230,19 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                             setRedeemAmount(value);
                           }
                         }
+
+                        setRedeemAmount(value);
                       }}
-                      onKeyDown={(e) =>{
+                      onKeyDown={(e) => {
                         if (e.keyCode === 190) {
-                          // Prevent the default behavior of typing a decimal
                           e.preventDefault();
                         }
                       }}
-                      required
+                      // required
                     />
+                    {amountError && (
+                      <small className="text-danger">{amountError}</small>
+                    )}
                   </FormGroup>
                 </Col>
                 {isEditingFees && (
@@ -239,7 +257,18 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           min={role === "Agent" ? "5" : "0"}
                           max={role === "Agent" ? "20" : "100"}
                           value={editedFees}
-                          onChange={(e) => setEditedFees(e.target.value)}
+                          onChange={(e) => {
+                            let value = parseFloat(e.target.value);
+                            if (value > 20) {
+                              setEditedFees(20);
+                              setServiceError(
+                                "Redeem Service Fee cannot exceed 20%"
+                              );
+                            } else {
+                              setServiceError("");
+                              setEditedFees(value);
+                            }
+                          }}
                         />
                         <Button
                           color="success"
@@ -347,6 +376,9 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       Cancel
                     </Button>
                   </div>
+                  {serviceError && (
+                    <small className="text-danger">{serviceError}</small>
+                  )}
                 </Col>
               </Row>
             </Form>

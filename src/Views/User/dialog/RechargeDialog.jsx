@@ -10,7 +10,7 @@ import {
   Label,
   Form,
   Input,
-  Alert
+  Alert,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -36,6 +36,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
   useEffect(() => {
     if (record && open) {
       setUserName(record.username || "");
+      setErrorMessage("");
     } else {
       resetFields();
     }
@@ -44,7 +45,9 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (rechargeAmount <= 0) {
-      setErrorMessage("Recharge Amount cannot be negative or 0. Please enter a valid amount.");
+      setErrorMessage(
+        "Recharge Amount cannot be negative or 0. Please enter a valid amount."
+      );
       return;
     }
     if (rechargeAmount < 10) {
@@ -82,7 +85,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
             Recharge Amount
           </ModalHeader>
           <ModalBody>
-          {errorMessage && (
+            {errorMessage && (
               <Alert color="danger" className="mt-2">
                 {errorMessage}
               </Alert>
@@ -114,21 +117,19 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                       value={rechargeAmount}
                       onChange={(e) => {
                         let value = e.target.value;
-                        if (value === '' || /^\d*$/.test(value)) {
-                          if(value === ''){
+                        if (value === "" || /^\d*$/.test(value)) {
+                          if (value === "") {
                             setRechargeAmount(value);
-                          }
-                          else if (value.includes('.')) {
+                          } else if (value.includes(".")) {
                             value = Math.floor(parseFloat(value));
                             setRechargeAmount(value);
-                          }
-                          else if (/^\d*$/.test(value)) {
+                          } else if (/^\d*$/.test(value)) {
                             setRechargeAmount(value);
                           }
                         }
                       }}
                       required
-                      onKeyDown={(e) =>{
+                      onKeyDown={(e) => {
                         if (e.keyCode === 190) {
                           // Prevent the default behavior of typing a decimal
                           e.preventDefault();
@@ -162,7 +163,13 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
-                    <Button color="secondary" onClick={onClose}>
+                    <Button
+                      color="secondary"
+                      onClick={() => {
+                        onClose();
+                        setErrorMessage("");
+                      }}
+                    >
                       Cancel
                     </Button>
                   </div>
