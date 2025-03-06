@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -17,7 +17,9 @@ import {
   useRefresh,
   useListContext,
   useListController,
-  Pagination
+  Pagination,
+  SelectInput,
+  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -143,7 +145,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
               Redeem Service Fee
             </MenuItem>
           )}
-         
+
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") && (
           <MenuItem
@@ -160,9 +162,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
             role === "Super-User") && (
-            <MenuItem onClick={handleDrawer}>
-              Drawer
-            </MenuItem>
+            <MenuItem onClick={handleDrawer}>Drawer</MenuItem>
           )}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
@@ -235,17 +235,28 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         handleRefresh={handleRefresh}
       />
       <TransactionSummaryModal
-  open={drawerDialogOpen}
-  onClose={() => setDrawerDialogOpen(false)}
-  record={record}
-  />
+        open={drawerDialogOpen}
+        onClose={() => setDrawerDialogOpen(false)}
+        record={record}
+      />
     </React.Fragment>
   );
 };
 
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters,setSort } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+    setSort,
+  } = listContext;
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -269,13 +280,16 @@ export const UserList = (props) => {
   const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+  const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
   };
   const handleRefresh = async () => {
     refresh();
-  }
+  };
 
   function generateRandomString() {
     const characters =
@@ -314,14 +328,116 @@ export const UserList = (props) => {
     }
   };
 
+const searchFields = ["username", "email", "userParentName"];
+
+const handleSearchByChange = (newSearchBy) => {
+  setSearchBy(newSearchBy);
+  setPrevSearchBy(newSearchBy);
+
+  const currentSearchValue = filterValues[prevSearchBy] || "";
+  const newFilters = {};
+
+  Object.keys(filterValues).forEach((key) => {
+    if (key !== prevSearchBy && !searchFields.includes(key)) {
+      newFilters[key] = filterValues[key];
+    }
+  });
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[newSearchBy] = currentSearchValue;
+  }
+
+  newFilters.searchBy = newSearchBy;
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  setFilters(newFilters, false);
+};
+
+useEffect(() => {
+  // Compare current filterValues with previous filterValues
+  const prevFilterValues = prevFilterValuesRef.current;
+  const filterValuesChanged =
+    JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+  // Update the ref with current filterValues for the next run
+  prevFilterValuesRef.current = filterValues;
+
+  // Skip if no meaningful change
+  if (!filterValuesChanged) {
+    return;
+  }
+  const currentSearchValue = filterValues[searchBy] || "";
+  const newFilters = {
+    searchBy,
+  };
+
+  if (currentSearchValue && currentSearchValue.trim() !== "") {
+    newFilters[searchBy] = currentSearchValue;
+  }
+
+  if (filterValues.role) {
+    newFilters.role = filterValues.role;
+  }
+
+  const cleanedFilters = Object.keys(filterValues)
+    .filter(
+      (key) => !searchFields.includes(key) || key === searchBy || key === "role"
+    )
+    .reduce((obj, key) => {
+      obj[key] = filterValues[key];
+      return obj;
+    }, {});
+
+  setFilters({ ...cleanedFilters, ...newFilters }, false);
+}, [filterValues, searchBy, setFilters]);
+
   const dataFilters = [
-    <SearchInput
-      source="username"
+    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SelectInput
+      source="searchBy"
+      label="Search By"
+      validate={required()}
       alwaysOn
-      resettable
+      value={searchBy}
+      onChange={(e) => {
+        const newSearchBy = e.target.value || "username";
+        handleSearchByChange(newSearchBy);
+      }}
+      choices={
+        role === "Super-User"
+          ? [
+              { id: "username", name: "Username" },
+              { id: "email", name: "Email" },
+              { id: "userParentName", name: "Parent Name" },
+            ]
+          : [
+              { id: "username", name: "Username" },
+              { id: "email", name: "Email" },
+            ]
+      }
     />,
-    // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
+  // Conditionally add SelectInput if role is "Super-User"
+  if (role === "Super-User") {
+    dataFilters.push(
+      <SelectInput
+        source="role"
+        label="Role"
+        emptyText={"All"}
+        alwaysOn
+        resettable
+        choices={[
+          { id: "Super-User", name: "Super-User" },
+          { id: "Player", name: "Player" },
+          { id: "Agent", name: "Agent" },
+          { id: "Master-Agent", name: "Master-Agent" },
+        ]}
+      />
+    );
+  }
 
   const PostListActions = () => (
     <TopToolbar>
@@ -356,12 +472,12 @@ export const UserList = (props) => {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
-}, []);
+  }, []);
 
-useEffect(() => {
-  setFilters({}, {}); // Clear filters when the component mounts
-  setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
-}, []);
+  useEffect(() => {
+    setFilters({}, {}); // Clear filters when the component mounts
+    setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
+  }, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -371,49 +487,55 @@ useEffect(() => {
   //   return () => clearInterval(interval);
   // }, [refresh]);
 
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
-  
+
   return (
     <>
-    {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <List
-  title="User Management"
-  filters={dataFilters}
-  actions={<PostListActions />}
-  emptyWhileLoading={true}
-  empty={false}
-  filter={{$or: [{ userReferralCode: "" }, { userReferralCode: null },{username:""}]}}
-  {...props}
-    pagination={<Pagination />}
-          sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+        title="User Management"
+        filters={dataFilters}
+        actions={<PostListActions />}
+        emptyWhileLoading={true}
+        empty={false}
+        filter={{
+          $or: [
+            { userReferralCode: "" },
+            { userReferralCode: null },
+            { username: "" },
+          ],
+        }}
+        {...props}
+        pagination={<Pagination />}
+        sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
       >
-        
-          <Datagrid
-            size="small"
-            bulkActionButtons={false}
-            // data={data}
-          >
-            <TextField source="username" label="User Name" />
-            <TextField source="email" label="Email" />
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="userParentName" label="Parent User" />
-            )}
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="roleName" label="User Type" />
-            )}
-            <DateField source="createdAt" label="Date" showTime sortable/>
-            <WrapperField label="Actions">
-              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-            </WrapperField>
-          </Datagrid>
-     
+        <Datagrid
+          size="small"
+          bulkActionButtons={false}
+          // data={data}
+        >
+          <TextField source="username" label="User Name" />
+          <TextField source="email" label="Email" />
+          {(identity?.role === "Super-User" ||
+            identity?.role === "Master-Agent") && (
+            <TextField source="userParentName" label="Parent User" />
+          )}
+          {(identity?.role === "Super-User" ||
+            identity?.role === "Master-Agent") && (
+            <TextField source="roleName" label="User Type" />
+          )}
+          <DateField source="createdAt" label="Date" showTime sortable />
+          <WrapperField label="Actions">
+            <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
+          </WrapperField>
+        </Datagrid>
+
         <CreateUserDialog
           open={userCreateDialogOpen}
           onClose={() => setUserCreateDialogOpen(false)}
@@ -427,6 +549,6 @@ useEffect(() => {
           referralCode={referralCode}
         />
       </List>
-      </>
+    </>
   );
 };

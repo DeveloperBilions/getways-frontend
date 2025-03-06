@@ -10,6 +10,8 @@ import {
   Typography,
   FormHelperText,
   OutlinedInput,
+  useMediaQuery,
+  Alert,
 } from "@mui/material";
 // hook form
 import { useForm } from "react-hook-form";
@@ -34,13 +36,16 @@ const LoginPage = () => {
   const recaptchaRef = useRef();
   const [captchaVerified, setCaptchaVerified] = useState(false);  // Track captcha verification
   const [isCaptchaReady, setIsCaptchaReady] = useState(false);  // Track captcha load status
+  const isSmallScreen = useMediaQuery("(max-width:900px)");
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -53,38 +58,44 @@ const LoginPage = () => {
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
     if (recaptchaRef.current) {
-      setIsCaptchaReady(true);  // Set ready status to true when ref is available
+      setIsCaptchaReady(true); // Set ready status to true when ref is available
     }
-  }, [recaptchaRef.current]);  // Watch the ref to ensure it is correctly initialized
+    const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+    
+    if (savedAccounts.length > 0) {
+      const lastUsedAccount = savedAccounts[savedAccounts.length - 1]; // Get last used account
+      setValue("emailPhone", lastUsedAccount.email);
+    }
+  }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
-  
   const onSubmit = async (data) => {
-    // if (!captchaValue) {
-    //   notify("Please verify the reCAPTCHA");
-    //   return;
-    // }
-    console.log(data);
     try {
-      setLoading(true);
+        setLoading(true);
+        if (data?.emailPhone === "") {
+          setErrorMessage("Please enter email or phone number");
+          return;
+        }
+        const response = await Parse.Cloud.run("checkpresence", data);
 
-      const response = await Parse.Cloud.run("checkpresence", data);
-      localStorage.clear()
-      setCaptchaVerified(true); // Set captcha as verified
-      if (response?.fromAgentExcel) {
-        redirect(
-          `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
-        );
-        ///window.location.reload()
-      } else {
-        redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
-       // window.location.reload()
-      }
+        if (response?.fromAgentExcel) {
+            redirect(
+              `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
+            );
+        } else {
+            redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
+        }
+        let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+        const existingAccount = savedAccounts.find(acc => acc.email === data.emailPhone);
+        if (!existingAccount) {
+            savedAccounts.push({ email: data.emailPhone });
+        }
+        localStorage.setItem("accounts", JSON.stringify(savedAccounts));
     } catch (error) {
-      notify(error?.message || "User Checking failed. Please try again.");
+        notify(error?.message || "User Checking failed. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   if (loading) {
     return <Loader />;
@@ -94,31 +105,37 @@ const LoginPage = () => {
     <React.Fragment>
       <Grid container component="main" sx={{ height: "100vh" }}>
         <CssBaseline />
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundImage: "url(/assets/login.jpg)",
-            backgroundRepeat: "no-repeat",
-            backgroundColor: (t) =>
-              t.palette.mode === "light"
-                ? t.palette.grey[50]
-                : t.palette.grey[900],
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        {!isSmallScreen && (
+          <Grid
+            item
+            xs={false}
+            sm={4}
+            md={7}
+            sx={{
+              backgroundImage: "url(/assets/login.jpg)",
+              backgroundRepeat: "no-repeat",
+              backgroundColor: (t) =>
+                t.palette.mode === "light"
+                  ? t.palette.grey[50]
+                  : t.palette.grey[900],
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        )}
         <Grid
           item
           xs={12}
-          sm={8}
-          md={5}
+          sm={isSmallScreen ? 12 : 8}
+          md={isSmallScreen ? 12 : 5}
           component={Paper}
           elevation={6}
           square
           sx={{
+            display: "flex",
+            height: "100%",
+            justifyContent: "center",
+            flexDirection: "column",
             backgroundColor: "#e6e6e6",
           }}
         >
@@ -139,6 +156,13 @@ const LoginPage = () => {
             <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
               Sign in
             </Typography>
+            <Box mb={3}>
+              {errorMessage && (
+                <Alert severity="error" onClose={() => setErrorMessage("")}>
+                  {errorMessage}
+                </Alert>
+              )}
+            </Box>
             <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
               <Typography htmlFor="emailPhone" sx={{ mt: 1 }}>
                 Email / Phone
@@ -179,7 +203,7 @@ const LoginPage = () => {
                 Next
               </Button>
             </Box>
-              {/* <Button
+            {/* <Button
               fullWidth
               variant="outlined"
               sx={{ mt: 1 }}
@@ -190,10 +214,7 @@ const LoginPage = () => {
           </Box>
         </Grid>
       </Grid>
-      <HelpVideoModal
-        open={helpOpen}
-        handleClose={() => setHelpOpen(false)}
-      />
+      <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </React.Fragment>
   );
 };

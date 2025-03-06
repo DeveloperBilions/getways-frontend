@@ -23,6 +23,8 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
 import { Parse } from "parse";
+import { validateCreateUser } from "../../Validators/user.validator";
+import { validatePassword } from "../../Validators/Password";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -47,6 +49,8 @@ const ReferralLinkForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     const fetchReferral = async () => {
@@ -67,9 +71,14 @@ const ReferralLinkForm = () => {
     fetchReferral();
   }, [referral]);
 
-  const validatePassword = (password) => {
-    const passwordRegex = /^.{6,}$/;
-    return passwordRegex.test(password);
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setIsTyping(true);
+    validatePassword(newPassword, setPasswordErrors);
+    if (validatePassword(newPassword, setPasswordErrors)) {
+      setIsTyping(false);
+    }
   };
   const validateUserName = (userName) => {
     const userNameRegex = /^[a-zA-Z0-9 _.-]+$/; // Allows letters, numbers, spaces, underscores, and dots
@@ -80,13 +89,28 @@ const ReferralLinkForm = () => {
     event.preventDefault();
     setDisableButtonState(true);
 
+    const validationData = {
+      username: userName,
+      name,
+      phoneNumber,
+      email,
+      password,
+    }
+
+    const validationResponse = validateCreateUser(validationData);
+      if (!validationResponse.isValid) {
+        setErrorMessage(Object.values(validationResponse.errors).join(" "));
+        setDisableButtonState(false);
+        return;
+      }
+
     if (!validateUserName(userName)) {
       setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
       setDisableButtonState(false);
       return;
     }
-    if (!validatePassword(password)) {
-      setErrorMessage("Password must be at least 6 characters long.");
+    if (!validatePassword(password, setPasswordErrors)) {
+      setErrorMessage("Please fix all password requirements.");
       setDisableButtonState(false);
       return;
     }
@@ -150,12 +174,12 @@ const ReferralLinkForm = () => {
             <div className="testimonial-text"></div>
           </div>
 
-          <div className="right-section">
+          <div className="right-section ">
             <Card className="mt-5 card-overrid">
               <CardBody>
                 <Form onSubmit={handleSubmit}>
                   <Row>
-                    <Label className="fs-3 fw-normal">Get Stated</Label>
+                    <Label className="fs-3 fw-normal">Get Started</Label>
                     <Col md={12}>
                       <FormGroup>
                         <Label for="userName" className="pb-0 mb-0">
@@ -186,7 +210,8 @@ const ReferralLinkForm = () => {
                           value={userName}
                           onChange={(e) => {
                             const value = e.target.value;
-                            if (/^[a-zA-Z0-9 _.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                            if (/^[a-zA-Z0-9_.-]*$/.test(value)) {
+                              // Prevents invalid characters from being typed
                               setUserName(value);
                             }
                           }}
@@ -206,7 +231,12 @@ const ReferralLinkForm = () => {
                           type="text"
                           autoComplete="off"
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                              setName(value);
+                            }
+                          }}
                           required
                         />
                       </FormGroup>
@@ -223,7 +253,12 @@ const ReferralLinkForm = () => {
                           type="text"
                           autoComplete="off"
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d{0,10}$/.test(value)) {
+                              setPhoneNumber(value);
+                            }
+                          }}
                           required
                         />
                       </FormGroup>
@@ -258,7 +293,7 @@ const ReferralLinkForm = () => {
                             type={showPassword ? "text" : "password"}
                             autoComplete="off"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={handlePasswordChange}
                             required
                           />
                           <InputGroupText
@@ -268,9 +303,18 @@ const ReferralLinkForm = () => {
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </InputGroupText>
                         </InputGroup>
-                        <FormText>
-                          Password must be at least 6 characters long.
-                        </FormText>
+                        {isTyping && passwordErrors.length > 0 && (
+                          <div
+                            className="mt-1"
+                            style={{ fontSize: "0.875rem" }}
+                          >
+                            {passwordErrors.map((error, index) => (
+                              <div key={index} className="text-danger">
+                                • {error}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </FormGroup>
                     </Col>
 
@@ -309,7 +353,7 @@ const ReferralLinkForm = () => {
                       <Col sm={12}>
                         <Label
                           for="errorResponse"
-                          invalid={true}
+                          invalid
                           className="text-danger mb-2"
                         >
                           {errorMessage}

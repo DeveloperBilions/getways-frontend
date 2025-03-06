@@ -16,6 +16,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { walletService } from "../../../Provider/WalletManagement";
+import { validatePositiveNumber } from "../../../Validators/number.validator";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -31,7 +32,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     cashAppId: "",
     paypalId: "",
     venmoId: "",
-    zelleId: ""
+    zelleId: "",
   });
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
     useState(false);
@@ -39,7 +40,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [warningMessage, setWarningMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [savingPaymentMethod, setSavingPaymentMethod] = useState(false); // Add this state
-  const [errorAddPayment, setErrorAddPayment] = useState("")
+  const [errorAddPayment, setErrorAddPayment] = useState("");
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
@@ -111,11 +112,19 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setErrorMessage("Refund cannot be processed without a payment mode.");
       return;
     }
-    if (redeemAmount <= 0) {
-      setErrorMessage("RedeemAmount amount cannot be negative or 0. Please enter a valid amount.");
+
+    const validationResponse = validatePositiveNumber(redeemAmount);
+    if (!validationResponse.isValid) {
+      setErrorMessage(validationResponse.error);
       return;
     }
-    
+    // if (redeemAmount <= 0) {
+    //   setErrorMessage(
+    //     "RedeemAmount amount cannot be negative or 0. Please enter a valid amount."
+    //   );
+    //   return;
+    // }
+
     const rawData = {
       ...record,
       redeemServiceFee: redeemFees,
@@ -152,14 +161,18 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
         zelleId: paymentMethods?.zelleId?.trim() || "",
       };
       if (
-        (!paymentMethods?.cashAppId?.trim() || paymentMethods?.cashAppId?.trim() === "") &&
-        (!paymentMethods?.venmoId?.trim() || paymentMethods?.venmoId?.trim() === "") &&
-        (!paymentMethods?.paypalId?.trim() || paymentMethods?.paypalId?.trim() === "")&&
-        (!paymentMethods?.zelleId?.trim() || paymentMethods?.zelleId?.trim() === "")
+        (!paymentMethods?.cashAppId?.trim() ||
+          paymentMethods?.cashAppId?.trim() === "") &&
+        (!paymentMethods?.venmoId?.trim() ||
+          paymentMethods?.venmoId?.trim() === "") &&
+        (!paymentMethods?.paypalId?.trim() ||
+          paymentMethods?.paypalId?.trim() === "") &&
+        (!paymentMethods?.zelleId?.trim() ||
+          paymentMethods?.zelleId?.trim() === "")
       ) {
         setErrorAddPayment("Add at least one valid payment method.");
         return false;
-      } 
+      }
       if (
         paymentMethods?.cashAppId?.trim() &&
         !/^(?=.*[a-zA-Z]).{1,20}$/.test(paymentMethods?.cashAppId.trim())
@@ -177,8 +190,8 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           "Venmo ID can only contain letters and numbers (no symbols, dashes, or spaces)."
         );
         return false;
-      }     
-      setErrorAddPayment("");  
+      }
+      setErrorAddPayment("");
       setSavingPaymentMethod(true); // Start loader
       await walletService.updatePaymentMethods(trimmedMethods);
       setPaymentMethods(newMethods);
@@ -187,7 +200,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       handleSubmit(); // Automatically call handleSubmit after adding payment methods
     } catch (error) {
       console.error("Error updating payment methods:", error);
-      setErrorAddPayment(error.message || "Failed to update payment methods. Please try again.");
+      setErrorAddPayment(
+        error.message || "Failed to update payment methods. Please try again."
+      );
     } finally {
       setSavingPaymentMethod(false); // Stop loader
     }
@@ -234,25 +249,23 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="redeemAmount"
                       type="text"
                       autoComplete="off"
-                      min="0"
+                      min="1"
                       value={redeemAmount}
                       onChange={(e) => {
                         let value = e.target.value;
-                        if (value === '' || /^\d*$/.test(value)) {
-                          if(value === ''){
+                        if (value === "" || /^\d*$/.test(value)) {
+                          if (value === "") {
                             setRedeemAmount(value);
-                          }
-                          else if (value.includes('.')) {
+                          } else if (value.includes(".")) {
                             value = Math.floor(parseFloat(value));
                             setRedeemAmount(value);
-                          }
-                          else if (/^\d*$/.test(value)) {
+                          } else if (/^\d*$/.test(value)) {
                             setRedeemAmount(value);
                           }
                         }
                       }}
                       required
-                      onKeyDown={(e) =>{
+                      onKeyDown={(e) => {
                         if (e.keyCode === 190) {
                           // Prevent the default behavior of typing a decimal
                           e.preventDefault();
@@ -269,7 +282,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   <p className="mb-1">
                     <small>
                       Total amount to be redeemed = $
-                      {Math.floor(redeemAmount - redeemAmount * (redeemFees / 100) )|| 0}
+                      {Math.floor(
+                        redeemAmount - redeemAmount * (redeemFees / 100)
+                      ) || 0}
                     </small>
                   </p>
                 )}
@@ -387,7 +402,7 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
               handleAddPaymentMethod(paymentMethods);
             }}
           >
-             {errorAddPayment && (
+            {errorAddPayment && (
               <Alert color="danger" className="mt-2">
                 {errorAddPayment}
               </Alert>
@@ -467,11 +482,9 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   type="submit"
                   disabled={savingPaymentMethod}
                 >
-                  {savingPaymentMethod ? (
-                    " Saving ..."// Use your custom Loader component
-                  ) : (
-                    "Save"
-                  )}
+                  {savingPaymentMethod
+                    ? " Saving ..." // Use your custom Loader component
+                    : "Save"}
                 </Button>
               </Col>
             </Row>

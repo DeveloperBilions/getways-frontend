@@ -19,6 +19,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import { validateUpdateUser } from "../../../Validators/user.validator";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -67,6 +68,21 @@ const EditUserDialog = ({
       setLoading(false);
       return;
     }
+
+    const validationData = {
+      username: userName,
+      name,
+      email,
+      password
+    };
+
+    const validationResponse = validateUpdateUser(validationData);
+    if (!validationResponse.isValid) {
+      setErrorMessage(Object.values(validationResponse.errors).join(" "));
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         userId: record.id,
@@ -123,7 +139,12 @@ const EditUserDialog = ({
                       type="text"
                       autoComplete="off"
                       value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z0-9_.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setUserName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>
@@ -138,7 +159,12 @@ const EditUserDialog = ({
                       type="text"
                       autoComplete="off"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                          setName(value);
+                        }
+                      }}
                       required
                     />
                   </FormGroup>
