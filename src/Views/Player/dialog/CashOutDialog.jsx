@@ -36,10 +36,12 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     paypalId: "",
     venmoId: "",
     zelleId: "",
+    virtualCardId:"virtualCardId",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
     isZelleDisabled: false,
+    isVirtualCardIdDisabled:false
   });
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false); // Loading state for fetching payment methods
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // New state for selected payment method
@@ -71,7 +73,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
       console.log(wallet,"walletdata")
-      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance} = wallet.wallet;
+      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance , virtualCardId} = wallet.wallet;
       setBalance(balance);
       setPaymentMethods((prev) => ({
         ...prev,
@@ -79,6 +81,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         paypalId,
         venmoId,
         zelleId,
+        virtualCardId : virtualCardId ? virtualCardId : "virtualCardId"
       }));
       setWalletId(objectId);
     }
@@ -255,6 +258,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     { key: "paypalId", label: "PayPal", disabled: paymentMethods.isPaypalDisabled },
     { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
     { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
+    { key: "virtualCardId", label: "Gift Card", disabled: false }
   ];
   console.log(paymentMethods,"paymentMethods")
   return (

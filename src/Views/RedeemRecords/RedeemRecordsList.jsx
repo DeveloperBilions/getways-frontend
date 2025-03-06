@@ -53,6 +53,7 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
+import VirtualCard from "../User/dialog/GiftCard";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -87,6 +88,7 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
+  const [createWalletDialogOpen, setCreateWalletDialogOpen] = useState(false);
 
   if (!role) {
     navigate("/login");
@@ -432,7 +434,6 @@ export const RedeemRecordsList = (props) => {
     const isSuperUserCashout =
       record?.status === 11 && identity?.role === "Super-User";
     const isCashoutApproved = record?.status === 12; // Example status for approved cashout
-
     const isBalanceLow =
       (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
       identity?.balance < 500;
@@ -443,7 +444,7 @@ export const RedeemRecordsList = (props) => {
           (identity?.role === "Agent" || identity?.role === "Master-Agent") &&
           identity?.objectId === record?.userParentId && (
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              {isCashoutPending && (
+              {(isCashoutPending )  && (
                 <Button
                   size="small"
                   sx={{
@@ -490,7 +491,6 @@ export const RedeemRecordsList = (props) => {
               </Button>
             </Box>
           )}
-
         {(isSuperUserCashout || isCashoutApproved) && (
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             {isSuperUserCashout && (
@@ -510,7 +510,11 @@ export const RedeemRecordsList = (props) => {
                     ...record,
                     userParentId: identity?.objectId,
                   });
-                  setFinalRedeemDialogOpen(true);
+                  if(record?.paymentMode === "virtualCardId"){
+                    setCreateWalletDialogOpen(true)
+                  }else{
+                    setFinalRedeemDialogOpen(true);
+                  }
                 }}
               >
                 <CheckIcon sx={{ fontSize: "16px" }} />
@@ -654,8 +658,15 @@ export const RedeemRecordsList = (props) => {
             handleRefresh={handleRefresh}
             record={selectedRecord}
           />
+          <VirtualCard 
+            open={createWalletDialogOpen}
+            onClose={()=> setCreateWalletDialogOpen(false)}
+            handleRefresh={handleRefresh}
+            record={selectedRecord}
+          />
         </>
       )}
+
     </>
   );
 };
