@@ -222,6 +222,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         open={blacklistDialogOpen}
         onClose={() => setBlacklistDialogOpen(false)}
         record={record}
+        handleRefresh={handleRefresh}
       />
       <WalletDialog
         open={walletDialogOpen}
