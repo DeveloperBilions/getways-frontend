@@ -254,10 +254,10 @@ export default function MyAppBar({ props }) {
           </MenuItem>
           <Logout style={{ color: "#0000008a" }} />
         </UserMenu>
-        <HelpOutlineIcon
+        {/* <HelpOutlineIcon
           style={{ cursor: "pointer" }}
           onClick={() => setOpenGuideline(true)}
-        />
+        /> */}
       </Box>
       <ChangePassword open={openModal} onClose={handleCloseModal} />
       <RechargeLimitDialog
