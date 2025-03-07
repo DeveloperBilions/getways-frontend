@@ -391,42 +391,135 @@ export const fetchTransactionsofAgent = async ({
   }
 };
 
-export const fetchTransactionComparison = async ({ sortOrder = "desc", date }) => {
+export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedDates, type = "date" }) => {
   try {
-    // Step 1: Compute Given Date and Previous Date
-    const currentDay = new Date(date);
-    currentDay.setUTCHours(23, 59, 59, 999); // Set to the end of the given date in UTC
-
-    const previousDate = new Date(date);
-    previousDate.setUTCDate(previousDate.getUTCDate() - 1); // Move one day back in UTC
-    previousDate.setUTCHours(0, 0, 0, 0); // Set to the start of the previous day in UTC
-
-    // Step 2: Fetch transactions for both dates
+    let dateFormat = "%Y-%m-%d";
+    if (type === "month") {
+      dateFormat = "%Y-%m";
+    } else if (type === "year") {
+      dateFormat = "%Y";
+    }
     const pipeline = [
-      { 
-        $match: { 
+      {
+        $match: {
           userParentId: { $exists: true, $ne: null },
           status: { $in: [2, 3, 8, 12] },
-          createdAt: { $gte: previousDate, $lte: currentDay },
-          transactionAmount: { $gt: 0 }
-        } 
+          transactionAmount: { $gt: 0 },
+        },
       },
+      {
+        $group: {
+          _id: {
+            agent: "$userParentId",
+            date: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+          },
+          totalRecharge: {
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] },
+          },
+          totalRedeem: {
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] },
+          },
+          totalCashout: {
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] },
+          },
+        },
+      },
+      {
+        $match: {
+          "_id.date": { $in: selectedDates }, // Match only selected dates
+        },
+      },
+      {
+        $sort: { "_id.date": sortOrder === "asc" ? 1 : -1 },
+      },
+    ];
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
+    }
+    console.log("Fetched Transactions:", transactions);
+
+    const agentIds = [...new Set(transactions.map((trx) => trx.objectId.agent))];
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.containedIn("objectId", agentIds);
+    agentQuery.select("objectId", "username");
+    agentQuery.limit(10000);
+
+    const agents = await agentQuery.find({ useMasterKey: true });
+
+    const agentMap = {};
+    agents.forEach((agent) => {
+      agentMap[agent.id] = agent.get("username") || "Unknown Agent";
+    });
+
+    const formattedData = {};
+    transactions.forEach((transaction) => {
+      const agentId = transaction.objectId.agent;
+      const dateKey = transaction.objectId.date;
+
+      if (!formattedData[agentId]) {
+        formattedData[agentId] = {
+          agentName: agentMap[agentId] || "Unknown Agent",
+          transactions: {},
+        };
+      }
+
+      formattedData[agentId].transactions[dateKey] = {
+        totalRecharge: Math.floor(transaction.totalRecharge || 0),
+        totalRedeem: Math.floor(transaction.totalRedeem || 0),
+        totalCashout: Math.floor(transaction.totalCashout || 0),
+      };
+    });
+
+    return { status: "success", data: Object.values(formattedData) };
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};
+
+
+export const fetchTransactionsofAgentByDate = async ({
+  sortOrder = "desc",
+  startDate,
+  endDate,
+  agentId, // Added agentId as a parameter
+} = {}) => {
+  try {
+    // Step 1: Set start and end date with correct hours
+    const start = new Date(startDate);
+    start.setUTCHours(0, 0, 0, 0); // Start of the day
+
+    const end = new Date(endDate);
+    end.setUTCHours(23, 59, 59, 999); // End of the day
+
+    // Step 2: Fetch transactions grouped by userParentId
+    const matchConditions = {
+      userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
+      status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+      createdAt: { $gte: start, $lte: end },
+      transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+    };
+
+    if (agentId) {
+      matchConditions.userParentId = agentId; // Filter for specific agent
+    }
+
+    const pipeline = [
+      { $match: matchConditions },
       { 
         $group: {
           _id: { agent: "$userParentId", date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } },
           totalRecharge: { 
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
-          },
+          }, // Sum only recharge transactions
           totalRedeem: { 
             $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
-          },
+          }, // Sum only redeem transactions
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
-          }
+          } // Sum only cashout transactions
         }
-      },
-      { 
-        $sort: { "_id.date": sortOrder === "asc" ? 1 : -1 }
       }
     ];
 
@@ -435,23 +528,33 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", date }) =
     if (transactions.length === 0) {
       return { status: "success", data: [] };
     }
-    // Step 3: Extract Agent IDs
-    const agentIds = [...new Set(transactions.map(trx => trx.objectId.agent))];
-    
-    // Step 4: Fetch Agent Names
-    const agentQuery = new Parse.Query(Parse.User);
-    agentQuery.containedIn("objectId", agentIds);
-    agentQuery.select("objectId", "username");
-    agentQuery.limit(10000);
-    
-    const agents = await agentQuery.find({ useMasterKey: true });
-    
+
+    let agentIds = [...new Set(transactions.map(trx => trx.objectId.agent))];
+
+    // Step 3: Fetch agent names (only if agentId is not provided, otherwise we already know it)
     const agentMap = {};
-    agents.forEach(agent => {
-      agentMap[agent.id] = agent.get("username") || "Unknown Agent";
-    });
-    
-    // Step 5: Structure the Output for Comparison
+    if (!agentId) {
+      const agentQuery = new Parse.Query(Parse.User);
+      agentQuery.containedIn("objectId", agentIds);
+      agentQuery.select("objectId", "username"); // Fetch only required fields
+      agentQuery.limit(10000);
+
+      const agents = await agentQuery.find({ useMasterKey: true });
+
+      agents.forEach((agent) => {
+        agentMap[agent.id] = agent.get("username") || "Unknown Agent";
+      });
+    } else {
+      // Fetch the name of the specific agent
+      const agentQuery = new Parse.Query(Parse.User);
+      agentQuery.equalTo("objectId", agentId);
+      agentQuery.select("username");
+
+      const agent = await agentQuery.first({ useMasterKey: true });
+      agentMap[agentId] = agent ? agent.get("username") : "Unknown Agent";
+    }
+
+    // Step 4: Format Data
     const formattedData = {};
     transactions.forEach(transaction => {
       const agentId = transaction.objectId.agent;
