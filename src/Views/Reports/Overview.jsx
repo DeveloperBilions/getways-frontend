@@ -32,6 +32,8 @@ export const Overview = () => {
   const { identity } = useGetIdentity();
   const [sortColumn, setSortColumn] = useState("totalRecharge");
   const [sortOrder, setSortOrder] = useState("desc");
+  const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
 
   const fetchData = async () => {
     try {
@@ -123,6 +125,10 @@ export const Overview = () => {
                 InputLabelProps={{ shrink: true }}
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
+                inputProps={{
+                  min: startDateLimit,
+                  max: toDate || today,
+                }}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -133,6 +139,10 @@ export const Overview = () => {
                 InputLabelProps={{ shrink: true }}
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
+                inputProps={{
+                  min: fromDate || startDateLimit,
+                  max: today,
+                }}
               />
             </Grid>
             <Grid item xs={12} md={4} display="flex" alignItems="center">
