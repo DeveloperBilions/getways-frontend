@@ -98,6 +98,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       );
       return false;
     }
+    if (redeemAmount < 15) {
+      setAmountError("RedeemAmount amount cannot be less than 15.");
+      return false;
+    }
     setFeeError(""); // Clear error if input is valid
 
     // Check if the redeem fees were changed by the user

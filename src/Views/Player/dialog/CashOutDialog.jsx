@@ -70,7 +70,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      console.log(wallet,"walletdata")
       const { cashAppId, paypalId, venmoId,zelleId, objectId, balance} = wallet.wallet;
       setBalance(balance);
       setPaymentMethods((prev) => ({
