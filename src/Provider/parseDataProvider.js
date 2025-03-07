@@ -223,12 +223,12 @@ export const dataProvider = {
        query = new Parse.Query(Resource);
        filter = { type: "redeem", ...filter };
        if (role === "Player") {
-         filter = { userId: userid, ...filter };
-         filter &&
-           Object.keys(filter).map((f) => {
-             if (f === "username") query.matches(f, filter[f], "i");
-             else query.equalTo(f, filter[f]);
-           });
+         filter = { userId: userid, ...filter };  
+        //  filter &&
+        //    Object.keys(filter).map((f) => {
+        //      if (f === "username") query.matches(f, filter[f], "i");
+        //      else query.equalTo(f, filter[f]);
+        //    });
        } else if (role === "Agent") {
          // filter &&
          //   Object.keys(filter).map((f) => {
@@ -249,7 +249,7 @@ export const dataProvider = {
          query.notEqualTo("isCashOut", true);
        }
        if (
-         filter &&
+         filter && 
          typeof filter === "object" &&
          Object.keys(filter).length > 0
        ) {
@@ -297,11 +297,11 @@ export const dataProvider = {
 
        if (role === "Player") {
          filter = { userId: userid, ...filter };
-         filter &&
-           Object.keys(filter).map((f) => {
-             if (f === "username") query.matches(f, filter[f], "i");
-             else query.equalTo(f, filter[f]);
-           });
+        //  filter &&
+        //    Object.keys(filter).map((f) => {
+        //      if (f === "username") query.matches(f, filter[f], "i");
+        //      else query.equalTo(f, filter[f]);
+        //    });
        } else if (role === "Agent") {
          var { ids } = await fetchUsers();
          query.containedIn("userId", ids);
