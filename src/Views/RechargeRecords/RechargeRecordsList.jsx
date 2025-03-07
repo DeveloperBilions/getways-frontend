@@ -349,84 +349,97 @@ export const RechargeRecordsList = (props) => {
     ),
   ].filter(Boolean);
 
-  const postListActions = (
-    <TopToolbar>
+const postListActions = (
+  <TopToolbar
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+      alignItems: "center",
+      justifyContent: "flex-end", // Align buttons to the right
+      gap: 2, // Add space between buttons
+      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+      width: "100%", // Ensure full width for the toolbar
+    }}
+  >
       {permissions === "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<AttachMoneyIcon />}
           onClick={() => setRechargeDialogOpen(true)}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Recharge
         </Button>
       )}
+
       <Button
         variant="contained"
         size="small"
         startIcon={<RefreshIcon />}
         onClick={handleRefresh}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
         Refresh
       </Button>
-      {permissions != "Player" && (
+
+      {permissions !== "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<GetAppIcon />}
           onClick={handleMenuOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Export
         </Button>
       )}
-
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
+    <Menu
+      anchorEl={menuAnchor}
+      open={Boolean(menuAnchor)}
+      onClose={handleMenuClose}
+      MenuListProps={{
+        "aria-labelledby": "basic-button",
+      }}
+    >
+      <MenuItem
+        onClick={() => {
+          handleExportPDF();
         }}
+        disabled={isExporting}
       >
-        <MenuItem
-          onClick={() => {
-            handleExportPDF();
-            //handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <PictureAsPdfIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            PDF file
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleExportXLS();
-            // handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <BackupTableIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Excel file
-          </Typography>
-        </MenuItem>
-      </Menu>
-    </TopToolbar>
-  );
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <PictureAsPdfIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          PDF file
+        </Typography>
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleExportXLS();
+        }}
+        disabled={isExporting}
+      >
+        <ListItemIcon>
+          {isExporting ? (
+            <CircularProgress size={20} />
+          ) : (
+            <BackupTableIcon fontSize="small" />
+          )}
+        </ListItemIcon>
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          Excel file
+        </Typography>
+      </MenuItem>
+    </Menu>
+  </TopToolbar>
+);
+
 
   if (isLoading) {
     return (
@@ -466,6 +479,7 @@ export const RechargeRecordsList = (props) => {
           </>
         )}
       </Box>
+
       <List
         title={
           identity?.role !== "Player"
@@ -486,151 +500,185 @@ export const RechargeRecordsList = (props) => {
         emptyWhileLoading={true}
         pagination={<Pagination />}
       >
-        <Datagrid size="small" bulkActionButtons={false}>
-          {identity?.role !== "Player" && (
-            <TextField source="username" label="Account" />
-          )}
-          <NumberField
-            source="transactionAmount"
-            label="Recharged"
-            textAlign="left"
-          />
-          <TextField source="remark" label="Remark" />
-          <FunctionField
-            label="Status"
-            source="status"
-            render={(record) => {
-              const getColor = (status) => {
-                switch (status) {
-                  case 3:
-                    return "success";
-                  case 2:
-                    return "primary";
-                  case 1:
-                    return "warning";
-                  case 0:
-                    return "error";
-                  case 9:
-                    return "error";
-                  case 10:
-                    return "error";
-                  default:
-                    return "default";
-                }
-              };
-              const statusMessage = {
-                0: "Pending Referral Link",
-                1: "Pending Confirmation",
-                2: "Confirmed",
-                3: "Coins Credited",
-                9: "Expired",
-                10: "Failed Transaction",
-              }[record.status];
-              return (
-                <Chip
-                  label={statusMessage}
-                  color={getColor(record.status)}
-                  size="small"
-                  variant="outlined"
-                />
-              );
+        <Box
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            position: "relative",
+            height: "600px",
+          }}
+        >
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "hidden", // Prevent vertical scrolling
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
             }}
-          />
-          {identity?.role !== "Player" && (
-            <FunctionField
-              label="Parent"
-              render={(record) => {
-                return record?.userParentName;
+          >
+            <Datagrid
+              size="small"
+              bulkActionButtons={false}
+              sx={{
+                minWidth: "1000px", // Ensures the table is wide enough to scroll
+                tableLayout: "fixed", // Fix column sizes
+                "& .RaDatagrid-table": {
+                  width: "100%", // Ensures table fills the available space
+                },
+                "& .column-paymentMethodType": {
+                  minWidth: "150px", // Ensure this column is wide enough
+                  maxWidth: "150px",
+                  whiteSpace: "nowrap",
+                },
               }}
-            />
-          )}
-          {role === "Super-User" && (
-            <FunctionField
-              label="Mode"
-              render={(record) => {
-                return (
-                  <Chip
-                    label={
-                      record?.referralLink?.toLowerCase().includes("aog")
-                        ? "AOG"
-                        : record?.useWallet
-                        ? "Wallet"
-                        : "Stripe"
+            >
+              <TextField source="username" label="Account" />
+              <NumberField
+                source="transactionAmount"
+                label="Recharged"
+                textAlign="left"
+              />
+              <TextField source="remark" label="Remark" />
+              <FunctionField
+                label="Status"
+                source="status"
+                render={(record) => {
+                  const getColor = (status) => {
+                    switch (status) {
+                      case 3:
+                        return "success";
+                      case 2:
+                        return "primary";
+                      case 1:
+                        return "warning";
+                      case 0:
+                        return "error";
+                      case 9:
+                        return "error";
+                      case 10:
+                        return "error";
+                      default:
+                        return "default";
                     }
-                  />
-                );
-              }}
-            />
-          )}
-          <DateField
-            source="transactionDate"
-            label="RechargeDate"
-            showTime
-            sortable
-          />
-          <FunctionField
-            label="Action"
-            render={(record) =>
-              record?.status === 2 && identity?.role !== "Player" ? (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  startIcon={<MonetizationOnIcon />}
-                  onClick={() => handleCoinCredit(record)}
-                >
-                  Coins Credit
-                </Button>
-              ) : record.status === 1 ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                  };
+                  const statusMessage = {
+                    0: "Pending Referral Link",
+                    1: "Pending Confirmation",
+                    2: "Confirmed",
+                    3: "Coins Credited",
+                    9: "Expired",
+                    10: "Failed Transaction",
+                  }[record.status];
+                  return (
+                    <Chip
+                      label={statusMessage}
+                      color={getColor(record.status)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  );
+                }}
+              />
+              <FunctionField
+                label="Parent"
+                render={(record) => {
+                  return record?.userParentName;
+                }}
+              />
+
+              {role === "Super-User" && (
+                <FunctionField
+                  label="Mode"
+                  render={(record) => {
+                    return (
+                      <Chip
+                        label={
+                          record?.referralLink?.toLowerCase().includes("aog")
+                            ? "AOG"
+                            : record?.useWallet
+                            ? "Wallet"
+                            : "Stripe"
+                        }
+                      />
+                    );
                   }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{
-                      mr: 1,
-                    }}
-                    startIcon={<ContentCopyIcon />}
-                    onClick={() => handleUrlClick(record)}
-                  >
-                    Copy
-                  </Button>
-                  {identity?.role === "Player" && (
+                />
+              )}
+              <DateField
+                source="transactionDate"
+                label="RechargeDate"
+                showTime
+                sortable
+              />
+              <FunctionField
+                label="Action"
+                render={(record) =>
+                  record?.status === 2 && identity?.role !== "Player" ? (
                     <Button
                       variant="outlined"
                       color="primary"
                       size="small"
-                      sx={{
-                        pr: 2,
-                        pl: 2,
-                      }}
-                      startIcon={<LanguageIcon />}
-                      onClick={() => handleUrlRedirect(record)}
+                      startIcon={<MonetizationOnIcon />}
+                      onClick={() => handleCoinCredit(record)}
                     >
-                      Recharge
+                      Coins Credit
                     </Button>
-                  )}
-                </Box>
-              ) : record.status === 0 ? (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  startIcon={<LinkIcon />}
-                  onClick={() => handleUrlClick(record)}
-                >
-                  Generate Link
-                </Button>
-              ) : null
-            }
-          />
-        </Datagrid>
+                  ) : record.status === 1 ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        sx={{
+                          mr: 1,
+                        }}
+                        startIcon={<ContentCopyIcon />}
+                        onClick={() => handleUrlClick(record)}
+                      >
+                        Copy
+                      </Button>
+                      {identity?.role === "Player" && (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          sx={{
+                            pr: 2,
+                            pl: 2,
+                          }}
+                          startIcon={<LanguageIcon />}
+                          onClick={() => handleUrlRedirect(record)}
+                        >
+                          Recharge
+                        </Button>
+                      )}
+                    </Box>
+                  ) : record.status === 0 ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<LinkIcon />}
+                      onClick={() => handleUrlClick(record)}
+                    >
+                      Generate Link
+                    </Button>
+                  ) : null
+                }
+              />
+            </Datagrid>
+          </Box>
+        </Box>
+        </List>
         <CoinsCreditDialog
           open={creditCoinDialogOpen}
           onClose={() => setCreditCoinDialogOpen(false)}
@@ -644,7 +692,6 @@ export const RechargeRecordsList = (props) => {
             handleRefresh={handleRefresh}
           />
         )}
-      </List>
     </>
   );
 };

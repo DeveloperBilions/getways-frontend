@@ -1,27 +1,14 @@
 import * as React from "react";
-import {
-  SidebarClasses,
-  useLocales,
-  useSidebarState,
-  useGetIdentity,
-} from "react-admin";
-import Box from "@mui/material/Box";
+import { useSidebarState } from "react-admin";
 import Drawer from "@mui/material/Drawer";
-import CssBaseline from "@mui/material/CssBaseline";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import { useGetIdentity } from "react-admin";
+import { useMediaQuery } from "@mui/system";
 
 export const MySidebar = ({ children }) => {
   const { identity } = useGetIdentity();
+  const [open, setOpen] = useSidebarState(); // React Admin's sidebar state hook
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   if (!identity) {
     return null;
@@ -29,61 +16,47 @@ export const MySidebar = ({ children }) => {
 
   const drawerWidth = identity?.role === "Player" ? "0em" : "15em";
 
+  const handleMenuItemClick = () => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  };
+
   return (
     <Drawer
-      variant="permanent"
-      anchor="left"
+      variant="permanent" // Always visible on large screens
       sx={{
-        width: drawerWidth,
+        width: { xs: open ? drawerWidth : "0em", sm: drawerWidth }, // Collapse on small screens when closed
         flexShrink: 0,
+        transition: "width 0.3s ease", // Smooth transition for opening/closing
         "& .MuiDrawer-paper": {
-          position: "static",
-          width: drawerWidth,
+          position: "fixed",
+          width: { xs: open ? "100vw" : "0em", sm: drawerWidth },
           boxSizing: "border-box",
-          // backgroundColor: "blue",
           backgroundColor: "#272E3E",
-          overflow: "hidden",
-          marginTop: "5px",
+          overflowX: "hidden", // Prevent horizontal scroll
+          marginTop: "3.5em", // Adjust based on AppBar height
+          height: "calc(100% - 3.5em)", // Full height minus AppBar
+          zIndex: 1200, // Ensure it stays above content
         },
         "& .MuiMenuItem-root": {
           color: "#c0c7d8",
-          //   color: "#272E35",
           fontSize: 18,
-          // '&:active': {
-          //     backgroundColor: "blue",
-          // },
         },
         "& .MuiSvgIcon-root": {
           color: "#d0d5e2",
-          //   color: "#272E35",
         },
-        // '& .RaMenuItemLink-active': {
-        //     color: "#ffffFF",
-        // },
-        // '& .MuiMenuItem.Mui-selected': {
-        //     backgroundColor: "red",
-        // }
       }}
+      open={open} // Controlled by sidebar state
     >
-      {/* <Toolbar>
-        <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
-
-        <Typography
-          variant="h4"
-          component="div"
-          align="center"
-          noWrap
-          sx={{
-            alignSelf: "center",
-            justifySelf: "center",
-            color: "white",
-          }}
-        >
-          GETWAYS
-        </Typography>
-      </Toolbar> */}
-      {/* <Divider sx={{ borderColor: "#45516e" }} /> */}
-      {children}
+      <List sx={{ display: "block" }}>
+        {/* Wrap children (menu items) to handle clicks */}
+        {React.Children.map(children, (child) =>
+          React.cloneElement(child, {
+            onClick: handleMenuItemClick, // Close sidebar on click in mobile
+          })
+        )}
+      </List>
     </Drawer>
   );
 };

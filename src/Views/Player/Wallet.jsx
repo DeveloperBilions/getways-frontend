@@ -287,16 +287,16 @@ export const Wallet = () => {
           </Typography>
 
           {/* Ensure horizontal scrolling for smaller screens */}
-          <div
+          <Box
             style={{
-              overflowX: "scroll", // Enable horizontal scrolling
-              width: "100%", // Full-width container
-              marginBottom: "16px", // Spacing below the table,
-              height: "100%",
+              width: "100%",
+              overflowX: "auto",
+              position: "relative",
+              height: "600px",
             }}
           >
             {loadingTransactions ? (
-                <Box style={{textAlign:"center"}}>Loading data...</Box>
+              <Box style={{ textAlign: "center" }}>Loading data...</Box>
             ) : (
               <ListContextProvider
                 value={{
@@ -308,17 +308,22 @@ export const Wallet = () => {
                   setPerPage: handlePageSizeChange,
                 }}
               >
-                <div
+                <Box
                   style={{
-                    overflowX: "auto", // Enable horizontal scrolling
-                    overflowY: "auto",
-                    width: "100%", // Full-width container
-                    marginBottom: "16px", // Spacing below the table
+                    width: "100%",
+                    overflowX: "auto",
+                    overflowY: "hidden", // Prevent vertical scrolling
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
                   }}
                 >
                   <Datagrid
                     sx={{
-                      minWidth: "900px", // Set a minimum width to ensure all columns fit
+                      minWidth: "900px", // Ensure full width for horizontal scroll
+                      height: "600px", // Fixed height for the table body
+                      overflowY: "auto", // Set a minimum width to ensure all columns fit
                       "& .RaDatagrid-row": {
                         borderBottom: "1px solid #eaeaea",
                         "&:hover": {
@@ -464,39 +469,37 @@ export const Wallet = () => {
                       label="Redeem / Cashout Remark"
                     />
                   </Datagrid>
-                </div>
-                <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}
-                >
-                  <TablePagination
-                    component="div"
-                    count={Math.ceil((totalRecords || 0) / pageSize)}
-                    page={page}
-                    //onPageChange={handleChangePage}
-                    rowsPerPage={pageSize}
-                    onRowsPerPageChange={(event) => {
-                      setPageSize(parseInt(event.target.value, 10));
-                      setPage(1);
-                    }}
-                    nextIconButtonProps={{ style: { display: "none" } }}
-                    backIconButtonProps={{ style: { display: "none" } }}
-                  />
-                  <Pagination
-                    page={page}
-                    count={Math.ceil((totalRecords || 0) / pageSize)} // Total pages
-                    onChange={(event, newPage) => setPage(newPage)}
-                    rowsPerPage={pageSize}
-                    onRowsPerPageChange={(event) => {
-                      setPageSize(parseInt(event.target.value, 10));
-                      setPage(1);
-                    }}
-                    variant="outlined"
-                    color="secondary"
-                  />
                 </Box>
               </ListContextProvider>
             )}
-          </div>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <TablePagination
+              component="div"
+              count={Math.ceil((totalRecords || 0) / pageSize)}
+              page={page}
+              //onPageChange={handleChangePage}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={(event) => {
+                setPageSize(parseInt(event.target.value, 10));
+                setPage(1);
+              }}
+              nextIconButtonProps={{ style: { display: "none" } }}
+              backIconButtonProps={{ style: { display: "none" } }}
+            />
+            <Pagination
+              page={page}
+              count={Math.ceil((totalRecords || 0) / pageSize)} // Total pages
+              onChange={(event, newPage) => setPage(newPage)}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={(event) => {
+                setPageSize(parseInt(event.target.value, 10));
+                setPage(1);
+              }}
+              variant="outlined"
+              color="secondary"
+            />
+          </Box>
         </CardContent>
       </Card>
       <CashOutDialog

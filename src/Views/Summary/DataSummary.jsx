@@ -72,13 +72,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Card
           sx={{
-            padding: "20px",
+            padding: { xs: "10px", sm: "20px" },
             textAlign: "center",
-            maxWidth: "400px",
+            maxWidth: { xs: "90%", sm: "400px" },
             backgroundColor: "#f9f9f9",
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
             borderRadius: "10px",
@@ -86,12 +86,23 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         >
           <CardContent>
             <Box display="flex" justifyContent="center" mb={2}>
-              <EventIcon color="primary" sx={{ fontSize: 40 }} />
+              <EventIcon
+                color="primary"
+                sx={{ fontSize: { xs: 30, sm: 40 } }}
+              />
             </Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+            >
               Select a Date Range
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+            >
               Please select both start and end dates to view the summary data.
             </Typography>
           </CardContent>
@@ -105,7 +116,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="50vh"
+        minHeight={{ xs: "40vh", md: "50vh" }}
       >
         <Loading />
       </Box>
@@ -124,18 +135,16 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
-    ...(role === "Super-User"
+    ...(role === "Super-User" || role === "Agent"
       ? [
           {
             id: 3,
             name: "Total Recharge (Filtered)",
             value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="flex-start"
               >
                 <img
                   src={AOGSymbol}
@@ -143,51 +152,25 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
                 />
                 <span>{filteredRechargeValue}</span>
-              </div>
+              </Box>
             ),
             bgColor: "#EBF9F0",
             borderColor: "#9CDAB8",
             icon: <PaidIcon color="secondary" />,
-            filter: (
-              <FormControl fullWidth>
-                <Select
-                  labelId="recharge-type-select-label"
-                  value={selectedRechargeType}
-                  onChange={(e) => setSelectedRechargeType(e.target.value)}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="wallet">Wallet</MenuItem>
-                  <MenuItem value="others">Others</MenuItem>
-                </Select>
-              </FormControl>
-            ),
-          },
-        ]
-      : []),
-    ...(role === "Agent"
-      ? [
-          {
-            id: 3,
-            name: "Total Recharge (Filtered)",
-            value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
-                <span>{filteredRechargeValue}</span>
-              </div>
-            ),
-            bgColor: "#EBF9F0",
-            borderColor: "#9CDAB8",
-            icon: <PaidIcon color="secondary" />,
+            filter:
+              role === "Super-User" ? (
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedRechargeType}
+                    onChange={(e) => setSelectedRechargeType(e.target.value)}
+                    sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="wallet">Wallet</MenuItem>
+                    <MenuItem value="others">Others</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : null,
           },
         ]
       : []),
@@ -418,77 +401,88 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
   identity.role === "Agent" && finalData.splice(1, 1);
 
   return (
-    <>
-      <Grid container spacing={2} mt>
-        {finalData?.map((item) => (
-          <Grid item xs={12} md={4} key={item?.id}>
-            <Card
-              sx={{
-                backgroundColor: item?.bgColor,
-                border: 2,
-                borderColor: item?.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item?.icon}
-                  &nbsp;{item?.name}
-                </Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {item?.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {recharge.map((item) => (
-          <Grid item xs={12} md={4} key={item.id}>
-            <Card
-              sx={{
-                backgroundColor: item.bgColor,
-                border: 2,
-                borderColor: item.borderColor,
-                borderRadius: 0,
-                boxShadow: 0,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="subtitle1"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {item.icon}
-                  &nbsp;{item.name}
-                </Typography>
-                {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
-                <Typography
-                  variant="h4"
-                  sx={{ mt: 2, fontWeight: "bold", textAlign: "center" }}
-                >
-                  {item.value}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </>
+    <Grid container spacing={{ xs: 1, sm: 2 }} mt={{ xs: 1, sm: 2 }}>
+      {finalData?.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item?.icon} {item?.name}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 1,
+                  fontWeight: "bold",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+      {recharge.map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item.id}>
+          <Card
+            sx={{
+              backgroundColor: item.bgColor,
+              border: 2,
+              borderColor: item.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item.icon} {item.name}
+              </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 2,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                }}
+              >
+                {item.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
   );
 };
 
 export const DataSummary = () => {
   const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
-  const [menuAnchorRecharge, setMenuAnchorRecharge] = React.useState(null);
-  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
   const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
   const [isExporting, setIsExporting] = useState(false); // Track export progress
   const [exportdData, setExportData] = useState(null); // Store export data
   const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
@@ -502,8 +496,6 @@ export const DataSummary = () => {
   const [endDate, setEndDate] = useState(null);
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
-  const [tempStartTime, setTempStartTime] = useState(null);
-  const [tempEndTime, setTempEndTime] = useState(null);
   const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
 
   const handleUserChange = (selectedId) => {
@@ -549,11 +541,9 @@ export const DataSummary = () => {
 
   const loadAndExportData = async () => {
     const filters = {
-      startdate:
+      startDate:
         document.querySelector('input[name="startdate"]')?.value || null,
-      enddate: document.querySelector('input[name="enddate"]')?.value || null,
-      starttime: tempStartTime || null,
-      endtime: tempEndTime || null,
+        endDate: document.querySelector('input[name="enddate"]')?.value || null,
     };
     setIsExporting(true); // Set exporting state
     setLoadingData(true); // Set loading data state
@@ -579,12 +569,12 @@ export const DataSummary = () => {
     }
   };
 
-  const handleMenuRechargeOpen = (event) => {
-    setMenuAnchorRecharge(event.currentTarget);
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
   };
 
-  const handleMenuRechargeClose = () => {
-    setMenuAnchorRecharge(null);
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
   };
   const handleMenuRedeemOpen = (event) => {
     setMenuAnchorRedeem(event.currentTarget);
@@ -592,13 +582,6 @@ export const DataSummary = () => {
 
   const handleMenuRedeemClose = () => {
     setMenuAnchorRedeem(null);
-  };
-  const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null);
   };
   const formatDateForExcel = (date) => {
     if (!date) return date; // Keep the original value if it's null or undefined
@@ -730,6 +713,7 @@ export const DataSummary = () => {
       "TotalReedeemData.xlsx"
     );
   };
+
   const handleExportRechargePDF = async () => {
     const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
@@ -866,28 +850,19 @@ export const DataSummary = () => {
 
   const handleExportAllDataXLS = async () => {
     const exportData = await loadAndExportData(); // Fetch data
-    console.log(exportData, "exportData");
-
-    const newData = [
-      ...exportData[0]?.totalRechargeByTypeData?.wallet,
-      ...exportData[0]?.totalRechargeByTypeData?.others,
-      ...exportData[0]?.totalRedeemByTypeData?.wallet,
-      ...exportData[0]?.totalRedeemByTypeData?.others,
-    ];
-    console.log(newData)
 
     // Flatten and combine all data
-    const combinedData = newData?.map((item) => ({
-      "Transaction ID": item.transactionId,
+    const combinedData = exportData.map((item) => ({
+      "Transaction ID": item.id,
       type: item?.type,
-      Amount: item.amount,
+      Amount: item.transactionAmount,
       "Transaction Date": formatDateForExcel(item.transactionDate),
       Status: item.status,
-      "Stripe Transaction ID": item.stripeTransactionId,
+      "Stripe Transaction ID": item.transactionIdFromStripe,
       "Redeem Service Fee": item.redeemServiceFee,
       "Agent Name": item?.agentName,
-      "User Name": item?.userName,
-      isCashout: item?.isCashout,
+      "User Name": item?.username,
+      isCashout: item?.isCashOut,
       paymentMode: item?.paymentMode,
       paymentMethodType: item?.paymentMethodType,
       remark: item?.remark,
@@ -949,7 +924,7 @@ export const DataSummary = () => {
   const dataFilters = [
     <Autocomplete
       source="username"
-      sx={{ width: 230 }}
+      sx={{ width: { xs: "100%", md: 300 } }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -986,53 +961,34 @@ export const DataSummary = () => {
     <DateInput
       label="Start date"
       source="startdate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
+      // validate={maxValue(currentDate)}
       InputProps={{
         inputProps: {
-          min: startDateLimit,
-          max: endDate || today,
+          min: startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
         },
       }}
       onChange={(event) => setTempStartDate(event.target.value)}
     />,
-    <TextField
-      label="Start time"
-      source="starttime"
-      type="time"
-      alwaysOn
-      resettable
-      InputLabelProps={{ shrink: true }}
-      inputProps={{
-        step: 300, // 5 min intervals
-      }}
-      onChange={(event) => setTempStartTime(event.target.value)}
-    />,
     <DateInput
       label="End date"
       source="enddate"
+      sx={{ width: { xs: "100%", md: "auto" } }}
       alwaysOn
       resettable
+      // validate={maxValue(currentDate)}
+      onChange={(event) => setTempEndDate(event.target.value)}
       InputProps={{
         inputProps: {
-          min: startDate || startDateLimit,
-          max: today,
+          min: startDateLimit, // Minimum allowed date
+          max: today, // Maximum allowed date
         },
       }}
-      onChange={(event) => setTempEndDate(event.target.value)}
     />,
-    <TextField
-      label="End time"
-      source="endtime"
-      type="time"
-      alwaysOn
-      resettable
-      InputLabelProps={{ shrink: true }}
-      inputProps={{
-        step: 300, // 5 min intervals
-      }}
-      onChange={(event) => setTempEndTime(event.target.value)}
-    />,
+
     // <SearchSelectUsersFilter />,
   ];
 
@@ -1045,161 +1001,141 @@ export const DataSummary = () => {
     <React.Fragment>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-        <Box display="flex" flexDirection="column">
-          {" "}
-          {/* Changed to column for vertical layout */}
-          {/* Top Section: Apply Filter and Redeem Export */}
-          <Box display="flex" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Box sx={{ px: { xs: 1, sm: 2 } }}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", md: "center" }}
+            gap={{ xs: 1, md: 2 }}
+          >
             <FilterForm
               filters={dataFilters}
               sx={{
-                flex: "0 2 auto !important",
-                padding: "0px 0px 0px 0px !important",
-                alignItems: "flex-start",
+                flex: "1 1 auto",
+                padding: "0 !important",
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 1,
+                alignItems: { xs: "stretch", md: "flex-start" },
               }}
-            />
-            <Box display="flex" alignItems="center">
-              <Button
-                source="date"
-                variant="contained"
-                onClick={handleFilterSubmit}
-                sx={{ marginRight: "10px", whiteSpace: "nowrap" }}
-              >
-                Apply Filter
-              </Button>
-              {role === "Super-User" && (
-                <Button
-                  variant="contained"
-                  startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
-                  onClick={handleMenuRedeemOpen}
-                  sx={{ whiteSpace: "nowrap" }}
-                >
-                  Redeem Export
-                </Button>
-              )}
-            </Box>
+            />{" "}
+            <Button
+              source="date"
+              variant="contained"
+              onClick={handleFilterSubmit}
+              sx={{
+                mt: { xs: 2, md: 0 },
+                width: { xs: "100%", md: "auto" },
+                whiteSpace: "nowrap",
+              }} // Adds left margin for spacing
+            >
+              Apply Filter
+            </Button>
           </Box>
-          {/* Bottom Section: Recharge Export and Export All */}
           {role === "Super-User" && (
-            <Box display="flex" justifyContent="flex-end">
+            <Box
+              display="flex"
+              flexDirection={{ xs: "column", sm: "row" }}
+              gap={1}
+              mt={2}
+            >
               <Button
                 variant="contained"
-                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
-                onClick={handleMenuRechargeOpen}
-                sx={{ marginRight: "10px", whiteSpace: "nowrap" }}
+                startIcon={<GetAppIcon />}
+                onClick={handleMenuRedeemOpen}
+                // sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
+              >
+                Redeem Export{" "}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<GetAppIcon />}
+                onClick={handleMenuOpen}
+                // sx={{ mb: 2, whiteSpace: "nowrap" }}
               >
                 Recharge Export
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
-                onClick={handleMenuOpen}
-                sx={{ whiteSpace: "nowrap" }}
+              <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={handleMenuClose}
               >
-                Export All
-              </Button>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRechargePDF();
+                    // handleMenuClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PictureAsPdfIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  PDF
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRechargeXLS();
+                    //  handleMenuClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <BackupTableIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  Excel
+                </MenuItem>
+              </Menu>
+
+              <Menu
+                anchorEl={menuAnchorRedeem}
+                open={Boolean(menuAnchorRedeem)}
+                onClose={handleMenuRedeemClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleExportRedeemPDF();
+                    //handleMenuRedeemClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <PictureAsPdfIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  PDF
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRedeemXLS();
+                    //  handleMenuRedeemClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <BackupTableIcon fontSize="small" />
+                    )}
+                  </ListItemIcon>
+                  Excel
+                </MenuItem>
+              </Menu>
             </Box>
           )}
-          <Menu
-            anchorEl={menuAnchor}
-            open={Boolean(menuAnchor)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem
-              onClick={() => {
-                handleExportAllDataXLS();
-                //  handleMenuRechargeClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <BackupTableIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              Excel
-            </MenuItem>
-          </Menu>
-          <Menu
-            anchorEl={menuAnchorRecharge}
-            open={Boolean(menuAnchorRecharge)}
-            onClose={handleMenuRechargeClose}
-          >
-            <MenuItem
-              onClick={() => {
-                handleExportRechargePDF();
-                // handleMenuClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <PictureAsPdfIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              PDF
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleExportRechargeXLS();
-                //  handleMenuRechargeClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <BackupTableIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              Excel
-            </MenuItem>
-          </Menu>
-          <Menu
-            anchorEl={menuAnchorRedeem}
-            open={Boolean(menuAnchorRedeem)}
-            onClose={handleMenuRedeemClose}
-          >
-            <MenuItem
-              onClick={() => {
-                handleExportRedeemPDF();
-                //handleMenuRedeemClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <PictureAsPdfIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              PDF
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleExportRedeemXLS();
-                //  handleMenuRedeemClose();
-              }}
-              disabled={isExporting}
-            >
-              <ListItemIcon>
-                {isExporting ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <BackupTableIcon fontSize="small" />
-                )}
-              </ListItemIcon>
-              Excel
-            </MenuItem>
-          </Menu>
         </Box>
-
         <Summary
           selectedUser={selectedUser}
           startDate={startDate}
