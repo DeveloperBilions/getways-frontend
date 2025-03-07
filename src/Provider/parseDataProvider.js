@@ -357,7 +357,7 @@ export const dataProvider = {
        if (
          filter?.startDate &&
          filter?.endDate &&
-         new Date(`${filter.startdate}T00:00:00Z`) >
+         new Date(`${filter.startDate}T00:00:00Z`) >
            new Date(`${filter.endDate}T00:00:00Z`)
        ) {
          throw new Error("Start date cannot be greater than end date");
@@ -787,15 +787,16 @@ export const dataProvider = {
              "redeemServiceFee",
              "isCashOut",
              "transactionIdFromStripe",
-             "transactionDate"
+             "transactionDate",
+             "username"
            );
            transactionQuery.containedIn("userId", ids);
-           filter.startdate &&
+           filter.startDate &&
              transactionQuery.greaterThanOrEqualTo(
                "transactionDate",
                new Date(filter.startDate).setHours(0, 0, 0, 0)
              );
-           filter.enddate &&
+           filter.endDate &&
              transactionQuery.lessThanOrEqualTo(
                "transactionDate",
                new Date(filter.endDate).setHours(23, 59, 59, 999)
@@ -821,18 +822,20 @@ export const dataProvider = {
              "redeemServiceFee",
              "isCashOut",
              "transactionIdFromStripe",
-             "transactionDate"
+             "transactionDate",
+             "username"
            );
-           filter.startdate &&
+           filter.startDate &&
              transactionQuery.greaterThanOrEqualTo(
                "transactionDate",
-               new Date(filter.startDate).setHours(0, 0, 0, 0)
+               new Date(new Date(filter.startDate).setHours(0, 0, 0, 0))
              );
-           filter.enddate &&
+           filter.endDate &&
              transactionQuery.lessThanOrEqualTo(
                "transactionDate",
-               new Date(filter.endDate).setHours(23, 59, 59, 999)
+               new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
              );
+           console.log(transactionQuery, "transactionQuery");
            transactionQuery.limit(100000);
            var results = await transactionQuery.find();
            console.log(results, "results");
@@ -894,18 +897,21 @@ export const dataProvider = {
            "type",
            "useWallet",
            "redeemServiceFee",
-           "isCashOut"
+           "isCashOut",
+           "transactionIdFromStripe",
+           "transactionDate",
+           "username"
          );
          transactionQuery.containedIn("userId", ids);
-         filter.startdate &&
+         filter.startDate &&
            transactionQuery.greaterThanOrEqualTo(
              "transactionDate",
-             new Date(filter.startdate + " 00:00:00")
+             new Date(filter.startDate + " 00:00:00")
            );
-         filter.enddate &&
+         filter.endDate &&
            transactionQuery.lessThanOrEqualTo(
              "transactionDate",
-             new Date(filter.enddate + " 23:59:59")
+             new Date(filter.endDate + " 23:59:59")
            );
          /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 
@@ -961,15 +967,15 @@ export const dataProvider = {
            "isCashOut"
          );
          transactionQuery.containedIn("userId", ids);
-         filter.startdate &&
+         filter.startDate &&
            transactionQuery.greaterThanOrEqualTo(
              "transactionDate",
-             new Date(filter.startdate + " 00:00:00")
+             new Date(filter.startDate + " 00:00:00")
            );
-         filter.enddate &&
+         filter.endDate &&
            transactionQuery.lessThanOrEqualTo(
              "transactionDate",
-             new Date(filter.enddate + " 23:59:59")
+             new Date(filter.endDate + " 23:59:59")
            );
          /*filter && Object.keys(filter).map((f) => {
               if(f === "username") transactionQuery.equalTo("objectId", filter[f], "i"); 

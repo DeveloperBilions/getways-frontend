@@ -541,9 +541,9 @@ export const DataSummary = () => {
 
   const loadAndExportData = async () => {
     const filters = {
-      startdate:
+      startDate:
         document.querySelector('input[name="startdate"]')?.value || null,
-      enddate: document.querySelector('input[name="enddate"]')?.value || null,
+        endDate: document.querySelector('input[name="enddate"]')?.value || null,
     };
     setIsExporting(true); // Set exporting state
     setLoadingData(true); // Set loading data state
@@ -568,6 +568,7 @@ export const DataSummary = () => {
       setLoadingData(false); // Hide loading state once data is fetched
     }
   };
+
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget);
   };
@@ -712,6 +713,7 @@ export const DataSummary = () => {
       "TotalReedeemData.xlsx"
     );
   };
+
   const handleExportRechargePDF = async () => {
     const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
@@ -999,25 +1001,34 @@ export const DataSummary = () => {
     <React.Fragment>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
-        <Box display="flex">
-          <FilterForm
-            filters={dataFilters}
-            sx={{
-              flex: "0 2 auto !important",
-              padding: "0px 0px 0px 0px !important",
-              alignItems: "flex-start",
-            }}
-          />{" "}
+        <Box sx={{ px: { xs: 1, sm: 2 } }}>
           <Box
             display="flex"
-            justifyContent="flex-end"
-            sx={{ mb: 2, marginTop: "10px" }}
+            flexDirection={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", md: "center" }}
+            gap={{ xs: 1, md: 2 }}
           >
+            <FilterForm
+              filters={dataFilters}
+              sx={{
+                flex: "1 1 auto",
+                padding: "0 !important",
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 1,
+                alignItems: { xs: "stretch", md: "flex-start" },
+              }}
+            />{" "}
             <Button
               source="date"
               variant="contained"
               onClick={handleFilterSubmit}
-              sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
+              sx={{
+                mt: { xs: 2, md: 0 },
+                width: { xs: "100%", md: "auto" },
+                whiteSpace: "nowrap",
+              }} // Adds left margin for spacing
             >
               Apply Filter
             </Button>
@@ -1025,22 +1036,23 @@ export const DataSummary = () => {
           {role === "Super-User" && (
             <Box
               display="flex"
-              justifyContent="flex-start"
-              sx={{ mb: 2, marginTop: "10px" }}
+              flexDirection={{ xs: "column", sm: "row" }}
+              gap={1}
+              mt={2}
             >
               <Button
                 variant="contained"
-                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
+                startIcon={<GetAppIcon />}
                 onClick={handleMenuRedeemOpen}
-                sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
+                // sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
               >
                 Redeem Export{" "}
               </Button>
               <Button
                 variant="contained"
-                startIcon={<GetAppIcon sx={{ fontSize: "16px" }} />}
+                startIcon={<GetAppIcon />}
                 onClick={handleMenuOpen}
-                sx={{ mb: 2, whiteSpace: "nowrap" }}
+                // sx={{ mb: 2, whiteSpace: "nowrap" }}
               >
                 Recharge Export
               </Button>
@@ -1124,7 +1136,6 @@ export const DataSummary = () => {
             </Box>
           )}
         </Box>
-
         <Summary
           selectedUser={selectedUser}
           startDate={startDate}
