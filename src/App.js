@@ -51,17 +51,22 @@ function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      window.location.reload(); // Reload when back online
+    };
+  
     const handleOffline = () => setIsOnline(false);
-
+  
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
+  
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+  
 
   // Attractive No Internet Screen
   if (!isOnline) {
