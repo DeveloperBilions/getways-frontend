@@ -435,7 +435,7 @@ export const RedeemRecordsList = (props) => {
 
     const isBalanceLow =
       (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
-      identity?.balance < 500;
+      (identity?.balance < 500 || record?.transactionAmount > identity?.balance) ;
 
     return (
       <>
