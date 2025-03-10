@@ -82,9 +82,9 @@ export const RedeemRecordsList = (props) => {
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
   const [finalrejectDialogOpen, setFinalRejectDialogOpen] = useState(false);
   const [finalredeemDialogOpen, setFinalRedeemDialogOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [statusValue, setStatusValue] = useState();
-  const [Data, setData] = useState(null); // Initialize data as null
+  // const [searchValue, setSearchValue] = useState("");
+  // const [statusValue, setStatusValue] = useState();
+  // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
@@ -95,7 +95,7 @@ export const RedeemRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
-  const fetchDataForExport = async () => {
+  const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
 
@@ -103,18 +103,15 @@ export const RedeemRecordsList = (props) => {
       const { data } = await dataProvider.getList("redeemRecordsExport", {
         pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
         sort: { field: "transactionDate", order: "DESC" },
-        filter: {
-          ...(searchValue && { username: searchValue }),
-          ...(statusValue && { status: statusValue }),
-        },
+        filter: currentFilterValues,
       });
       console.log(data, "datafromrechargeRecordsExport");
-      setData(data);
+      // setData(data);
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
       setExportError("Error fetching data for export."); // Set the error message
-      setData(null); // Reset data to null in case of error
+      // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {
       setIsExporting(false); // Set exporting to false after fetch, regardless of success/failure
@@ -167,7 +164,7 @@ export const RedeemRecordsList = (props) => {
     return () => clearInterval(interval); // Cleanup when unmounted
   }, []);
   const handleExportPDF = async () => {
-    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -192,7 +189,7 @@ export const RedeemRecordsList = (props) => {
   };
 
   const handleExportXLS = async () => {
-    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -521,8 +518,8 @@ const postListActions = (
           style={{
             width: "100%",
             overflowX: "auto",
-            position: "relative",
-            height: "600px",
+            // position: "relative",
+            // height: "600px",
           }}
           rowStyle={(record) => {
             if (identity?.role === "Super-User" && record?.status === 11) {
@@ -540,7 +537,7 @@ const postListActions = (
               width: "100%",
               overflowX: "auto",
               overflowY: "hidden", // Prevent vertical scrolling
-              position: "absolute",
+              // position: "absolute",
               top: 0,
               left: 0,
               right: 0,

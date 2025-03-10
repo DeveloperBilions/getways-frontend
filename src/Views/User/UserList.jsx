@@ -534,15 +534,12 @@ const PostListActions = () => (
           ],
         }}
         {...props}
-        pagination={<Pagination />}
         sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
       >
         <Box
           style={{
             width: "100%",
             overflowX: "auto",
-            position: "relative",
-            height: "560px",
           }}
         >
           <Box
@@ -551,9 +548,9 @@ const PostListActions = () => (
               overflowX: "auto",
               overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
+              // top: 0,
+              // left: 0,
+              // right: 0,
             }}
           >
             <Datagrid
@@ -562,8 +559,9 @@ const PostListActions = () => (
               // data={data}
               sx={{
                 minWidth: "900px", // Ensure full width for horizontal scroll
-                height: "560px", // Fixed height for the table body
-                overflowY: "auto", // Set a minimum width to ensure all columns fit
+                maxHeight: "100%",
+                // height: "auto", // Fixed height for the table body
+                // overflowY: "auto", // Set a minimum width to ensure all columns fit
                 "& .RaDatagrid-row": {
                   borderBottom: "1px solid #eaeaea",
                   "&:hover": {
@@ -606,6 +604,16 @@ const PostListActions = () => (
                 />
               </WrapperField>
             </Datagrid>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                width: "100%",
+                mt: 1,
+              }}
+            >
+              <Pagination sx={{ display: "inline-flex" }} />
+            </Box>
           </Box>
         </Box>
         <CreateUserDialog
