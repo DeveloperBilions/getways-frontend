@@ -1,355 +1,89 @@
 import {
-  Typography,
-  Card,
-  CardContent,
-  Grid,
-  CircularProgress,
-  Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-  Paper
-} from "@mui/material";
-import { BarChart } from "@mui/x-charts/BarChart";
-import PersonIcon from "@mui/icons-material/Person";
-import {
-  Datagrid,
-  List,
-  SearchInput,
-  DateField,
-  NumberField,
-  FunctionField,
-  TopToolbar,
-  usePermissions,
   useGetIdentity,
-  useGetList,
-  useRefresh,
-  SelectInput,
-  useListController,
-  Pagination,
-  TextField as AdminTextField
 } from "react-admin";
-import { useEffect, useState } from "react";
-import { dataProvider } from "../../Provider/parseDataProvider";
-import { fetchTransactionsofAgent, getAgentRechargeReport } from "../../Utils/utils";
+import React, { useState } from "react";
+import { Overview } from "./Overview";
+import { Comparison } from "./Comparison";
+import { AgentOverview } from "./AgentOverview";
+
+// MUI imports
+import { 
+  Box, 
+  Button, 
+  Typography, 
+  Paper,
+  Stack
+} from "@mui/material";
 
 export const Reports = () => {
-  const [data, setData] = useState();
-  const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const {identity} = useGetIdentity()
-  const [sortColumn, setSortColumn] = useState("totalRecharge");
-  const [sortOrder, setSortOrder] = useState("desc");
-  const fetchData = async () => {
-    try {
-      console.log(fromDate,toDate,"date")
-      setLoading(true);
-      const filter = {};
-      if (fromDate) filter.startDate = fromDate;
-      if (toDate) filter.endDate = toDate;
-
-      const result = await dataProvider.getList("Report", {
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: "transactionDate", order: "DESC" },
-        filter,
-      });
-
-      setData(result[0]);
-
-      // Fetch agent recharge report
-      const transactionResult = await fetchTransactionsofAgent({
-        sortOrder: "desc", 
-        startDate: fromDate, 
-        endDate: toDate
-      });
-             setRechargeData(transactionResult?.data || []);
-      console.log(transactionResult ,"rechargeDatarechargeDatarechargeData")
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    //setSubmitted(true);
-    //fetchData();
-  }, []);
-
-  const handleSubmit = () => {
-    setSubmitted(true);
-   fetchData();
-  };
-
-  const finalData = [
-    {
-      id: 1,
-      name: "Conversion Rate (Fees Collected)",
-      value: data?.totalFeesAmount?.[0]?.totalFees
-        ? data.totalFeesAmount[0].totalFees.toFixed(2)
-        : "0.00",
-      bgColor: "#E3F2FD",
-      borderColor: "#7EB9FB",
-      icon: <PersonIcon color="primary" />,
-    },
-    {
-      id: 2,
-      name: "Ticket Amount",
-      value: data?.totalTicketAmount?.[0]?.totalTicketAmount
-        ? data.totalTicketAmount[0].totalTicketAmount.toFixed(2)
-        : "0.00",
-      bgColor: "#dedede",
-      borderColor: "#adb5bd",
-      icon: <PersonIcon color="info" />,
-    },
-  ];
-
-  const handleSort = (column) => {
-    setSortColumn(column);
-    setSortOrder((prevSortOrder) => {
-      const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
+  const { identity } = useGetIdentity();
   
-      setRechargeData((prevData) => {
-        const sortedData = [...prevData].sort((a, b) => {
-          if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
-          if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
-          return 0;
-        });
-        return sortedData;
-      });
+  // State to track which component is visible
+  // Using a single state variable for active component
+  const [activeComponent, setActiveComponent] = useState("overview");
   
-      return newSortOrder; // Update the state with the new order
-    });
+  // Function to handle button clicks
+  const handleComponentChange = (componentName) => {
+    setActiveComponent(componentName);
   };
   
-
-  console.log(sortColumn,sortOrder,"sort Ordereree Date")
-
+  // Only render if the user is authorized
+  if (identity?.email !== "zen@zen.com") {
+    return null;
+  }
+  
   return (
-    <>
-      {/* Date Filters */}
-      {identity?.email === "zen@zen.com" && 
-      <>
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} md={4}>
-          <TextField
-            fullWidth
-            label="From Date"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <TextField
-            fullWidth
-            label="To Date"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={4} display="flex" alignItems="center">
+    <Box sx={{ width: '100%', p: 2 }}>
+      {/* Toggle Buttons */}
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Report Sections
+        </Typography>
+        <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
           <Button
-            variant="contained"
+            variant={activeComponent === "overview" ? "contained" : "outlined"}
             color="primary"
-            onClick={handleSubmit}
-            disabled={loading}
+            onClick={() => handleComponentChange("overview")}
           >
-            {loading ? "Loading..." : "Submit"}
+            Overview
           </Button>
-        </Grid>
-      </Grid>
-
-      {loading ? (
-        <Grid container justifyContent="center">
-          <CircularProgress />
-        </Grid>
-      ) : (
-        submitted && (
-          <>
-            {/* Summary Cards */}
-            <Grid container spacing={2}>
-              {finalData?.map((item) => (
-                <Grid item xs={12} md={4} key={item?.id}>
-                  <Card
-                    sx={{
-                      backgroundColor: item?.bgColor,
-                      border: 2,
-                      borderColor: item?.borderColor,
-                      borderRadius: 0,
-                      boxShadow: 0,
-                    }}
-                  >
-                    <CardContent>
-                      <Typography
-                        variant="subtitle1"
-                        display="flex"
-                        alignItems="center"
-                      >
-                        {item?.icon}
-                        &nbsp;{item?.name}
-                      </Typography>
-                      <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
-                        {item?.value}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-
-            <Grid container spacing={2} sx={{ mt: 4 }}>
-  <Grid item xs={12}>
-    <Card>
-      <CardContent>
-        {loading ? (
-          <Grid container justifyContent="center">
-            <CircularProgress />
-          </Grid>
-        ) : (
-          <div style={{ overflowX: "auto", width: "100%" }}> 
-          <Typography variant="h6" gutterBottom>
-          Agent Recharge Overview
-        </Typography>
-            <BarChart
-              xAxis={[
-                {
-                  data: rechargeData.map((item) => item.agentName),
-                  scaleType: "band",
-                },
-              ]}
-              series={[
-                {
-                  data: rechargeData.map((item) => item.totalRecharge),
-                  color: "#4caf50",
-                },
-              ]}
-              height={400}
-              width= {1200}// Adjust width dynamically
-              margin={{ left: 100, right: 50, bottom: 50 }}
-            />
-            <Typography variant="h6" gutterBottom>
-          Agent Redeem Overview
-        </Typography>
-            <BarChart
-              xAxis={[
-                {
-                  data: rechargeData.map((item) => item.agentName),
-                  scaleType: "band",
-                },
-              ]}
-              series={[
-                {
-                  data: rechargeData.map((item) => item.totalCashout),
-                  color: "#4caf50",
-                },
-              ]}
-              height={400}
-              width= {1200}// Adjust width dynamically
-              margin={{ left: 100, right: 50, bottom: 50 }}
-            />
-            <Typography variant="h6" gutterBottom>
-          Agent Cashout Overview
-        </Typography>
-             <BarChart
-              xAxis={[
-                {
-                  data: rechargeData.map((item) => item.agentName),
-                  scaleType: "band",
-                },
-              ]}
-              series={[
-                {
-                  data: rechargeData.map((item) => item.totalRedeem),
-                  color: "#4caf50",
-                },
-              ]}
-              height={400}
-              width= {1200}// Adjust width dynamically
-              margin={{ left: 100, right: 50, bottom: 50 }}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  </Grid>
-</Grid>
-
-            {/* Data Grid for Agent Recharge Report */}
-            <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-              Agent Recharge Report
-            </Typography>
-            <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>
-                          <TableSortLabel
-                            active={sortColumn === "agentName"}
-                            direction={sortOrder}
-                            onClick={() => handleSort("agentName")}
-                          >
-                            Agent Name
-                          </TableSortLabel>
-                        </TableCell>
-                        <TableCell>
-                          <TableSortLabel
-                            active={sortColumn === "totalRecharge"}
-                            direction={sortOrder}
-                            onClick={() => handleSort("totalRecharge")}
-                          >
-                            Total Recharge
-                          </TableSortLabel>
-                        </TableCell>
-                        <TableCell>
-                          <TableSortLabel
-                            active={sortColumn === "totalRedeem"}
-                            direction={sortOrder}
-                            onClick={() => handleSort("totalRedeem")}
-                          >
-                            Total Redeem
-                          </TableSortLabel>
-                        </TableCell>
-                        <TableCell>
-                          <TableSortLabel
-                            active={sortColumn === "totalCashout"}
-                            direction={sortOrder}
-                            onClick={() => handleSort("totalCashout")}
-                          >
-                            Total Cashout
-                          </TableSortLabel>
-                        </TableCell>
-
-                      </TableRow>
-                      
-                    </TableHead>
-                    <TableBody>
-                    {rechargeData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{row.agentName}</TableCell>
-                          <TableCell>{row.totalRecharge}</TableCell>
-                          <TableCell>{row.totalRedeem}</TableCell>
-                          <TableCell>{row.totalCashout}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-          </>
-        )
-      )}</>
-                  }
-    </>
+          
+          <Button
+            variant={activeComponent === "comparison" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => handleComponentChange("comparison")}
+          >
+            Comparison
+          </Button>
+          
+          <Button
+            variant={activeComponent === "agentOverview" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => handleComponentChange("agentOverview")}
+          >
+            Agent Overview
+          </Button>
+        </Stack>
+      </Paper>
+      
+      {/* Only render the active component */}
+      {activeComponent === "overview" && (
+        <Box sx={{ mb: 3 }}>
+          <Overview />
+        </Box>
+      )}
+      
+      {activeComponent === "comparison" && (
+        <Box sx={{ mb: 3 }}>
+          <Comparison />
+        </Box>
+      )}
+      
+      {activeComponent === "agentOverview" && (
+        <Box sx={{ mb: 3 }}>
+          <AgentOverview />
+        </Box>
+      )}
+    </Box>
   );
 };
