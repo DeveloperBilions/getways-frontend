@@ -1911,7 +1911,10 @@ export const dataProvider = {
       if (!user) {
         throw new Error(`User with ID ${id} not found`);
       }
-
+      if (isNaN(Number(transactionAmount)) || Number(transactionAmount) <= 0) {
+        throw new Error(`Amount should be a positive number greater than 0`);
+      }      
+      
       let finalAmount = balance;
       if (useWallet) {
         // Ensure sufficient wallet balance

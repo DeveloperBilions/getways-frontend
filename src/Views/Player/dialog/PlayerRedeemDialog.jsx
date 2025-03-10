@@ -125,6 +125,10 @@ const PlayerRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     //   return;
     // }
 
+    if (redeemAmount < 15) {
+      setErrorMessage("RedeemAmount amount cannot be less than 15.");
+      return;
+    }
     const rawData = {
       ...record,
       redeemServiceFee: redeemFees,
