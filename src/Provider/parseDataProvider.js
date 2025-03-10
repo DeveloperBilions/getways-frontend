@@ -1210,9 +1210,11 @@ export const dataProvider = {
         } else if (role === "Agent") {
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
+          query.notContainedIn("status", [11, 12, 13]);
         } else if (role === "Master-Agent") {
           var { ids } = await fetchUsers(null, true);
           query.containedIn("userId", ids);
+          query.notContainedIn("status", [11, 12, 13]);
         }
 
         query.limit(30000);

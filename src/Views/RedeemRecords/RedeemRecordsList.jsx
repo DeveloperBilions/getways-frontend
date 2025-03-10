@@ -104,7 +104,6 @@ export const RedeemRecordsList = (props) => {
           ...(statusValue && { status: statusValue }),
         },
       });
-      console.log(data, "datafromrechargeRecordsExport");
       setData(data);
       return data; // Return the fetched data
     } catch (error) {
