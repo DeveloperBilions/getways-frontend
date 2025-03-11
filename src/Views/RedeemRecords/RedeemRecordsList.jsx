@@ -257,13 +257,24 @@ export const RedeemRecordsList = (props) => {
     ),
   ].filter(Boolean);
   const postListActions = (
-    <TopToolbar>
-      <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
+    <TopToolbar
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        alignItems: "center",
+        justifyContent: "flex-end", // Align buttons to the right
+        gap: 2, // Add space between buttons
+        p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+        width: "100%", // Ensure full width for the toolbar
+      }}
+    >
+      <Typography>Redeems may take up to 2 hours</Typography>
       <Button
         variant="contained"
         size="small"
         startIcon={<RefreshIcon />}
         onClick={handleRefresh}
+        sx={{ width: { xs: "100%", sm: "auto" } }}
       >
         Refresh
       </Button>
@@ -273,6 +284,7 @@ export const RedeemRecordsList = (props) => {
           size="small"
           startIcon={<GetAppIcon />}
           onClick={handleMenuOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }}
         >
           Export
         </Button>
@@ -653,7 +665,10 @@ export const RedeemRecordsList = (props) => {
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "flex-start",
+                justifyContent: {
+                  xs: "flex-start",
+                  md: "flex-end",
+                },
                 width: "100%",
                 mt: 1,
               }}

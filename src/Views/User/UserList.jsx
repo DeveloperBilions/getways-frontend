@@ -603,7 +603,10 @@ const PostListActions = () => (
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "flex-start",
+                justifyContent: {
+                  xs: "flex-start",
+                  md: "flex-end",
+                },
                 width: "100%",
                 mt: 1,
               }}
