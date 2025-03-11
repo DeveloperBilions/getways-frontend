@@ -81,9 +81,9 @@ export const RechargeRecordsList = (props) => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [statusValue, setStatusValue] = useState();
-  const [Data, setData] = useState(null); // Initialize data as null
+  // const [searchValue, setSearchValue] = useState("");
+  // const [statusValue, setStatusValue] = useState();
+  // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const [searchBy, setSearchBy] = useState("username");
@@ -95,7 +95,7 @@ export const RechargeRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
-  const fetchDataForExport = async () => {
+  const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
 
@@ -103,18 +103,15 @@ export const RechargeRecordsList = (props) => {
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
         pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
         sort: { field: "transactionDate", order: "DESC" },
-        filter: {
-          ...(searchValue && { username: searchValue }),
-          ...(statusValue && { status: statusValue }),
-        },
+        filter: currentFilterValues,
       });
       console.log(data, "datafromrechargeRecordsExport");
-      setData(data);
+      // setData(data);
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
       setExportError("Error fetching data for export."); // Set the error message
-      setData(null); // Reset data to null in case of error
+      // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {
       setIsExporting(false); // Set exporting to false after fetch, regardless of success/failure
@@ -146,12 +143,13 @@ export const RechargeRecordsList = (props) => {
         return "Unknown Status";
     }
   };
-  const totalTransactionAmount =
-    Data &&
-    Data.filter((item) => item.status === 2 || item.status === 3).reduce(
-      (sum, item) => sum + item.transactionAmount,
-      0
-    );
+  
+  // const totalTransactionAmount =
+  //   Data &&
+  //   Data.filter((item) => item.status === 2 || item.status === 3).reduce(
+  //     (sum, item) => sum + item.transactionAmount,
+  //     0
+  //   );
 
   const handleRefresh = async () => {
     refresh();
@@ -179,7 +177,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportPDF = async () => {
-    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -201,7 +199,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const handleExportXLS = async () => {
-    const exportData = Data || (await fetchDataForExport()); // Use existing data or fetch if null
+    const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
     if (!exportData || exportData.length === 0) {
       console.warn("No data to export.");
       return;
@@ -498,14 +496,12 @@ const postListActions = (
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
-        pagination={<Pagination />}
+        pagination={false}
       >
         <Box
           style={{
             width: "100%",
             overflowX: "auto",
-            position: "relative",
-            height: "600px",
           }}
         >
           <Box
@@ -514,9 +510,6 @@ const postListActions = (
               overflowX: "auto",
               overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
             }}
           >
             <Datagrid
@@ -524,7 +517,7 @@ const postListActions = (
               bulkActionButtons={false}
               sx={{
                 minWidth: "1000px", // Ensures the table is wide enough to scroll
-                tableLayout: "fixed", // Fix column sizes
+                maxHeight: "100%",
                 "& .RaDatagrid-table": {
                   width: "100%", // Ensures table fills the available space
                 },
@@ -676,22 +669,35 @@ const postListActions = (
                 }
               />
             </Datagrid>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: {
+                  xs: "flex-start",
+                  lg: "flex-end",
+                },
+                width: "100%",
+                mt: 1,
+              }}
+            >
+              <Pagination sx={{ display: "inline-flex" }} />
+            </Box>
           </Box>
         </Box>
-        </List>
-        <CoinsCreditDialog
-          open={creditCoinDialogOpen}
-          onClose={() => setCreditCoinDialogOpen(false)}
-          data={selectedRecord}
+      </List>
+      <CoinsCreditDialog
+        open={creditCoinDialogOpen}
+        onClose={() => setCreditCoinDialogOpen(false)}
+        data={selectedRecord}
+        handleRefresh={handleRefresh}
+      />
+      {permissions === "Player" && (
+        <RechargeDialog
+          open={rechargeDialogOpen}
+          onClose={() => setRechargeDialogOpen(false)}
           handleRefresh={handleRefresh}
         />
-        {permissions === "Player" && (
-          <RechargeDialog
-            open={rechargeDialogOpen}
-            onClose={() => setRechargeDialogOpen(false)}
-            handleRefresh={handleRefresh}
-          />
-        )}
+      )}
     </>
   );
 };
