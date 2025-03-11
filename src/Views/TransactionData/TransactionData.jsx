@@ -117,7 +117,7 @@ export const TransactionData = (props) => {
       InputProps={{
         inputProps: {
           min: startDateLimit,
-          max: endDate || today,
+          max: tempEndDate || today,
         },
       }}
       onChange={(event) => setTempStartDate(event.target.value)}
@@ -141,7 +141,7 @@ export const TransactionData = (props) => {
       resettable
       InputProps={{
         inputProps: {
-          min: startDate || startDateLimit,
+          min: tempStartDate || startDateLimit,
           max: today,
         },
       }}
@@ -162,6 +162,10 @@ export const TransactionData = (props) => {
   ];
 
   const handleFilterSubmit = (event) => {
+    if (!tempStartDate || !tempEndDate) {
+      alert("Please select both the start date and end date.");
+      return;
+    }
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setMenuAnchor(event.currentTarget);

@@ -1041,14 +1041,52 @@ if (role === "Super-User" && !filter?.username) {
          query.containedIn("userId", ids);
        }
 
-       query.limit(30000);
+       query.limit(100000);
        query.descending(field);
+       console.log(filter);
 
-       filter &&
-         Object.keys(filter).map((f) => {
-           if (f === "username") query.matches(f, filter[f], "i");
-           else query.equalTo(f, filter[f]);
-         });
+       if (
+         filter &&
+         typeof filter === "object" &&
+         Object.keys(filter).length > 0
+       ) {
+         for (const f of Object.keys(filter)) {
+           if (filter[f] !== undefined && filter[f] !== null) {
+             if (f === "username" || f === "remark") {
+               const searchValue = String(filter[f]);
+               const searchRegex = new RegExp(searchValue, "i");
+               query.matches(f, searchRegex);
+               console.log(`Search query: ${JSON.stringify(query)}`);
+             } else if (f === "transactionAmount") {
+               const transactionAmount = Number(filter[f]);
+               if (!isNaN(transactionAmount)) {
+                 query.equalTo(f, transactionAmount);
+               } else {
+                 console.warn(`Invalid transactionAmount value: ${filter[f]}`);
+               }
+             } else if (f === "userParentName") {
+               const userQuery = new Parse.Query(Parse.User);
+               userQuery.select("userParentName");
+               const parentNameRegex = new RegExp(filter[f], "i");
+               userQuery.matches(f, parentNameRegex);
+
+               const users = await userQuery.find({ useMasterKey: true });
+               const userIds = users.map((user) => user.id);
+
+               if (userIds.length > 0) {
+                 query.containedIn("userId", userIds);
+               } else {
+                 query.containedIn("userId", []);
+               }
+             } else if (f === "searchBy") {
+               console.log(`Applying search on field: ${f}`);
+             } else {
+               query.equalTo(f, filter[f]);
+             }
+           }
+         }
+       }
+       console.log(query);
 
        const response = await query.find();
        const res = {
@@ -1073,14 +1111,52 @@ if (role === "Super-User" && !filter?.username) {
         query.notContainedIn("status", [11, 12, 13]);
       }
 
-       query.limit(30000);
+       query.limit(100000);
        query.descending(field);
 
-       filter &&
-         Object.keys(filter).map((f) => {
-           if (f === "username") query.matches(f, filter[f], "i");
-           else query.equalTo(f, filter[f]);
-         });
+         if (
+           filter &&
+           typeof filter === "object" &&
+           Object.keys(filter).length > 0
+         ) {
+           for (const f of Object.keys(filter)) {
+             if (filter[f] !== undefined && filter[f] !== null) {
+               if (f === "username" || f === "remark") {
+                 const searchValue = String(filter[f]);
+                 const searchRegex = new RegExp(searchValue, "i");
+                 query.matches(f, searchRegex);
+                 console.log(`Search query: ${JSON.stringify(query)}`);
+               } else if (f === "transactionAmount") {
+                 const transactionAmount = Number(filter[f]);
+                 if (!isNaN(transactionAmount)) {
+                   query.equalTo(f, transactionAmount);
+                 } else {
+                   console.warn(
+                     `Invalid transactionAmount value: ${filter[f]}`
+                   );
+                 }
+               } else if (f === "userParentName") {
+                 const userQuery = new Parse.Query(Parse.User);
+                 userQuery.select("userParentName");
+                 const parentNameRegex = new RegExp(filter[f], "i");
+                 userQuery.matches(f, parentNameRegex);
+
+                 const users = await userQuery.find({ useMasterKey: true });
+                 const userIds = users.map((user) => user.id);
+
+                 if (userIds.length > 0) {
+                   query.containedIn("userId", userIds);
+                 } else {
+                   query.containedIn("userId", []);
+                 }
+               } else if (f === "searchBy") {
+                 console.log(`Applying search on field: ${f}`);
+               } else {
+                 query.equalTo(f, filter[f]);
+               }
+             }
+           }
+         }
 
        const response = await query.find();
        const res = {
