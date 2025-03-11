@@ -674,7 +674,7 @@ const postListActions = (
                 display: "flex",
                 justifyContent: {
                   xs: "flex-start",
-                  md: "flex-end",
+                  lg: "flex-end",
                 },
                 width: "100%",
                 mt: 1,
