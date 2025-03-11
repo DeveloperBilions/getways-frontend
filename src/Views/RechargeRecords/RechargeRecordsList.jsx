@@ -496,14 +496,12 @@ const postListActions = (
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
-        pagination={<Pagination />}
+        pagination={false}
       >
         <Box
           style={{
             width: "100%",
             overflowX: "auto",
-            // position: "relative",
-            // height: "600px",
           }}
         >
           <Box
@@ -511,10 +509,7 @@ const postListActions = (
               width: "100%",
               overflowX: "auto",
               overflowY: "hidden", // Prevent vertical scrolling
-              // position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
+              position: "absolute",
             }}
           >
             <Datagrid
@@ -522,7 +517,7 @@ const postListActions = (
               bulkActionButtons={false}
               sx={{
                 minWidth: "1000px", // Ensures the table is wide enough to scroll
-                tableLayout: "fixed", // Fix column sizes
+                maxHeight: "100%",
                 "& .RaDatagrid-table": {
                   width: "100%", // Ensures table fills the available space
                 },
@@ -674,6 +669,16 @@ const postListActions = (
                 }
               />
             </Datagrid>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                width: "100%",
+                mt: 1,
+              }}
+            >
+              <Pagination sx={{ display: "inline-flex" }} />
+            </Box>
           </Box>
         </Box>
       </List>

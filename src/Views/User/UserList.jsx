@@ -535,6 +535,7 @@ const PostListActions = () => (
         }}
         {...props}
         sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+        pagination={false}
       >
         <Box
           style={{
@@ -548,9 +549,6 @@ const PostListActions = () => (
               overflowX: "auto",
               overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
-              // top: 0,
-              // left: 0,
-              // right: 0,
             }}
           >
             <Datagrid
@@ -560,8 +558,6 @@ const PostListActions = () => (
               sx={{
                 minWidth: "900px", // Ensure full width for horizontal scroll
                 maxHeight: "100%",
-                // height: "auto", // Fixed height for the table body
-                // overflowY: "auto", // Set a minimum width to ensure all columns fit
                 "& .RaDatagrid-row": {
                   borderBottom: "1px solid #eaeaea",
                   "&:hover": {
