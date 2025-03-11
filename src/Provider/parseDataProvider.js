@@ -352,418 +352,169 @@ export const dataProvider = {
          }
        }
        count = await query.count();
-     } else if (resource === "summary") {
-       var result = null;
-       if (
-         filter?.startDate &&
-         filter?.endDate &&
-         new Date(`${filter.startDate}T00:00:00Z`) >
-           new Date(`${filter.endDate}T00:00:00Z`)
-       ) {
-         throw new Error("Start date cannot be greater than end date");
-       }
+     }else if (resource === "summary") {
+      if (filter?.startDate && filter?.endDate && new Date(filter.startDate) > new Date(filter.endDate)) {
+          throw new Error("Start date cannot be greater than end date");
+      }
+  
+      let result = null;
+      let userIds = [];
+      let selectedUser = null;
+      let data = [];
+      
+      if (filter?.username) {
+          selectedUser = await new Parse.Query(Parse.User).get(filter.username, { useMasterKey: true });
+      }
+  
+      if (role === "Agent" || role === "Master-Agent") {
+          if (!selectedUser) {
+              selectedUser = await Parse.User.current();
+          }
+      }
+  
+      if (selectedUser) {
+          userIds.push(selectedUser.id);
+      }
+  
+      const matchConditions = [];
+      if (filter.startDate && filter.endDate) {
+          matchConditions.push({
+              createdAt: {
+                  $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+                  $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
+              }
+          });
+      }
+      if (userIds.length) {
+          matchConditions.push({
+              $or: [
+                  { userParentId: { $in: userIds } },
+                  { userId: { $in: userIds } }
+              ]
+          });
+      }
+  
+      const baseMatch = matchConditions.length ? { $and: matchConditions } : {};
+  
+      const queryPipeline = [
+          { $match: baseMatch },
+          {
+              $facet: {
+                  totalRechargeAmount: [
+                      { $match: { status: { $in: [2, 3] } } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalRedeemAmount: [
+                      { $match: { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0 } } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalPendingRechargeAmount: [
+                      { $match: { status: 1 } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalCashoutRedeemsSuccess: [
+                      { $match: { status: 12 } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalCashoutRedeemsInProgress: [
+                      { $match: { status: 11, transactionAmount: { $gt: 0 } } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalRecords: [{ $count: "total" }],
+                  totalAmt: [{ $group: { _id: null, total: { $sum: "$transactionAmount" } } }],
+                  totalFeesCharged: [
+                      { $match: { type: "redeem", status: { $in: [4, 8] }, redeemServiceFee: { $gt: 0 } } },
+                      { $project: { calculatedFee: { $multiply: ["$redeemServiceFee", "$transactionAmount", 0.01] } } },
+                      { $group: { _id: null, total: { $sum: "$calculatedFee" } } }
+                  ],
+                  totalRedeemSuccessful: [{ $match: { status: 8 } }, { $count: "count" }],
+                  totalFailRedeemAmount: [
+                      { $match: { transactionAmount: { $gt: 0 }, status: { $eq: 7 } } },
+                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+                  ],
+                  totalRechargeByType: [
+                    {
+                        $group: {
+                            _id: {
+                                type: "$type",
+                                useWallet: "$useWallet"
+                            },
+                            total: { $sum: "$transactionAmount" }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            wallet: {
+                                $sum: {
+                                    $cond: {
+                                        if: { $and: [{ $eq: ["$_id.type", "recharge"] }, { $eq: ["$_id.useWallet", true] }] },
+                                        then: "$total",
+                                        else: 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+              }
+          }
+      ];
+  
+      const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline, { useMasterKey: true });
+      
+      const totalRegisteredUsers = selectedUser 
+      ? await new Parse.Query(Parse.User)
+          .equalTo("userParentId", selectedUser.id)
+          .doesNotExist("userReferralCode")  // Exclude users with userReferralCode
+          .count({ useMasterKey: true }) 
+      : await new Parse.Query(Parse.User)
+          .doesNotExist("userReferralCode")  // Exclude users with userReferralCode
+          .count({ useMasterKey: true });
+          const roles = ["Agent", "Master-Agent"];
 
-       const queryPipeline = [
-         {
-           $match: {
-             ...((filter?.startDate || filter?.endDate) && {
-               createdAt: {
-                 $gte: new Date(
-                   new Date(filter.startDate).setHours(0, 0, 0, 0)
-                 ),
-                 $lte: new Date(
-                   new Date(filter.endDate).setHours(23, 59, 59, 999)
-                 ),
-               },
-             }),
-           },
-         },
-         {
-           $facet: {
-             totalRechargeAmount: [
-               { $match: { status: { $in: [2, 3] } } },
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: "$transactionAmount" },
-                 },
-               },
-             ],
-             totalRedeemAmount: [
-               {
-                 $match: {
-                   type: "redeem",
-                   status: { $in: [4, 8] },
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: "$transactionAmount" },
-                 },
-               },
-             ],
-             totalPendingRechargeAmount: [
-               { $match: { status: 1 } },
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: "$transactionAmount" },
-                 },
-               },
-             ],
-             totalCashoutRedeemsSuccess: [
-               { $match: { status: 12 } },
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: "$transactionAmount" },
-                 },
-               },
-             ],
-             totalCashoutRedeemsInProgress: [
-               {
-                 $match: {
-                   status: 11,
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: "$transactionAmount" },
-                 },
-               },
-             ],
-             totalRecords: [{ $count: "total" }],
-             totalAmt: [
-               {
-                 $group: {
-                   _id: null,
-                   total: { $sum: { $ifNull: ["$transactionAmount", 0] } },
-                 },
-               },
-             ],
-             totalFeesCharged: [
-               {
-                 $match: {
-                   type: "redeem",
-                   status: { $in: [4, 8] },
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                   redeemServiceFee: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $project: {
-                   calculatedFee: {
-                     $floor: {
-                       $multiply: [
-                         { $divide: ["$redeemServiceFee", 100] },
-                         "$transactionAmount",
-                       ],
-                     },
-                   },
-                 },
-               },
-               {
-                 $group: { _id: null, total: { $sum: "$calculatedFee" } },
-               },
-             ],
-             totalRedeemSuccessful: [
-               { $match: { status: 8 } },
-               { $count: "count" },
-             ],
+let totalAgents;
+if (role === "Super-User" && !filter?.username) {
+  // If Super-User and no username filter, fetch all agents without conditions
+  totalAgents = await new Parse.Query(Parse.User)
+      .containedIn("roleName", roles)
+      .count({ useMasterKey: true });
+} else {
+  // Otherwise, apply filters
+  totalAgents = selectedUser 
+      ? await new Parse.Query(Parse.User)
+          .equalTo("userParentId", selectedUser.id)
+          .containedIn("roleName", roles)
+          .count({ useMasterKey: true }) 
+      : await new Parse.Query(Parse.User)
+          .containedIn("roleName", roles)
+          .count({ useMasterKey: true });
+}
 
-             totalRechargeByType: [
-               { $match: { type: "recharge", status: { $in: [2, 3] } } },
-               {
-                 $group: {
-                   _id: {
-                     wallet: { $ifNull: ["$useWallet", false] },
-                   },
-                   totalAmount: {
-                     $sum: { $ifNull: ["$transactionAmount", 0] },
-                   },
-                 },
-               },
-               {
-                 $project: {
-                   _id: 0,
-                   wallet: {
-                     $cond: [
-                       { $eq: ["$_id.wallet", true] },
-                       "wallet",
-                       "others",
-                     ],
-                   },
-                   totalAmount: 1,
-                 },
-               },
-             ],
+      const summary = {
+          totalRechargeAmount: newResults[0]?.totalRechargeAmount?.[0]?.total || 0,
+          totalRedeemAmount: newResults[0]?.totalRedeemAmount?.[0]?.total || 0,
+          totalPendingRechargeAmount: newResults[0]?.totalPendingRechargeAmount?.[0]?.total || 0,
+          totalCashoutRedeemsSuccess: newResults[0]?.totalCashoutRedeemsSuccess?.[0]?.total || 0,
+          totalCashoutRedeemsInProgress: newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0,
+          totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0,
+          totalAmt: newResults[0]?.totalAmt?.[0]?.total || 0,
+          totalFeesCharged: newResults[0]?.totalFeesCharged?.[0]?.total || 0,
+          totalRedeemSuccessful: newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0,
+          totalFailRedeemAmount: newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0,
+          totalRegisteredUsers,
+          totalAgents,
+          totalRechargeByType: {
+          wallet: newResults[0]?.totalRechargeByType?.[0]?.wallet || 0,
+          others: newResults[0]?.totalRechargeAmount?.[0]?.total - newResults[0]?.totalRechargeByType?.[0]?.wallet 
+      }
+      };
+  
+      result = calculateDataSummariesForSummary({ id: role === "Super-User" ? 0 : 1, users: data, walletBalances: 0 });
 
-             totalRedeemByTypeData: [
-               {
-                 $match: {
-                   type: "redeem",
-                   status: { $in: [4, 8, 12] },
-                 },
-               },
-               {
-                 $project: {
-                   transactionId: "$id",
-                   amount: { $ifNull: ["$transactionAmount", 0] },
-                   status: 1,
-                   paymentType: {
-                     $cond: [{ $eq: ["$status", 12] }, "cashout", "redeem"],
-                   },
-                   transactionIdFromStripe: 1,
-                   transactionDate: 1,
-                   redeemServiceFee: 1,
-                 },
-               },
-             ],
-
-             totalRechargeByTypeData: [
-               {
-                 $match: {
-                   type: "recharge",
-                   status: { $in: [2, 3] },
-                 },
-               },
-               {
-                 $project: {
-                   transactionId: "$id",
-                   amount: { $ifNull: ["$transactionAmount", 0] },
-                   date: "$date",
-                   status: 1,
-                   paymentType: {
-                     $cond: [{ $eq: ["$useWallet", true] }, "wallet", "others"],
-                   },
-                   transactionIdFromStripe: 1,
-                   transactionDate: 1,
-                 },
-               },
-             ],
-           },
-         },
-       ];
-       if (role === "Super-User") {
-         //users
-         console.log("SU", filter);
-
-         if (filter?.username) {
-           var userQuery = new Parse.Query(Parse.User);
-           var selectedUser = await userQuery.get(filter.username, {
-             useMasterKey: true,
-           });
-           var { ids, data } = await fetchUsers(selectedUser, "yes");
-           queryPipeline[0]["$match"]["userId"] = { $in: ids };
-         } else {
-           var userQuery = new Parse.Query(Parse.User);
-           userQuery.limit(10000);
-           var results = await userQuery.find({ useMasterKey: true });
-           var data = results.map((o) => ({ id: o.id, ...o.attributes }));
-           const currentUser = await Parse.User.current();
-           data.push({ id: userid, ...currentUser.attributes });
-         }
-         // Fetch wallet balances for the users
-         const walletQuery = new Parse.Query("Wallet");
-         const userIds = data.map((user) => user.id);
-         walletQuery.containedIn("userID", userIds);
-
-         const walletResults = await walletQuery.findAll({ useMasterKey: true });
-         const walletBalances = walletResults.reduce((acc, wallet) => {
-           acc[wallet.get("userID")] = wallet.get("balance") || 0;
-           return acc;
-         }, {});
-         result = calculateDataSummariesForSummary({
-           id: 0,
-           users: data,
-           walletBalances,
-         });
-       }
-       if (role === "Agent") {
-         //users
-         const selectedUser =
-           filter && filter.username
-             ? await new Parse.Query(Parse.User).get(filter.username, {
-                 useMasterKey: true,
-               })
-             : null;
-         const { ids, data } = await fetchUsers(selectedUser);
-         queryPipeline[0]["$match"]["userId"] = { $in: ids };
-         const walletBalances = 0;
-         result = calculateDataSummariesForSummary({
-           id: 1,
-           users: data,
-           walletBalances,
-         });
-       }
-       if (role === "Master-Agent") {
-         //users
-         const selectedUser =
-           filter && filter.username
-             ? await new Parse.Query(Parse.User).get(filter.username, {
-                 useMasterKey: true,
-               })
-             : null;
-         const { ids, data } = await fetchUsers(selectedUser, true);
-         queryPipeline[0]["$match"]["userId"] = { $in: ids };
-         const walletBalances = 0;
-         result = calculateDataSummariesForSummary({
-           id: 1,
-           users: data,
-           walletBalances,
-         });
-       }
-
-       const matchConditions = [];
-
-       if (filter.startDate && filter.endDate) {
-         matchConditions.push({
-           createdAt: {
-             $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
-             $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
-           },
-         });
-       }
-
-       if (queryPipeline[0]["$match"]["userId"]) {
-         matchConditions.push({
-           userId: queryPipeline[0]["$match"]["userId"],
-         });
-       }
-       const pppipeline = [
-         {
-           $match: matchConditions.length > 0 ? { $and: matchConditions } : {},
-         },
-         {
-           $group: {
-             _id: null, // No grouping key since we want the total sum for all records
-             totalAmount: { $sum: "$transactionAmount" }, // Sum the transactionAmount
-           },
-         },
-       ];
-
-       if (matchConditions.length > 0) {
-         queryPipeline[0]["$match"] = {
-           $and: [
-             ...matchConditions,
-             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-           ],
-         };
-         pppipeline[0]["$match"] = {
-           $and: [
-             ...matchConditions,
-             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-             {
-               $or: [
-                 {
-                   transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
-                   status: 5,
-                 },
-                 {
-                   transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
-                   status: 7,
-                 },
-               ],
-             },
-           ],
-         };
-       } else {
-         pppipeline[0]["$match"] = {
-           $and: [
-             { transactionAmount: { $gt: 0, $type: "number" } }, // Ensure positive number
-             {
-               $or: [
-                 {
-                   transactionDate: { $lte: new Date("2025-01-17T00:00:00Z") },
-                   status: 5,
-                 },
-                 {
-                   transactionDate: { $gt: new Date("2025-01-17T00:00:00Z") },
-                   status: 7,
-                 },
-               ],
-             },
-           ],
-         };
-       }
-
-       const newResults = await new Parse.Query("TransactionRecords").aggregate(
-         queryPipeline,
-         { useMasterKey: true }
-       );
-
-       const Combinedresult = await new Parse.Query(
-         "TransactionRecords"
-       ).aggregate(pppipeline, { useMasterKey: true });
-
-       const {
-         totalRechargeAmount,
-         totalRedeemAmount,
-         totalPendingRechargeAmount,
-         totalCashoutRedeemsSuccess,
-         totalCashoutRedeemsInProgress,
-         totalRecords,
-         totalAmt,
-         totalFeesCharged,
-         totalRedeemSuccessful,
-         totalRechargeByType,
-         totalRedeemByTypeData,
-         totalRechargeByTypeData,
-       } = newResults[0];
-       const newsummaray = {
-         totalRechargeAmount: totalRechargeAmount[0]?.total || 0,
-         totalRedeemAmount: totalRedeemAmount[0]?.total || 0,
-         totalPendingRechargeAmount: totalPendingRechargeAmount[0]?.total || 0,
-         totalCashoutRedeemsSuccess: totalCashoutRedeemsSuccess[0]?.total || 0,
-         totalCashoutRedeemsInProgress:
-           totalCashoutRedeemsInProgress[0]?.total || 0,
-         totalRecords: totalRecords[0]?.total || 0,
-         totalAmt: totalAmt[0]?.total || 0,
-         totalFeesCharged: totalFeesCharged[0]?.total || 0,
-         totalRedeemSuccessful: totalRedeemSuccessful[0]?.count || 0,
-         totalRechargeByType: totalRechargeByType,
-         totalRedeemByTypeData: totalRedeemByTypeData,
-         totalRechargeByTypeData: totalRechargeByTypeData,
-       };
-       const walletTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
-         (o) => o.paymentType === "wallet"
-       );
-       const othersTotalRecharge = newsummaray.totalRechargeByTypeData.filter(
-         (o) => o.paymentType === "others"
-       );
-       newsummaray.totalRechargeByTypeData = {
-         wallet: walletTotalRecharge,
-         others: othersTotalRecharge,
-       };
-       newsummaray.totalRechargeByType = {
-         wallet:
-           newsummaray.totalRechargeByType.find((o) => o.wallet === "wallet")
-             ?.totalAmount || 0,
-         others:
-           newsummaray.totalRechargeByType.find((o) => o.wallet === "others")
-             ?.totalAmount || 0,
-       };
-
-       const walletRedeem = newsummaray.totalRedeemByTypeData.filter(
-         (o) => o.paymentType === "redeem"
-       );
-       const othersRedeem = newsummaray.totalRedeemByTypeData.filter(
-         (o) => o.paymentType === "cashout"
-       );
-       newsummaray.totalRedeemByTypeData = {
-         wallet: walletRedeem,
-         others: othersRedeem,
-       };
-
-       result.data[0] = Object.assign(result.data[0], newsummaray);
-       result.data[0]["totalFailRedeemAmount"] =
-         Combinedresult[0]?.totalAmount || 0;
-       return result;
-     } else if (resource === "summaryExport") {
+      result.data[0] = { ...result.data[0] ,  ...summary};
+      return result;
+  }else if (resource === "summaryExport") {
        var result = null;
        if (role === "Super-User") {
          //users
