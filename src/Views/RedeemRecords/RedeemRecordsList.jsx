@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -16,7 +16,6 @@ import {
   SelectInput,
   useListController,
   Pagination,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -88,9 +87,6 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
-  const [searchBy, setSearchBy] = useState("username");
-  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
-  const prevFilterValuesRef = useRef();
 
   if (!role) {
     navigate("/login");
@@ -105,7 +101,6 @@ export const RedeemRecordsList = (props) => {
         sort: { field: "transactionDate", order: "DESC" },
         filter: currentFilterValues,
       });
-      console.log(data, "datafromrechargeRecordsExport");
       // setData(data);
       return data; // Return the fetched data
     } catch (error) {
@@ -141,12 +136,12 @@ export const RedeemRecordsList = (props) => {
         return "Review";
       case 9:
         return "Expired";
-        case 11:
+      case 11:
         return "Cashouts";
-        case 12:
+      case 12:
         return "Cashout Successfully";
-        case 13:
-          return "Cashout Reject";
+      case 13:
+        return "Cashout Reject";
       default:
         return "Unknown Status";
     }
@@ -221,105 +216,21 @@ export const RedeemRecordsList = (props) => {
     setMenuAnchor(null);
   };
 
-  const searchFields = [
-    "username",
-    "transactionAmount",
-    "remark",
-    "userParentName",
-  ];
+  // const handleSearchChange = (e) => {
+  //   if (e) {
+  //     const value = e.target.value;
+  //     setSearchValue(value);
+  //   }
+  // };
 
-  const handleSearchByChange = (newSearchBy) => {
-    setSearchBy(newSearchBy);
-    setPrevSearchBy(newSearchBy);
-
-    const currentSearchValue = filterValues[prevSearchBy] || "";
-    const newFilters = {};
-
-    Object.keys(filterValues).forEach((key) => {
-      if (key !== prevSearchBy && !searchFields.includes(key)) {
-        newFilters[key] = filterValues[key];
-      }
-    });
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[newSearchBy] = currentSearchValue;
-    }
-
-    newFilters.searchBy = newSearchBy;
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    setFilters(newFilters, false);
-  };
-
-  useEffect(() => {
-    // Compare current filterValues with previous filterValues
-    const prevFilterValues = prevFilterValuesRef.current;
-    const filterValuesChanged =
-      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
-
-    // Update the ref with current filterValues for the next run
-    prevFilterValuesRef.current = filterValues;
-
-    // Skip if no meaningful change
-    if (!filterValuesChanged) {
-      return;
-    }
-    const currentSearchValue = filterValues[searchBy] || "";
-    const newFilters = {
-      searchBy,
-    };
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[searchBy] = currentSearchValue;
-    }
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    const cleanedFilters = Object.keys(filterValues)
-      .filter(
-        (key) =>
-          !searchFields.includes(key) || key === searchBy || key === "role"
-      )
-      .reduce((obj, key) => {
-        obj[key] = filterValues[key];
-        return obj;
-      }, {});
-
-    setFilters({ ...cleanedFilters, ...newFilters }, false);
-  }, [filterValues, searchBy, setFilters]);
-
+  // const handleStatusChange = (e) => {
+  //   if (e) {
+  //     setStatusValue(e.target.value);
+  //     console.log(e.target.value);
+  //   }
+  // };
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable />,
-    <SelectInput
-      source="searchBy"
-      label="Search By"
-      validate={required()}
-      alwaysOn
-      value={searchBy}
-      onChange={(e) => {
-        const newSearchBy = e.target.value || "username";
-        handleSearchByChange(newSearchBy);
-      }}
-      choices={
-        role === "Super-User"
-          ? [
-              { id: "username", name: "Account" },
-              { id: "transactionAmount", name: "Recharge" },
-              { id: "remark", name: "Remark" },
-              { id: "userParentName", name: "Parent Name" },
-            ]
-          : [
-              { id: "username", name: "Account" },
-              { id: "transactionAmount", name: "Recharge" },
-              { id: "remark", name: "Remark" },
-            ]
-      }
-    />,
+    <SearchInput source="username" alwaysOn resettable />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"
@@ -345,106 +256,75 @@ export const RedeemRecordsList = (props) => {
       />
     ),
   ].filter(Boolean);
-const postListActions = (
-  <TopToolbar
-    sx={{
-      display: "flex",
-      flexDirection: { xs: "column", sm: "row" }, // Stack buttons on small screens
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 2, // Add spacing between elements
-      width: "100%", // Ensure the toolbar takes full width
-      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
-    }}
-  >
-    <Typography
-      sx={{
-        // mr: { sm: 20, xs: 0 }, // Adjust margin on larger screens
-        textAlign: { xs: "center", sm: "left" }, // Center text on small screens
-        mb: { xs: 1, sm: 0 }, // Add margin-bottom on mobile for better spacing
-      }}
-    >
-      Redeems may take up to 2 hours
-    </Typography>
-
-    <Box
-      sx={{
-        display: "flex",
-        gap: 2,
-        alignItems: "center",
-        flexDirection: { xs: "column", sm: "row" }, // Stack buttons on small screens
-        width: { xs: "100%", sm: "auto" }, // Full width on mobile
-      }}
-    >
+  const postListActions = (
+    <TopToolbar>
+      <Typography sx={{ mr: 20 }}>Redeems may take up to 2 hours</Typography>
       <Button
         variant="contained"
         size="small"
         startIcon={<RefreshIcon />}
         onClick={handleRefresh}
-        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
         Refresh
       </Button>
-
       {permissions !== "Player" && (
         <Button
           variant="contained"
           size="small"
           startIcon={<GetAppIcon />}
           onClick={handleMenuOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
         >
           Export
         </Button>
       )}
-    </Box>
 
-    <Menu
-      anchorEl={menuAnchor}
-      open={Boolean(menuAnchor)}
-      onClose={handleMenuClose}
-      MenuListProps={{
-        "aria-labelledby": "basic-button",
-      }}
-    >
-      <MenuItem
-        onClick={() => {
-          handleExportPDF();
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        MenuListProps={{
+          "aria-labelledby": "basic-button",
         }}
-        disabled={isExporting}
       >
-        <ListItemIcon>
-          {isExporting ? (
-            <CircularProgress size={20} />
-          ) : (
-            <PictureAsPdfIcon fontSize="small" />
-          )}
-        </ListItemIcon>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          PDF file
-        </Typography>
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          handleExportXLS();
-        }}
-        disabled={isExporting}
-      >
-        <ListItemIcon>
-          {isExporting ? (
-            <CircularProgress size={20} />
-          ) : (
-            <BackupTableIcon fontSize="small" />
-          )}
-        </ListItemIcon>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Excel file
-        </Typography>
-      </MenuItem>
-    </Menu>
-  </TopToolbar>
-);
-
+        <MenuItem
+          onClick={() => {
+            handleExportPDF();
+            //handleMenuClose();
+          }}
+          disabled={isExporting}
+        >
+          <ListItemIcon>
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PictureAsPdfIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            PDF file
+          </Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleExportXLS();
+            //handleMenuClose();
+          }}
+          disabled={isExporting}
+        >
+          <ListItemIcon>
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <BackupTableIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Excel file
+          </Typography>
+        </MenuItem>
+      </Menu>
+    </TopToolbar>
+  );
   if (isLoading) {
     return (
       <>
@@ -512,7 +392,7 @@ const postListActions = (
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
-        // pagination={<Pagination />}
+        pagination={false}
       >
         <Box
           style={{
@@ -520,16 +400,6 @@ const postListActions = (
             overflowX: "auto",
             // position: "relative",
             // height: "600px",
-          }}
-          rowStyle={(record) => {
-            if (identity?.role === "Super-User" && record?.status === 11) {
-              if (record?.userParentBalance < record?.transactionAmount) {
-                return { backgroundColor: "rgba(255, 0, 0, 0.1)" }; // Red
-              } else {
-                return { backgroundColor: "rgba(0, 128, 0, 0.1)" }; // Green
-              }
-            }
-            return {};
           }}
         >
           <Box
@@ -555,6 +425,16 @@ const postListActions = (
                   whiteSpace: "nowrap",
                 },
               }}
+              rowStyle={(record) => {
+                if (identity?.role === "Super-User" && record?.status === 11) {
+                  if (record?.userParentBalance < record?.transactionAmount) {
+                    return { backgroundColor: "rgba(255, 0, 0, 0.1)" }; // Red
+                  } else {
+                    return { backgroundColor: "rgba(0, 128, 0, 0.1)" }; // Green
+                  }
+                }
+                return {};
+              }}
             >
               <FunctionField
                 label="Action"
@@ -568,7 +448,8 @@ const postListActions = (
                   const isBalanceLow =
                     (identity?.role === "Master-Agent" ||
                       identity?.role === "Agent") &&
-                    identity?.balance < 500;
+                    (identity?.balance < 500 ||
+                      record?.transactionAmount > identity?.balance);
 
                   return (
                     <>
@@ -768,97 +649,11 @@ const postListActions = (
               {identity?.role === "Super-User" && (
                 <TextField source="paymentMethodType" label="Payment Id" />
               )}
-              {/* <FunctionField
-                label="Action"
-                source="action"
-                render={(record) =>
-                  (record?.status === 6 && identity?.role === "Agent") ||
-                  (record?.status === 6 &&
-                    identity?.role === "Master-Agent" &&
-                    identity?.objectId === record?.userParentId) ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        size="small"
-                        sx={{
-                          mr: 1,
-                        }}
-                        onClick={() => {
-                          setSelectedRecord({
-                            ...record,
-                            userParentId: identity?.objectId,
-                          });
-                          setRedeemDialogOpen(true);
-                        }}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => {
-                          setSelectedRecord(record);
-                          setRejectDialogOpen(true);
-                        }}
-                      >
-                        Reject
-                      </Button>
-                    </Box>
-                  ) : record?.status === 11 &&
-                    identity?.role === "Super-User" ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        size="small"
-                        sx={{
-                          mr: 1,
-                        }}
-                        onClick={() => {
-                          setSelectedRecord({
-                            ...record,
-                            userParentId: identity?.objectId,
-                          });
-                          setFinalRedeemDialogOpen(true);
-                        }}
-                      >
-                        Success
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => {
-                          setSelectedRecord(record);
-                          setFinalRejectDialogOpen(true);
-                          setCashout(true);
-                        }}
-                      >
-                        Reject
-                      </Button>
-                    </Box>
-                  ) : null
-                }
-              /> */}
             </Datagrid>
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "flex-end",
+                justifyContent: "flex-start",
                 width: "100%",
                 mt: 1,
               }}

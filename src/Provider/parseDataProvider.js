@@ -1351,12 +1351,14 @@ export const dataProvider = {
        if (role === "Player") {
          filter = { userId: userid, ...filter };
        } else if (role === "Agent") {
-         var { ids } = await fetchUsers();
-         query.containedIn("userId", ids);
-       } else if (role === "Master-Agent") {
-         var { ids } = await fetchUsers(null, true);
-         query.containedIn("userId", ids);
-       }
+        var { ids } = await fetchUsers();
+        query.containedIn("userId", ids);
+        query.notContainedIn("status", [11, 12, 13]);
+      } else if (role === "Master-Agent") {
+        var { ids } = await fetchUsers(null, true);
+        query.containedIn("userId", ids);
+        query.notContainedIn("status", [11, 12, 13]);
+      }
 
        query.limit(100000);
        query.descending(field);
@@ -1993,7 +1995,10 @@ export const dataProvider = {
       if (!user) {
         throw new Error(`User with ID ${id} not found`);
       }
-
+      if (isNaN(Number(transactionAmount)) || Number(transactionAmount) <= 0) {
+        throw new Error(`Amount should be a positive number greater than 0`);
+      }      
+      
       let finalAmount = balance;
       if (useWallet) {
         // Ensure sufficient wallet balance

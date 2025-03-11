@@ -40,6 +40,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [amountError, setAmountError] = useState("");
   const [serviceError, setServiceError] = useState("");
 
+  const [parentBalance, setParentBalance] = useState(0);
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
@@ -56,6 +57,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setEditedFees(response?.redeemService || 0); // Initialize edited fees
       setRedeemEnabled(response?.redeemServiceEnabled);
       setisReedeemZeroAllowed(response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed)
+      setParentBalance(response?.potBalance)
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -86,6 +88,16 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
          setAmountError("Redeem amount cannot be empty");
          return;
        }
+    if (parentBalance <= 500) {
+      setAmountError("Redeem not allowed. Parent balance must be greater than 500.");
+      return false;
+    }
+
+    if (redeemAmount >= parentBalance) {
+      setAmountError("Redeem amount cannot be equal to or greater than the available Agent balance.");
+      return false;
+    }
+
     if ((role === "Agent"  || role === "Master-Agent") && !isReedeemZeroAllowed && (editedFees < 5 || editedFees > 20)) {
       setFeeError(
         "As an Agent, the redeem service fee must be between 5% and 20%."
@@ -105,8 +117,12 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       );
       return false;
     }
+    if (redeemAmount < 15) {
+      setAmountError("RedeemAmount amount cannot be less than 15.");
+      return false;
+    }
     setFeeError(""); // Clear error if input is valid
-
+    setAmountError("")
     // Check if the redeem fees were changed by the user
     if (redeemFees !== parseFloat(editedFees)) {
       setShowConfirmationModal(true); // Show confirmation modal if fees changed

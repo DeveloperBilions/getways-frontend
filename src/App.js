@@ -44,30 +44,86 @@ import Config from "./Config.json";
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
+import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
+import { Box, Typography, Button } from "@mui/material";
 
 function App() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   useEffect(() => {
-    // Disable right-click
-    const disableRightClick = (event) => event.preventDefault();
-    document.addEventListener("contextmenu", disableRightClick);
-  
-    // Detect DevTools open
-    const checkDevTools = () => {
-      if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
-        if (!navigator.userAgent.toLowerCase().includes("mobi")) { // Ignore mobile devices
-          alert("DevTools is open! Closing the page for security.");
-          // window.location.href = "about:blank"; // Redirect or block
-        }
-      }
+    const handleOnline = () => {
+      setIsOnline(true);
+      window.location.reload(); // Reload when back online
     };
   
-    const interval = setInterval(checkDevTools, 1000); // Check every second
+    const handleOffline = () => setIsOnline(false);
+  
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
   
     return () => {
-      document.removeEventListener("contextmenu", disableRightClick);
-      clearInterval(interval);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
+  
+
+  // Attractive No Internet Screen
+  if (!isOnline) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          textAlign: "center",
+          backgroundColor: "#f8f9fa",
+          padding: "20px",
+        }}
+      >
+        <WifiOffIcon sx={{ fontSize: 80, color: "#ff5722", marginBottom: 2 }} />
+        <Typography variant="h4" color="textPrimary" gutterBottom>
+          No Internet Connection
+        </Typography>
+        <Typography variant="body1" color="textSecondary">
+          Please check your network and try again.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ marginTop: 3, padding: "10px 20px" }}
+          onClick={() => window.location.reload()} // Retry
+        >
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
+  // useEffect(() => {
+  //   // Disable right-click
+  //   const disableRightClick = (event) => event.preventDefault();
+  //   document.addEventListener("contextmenu", disableRightClick);
+  
+  //   // Detect DevTools open
+  //   const checkDevTools = () => {
+  //     if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+  //       if (!navigator.userAgent.toLowerCase().includes("mobi")) { // Ignore mobile devices
+  //         alert("DevTools is open! Closing the page for security.");
+  //         // window.location.href = "about:blank"; // Redirect or block
+  //       }
+  //     }
+  //   };
+  
+  //   const interval = setInterval(checkDevTools, 1000); // Check every second
+  
+  //   return () => {
+  //     document.removeEventListener("contextmenu", disableRightClick);
+  //     clearInterval(interval);
+  //   };
+  // }, []);
 
   const queryClient = new QueryClient({
     defaultOptions: {
