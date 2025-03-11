@@ -387,30 +387,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             bgColor: "#FFFCEB",
             borderColor: "#FFE787",
             icon: <ErrorIcon color="error" />,
-          },
-          {
-            id: 12,
-            name: "Total Wallet Balance",
-            value: (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
-                <span>{data[0].totalBalance}</span>
-              </div>
-            ),
-            bgColor: "#FFFCEB",
-            borderColor: "#FFE787",
-            icon: <ErrorIcon color="error" />,
-          },
+          }
         ]
       : []),
   ];

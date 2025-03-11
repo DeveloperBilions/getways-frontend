@@ -228,8 +228,6 @@ export const calculateDataSummariesForSummary = ({ id, users,walletBalances }) =
     data: [
       {
         id: id,
-        totalRegisteredUsers: totalRegisteredUsers,
-        totalAgents: totalAgents,
         walletBalances,
         totalBalance,
       },
