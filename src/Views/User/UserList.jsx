@@ -400,7 +400,7 @@ useEffect(() => {
       source={searchBy}
       alwaysOn
       resettable
-      sx={{ width: { xs: "100%", sm: "auto" } }}
+      sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}}
     />,
     <SelectInput
       source="searchBy"

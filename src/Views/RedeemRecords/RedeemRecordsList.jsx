@@ -230,7 +230,7 @@ export const RedeemRecordsList = (props) => {
   //   }
   // };
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable />,
+    <SearchInput source="username" alwaysOn resettable sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}} />,
     permissions !== "Player" && (
       <SelectInput
         label="Status"

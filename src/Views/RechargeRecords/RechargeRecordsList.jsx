@@ -303,7 +303,7 @@ export const RechargeRecordsList = (props) => {
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable />,
+    <SearchInput source={searchBy} alwaysOn resettable sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}} />,
     <SelectInput
       source="searchBy"
       label="Search By"
