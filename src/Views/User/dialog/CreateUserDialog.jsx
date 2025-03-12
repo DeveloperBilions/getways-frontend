@@ -87,15 +87,20 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
   const fetchUsersByRole = async () => {
     try {
-      const users = await Parse.Cloud.run("getUsersByRole", {
-        roleName: ["Agent", "Master-Agent"],
-      });
-      setParentOptions(users);
+      let params = {
+        roleName: permissions === "Master-Agent" ? ["Agent"] : ["Agent", "Master-Agent"],
+        currentusr: permissions === "Master-Agent" ? identity?.objectId : undefined
+
+    };
+
+        const users = await Parse.Cloud.run("getUsersByRole", params);
+        setParentOptions(users);
     } catch (error) {
-      console.error("Error fetching users by role:", error.message);
-      return [];
+        console.error("Error fetching users by role:", error.message);
+        return [];
     }
-  };
+};
+
 
   useEffect(() => {
     fetchUsersByRole();
@@ -190,9 +195,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
           phoneNumber,
           email,
           password,
-          userParentId: identity?.objectId,
-          userParentName: identity?.name,
-          redeemService: 5,
+          userParentId: parentType?.id,
+          userParentName: parentType?.name,
         });
       }
     } else if (permissions === "Agent") {
@@ -364,7 +368,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
-                {permissions === "Super-User" && (
+                {(permissions === "Super-User" || permissions === "Master-Agent") && (
                   <>
                     <Col md={6}>
                       <FormGroup>
@@ -378,7 +382,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                           required
                         >
                           <option value="">Select User Type</option>
-                          <option value="Master-Agent">Master Agent</option>
+                          {permissions === "Super-User" && 
+                          <option value="Master-Agent">Master Agent</option>}
                           <option value="Agent">Agent</option>
                           <option value="Player">Player</option>
                         </Input>
