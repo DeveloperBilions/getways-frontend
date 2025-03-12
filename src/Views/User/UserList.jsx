@@ -460,17 +460,6 @@ useEffect(() => {
           Referral Link
         </Button>
       )}
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={handleGenerateLink}
-        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-      >
-        Referral Link
-      </Button>
-    )}
 
     <Button
       variant="contained"
