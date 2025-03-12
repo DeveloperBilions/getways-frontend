@@ -10,6 +10,7 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [newMessageError, setNewMessageError] = useState("");
 
   // Fetch emergency messages from Parse
   useEffect(() => {
@@ -41,9 +42,12 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
 
   // Add new message
   const handleAddMessage = () => {
-    if (newMessage.trim()) {
+    if (!newMessage.trim()) {
+      setNewMessageError("Message cannot be empty.");
+    } else {
       setMessages([...messages, newMessage]);
       setNewMessage("");
+      setNewMessageError("");
     }
   };
 
@@ -79,6 +83,7 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
       setError(err.message || "Error saving emergency messages.");
     } finally {
       setLoading(false);
+      setNewMessageError("");
     }
   };
 
@@ -87,14 +92,20 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
       <ModalHeader toggle={onClose}>Manage Emergency Messages</ModalHeader>
       <ModalBody>
         {error && <Alert color="danger">{error}</Alert>}
-        {success && <Alert color="success">Emergency messages updated successfully!</Alert>}
-        
+        {success && (
+          <Alert color="success">
+            Emergency messages updated successfully!
+          </Alert>
+        )}
+
         <TextField
           fullWidth
           label="Enter Emergency Message"
           variant="outlined"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          error={Boolean(newMessageError)}
+          helperText={newMessageError}
         />
         <Button color="primary" className="mt-2" onClick={handleAddMessage}>
           Add Message
@@ -102,9 +113,15 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
 
         <ListGroup className="mt-3">
           {messages.map((msg, index) => (
-            <ListGroupItem key={index} className="d-flex justify-content-between align-items-center">
+            <ListGroupItem
+              key={index}
+              className="d-flex justify-content-between align-items-center"
+            >
               {msg}
-              <IconButton color="error" onClick={() => handleDeleteMessage(index)}>
+              <IconButton
+                color="error"
+                onClick={() => handleDeleteMessage(index)}
+              >
                 <MdDelete />
               </IconButton>
             </ListGroupItem>
@@ -112,7 +129,12 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
         </ListGroup>
 
         <div className="text-end mt-4">
-          <Button color="primary" onClick={handleSave} disabled={loading} className="me-2">
+          <Button
+            color="primary"
+            onClick={handleSave}
+            disabled={loading}
+            className="me-2"
+          >
             {loading ? <CircularProgress size={20} color="inherit" /> : "Save"}
           </Button>
           <Button color="secondary" onClick={onClose} disabled={loading}>

@@ -394,7 +394,6 @@ export const RedeemRecordsList = (props) => {
         }
         filters={dataFilters}
         actions={postListActions}
-        sx={{ pt: 1 }}
         empty={false}
         {...props}
         filter={
@@ -405,6 +404,12 @@ export const RedeemRecordsList = (props) => {
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}
+        sx={{
+          pt: 1,
+          "& .RaList-actions": {
+            flexWrap: "nowrap", // Ensures table fills the available space
+          },
+        }}
       >
         <Box
           style={{
