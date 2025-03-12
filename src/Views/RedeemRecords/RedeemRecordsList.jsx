@@ -337,6 +337,12 @@ export const RedeemRecordsList = (props) => {
   }
   return (
     <>
+          {(role === "Master-Agent" || role === "Agent") &&
+          
+          <Alert severity="error" sx={{ mb: 2 }}>
+We're experiencing redeem processing delays due to high demand. Please try again later.
+        </Alert>}
+
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(identity?.role === "Agent") &&
         identity?.balance < 500 && (
@@ -432,9 +438,9 @@ export const RedeemRecordsList = (props) => {
       record?.status === 11 && identity?.role === "Super-User";
     const isCashoutApproved = record?.status === 12; // Example status for approved cashout
 
-    const isBalanceLow =
-      (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
-      (identity?.balance < 500 || record?.transactionAmount > identity?.balance) ;
+    const isBalanceLow = true
+      // (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
+      // (identity?.balance < 500 || record?.transactionAmount > identity?.balance) ;
 
     return (
       <>

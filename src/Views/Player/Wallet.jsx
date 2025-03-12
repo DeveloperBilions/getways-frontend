@@ -11,6 +11,7 @@ import {
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 import {
+  Alert,
   Card,
   CardContent,
   Button,
@@ -137,6 +138,9 @@ export const Wallet = () => {
         </Button>
       </div>
 
+      <Alert severity="error" sx={{ mb: 2 }}>
+      We're experiencing cashout processing delays due to high demand. Please try again later.
+        </Alert>
       <Card variant="outlined" sx={{ mt: 2, backgroundColor: "#e3e3e3" }}>
         <CardContent>
           <div className="d-flex">
