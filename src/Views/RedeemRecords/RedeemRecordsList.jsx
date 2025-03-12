@@ -347,7 +347,7 @@ export const RedeemRecordsList = (props) => {
   return (
     <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
-      {(identity?.role === "Master-Agent" || identity?.role === "Agent") &&
+      {(identity?.role === "Agent") &&
         identity?.balance < 500 && (
           <Alert severity="error" sx={{ mb: 2 }}>
             Your balance is too low to approve transactions.

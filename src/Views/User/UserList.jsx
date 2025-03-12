@@ -447,19 +447,19 @@ useEffect(() => {
     );
   }
 
-const PostListActions = () => (
-  <TopToolbar
-    sx={{
-      display: "flex",
-      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
-      alignItems: "center",
-      justifyContent: "flex-end", // Align buttons to the right
-      gap: 2, // Add space between buttons
-      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
-      width: "100%", // Ensure full width for the toolbar
-    }}
-  >
-    {role !== "Super-User" && (
+  const PostListActions = () => (
+    <TopToolbar>
+      {role != "Super-User" &&role != "Master-Agent" && (
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={handleGenerateLink}
+        >
+          Referral Link
+        </Button>
+      )}
       <Button
         variant="contained"
         color="primary"
