@@ -520,7 +520,7 @@ export const DataSummary = () => {
     const filters = {
       startDate:
         document.querySelector('input[name="startdate"]')?.value || null,
-        endDate: document.querySelector('input[name="enddate"]')?.value || null,
+      endDate: document.querySelector('input[name="enddate"]')?.value || null,
     };
     setIsExporting(true); // Set exporting state
     setLoadingData(true); // Set loading data state
@@ -981,20 +981,20 @@ export const DataSummary = () => {
         <Box sx={{ px: { xs: 1, sm: 2 } }}>
           <Box
             display="flex"
-            flexDirection={{ xs: "column", md: "row" }}
+            flexDirection={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
-            alignItems={{ xs: "stretch", md: "center" }}
+            alignItems={{ xs: "stretch", sm: "center" }}
             gap={{ xs: 1, md: 2 }}
           >
             <FilterForm
               filters={dataFilters}
               sx={{
-                flex: "1 1 auto",
+                // flex: "1 1 auto",
                 padding: "0 !important",
                 display: "flex",
-                flexDirection: { xs: "column", md: "row" },
+                flexDirection: { xs: "column", sm: "row" },
                 gap: 1,
-                alignItems: { xs: "stretch", md: "flex-start" },
+                alignItems: { xs: "stretch", sm: "flex-start" },
               }}
             />{" "}
             <Button
@@ -1002,26 +1002,30 @@ export const DataSummary = () => {
               variant="contained"
               onClick={handleFilterSubmit}
               sx={{
-                mt: { xs: 2, md: 0 },
-                width: { xs: "100%", md: "auto" },
+                mt: 1,
+                padding: "2 !important",
+                width: "100%",
                 whiteSpace: "nowrap",
               }} // Adds left margin for spacing
             >
               Apply Filter
             </Button>
-          </Box>
+          
           {role === "Super-User" && (
             <Box
               display="flex"
               flexDirection={{ xs: "column", sm: "row" }}
               gap={1}
-              mt={2}
+              mt={1}
             >
               <Button
                 variant="contained"
                 startIcon={<GetAppIcon />}
                 onClick={handleMenuRedeemOpen}
-                // sx={{ mb: 2, marginRight: "10px", whiteSpace: "nowrap" }} // Adds left margin for spacing
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  whiteSpace: "nowrap",
+                }}
               >
                 Redeem Export{" "}
               </Button>
@@ -1029,7 +1033,10 @@ export const DataSummary = () => {
                 variant="contained"
                 startIcon={<GetAppIcon />}
                 onClick={handleMenuOpen}
-                // sx={{ mb: 2, whiteSpace: "nowrap" }}
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  whiteSpace: "nowrap",
+                }}
               >
                 Recharge Export
               </Button>
@@ -1112,6 +1119,7 @@ export const DataSummary = () => {
               </Menu>
             </Box>
           )}
+        </Box>
         </Box>
         <Summary
           selectedUser={selectedUser}
