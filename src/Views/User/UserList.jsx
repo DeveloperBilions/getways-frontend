@@ -325,7 +325,7 @@ export const UserList = (props) => {
 
   const PostListActions = () => (
     <TopToolbar>
-      {role != "Super-User" && (
+      {role != "Super-User" &&role != "Master-Agent" && (
         <Button
           variant="contained"
           color="primary"
