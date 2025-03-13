@@ -271,7 +271,7 @@ const WalletDialog = ({ open, onClose, record }) => {
             </div>
           )}
           <div className="text-end mt-3">
-            <Button color="light" onClick={onClose}>
+            <Button className="custom-button cancel" onClick={onClose}>
               Close
             </Button>
           </div>

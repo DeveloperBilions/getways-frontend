@@ -11,12 +11,15 @@ import {
   Form,
   Input,
   FormText,
+  ModalFooter,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
-import {Alert} from "@mui/material"
+import { Alert } from "@mui/material";
+import cancel from "../../../Assets/icons/cancel.svg";
 import { validatePositiveNumber } from "../../../Validators/number.validator";
+import "../../../Assets/css/Dialog.css";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -34,7 +37,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [isEditingFees, setIsEditingFees] = useState(false); // Manage edit mode
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Confirmation modal visibility
   const [redeemEnabled, setRedeemEnabled] = useState(false); // Confirmation modal visibility
-  const [isReedeemZeroAllowed,setisReedeemZeroAllowed]= useState(false);
+  const [isReedeemZeroAllowed, setisReedeemZeroAllowed] = useState(false);
   const role = localStorage.getItem("role");
   const [feeError, setFeeError] = useState("");
   const [amountError, setAmountError] = useState("");
@@ -56,8 +59,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setRedeemFees(response?.redeemService || 0);
       setEditedFees(response?.redeemService || 0); // Initialize edited fees
       setRedeemEnabled(response?.redeemServiceEnabled);
-      setisReedeemZeroAllowed(response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed)
-      setParentBalance(response?.potBalance)
+      setisReedeemZeroAllowed(
+        response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed
+      );
+      setParentBalance(response?.potBalance);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -84,37 +89,46 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [redeemAmount, redeemFees, editedFees]);
 
   const handleConfirmClick = () => {
-       if (!redeemAmount || redeemAmount === "") {
-         setAmountError("Redeem amount cannot be empty");
-         return;
-       }
+    if (!redeemAmount || redeemAmount === "") {
+      setAmountError("Redeem amount cannot be empty");
+      return;
+    }
     if (parentBalance <= 500) {
-      setAmountError("Redeem not allowed. Parent balance must be greater than 500.");
+      setAmountError(
+        "Redeem not allowed. Parent balance must be greater than 500."
+      );
       return false;
     }
 
     if (redeemAmount >= parentBalance) {
-      setAmountError("Redeem amount cannot be equal to or greater than the available Agent balance.");
+      setAmountError(
+        "Redeem amount cannot be equal to or greater than the available Agent balance."
+      );
       return false;
     }
 
-    if ((role === "Agent"  || role === "Master-Agent") && !isReedeemZeroAllowed && (editedFees < 5 || editedFees > 20)) {
+    if (
+      (role === "Agent" || role === "Master-Agent") &&
+      !isReedeemZeroAllowed &&
+      (editedFees < 5 || editedFees > 20)
+    ) {
       setFeeError(
         "As an Agent, the redeem service fee must be between 5% and 20%."
       );
       return false;
     }
-    if ((role === "Agent" || role === "Master-Agent") && isReedeemZeroAllowed && (editedFees < 0 || editedFees > 20)) {
+    if (
+      (role === "Agent" || role === "Master-Agent") &&
+      isReedeemZeroAllowed &&
+      (editedFees < 0 || editedFees > 20)
+    ) {
       setFeeError(
         "As an Agent, the redeem service fee must be between 0% and 20%."
       );
       return false;
     }
-    if(!redeemAmount || redeemAmount < 0)
-    {
-      setAmountError(
-        "Redeem amount must be greater than zero."
-      );
+    if (!redeemAmount || redeemAmount < 0) {
+      setAmountError("Redeem amount must be greater than zero.");
       return false;
     }
     if (redeemAmount < 15) {
@@ -122,7 +136,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       return false;
     }
     setFeeError(""); // Clear error if input is valid
-    setAmountError("")
+    setAmountError("");
     // Check if the redeem fees were changed by the user
     if (redeemFees !== parseFloat(editedFees)) {
       setShowConfirmationModal(true); // Show confirmation modal if fees changed
@@ -132,7 +146,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   };
 
   const handleSubmit = async () => {
-    
     const validatorResponse = validatePositiveNumber(redeemAmount);
     if (!validatorResponse.isValid) {
       setResponseData(validatorResponse.error);
@@ -192,28 +205,38 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleClose} size="md" centered>
-          <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
+        <Modal
+          isOpen={open}
+          toggle={handleClose}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={handleClose}
+            className="custom-modal-header border-bottom-0"
+          >
             Redeem Amount
           </ModalHeader>
           <ModalBody>
-            {amountError && 
+            {amountError && (
               <Alert severity="error" sx={{ mb: 1 }}>
-              {amountError}
-            </Alert>
-            }
-            <FormText className="font-weight-bold">
-              Redeems may take up to 2 hours
-            </FormText>
+                {amountError}
+              </Alert>
+            )}
+            <FormText className="mb-4">Redeems may take up to 2 hours</FormText>
             <Form onSubmit={(e) => e.preventDefault()}>
               <Row>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="userName">Account</Label>
+                    <Label for="userName" className="custom-label">
+                      Account
+                    </Label>
                     <Input
                       id="userName"
                       name="userName"
                       type="text"
+                      className="custom-input"
                       value={userName}
                       required
                       disabled
@@ -223,26 +246,28 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="redeemAmount">Redeem Amount</Label>
+                    <Label for="redeemAmount" className="custom-label">
+                      Redeem Amount
+                    </Label>
                     <Input
                       id="redeemAmount"
                       name="redeemAmount"
                       type="number"
                       autoComplete="off"
                       min="1"
+                      className="custom-input"
+                      placeholder="e.g. 500"
                       value={redeemAmount}
                       required
                       onChange={(e) => {
                         let value = e.target.value;
-                        if (value === '' || /^\d*$/.test(value)) {
-                          if(value === ''){
+                        if (value === "" || /^\d*$/.test(value)) {
+                          if (value === "") {
                             setRedeemAmount(value);
-                          }
-                          else if (value.includes('.')) {
+                          } else if (value.includes(".")) {
                             value = Math.floor(parseFloat(value));
                             setRedeemAmount(value);
-                          }
-                          else if (/^\d*$/.test(value)) {
+                          } else if (/^\d*$/.test(value)) {
                             setRedeemAmount(value);
                           }
                         }
@@ -261,11 +286,23 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     )}
                   </FormGroup>
                 </Col>
-                {isEditingFees && (
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for="redeemFees">Redeem Service Fee (%)</Label>
-                      <div className="d-flex align-items-center">
+
+                <p className="redeem-fees-text">
+                  <small>Redeem Service Fee @ {editedFees}%</small>
+                  {isEditingFees && (
+                    <>
+                      <Button
+                        color="secondary"
+                        className="cancel-btn cancel"
+                        onClick={handleCancelEditFees}
+                      >
+                        <img
+                          src={cancel}
+                          alt="cancel"
+                          style={{ width: 11, height: 11 }}
+                        />
+                      </Button>
+                      <div className="fee-edit-container">
                         <Input
                           id="redeemFees"
                           name="redeemFees"
@@ -273,6 +310,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           min={role === "Agent" ? "5" : "0"}
                           max={role === "Agent" ? "20" : "100"}
                           value={editedFees}
+                          className="custom-input"
                           onChange={(e) => {
                             let value = parseFloat(e.target.value);
                             if (value > 20) {
@@ -288,77 +326,88 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                         />
                         <Button
                           color="success"
-                          className="ms-2"
+                          className="btn-change ms-2"
                           onClick={handleSaveFees}
                         >
-                          Save
-                        </Button>
-                        <Button
-                          color="secondary"
-                          className="ms-2"
-                          onClick={handleCancelEditFees}
-                        >
-                          Cancel
+                          Change
                         </Button>
                       </div>
-                    </FormGroup>
-                  </Col>
-                )}
-
-                <p className="mb-0">
-                  <small>
-                    Redeem Service Fee @ {editedFees}%{" "}
-                    {role === "Agent" && redeemEnabled && (
-                      <Button
-                        color="link"
-                        className="ms-2"
-                        onClick={handleEditFees}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {role === "Super-User" && (
-                      <Button
-                        color="link"
-                        className="ms-2"
-                        onClick={handleEditFees}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                  </small>
+                    </>
+                  )}
+                  {role === "Agent" && redeemEnabled && !isEditingFees && (
+                    <Button
+                      color="link"
+                      className="edit-btn"
+                      onClick={handleEditFees}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {role === "Super-User" && !isEditingFees && (
+                    <Button
+                      color="link"
+                      className="edit-btn"
+                      onClick={handleEditFees}
+                    >
+                      Edit
+                    </Button>
+                  )}
                 </p>
+
                 {feeError && <small className="text-danger">{feeError}</small>}
 
                 {redeemPercentage !== null &&
                   redeemPercentage !== undefined && (
-                    <p className="mb-1">
+                    <p className="mb-4">
                       <small>
                         Total amount to be redeemed = $
                         {Math.floor(redeemPercentage) || 0}
                       </small>
                     </p>
                   )}
-                <span
+                <div
                   style={{
-                    fontStyle: "italic",
-                    color: "#007BFF", // Bright blue for highlighting
-                    fontSize: "13px",
-                    fontWeight: "bold", // To make the text stand out
+                    width: "428px",
+                    height: "26px",
+                    borderRadius: "4px",
+                    gap: "8px",
+                    padding: "0 12px",
+                    marginLeft: "10px",
+                    marginBottom: "16px",
+                    background: "var(--semantic-warning-light, #FEF3C7)", // Parent div background
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  ** The amount has been rounded down to the nearest lower
-                  value. **
-                </span>
+                  <span
+                    style={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      lineHeight: "150%",
+                      letterSpacing: "1.2%",
+                      verticalAlign: "middle",
+                      color: "var(--semantic-warning, #F59E0B)",
+                      padding: "0 4px",
+                    }}
+                  >
+                    "The amount has been rounded down to the nearest lower
+                    value."
+                  </span>
+                </div>
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="remark">Remark</Label>
+                    <Label for="remark" className="custom-label">
+                      Remark
+                    </Label>
                     <Input
                       id="remark"
                       name="remark"
                       type="textarea"
                       autoComplete="off"
+                      className="custom-input"
+                      placeholder="Enter Remark"
                       maxLength={30}
                       onChange={(e) => setRemark(e.target.value)}
                     />
@@ -370,35 +419,39 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     <Label
                       for="errorResponse"
                       invalid={true}
-                      className="text-danger mb-2"
+                      className="custom-label text-danger mb-2"
                     >
                       {responseData}
                     </Label>
                   </Col>
                 )}
-
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      color="success"
-                      type="button"
-                      className="mx-2"
-                      disabled={loading}
-                      onClick={handleConfirmClick} // Check and open confirmation modal if needed
-                    >
-                      {loading ? "Processing..." : "Confirm"}
-                    </Button>
-                    <Button color="secondary" onClick={handleClose}>
-                      Cancel
-                    </Button>
-                  </div>
-                  {serviceError && (
-                    <small className="text-danger">{serviceError}</small>
-                  )}
-                </Col>
               </Row>
             </Form>
           </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12}>
+              <div className="d-flex w-100 justify-content-between">
+                <Button
+                  className="custom-button cancel"
+                  onClick={handleClose}
+                  // Check and open confirmation modal if needed
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="custom-button confirm"
+                  disabled={loading}
+                  onClick={handleConfirmClick}
+                >
+                  {loading ? "Processing..." : "Confirm"}
+                </Button>
+              </div>
+              {serviceError && (
+                <small className="text-danger">{serviceError}</small>
+              )}
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
 

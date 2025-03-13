@@ -39,8 +39,25 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Confirm Blacklist</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        sx={{
+          "& .MuiDialog-paper": {
+            maxWidth: "500px",
+            padding: "16px",
+          },
+          "& .css-ypiqx9-MuiDialogContent-root": {
+            padding: "14px 12px",
+          },
+          "& .css-1cak187-MuiTypography-root-MuiDialogTitle-root": {
+            padding: "12px 12px",
+          }
+        }}
+      >
+        <DialogTitle className="custom-modal-header">
+          Confirm Blacklist
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -52,20 +69,35 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
               {success}
             </Alert>
           )}
-          {!record?.isBlackListed && 
-          <DialogContentText>
-            Are you sure you want to blacklist the user <strong>{record.username}</strong>? 
-            This action cannot be undone.
-          </DialogContentText>}
+          {!record?.isBlackListed && (
+            <DialogContentText>
+              Are you sure you want to blacklist the user{" "}
+              <strong>{record.username}</strong>? This action cannot be undone.
+            </DialogContentText>
+          )}
         </DialogContent>
-        {!record?.isBlackListed && 
-        <DialogActions>
-          <Button onClick={onClose} color="secondary" variant="outlined" disabled={loading}>Cancel</Button>
-          <Button onClick={() => blacklistUser(record.id)} color="error" variant="contained" disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : "Confirm"}
-          </Button>
-        </DialogActions>
-}
+        {!record?.isBlackListed && (
+          <DialogActions className="p-16 d-flex w-100 justify-content-between">
+            <Button
+              onClick={onClose}
+              color="secondary"
+              variant="outlined"
+              disabled={loading}
+              className="custom-button cancel"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => blacklistUser(record.id)}
+              color="error"
+              variant="contained"
+              disabled={loading}
+              className="mx-2 custom-button"
+            >
+              {loading ? <CircularProgress size={24} /> : "Confirm"}
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
     </>
   );

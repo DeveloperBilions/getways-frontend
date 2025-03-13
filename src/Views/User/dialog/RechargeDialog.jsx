@@ -11,11 +11,13 @@ import {
   Form,
   Input,
   Alert,
+  ModalFooter,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
+import "../../../Assets/css/Dialog.css";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -80,25 +82,37 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={onClose} size="md" centered>
-          <ModalHeader toggle={onClose} className="border-bottom-0">
+        <Modal
+          isOpen={open}
+          toggle={onClose}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={onClose}
+            className="custom-modal-header border-bottom-0"
+          >
             Recharge Amount
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className="modal-body">
             {errorMessage && (
               <Alert color="danger" className="mt-2">
                 {errorMessage}
               </Alert>
             )}
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Row>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="userName">Account</Label>
+                    <Label for="userName" className="custom-label">
+                      Account
+                    </Label>
                     <Input
                       id="userName"
                       name="userName"
                       type="text"
+                      className="custom-input"
                       value={userName}
                       required
                       disabled
@@ -108,12 +122,16 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="rechargeAmount">Recharge Amount</Label>
+                    <Label for="rechargeAmount" className="custom-label">
+                      Recharge Amount
+                    </Label>
                     <Input
                       id="rechargeAmount"
                       name="rechargeAmount"
                       type="text"
                       autoComplete="off"
+                      placeholder="e.g. 500"
+                      className="custom-input"
                       value={rechargeAmount}
                       onChange={(e) => {
                         let value = e.target.value;
@@ -141,42 +159,46 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="remark">Remark</Label>
+                    <Label for="remark" className="custom-label">
+                      Remark
+                    </Label>
                     <Input
                       id="remark"
                       name="remark"
                       type="textarea"
                       autoComplete="off"
+                      placeholder="e.g. Recharge text"
+                      className="custom-input"
                       maxLength={30}
                       onChange={(e) => setRemark(e.target.value)}
                     />
                   </FormGroup>
                 </Col>
-
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      color="success"
-                      type="submit"
-                      className="mx-2"
-                      disabled={loading}
-                    >
-                      {loading ? "Processing..." : "Confirm"}
-                    </Button>
-                    <Button
-                      color="secondary"
-                      onClick={() => {
-                        onClose();
-                        setErrorMessage("");
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Col>
               </Row>
             </Form>
           </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12}>
+              <div className="d-flex w-100 justify-content-between">
+                <Button
+                  onClick={() => {
+                    onClose();
+                    setErrorMessage("");
+                  }}
+                  className="custom-button cancel"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="custom-button confirm"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Confirm"}
+                </Button>
+              </div>
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>

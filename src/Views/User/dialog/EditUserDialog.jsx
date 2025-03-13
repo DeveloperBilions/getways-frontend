@@ -10,6 +10,7 @@ import {
   Label,
   Form,
   Input,
+  ModalFooter,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -111,12 +112,21 @@ const EditUserDialog = ({
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={onClose} size="md" centered>
-          <ModalHeader toggle={onClose} className="border-bottom-0">
+        <Modal
+          isOpen={open}
+          toggle={onClose}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={onClose}
+            className="custom-modal-header border-bottom-0"
+          >
             Edit User Details
           </ModalHeader>
-          <ModalBody>
-          <Box mb={3}>
+          <ModalBody className="modal-body">
+            <Box mb={3}>
               {errorMessage && (
                 <Alert severity="error" onClose={() => setErrorMessage("")}>
                   {errorMessage}
@@ -128,20 +138,24 @@ const EditUserDialog = ({
                 </Alert>
               )}
             </Box>
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Row>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="userName">User Name</Label>
+                    <Label for="userName" className="custom-label">
+                      User Name
+                    </Label>
                     <Input
                       id="userName"
                       name="userName"
                       type="text"
                       autoComplete="off"
                       value={userName}
+                      className="custom-input"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (/^[a-zA-Z0-9_.-]*$/.test(value)) { // Prevents invalid characters from being typed
+                        if (/^[a-zA-Z0-9_.-]*$/.test(value)) {
+                          // Prevents invalid characters from being typed
                           setUserName(value);
                         }
                       }}
@@ -152,16 +166,20 @@ const EditUserDialog = ({
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="name">Name</Label>
+                    <Label for="name" className="custom-label">
+                      Name
+                    </Label>
                     <Input
                       id="name"
                       name="name"
                       type="text"
                       autoComplete="off"
                       value={name}
+                      className="custom-input"
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          // Prevents invalid characters from being typed
                           setName(value);
                         }
                       }}
@@ -172,12 +190,15 @@ const EditUserDialog = ({
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="email">Email</Label>
+                    <Label for="email" className="custom-label">
+                      Email
+                    </Label>
                     <Input
                       id="email"
                       name="email"
                       type="email"
                       autoComplete="off"
+                      className="custom-input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -187,11 +208,14 @@ const EditUserDialog = ({
                 {identity?.isPasswordPermission && (
                   <Col md={12}>
                     <FormGroup>
-                      <Label for="password">Password</Label>
+                      <Label for="password" className="custom-label">
+                        Password
+                      </Label>
                       <div className="position-relative">
                         <Input
                           id="password"
                           name="password"
+                          className="custom-input"
                           type={showPassword ? "text" : "password"} // Toggle between text and password
                           autoComplete="off"
                           value={password}
@@ -214,19 +238,21 @@ const EditUserDialog = ({
                     </FormGroup>
                   </Col>
                 )}
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button className="mx-2" color="success" type="submit">
-                      Confirm
-                    </Button>
-                    <Button color="secondary" onClick={onClose}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Col>
               </Row>
             </Form>
           </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12}>
+              <div className="d-flex w-100 justify-content-between">
+                <Button className="custom-button cancel" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button className="custom-button confirm"  onClick={handleSubmit}>
+                  Confirm
+                </Button>
+              </div>
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>
