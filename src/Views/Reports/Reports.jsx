@@ -14,6 +14,7 @@ import {
   Paper,
   Stack
 } from "@mui/material";
+import { PlayerOverview } from "./PlayerOverview";
 
 export const Reports = () => {
   const { identity } = useGetIdentity();
@@ -63,6 +64,13 @@ export const Reports = () => {
           >
             Agent Overview
           </Button>
+          <Button
+            variant={activeComponent === "playerOverview" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => handleComponentChange("playerOverview")}
+          >
+            Player Overview
+          </Button>
         </Stack>
       </Paper>
       
@@ -82,6 +90,12 @@ export const Reports = () => {
       {activeComponent === "agentOverview" && (
         <Box sx={{ mb: 3 }}>
           <AgentOverview />
+        </Box>
+      )}
+
+      {activeComponent === "playerOverview" && (
+        <Box sx={{ mb: 3 }}>
+          <PlayerOverview />
         </Box>
       )}
     </Box>
