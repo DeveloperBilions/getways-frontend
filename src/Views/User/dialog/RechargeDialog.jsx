@@ -16,6 +16,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
+import { checkActiveRechargeLimit } from "../../../Utils/utils";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -60,7 +61,13 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
       remark,
       type: "recharge",
     };
+    const transactionCheck = await checkActiveRechargeLimit(record.userParentId, rechargeAmount);
+    if (!transactionCheck.success) {
+      setErrorMessage(transactionCheck.message); // Show error if the limit is exceeded
+      return;
+    }
     setLoading(true);
+    
     try {
       await dataProvider.userTransaction(rawData);
       onClose();
