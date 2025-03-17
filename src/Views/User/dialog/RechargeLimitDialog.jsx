@@ -25,13 +25,14 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [inputErrors, setInputErrors] = useState({}); // Store input validation errors
 
   // Load existing values when the dialog opens
   useEffect(() => {
     if (record) {
-      setMonthlyLimit(record?.monthlyRechargeLimit || ""); 
-      setDailyLimit(record?.dailyRechargeLimit || ""); 
-      setActiveLimit(record?.activeRechargeLimit || ""); 
+      setMonthlyLimit(record?.monthlyRechargeLimit || "");
+      setDailyLimit(record?.dailyRechargeLimit || "");
+      setActiveLimit(record?.activeRechargeLimit || "");
       setLimitEnabled(!!record?.activeRechargeLimit); // Enable switch if activeRechargeLimit exists
     }
   }, [record, open]);
@@ -39,17 +40,21 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
   // Validate only if user enters data
   const validateInputs = () => {
     let errors = {};
-    
+
     if (limitEnabled) {
-      if (monthlyLimit && (monthlyLimit < 0)) {
+      if (monthlyLimit !== "" && (isNaN(monthlyLimit) || monthlyLimit < 0)) {
         errors.monthlyLimit = "Monthly limit must be at least 0.";
       }
-      if (dailyLimit && (dailyLimit < 0 || dailyLimit > 50000)) {
+      if (dailyLimit !== "" && (isNaN(dailyLimit) || dailyLimit < 0 || dailyLimit > 50000)) {
         errors.dailyLimit = "Daily limit must be between 0 and 50000.";
       }
+      if (!activeLimit) {
+        errors.activeLimit = "Please select an active recharge limit.";
+      }
     }
-    
-    return errors;
+
+    setInputErrors(errors);
+    return Object.keys(errors).length === 0; // Return true if no errors
   };
 
   // Handle Save
@@ -57,6 +62,12 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    // Run validation before saving
+    if (!validateInputs()) {
+      setLoading(false);
+      return;
+    }
 
     try {
       if (!record?.id) {
@@ -71,7 +82,7 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
       if (!limitEnabled) {
         user.set("activeRechargeLimit", "");
       } else {
-        if (activeLimit) user.set("activeRechargeLimit", activeLimit); // Set active limit if enabled
+        user.set("activeRechargeLimit", activeLimit); // Set active limit if enabled
       }
 
       // Update limits only if restriction is ON
@@ -119,7 +130,12 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
             </Typography>
             <Switch
               checked={limitEnabled}
-              onChange={(e) => setLimitEnabled(e.target.checked)}
+              onChange={(e) => {
+                setLimitEnabled(e.target.checked);
+                if (!e.target.checked) {
+                  setInputErrors({}); // Clear errors when turning off restriction
+                }
+              }}
             />
           </Box>
 
@@ -131,8 +147,8 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
             type="number"
             value={monthlyLimit}
             onChange={(e) => setMonthlyLimit(e.target.value)}
-            error={!!validateInputs().monthlyLimit}
-            helperText={validateInputs().monthlyLimit}
+            error={!!inputErrors.monthlyLimit}
+            helperText={inputErrors.monthlyLimit}
             disabled={!limitEnabled} // Disable input if restriction is OFF
           />
 
@@ -144,8 +160,8 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
             type="number"
             value={dailyLimit}
             onChange={(e) => setDailyLimit(e.target.value)}
-            error={!!validateInputs().dailyLimit}
-            helperText={validateInputs().dailyLimit}
+            error={!!inputErrors.dailyLimit}
+            helperText={inputErrors.dailyLimit}
             disabled={!limitEnabled} // Disable input if restriction is OFF
           />
 
@@ -162,6 +178,11 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
                 <FormControlLabel value="daily" control={<Radio />} label="Set Daily Limit as Active" />
                 <FormControlLabel value="monthly" control={<Radio />} label="Set Monthly Limit as Active" />
               </RadioGroup>
+              {inputErrors.activeLimit && (
+                <Typography variant="caption" color="error">
+                  {inputErrors.activeLimit}
+                </Typography>
+              )}
             </>
           )}
         </Box>
@@ -171,7 +192,12 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
         <Button onClick={onClose} variant="outlined" color="secondary" disabled={loading}>
           Cancel
         </Button>
-        <Button onClick={handleSave} variant="contained" color="primary" disabled={loading}>
+        <Button 
+          onClick={handleSave} 
+          variant="contained" 
+          color="primary" 
+          disabled={loading}
+        >
           {loading ? <CircularProgress size={24} /> : "Save"}
         </Button>
       </DialogActions>
