@@ -218,7 +218,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           >
             Redeem Amount
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className="custom-modal-body">
             {amountError && (
               <Alert severity="error" sx={{ mb: 1 }}>
                 {amountError}

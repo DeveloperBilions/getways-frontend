@@ -9,6 +9,7 @@
   padding: 16px; /* Set the padding */
   font-family: 'Inter', sans-serif; /* Keep the Inter font */
   border-bottom: 0; /* Remove bottom border */
+  font-weight:400;
 }
 
 .custom-label {
@@ -89,11 +90,11 @@
   box-sizing: border-box; /* Ensure padding is included in the element’s total width and height */
 }
 
-.modal-body {
+.custom-modal-body {
   width: 460px;
   height: 100%;
   min-height: 88px;
-  padding: 0 16px !important;
+  padding: 0 16px !important; /* Adjust padding as needed */
   display: flex; /* To apply the gap between elements inside */
   flex-direction: column; /* If you want vertical alignment of items */
 }
@@ -124,4 +125,18 @@
   height: 36px;
   padding: 0 16px;
   border-radius: 4px;
+}
+
+.green-switch:checked {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.green-switch:focus {
+  box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.black-checkbox:checked {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
 }

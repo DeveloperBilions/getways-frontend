@@ -95,7 +95,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
           >
             Recharge Amount
           </ModalHeader>
-          <ModalBody className="modal-body">
+          <ModalBody className="custom-modal-body">
             {errorMessage && (
               <Alert color="danger" className="mt-2">
                 {errorMessage}

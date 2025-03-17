@@ -79,7 +79,7 @@ const DeleteUserDialog = ({
           >
             Delete User
           </ModalHeader>
-          <ModalBody className="modal-body">
+          <ModalBody className="custom-modal-body">
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>

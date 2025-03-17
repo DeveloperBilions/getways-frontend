@@ -289,7 +289,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
             Add New user
           </ModalHeader>
 
-          <ModalBody className="modal-body">
+          <ModalBody className="custom-modal-body">
             <Form>
               {errorMessage && (
                 <Grid item xs={12}>

@@ -100,7 +100,7 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
               id="passwordPermission"
               checked={passwordPermission}
               onChange={(e) => setPasswordPermission(e.target.checked)}
-              className="me-2"
+              className="black-checkbox me-2"
             />
             <Typography variant="body2">
               Allow the Agent to set or reset their Player's password.

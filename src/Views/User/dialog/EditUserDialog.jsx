@@ -125,7 +125,7 @@ const EditUserDialog = ({
           >
             Edit User Details
           </ModalHeader>
-          <ModalBody className="modal-body">
+          <ModalBody className="custom-modal-body">
             <Box mb={3}>
               {errorMessage && (
                 <Alert severity="error" onClose={() => setErrorMessage("")}>
@@ -247,7 +247,10 @@ const EditUserDialog = ({
                 <Button className="custom-button cancel" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button className="custom-button confirm"  onClick={handleSubmit}>
+                <Button
+                  className="custom-button confirm"
+                  onClick={handleSubmit}
+                >
                   Confirm
                 </Button>
               </div>
