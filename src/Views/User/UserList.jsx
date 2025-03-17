@@ -42,6 +42,7 @@ import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
+import setting from "../../Assets/icons/setting.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -116,17 +117,31 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 
   return (
     <React.Fragment>
-      <Button
-        variant="outlined"
+      <Box
         id="basic-button"
         size="small"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        style={{
+          backgroundColor: "#F4F4F5", // White background as in the image
+          border: "1px solid #F4F4F5", // Light grey border
+          borderRadius: "5px", // Rounded corners
+          padding: "2px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "32px", // Square dimensions
+          height: "32px",
+          cursor: "pointer",
+          "&:hover": {
+            backgroundColor: "#f5f5f5", // Slight grey on hover
+          },
+        }}
       >
-        Editor
-      </Button>
+        <img src={setting} alt="setting" width={20} height={20} />
+      </Box>
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
@@ -462,11 +477,14 @@ useEffect(() => {
       {role != "Super-User" && role != "Master-Agent" && (
         <Button
           variant="contained"
-          color="primary"
           size="small"
           startIcon={<AddIcon />}
           onClick={handleGenerateLink}
-          sx={{ width: { xs: "100%", sm: "auto" } }}
+          sx={{
+            width: { xs: "100%", sm: "auto" },
+            backgroundColor: "#000",
+            color: "#fff",
+          }}
         >
           Referral Link
         </Button>
@@ -474,11 +492,14 @@ useEffect(() => {
 
       <Button
         variant="contained"
-        color="primary"
         size="small"
         startIcon={<AddIcon />}
         onClick={handleCreateUser}
-        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          backgroundColor: "#000",
+          color: "#fff",
+        }} // Full width on small screens
       >
         Add New User
       </Button>
@@ -570,8 +591,11 @@ useEffect(() => {
                   borderBottom: "2px solid #dedede",
                 },
                 "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
-                  padding: "8px", // Add consistent padding for readability
-                  textAlign: "left", // Align content to the left
+                  padding: "8px 12px",
+                  textAlign: "center", // Center-align all content
+                  whiteSpace: "nowrap", // Prevent text wrapping
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 },
                 "@media (max-width: 600px)": {
                   // Ensure responsiveness for mobile screens
@@ -582,6 +606,12 @@ useEffect(() => {
                 },
               }}
             >
+              <WrapperField label="Actions">
+                <CustomButton
+                  fetchAllUsers={fetchAllUsers}
+                  identity={identity}
+                />
+              </WrapperField>
               <TextField source="username" label="User Name" />
               <TextField source="email" label="Email" />
               {(identity?.role === "Super-User" ||
@@ -593,12 +623,6 @@ useEffect(() => {
                 <TextField source="roleName" label="User Type" />
               )}
               <DateField source="createdAt" label="Date" showTime sortable />
-              <WrapperField label="Actions">
-                <CustomButton
-                  fetchAllUsers={fetchAllUsers}
-                  identity={identity}
-                />
-              </WrapperField>
             </Datagrid>
             <Box
               sx={{

@@ -528,6 +528,68 @@ const postListActions = (
                 },
               }}
             >
+              <FunctionField
+                label="Action"
+                render={(record) =>
+                  record?.status === 2 && identity?.role !== "Player" ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<MonetizationOnIcon />}
+                      onClick={() => handleCoinCredit(record)}
+                    >
+                      Coins Credit
+                    </Button>
+                  ) : record.status === 1 ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        sx={{
+                          mr: 1,
+                        }}
+                        startIcon={<ContentCopyIcon />}
+                        onClick={() => handleUrlClick(record)}
+                      >
+                        Copy
+                      </Button>
+                      {identity?.role === "Player" && (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          sx={{
+                            pr: 2,
+                            pl: 2,
+                          }}
+                          startIcon={<LanguageIcon />}
+                          onClick={() => handleUrlRedirect(record)}
+                        >
+                          Recharge
+                        </Button>
+                      )}
+                    </Box>
+                  ) : record.status === 0 ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      startIcon={<LinkIcon />}
+                      onClick={() => handleUrlClick(record)}
+                    >
+                      Generate Link
+                    </Button>
+                  ) : null
+                }
+              />
               <TextField source="username" label="Account" />
               <NumberField
                 source="transactionAmount"
@@ -605,68 +667,6 @@ const postListActions = (
                 label="RechargeDate"
                 showTime
                 sortable
-              />
-              <FunctionField
-                label="Action"
-                render={(record) =>
-                  record?.status === 2 && identity?.role !== "Player" ? (
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      startIcon={<MonetizationOnIcon />}
-                      onClick={() => handleCoinCredit(record)}
-                    >
-                      Coins Credit
-                    </Button>
-                  ) : record.status === 1 ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        sx={{
-                          mr: 1,
-                        }}
-                        startIcon={<ContentCopyIcon />}
-                        onClick={() => handleUrlClick(record)}
-                      >
-                        Copy
-                      </Button>
-                      {identity?.role === "Player" && (
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          sx={{
-                            pr: 2,
-                            pl: 2,
-                          }}
-                          startIcon={<LanguageIcon />}
-                          onClick={() => handleUrlRedirect(record)}
-                        >
-                          Recharge
-                        </Button>
-                      )}
-                    </Box>
-                  ) : record.status === 0 ? (
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      startIcon={<LinkIcon />}
-                      onClick={() => handleUrlClick(record)}
-                    >
-                      Generate Link
-                    </Button>
-                  ) : null
-                }
               />
             </Datagrid>
             <Box

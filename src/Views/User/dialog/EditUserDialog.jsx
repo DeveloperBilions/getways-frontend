@@ -126,7 +126,7 @@ const EditUserDialog = ({
             Edit User Details
           </ModalHeader>
           <ModalBody className="custom-modal-body">
-            <Box mb={3}>
+            {(errorMessage || successMessage) && (<Box mb={3}>
               {errorMessage && (
                 <Alert severity="error" onClose={() => setErrorMessage("")}>
                   {errorMessage}
@@ -137,7 +137,7 @@ const EditUserDialog = ({
                   {successMessage}
                 </Alert>
               )}
-            </Box>
+            </Box>)}
             <Form>
               <Row>
                 <Col md={12}>

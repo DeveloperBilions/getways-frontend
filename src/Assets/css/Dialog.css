@@ -34,20 +34,13 @@
   gap: 8px;
   padding: 14px 20px;
   align-items: center;
+  font-family: 'Inter', sans-serif;
 }
 
 .cancel{
     background-color: var(--secondary-color) !important;
     color: var(--primary-color) !important;
     border-color: grey !important;
-}
-
-.cancel-btn{
-    margin-left: 210px !important;
-}
-
-.edit-btn{
-    margin-left: 194px !important;
 }
 
 .confirm{

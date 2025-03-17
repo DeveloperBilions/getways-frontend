@@ -288,12 +288,18 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 </Col>
 
                 <p className="redeem-fees-text">
-                  <small>Redeem Service Fee @ {editedFees}%</small>
-                  {isEditingFees && (
-                    <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <small>Redeem Service Fee @ {editedFees}%</small>
+                    {isEditingFees && (
                       <Button
                         color="secondary"
-                        className="cancel-btn cancel"
+                        className="cancel"
                         onClick={handleCancelEditFees}
                       >
                         <img
@@ -302,6 +308,20 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           style={{ width: 11, height: 11 }}
                         />
                       </Button>
+                    )}
+                    {role === "Agent" && redeemEnabled && !isEditingFees && (
+                      <Button color="link" onClick={handleEditFees}>
+                        Edit
+                      </Button>
+                    )}
+                    {role === "Super-User" && !isEditingFees && (
+                      <Button color="link" onClick={handleEditFees}>
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                  {isEditingFees && (
+                    <>
                       <div className="fee-edit-container">
                         <Input
                           id="redeemFees"
@@ -332,25 +352,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           Change
                         </Button>
                       </div>
+                        {serviceError && (
+                          <small className="text-danger">{serviceError}</small>
+                        )}
                     </>
-                  )}
-                  {role === "Agent" && redeemEnabled && !isEditingFees && (
-                    <Button
-                      color="link"
-                      className="edit-btn"
-                      onClick={handleEditFees}
-                    >
-                      Edit
-                    </Button>
-                  )}
-                  {role === "Super-User" && !isEditingFees && (
-                    <Button
-                      color="link"
-                      className="edit-btn"
-                      onClick={handleEditFees}
-                    >
-                      Edit
-                    </Button>
                   )}
                 </p>
 
@@ -447,9 +452,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   {loading ? "Processing..." : "Confirm"}
                 </Button>
               </div>
-              {serviceError && (
-                <small className="text-danger">{serviceError}</small>
-              )}
             </Col>
           </ModalFooter>
         </Modal>
