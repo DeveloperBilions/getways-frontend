@@ -478,7 +478,70 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
   }
 };
 
+export const fetchTransactionsofPlayer = async ({
+  userParentId,
+  startDate,
+  endDate,
+} = {}) => {
+  try {
+    // Step 1: Set start and end date with correct hours
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0); // Start of the day
 
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // End of the day
+
+    // Step 2: Fetch transactions grouped by username
+    const pipeline = [
+      { 
+        $match: {
+          username: { $exists: true, $ne: null }, // Ensure valid username
+          status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+          createdAt: { $gte: start, $lte: end },
+          transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+        } 
+      },
+      { 
+        $group: {
+          _id: "$username", // Group by username (player)
+          totalRecharge: { 
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
+          }, // Sum only recharge transactions
+          totalRedeem: { 
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+          }, // Sum only redeem transactions
+          totalCashout: { 
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
+          } // Sum only cashout transactions
+        }
+      }
+    ];
+    if (userParentId) {
+      pipeline[0].$match.userParentId = { $exists: true, $ne: null, $eq: userParentId }; // Filter by userParentId
+    }
+
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
+    }
+
+    // Step 3: Sort transactions based on total amounts
+    const sortedTransactions = transactions.map(transaction => ({
+      username: transaction.objectId,
+      totalRecharge: Math.floor(transaction.totalRecharge || 0),
+      totalRedeem: Math.floor(transaction.totalRedeem || 0),
+      totalCashout: Math.floor(transaction.totalCashout || 0)
+    })).sort((a, b) => b.totalRecharge - a.totalRecharge); // Sort by total amount in descending order
+
+    return { status: "success", data: sortedTransactions };
+    
+    // return { status: "success", data: transactions };
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+}
 export const fetchTransactionsofAgentByDate = async ({
   sortOrder = "desc",
   startDate,
