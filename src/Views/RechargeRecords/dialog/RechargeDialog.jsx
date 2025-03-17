@@ -18,6 +18,7 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
+import { checkActiveRechargeLimit } from "../../../Utils/utils";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -77,6 +78,13 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
       );
       return;
     }
+
+    const transactionCheck = await checkActiveRechargeLimit(identity.userParentId, rechargeAmount);
+    if (!transactionCheck.success) {
+      setErrorMessage(transactionCheck.message); // Show error if the limit is exceeded
+      return;
+    }
+
     if (paymentSource === "wallet") {
       // Ensure wallet balance is sufficient
       if (parseFloat(rechargeAmount) > walletBalance) {

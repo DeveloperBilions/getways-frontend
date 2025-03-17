@@ -46,6 +46,8 @@ import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
 import { Box, Typography, Button } from "@mui/material";
+import CheckoutForm from "./Views/Stripe/CheckoutForm";
+import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -66,28 +68,28 @@ function App() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-  useEffect(() => {
-    // Disable right-click
-    const disableRightClick = (event) => event.preventDefault();
-    document.addEventListener("contextmenu", disableRightClick);
+  // useEffect(() => {
+  //   // Disable right-click
+  //   const disableRightClick = (event) => event.preventDefault();
+  //   document.addEventListener("contextmenu", disableRightClick);
   
-    // Detect DevTools open
-    const checkDevTools = () => {
-      if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
-        if (!navigator.userAgent.toLowerCase().includes("mobi")) { // Ignore mobile devices
-          alert("DevTools is open! Closing the page for security.");
-          // window.location.href = "about:blank"; // Redirect or block
-        }
-      }
-    };
+  //   // Detect DevTools open
+  //   const checkDevTools = () => {
+  //     if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+  //       if (!navigator.userAgent.toLowerCase().includes("mobi")) { // Ignore mobile devices
+  //         alert("DevTools is open! Closing the page for security.");
+  //         // window.location.href = "about:blank"; // Redirect or block
+  //       }
+  //     }
+  //   };
   
-    const interval = setInterval(checkDevTools, 1000); // Check every second
+  //   const interval = setInterval(checkDevTools, 1000); // Check every second
   
-    return () => {
-      document.removeEventListener("contextmenu", disableRightClick);
-      clearInterval(interval);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", disableRightClick);
+  //     clearInterval(interval);
+  //   };
+  // }, []);
 
   // Attractive No Internet Screen
   if (!isOnline) {
@@ -205,6 +207,24 @@ function App() {
                     />
                   </CustomRoutes>
               </>}
+              <CustomRoutes>
+
+              <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    /> </CustomRoutes>
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>
@@ -249,6 +269,22 @@ function App() {
                     </Authenticated>
                   }
                 />
+                 <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    />
               </CustomRoutes>
             </>
           );
@@ -265,6 +301,22 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         <Route path="/create-user" element={<ReferralLinkForm />} />
+        <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    />
           </CustomRoutes>
         );}
       }}

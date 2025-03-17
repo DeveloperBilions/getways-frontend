@@ -580,7 +580,81 @@ export const fetchTransactionsofAgentByDate = async ({
     return { status: "error", code: 500, message: error.message };
   }
 };
+export const checkActiveRechargeLimit = async (userId, transactionAmount) => {
+  try {
+    // Fetch user details
+    const userQuery = new Parse.Query(Parse.User);
+    userQuery.equalTo("objectId", userId);
+    const user = await userQuery.first({ useMasterKey: true });
 
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found.`);
+    }
 
+    // Get user's active recharge limit settings
+    const activeRechargeLimit = user.get("activeRechargeLimit"); // "daily" or "monthly"
+    const monthlyLimit = user.get("monthlyRechargeLimit") || 0;
+    const dailyLimit = user.get("dailyRechargeLimit") || 0;
 
+    if (!activeRechargeLimit) {
+      return { success: true, message: "No active recharge limit set." };
+    }
 
+    // Determine the start date based on the active recharge limit (Convert to CST)
+    const nowUTC = new Date();
+    const offsetCST = 6 * 60 * 60 * 1000; // CST is UTC-6 (in milliseconds)
+    let startDateCST = new Date(nowUTC.getTime() - offsetCST); // Adjust to CST
+
+    if (activeRechargeLimit === "monthly") {
+      startDateCST.setDate(1); // Set to 1st day of the month
+      startDateCST.setHours(0, 0, 0, 0); // Reset time to midnight CST
+    } else {
+      startDateCST.setHours(0, 0, 0, 0); // Reset time to midnight CST
+    }
+
+    // Convert CST start date back to UTC for querying
+    let startDateUTC = new Date(startDateCST.getTime() + offsetCST);
+
+    // Use MongoDB aggregation pipeline to calculate total recharged amount
+    const pipeline = [
+      {
+        $match: {
+          userParentId: userId,
+          status: { $in: [2, 3] }, // Only successful transactions
+          transactionDate: { $gte: startDateUTC }, // Filter transactions within active period
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRecharged: { $sum: "$transactionAmount" }, // Sum transaction amounts
+        },
+      },
+    ];
+
+    const TransactionRecords = Parse.Object.extend("TransactionRecords");
+    const query = new Parse.Query(TransactionRecords);
+    const totalRechargedResult = await query.aggregate(pipeline);
+
+    // Extract total recharged amount from aggregation result
+    const totalRecharged = totalRechargedResult.length > 0 ? totalRechargedResult[0].totalRecharged : 0;
+
+    // Convert new transaction amount to correct format (cents to dollars)
+    const newTransactionAmount = Math.floor(parseFloat(transactionAmount)) ;
+    // Check if the new transaction would exceed the limit
+    if (
+      (activeRechargeLimit === "monthly" && totalRecharged + newTransactionAmount > monthlyLimit) ||
+      (activeRechargeLimit === "daily" && totalRecharged + newTransactionAmount > dailyLimit)
+    ) {
+      return {
+        success: false,
+        message: `Agent Recharge limit exceeded.`,
+      };
+    }
+
+    return { success: true, message: "Transaction within allowed recharge limit." };
+  } catch (error) {
+    console.error("Error in checkActiveRechargeLimit:", error.message);
+    return { success: false, message: error.message || "An error occurred while checking limits." };
+  }
+};
