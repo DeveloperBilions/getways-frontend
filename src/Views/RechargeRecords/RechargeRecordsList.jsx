@@ -55,6 +55,7 @@ import { Loader } from "../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
+import PersistentMessage from "../../Utils/View/PersistentMessage";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -448,7 +449,11 @@ const postListActions = (
   }
   return (
     <>
-      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
+     {(role === "Master-Agent" || role  === "Agent" )&& 
+    <EmergencyNotices /> }
+         {(role === "Master-Agent" || role  === "Agent" )&& 
+    <PersistentMessage /> }
+
       <Box
         sx={{
           display: "flex",

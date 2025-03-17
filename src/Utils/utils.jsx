@@ -711,7 +711,7 @@ export const checkActiveRechargeLimit = async (userId, transactionAmount) => {
     ) {
       return {
         success: false,
-        message: `Agent Recharge limit exceeded.`,
+        message: `You have reached the ${activeRechargeLimit} maximum limit. Please try again later.`,
       };
     }
 
