@@ -48,9 +48,11 @@ export const AgentOverview = () => {
           ? {
               username: search,
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+              roleName:"Agent"
             }
           : {
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+              roleName:"Agent"
             },
       });
 
@@ -171,7 +173,7 @@ export const AgentOverview = () => {
               )}
             />
             <TextField
-              label="Start Date"
+              label="From Date"
               type="date"
               value={tempStartDate}
               onChange={(event) => setTempStartDate(event.target.value)}
@@ -182,7 +184,7 @@ export const AgentOverview = () => {
               }}
             />
             <TextField
-              label="End Date"
+              label="To Date"
               type="date"
               value={tempEndDate}
               onChange={(event) => setTempEndDate(event.target.value)}
@@ -196,8 +198,9 @@ export const AgentOverview = () => {
               variant="contained"
               onClick={handleFilterSubmit}
               sx={{ whiteSpace: "nowrap" }}
+              disabled={!tempStartDate || !tempEndDate || !selectedUsertemp || agentLoading}
             >
-              Apply Filter
+              {agentLoading ? "Loading..." : "Apply Filter"}
             </Button>
           </Box>
 
