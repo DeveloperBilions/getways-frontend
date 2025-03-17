@@ -119,164 +119,95 @@ const WalletDialog = ({ open, onClose, record }) => {
   
   return (
     <>
-      <Modal isOpen={open} toggle={onClose} size="md" centered>
-        <ModalHeader toggle={onClose}>
-          <FaWallet style={{ marginRight: "10px" }} />
-          Wallet Details
-        </ModalHeader>
-        <ModalBody>
-          {loading ? (
-            <Loader />
-          ) : walletDetails ? (
-            <Card
-              className="shadow-sm"
-              style={{
-                borderRadius: "15px",
-                background:
-                  "linear-gradient(135deg, rgb(0 0 0), rgb(44 92 83))",
-                color: "#fff",
-              }}
-            >
-              <CardHeader
-                className="text-center"
-                style={{
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
-                }}
-              >
-                <h4 className="mb-0">
-                  <strong>Wallet Balance</strong>
-                </h4>
-              </CardHeader>
-              <CardBody className="text-center">
-                <h2 style={{ fontSize: "3rem", fontWeight: "bold" }}>
-                  ${walletDetails?.balance || 0}
-                </h2>
-                <p style={{ fontStyle: "italic", opacity: 0.8 }}>
-                  Available Balance
-                </p>
-              </CardBody>
-              <CardBody
-                style={{
-                  borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-                  paddingTop: "1rem",
-                }}
-              >
-                <h5 className="mb-3">Payment Methods</h5>
-                <ListGroup flush>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <FaCashRegister
-                      style={{ marginRight: "10px", color: "#FFD700" }}
-                    />
-                    <strong>CashApp ID:</strong>{" "}
-                    {walletDetails?.cashAppId || (
-                      <span className="text-warning">Not Added</span>
-                    )}
-                  </ListGroupItem>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <FaPaypal
-                      style={{ marginRight: "10px", color: "#0070BA" }}
-                    />
-                    <strong>PayPal ID:</strong>{" "}
-                    {walletDetails?.paypalId || (
-                      <span className="text-warning">Not Added</span>
-                    )}
-                  </ListGroupItem>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <BiLogoVenmo
-                      style={{ marginRight: "10px", color: "#3D95CE" }}
-                    />
-                    <strong>Venmo ID:</strong>{" "}
-                    {walletDetails?.venmoId || (
-                      <span className="text-warning">Not Added</span>
-                    )}
-                  </ListGroupItem>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <SiZelle
-                      style={{ marginRight: "10px", color: "#6C757D" }}
-                    />
-                    <strong>Zelle ID:</strong>{" "}
-                    {walletDetails?.zelleId || (
-                      <span className="text-warning">Not Added</span>
-                    )}
-                  </ListGroupItem>
-                </ListGroup>
-              </CardBody>
-              <CardBody
-                style={{
-                  borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-                  paddingTop: "1rem",
-                }}
-              >
-                <h5 className="mb-3">Cashout Statistics</h5>
-                <ListGroup flush>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <strong>In Progress:</strong> {cashoutStats.inProgressCount}
-                  </ListGroupItem>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <strong>Completed:</strong> {cashoutStats.completedCount}
-                  </ListGroupItem>
-                  <ListGroupItem
-                    style={{
-                      background: "transparent",
-                      color: "#fff",
-                      border: "none",
-                    }}
-                  >
-                    <strong>Retried:</strong> {cashoutStats.retriedCount}
-                  </ListGroupItem>
-                </ListGroup>
-              </CardBody>
-            </Card>
-          ) : (
-            <div className="text-center">
-              <p style={{ fontSize: "1.2rem", color: "#999" }}>
-                Wallet not yet created.
-              </p>
-            </div>
-          )}
-          <div className="text-end mt-3">
-            <Button className="custom-button cancel" onClick={onClose}>
-              Close
-            </Button>
+     <Modal isOpen={open} toggle={onClose} size="md" centered>
+      <ModalHeader toggle={onClose}>Wallet Details</ModalHeader>
+      <ModalBody>
+        {loading ? (
+          <Loader />
+        ) : walletDetails ? (
+          <>
+        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+          <span>Available Balance</span>
+              <span style={{ fontSize: "1.5rem", color: "#000" }}>
+                ${walletDetails?.balance || 0}
+              </span>
           </div>
-        </ModalBody>
-      </Modal>
+          <Card className="shadow-sm" style={{ borderRadius: "10px", backgroundColor: "#fff" }}>
+            {/* Payment Methods */}
+            <CardBody style={{ background: "#F7F7F7", borderRadius: "8px" }}>
+              <h5 className="mb-3">Payment Methods</h5>
+              {[  
+                { label: "CashApp ID", value: walletDetails?.cashAppId },
+                { label: "PayPal", value: walletDetails?.paypalId },
+                { label: "Venmo ID", value: walletDetails?.venmoId },
+                { label: "Zelle ID", value: walletDetails?.zelleId}
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "6px",
+                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <div style={{ marginLeft: "10px", flexGrow: 1 }}>
+                    <span style={{color:"gray",fontWeight:"600"}}>{item.label}</span>
+                    <div style={{ color: item.value ? "#000" : "#FF8C00" }}>
+                      {item.value || "Not added"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardBody>
+
+            {/* Cashout Statistics */}
+            <CardBody style={{ background: "#F7F7F7", borderRadius: "8px", marginTop: "10px" }}>
+              <h5 className="mb-3">Cashout Statistics</h5>
+              <Row>
+                {[
+                  { label: "In Progress", value: cashoutStats.inProgressCount },
+                  { label: "Completed", value: cashoutStats.completedCount },
+                  { label: "Retried", value: cashoutStats.retriedCount },
+                ].map((item, index) => (
+                  <Col key={index} xs="4" className="text-center">
+                    <div
+                      style={{
+                        background: "#fff",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                     <span style={{color:"gray",fontWeight:"600"}}> {item.label}</span>
+                      <div style={{ fontSize: "1.5rem", marginTop: "5px" }}>
+                        {item.value}
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            </CardBody>
+          </Card>
+          </>
+        ) : (
+          <div className="text-center">
+            <p style={{ fontSize: "1.2rem", color: "#999" }}>
+              Wallet not yet created.
+            </p>
+          </div>
+        )}
+
+        {/* Close Button */}
+        <div className="text-end mt-3">
+          <Button color="secondary" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </ModalBody>
+    </Modal>
       <DisablePaymentMethodDialog
         open={disableDialogOpen}
         onClose={() => setDisableDialogOpen(false)}

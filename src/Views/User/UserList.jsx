@@ -43,6 +43,7 @@ import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
 import setting from "../../Assets/icons/setting.svg";
+import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -61,6 +62,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
     useState(false);
   const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
   const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
+  const [rechargeLimitDialogOpen, setRechargeLimitDialogOpen] = useState(false); // State for Recharge Limit Dialog
 
   const role = localStorage.getItem("role");
   const record = useRecordContext();
@@ -115,6 +117,10 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
     setDrawerDialogOpen(true);
   };
 
+  const handleRechargeLimit = () => {
+    handleClose();
+    setRechargeLimitDialogOpen(true); // Open Recharge Limit Dialog
+  };
   return (
     <React.Fragment>
       <Box
@@ -151,7 +157,10 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           "aria-labelledby": "basic-button",
         }}
       >
-        <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
+        {(record?.roleName === "Player" && <MenuItem onClick={handleRedeem}>Redeem</MenuItem> )}
+        {record?.roleName === "Agent" && (
+          <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
+        )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
@@ -172,7 +181,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
             Password Permission
           </MenuItem>
         )}
-        <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+      {(record?.roleName === "Player" &&  <MenuItem onClick={handleRecharge}>Recharge</MenuItem> )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
@@ -250,6 +259,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         record={record}
         handleRefresh={handleRefresh}
       />
+            <RechargeLimitDialog open={rechargeLimitDialogOpen} onClose={() => setRechargeLimitDialogOpen(false)} record={record} handleRefresh={handleRefresh} /> {/* Recharge Limit Dialog */}
       <TransactionSummaryModal
         open={drawerDialogOpen}
         onClose={() => setDrawerDialogOpen(false)}

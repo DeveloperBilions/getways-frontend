@@ -12,6 +12,11 @@ import {
   Input,
   FormText,
   Alert,
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  CardImg,
 } from "reactstrap";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
@@ -36,10 +41,12 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     paypalId: "",
     venmoId: "",
     zelleId: "",
+    virtualCardId:"",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
     isZelleDisabled: false,
+    isVirtualCardIdDisabled:false
   });
   const [displayPaymentMethods, setDisplayPaymentMethods] = useState({
     cashAppId: "",
@@ -51,6 +58,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     isVenmoDisabled: false,
     isZelleDisabled: false,
   });
+  const [selectedGiftCard, setSelectedGiftCard] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false); // Loading state for fetching payment methods
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(""); // New state for selected payment method
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] =
@@ -80,9 +89,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      console.log(wallet, "walletdata");
-      const { cashAppId, paypalId, venmoId, zelleId, objectId, balance } =
-        wallet.wallet;
+      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance } = wallet.wallet;
       setBalance(balance);
       setPaymentMethods((prev) => ({
         ...prev,
@@ -90,6 +97,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         paypalId,
         venmoId,
         zelleId,
+        virtualCardId:"Gift Card"
       }));
       setDisplayPaymentMethods((prev) => ({
         ...prev,
@@ -106,6 +114,66 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       fetchPaymentMethods(); // Fetch payment methods when the modal is open
     }
   }, [open]);
+  const giftCards = [
+    {
+      productId: 11000000001,
+      brandName: "Venue 1 - Golf",
+      productImage: "https://app.giftango.com/GPCGraphics/CIR_000716_00.png",
+      productDescription: "Perfect for any golf enthusiast. Redeem at Venue Golf.",
+      valueRestrictions: { minVal: 0, maxVal: 2000 },
+      discount: 1.5,
+    },
+    {
+      productId: 11000000002,
+      brandName: "Venue 2 - Spa",
+      productImage: "https://app.giftango.com/GPCGraphics/CIR_000717_00.png",
+      productDescription: "Relax and unwind at Venue Spa with this gift card.",
+      valueRestrictions: { minVal: 25, maxVal: 25 },
+      discount: 3.0,
+    },
+    {
+      productId: 11000000004,
+      brandName: "Venue 3 - Boutique",
+      productImage: "https://app.giftango.com/GPCGraphics/CIR_000718_00.png",
+      productDescription: "Exclusive boutique items with Venue Boutique gift card.",
+      valueRestrictions: { minVal: 100, maxVal: 100 },
+      discount: 5.0,
+    },
+    {
+      productId: 11000000005,
+      brandName: "Venue 4 - Resorts One Mimosa Brunch Buffet",
+      productImage: "https://app.giftango.com/GPCGraphics/CIR_000719_00.png",
+      productDescription: "Enjoy a luxury buffet at Venue Resorts with this card.",
+      valueRestrictions: { minVal: 35, maxVal: 35 },
+      discount: 5.5,
+    },
+    {
+      "countryName": "United States of America",
+      "currency": "USD",
+      "productId": 12000000434,
+      "brandName": "Mastercard® eReward Virtual Account, 6-Month Expiration ",
+      "productImage": "https://app.giftango.com/GPCGraphics/C1951_1501_Mastercard_Reward_Pathward_Virtual_Sweep_Termination_Cover_Front_v3_083022_CR80_092222_300x190_RGB.png",
+      "productDescription": "The MastercardÂ? eReward Virtual Account is a convenient and flexible way to recognize employees and encourage customer loyalty.Â \n\n  Available in open denominations\n  Maximum card balances up to $10,000\n  Virtual Account may be used online, over the phone or through mail order everywhere debit Mastercard is accepted\n  Virtual Account cannot be used to obtain cash from any ATM or Point of Sale transaction\n",
+      "termsAndConditions": "<a href='https://app.giftango.com/GPCGraphics/C1951_600_eReward_Dual_Visa_MC_Virtual_Physical_Pathward_Sweep_No_Cash_Intl_CHA_v4_061422.pdf'>Cardholder agreement</a>\nVirtual Account is issued by PathwardÂ? , N.A., Member FDIC, pursuant to license by Mastercard International Incorporated. Virtual Account can be used online or via phone everywhere debit Mastercard is accepted. NO CASH OR ATM ACCESS. Terms and Conditions apply. See Virtual Accountholder Agreement for details.",
+      "howToUse": "",
+      "expiryAndValidity": "",
+      "valueRestrictions": {
+          "minVal": 5.0,
+          "maxVal": 1000.0
+      },
+      "denominations": [],
+      "discount": 3.0,
+      "discountTier1Amount": 1000.0,
+      "discountTier1": 1.7,
+      "discountTier2Amount": 0.0,
+      "discountTier2": 0.0
+  }
+  ];
+
+  // Filter gift cards by search term
+  const filteredGiftCards = giftCards.filter((card) =>
+    card.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const fetchPaymentMethods = async () => {
     setLoadingPaymentMethods(true);
     try {
@@ -120,6 +188,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
             paymentMethodsRecord.get("isPaypalDisabled") || false,
           isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
           isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
+          isVirtualCardIdDisabled: paymentMethodsRecord.get("isVirtualCardIdDisabled") || false,
         }));
       } else {
         setErrorMessage("No payment methods found in the table.");
@@ -291,26 +360,11 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
   const paymentOptions = [
-    {
-      key: "cashAppId",
-      label: "CashApp",
-      disabled: paymentMethods.isCashAppDisabled,
-    },
-    {
-      key: "paypalId",
-      label: "PayPal",
-      disabled: paymentMethods.isPaypalDisabled,
-    },
-    {
-      key: "venmoId",
-      label: "Venmo",
-      disabled: paymentMethods.isVenmoDisabled,
-    },
-    {
-      key: "zelleId",
-      label: "Zelle",
-      disabled: paymentMethods.isZelleDisabled,
-    },
+    { key: "cashAppId", label: "CashApp", disabled: paymentMethods.isCashAppDisabled },
+    { key: "paypalId", label: "PayPal", disabled: paymentMethods.isPaypalDisabled },
+    { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
+    { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
+    //{ key: "virtualCardId", label: "Gift Card", disabled: paymentMethods.isVirtualCardIdDisabled }
   ];
   // console.log(paymentMethods, "paymentMethods");
   return (
@@ -459,6 +513,52 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
+                {selectedPaymentMethodType === "virtualCardId" && (
+  <>
+    <Col md={12}>
+      <FormGroup>
+        <Label>Find a Gift Card</Label>
+        <Input
+          type="text"
+          placeholder="Search by brand name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </FormGroup>
+    </Col>
+
+    <Col md={12} style={{ maxHeight: "300px", overflowY: "auto" }}>
+      <Row>
+        {filteredGiftCards.map((card) => (
+          <Col md={6} key={card.productId}>
+            <Card
+             onClick={() => {
+              setPaymentMethods((p) => ({ ...p, virtualCardId: card.productId }));
+              setSelectedGiftCard(card);
+            }}            
+              style={{
+                cursor: "pointer",
+                border: selectedGiftCard?.productId === card.productId ? "2px solid #007bff" : "1px solid #ddd",
+                transition: "all 0.3s ease-in-out",
+              }}
+            >
+              <CardImg top width="100%" src={card.productImage} alt={card.brandName} />
+              <CardBody>
+                <CardTitle tag="h6">{card.brandName}</CardTitle>
+                <CardText>{card.productDescription}</CardText>
+                <CardText>
+                  <small>
+                    Value Range: ${card.valueRestrictions.minVal} - ${card.valueRestrictions.maxVal}
+                  </small>
+                </CardText>
+              </CardBody>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Col>
+  </>
+)}
                 <Col md={12} className="d-flex justify-content-end my-2">
                   <span
                     style={{

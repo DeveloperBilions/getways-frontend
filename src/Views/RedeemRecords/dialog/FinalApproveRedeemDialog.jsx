@@ -10,12 +10,17 @@ import {
   Label,
   Form,
   Input,
-  FormText,
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  CardImg,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -24,40 +29,55 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
   const [remark, setRemark] = useState();
-  const [redeemFees, setredeemFees] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
-  const [redeemPercentage, setRedeemPercentage] = useState();
-  const [cashAppId,setCashAppId] = useState("")
   const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
+  const [selectedGiftCard, setSelectedGiftCard] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  //   console.log("===== record", record);
+  // Gift Card List
+  const giftCards = [
+    {
+      "countryName": "United States of America",
+      "currency": "USD",
+      "productId": 12000000434,
+      "brandName": "Mastercard® eReward Virtual Account, 6-Month Expiration ",
+      "productImage": "https://app.giftango.com/GPCGraphics/C1951_1501_Mastercard_Reward_Pathward_Virtual_Sweep_Termination_Cover_Front_v3_083022_CR80_092222_300x190_RGB.png",
+      "productDescription": "The MastercardÂ? eReward Virtual Account is a convenient and flexible way to recognize employees and encourage customer loyalty.Â \n\n  Available in open denominations\n  Maximum card balances up to $10,000\n ",
+      "termsAndConditions": "<a href='https://app.giftango.com/GPCGraphics/C1951_600_eReward_Dual_Visa_MC_Virtual_Physical_Pathward_Sweep_No_Cash_Intl_CHA_v4_061422.pdf'>Cardholder agreement</a>\nVirtual Account is issued by PathwardÂ? , N.A., Member FDIC, pursuant to license by Mastercard International Incorporated. Virtual Account can be used online or via phone everywhere debit Mastercard is accepted. NO CASH OR ATM ACCESS. Terms and Conditions apply. See Virtual Accountholder Agreement for details.",
+      "howToUse": "",
+      "expiryAndValidity": "",
+      "valueRestrictions": {
+          "minVal": 5.0,
+          "maxVal": 1000.0
+      },
+      "denominations": [],
+      "discount": 3.0,
+      "discountTier1Amount": 1000.0,
+      "discountTier1": 1.7,
+      "discountTier2Amount": 0.0,
+      "discountTier2": 0.0
+  }
+  ];
+
+  // Filter gift cards by search term
+  const filteredGiftCards = giftCards.filter((card) =>
+    card.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
     setRemark("");
-    setRedeemPercentage("");
-  };
-
-  const parentServiceFee = async () => {
-    try {
-      const response = await Parse.Cloud.run("redeemParentServiceFee", {
-        userId: record?.userParentId,
-      });
-      setredeemFees(response?.redeemService || 0);
-    } catch (error) {
-      console.error("Error fetching parent service fee:", error);
-    }
+    setRedeemRemarks("");
+    setSelectedGiftCard(null);
   };
 
   useEffect(() => {
     if (record && open) {
-      parentServiceFee();
       setUserName(record.username || "");
       setRedeemAmount(record?.transactionAmount || "");
       setRemark(record?.remark || "");
-      setCashAppId(record?.cashAppId || "")
     } else {
       resetFields();
     }
@@ -66,16 +86,23 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (record?.paymentMethodType === "virtualCardId" && !selectedGiftCard) {
+      alert("Please select a gift card before approving.");
+      return;
+    }
+
     setLoading(true);
     try {
-       
-     await dataProvider.finalApprove(record?.id,redeemRemarks); // Use the correct function or method call
+      await dataProvider.finalApprove(record?.id, {
+        redeemRemarks,
+        giftCardId: selectedGiftCard?.productId || null,
+      });
 
       onClose();
-      setLoading(false);
       handleRefresh();
     } catch (error) {
-      console.error("Error Redeem Record details:", error);
+      console.error("Error approving redeem record:", error);
+      setResponseData("Error processing redemption.");
     } finally {
       setLoading(false);
     }
@@ -86,88 +113,72 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     handleRefresh();
     resetFields();
   };
+
   return (
     <React.Fragment>
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleClose} size="md" centered>
+        <Modal isOpen={open} toggle={handleClose} size="lg" centered>
           <ModalHeader toggle={handleClose} className="border-bottom-0 pb-0">
             CashOut Confirmation
           </ModalHeader>
           <ModalBody>
-            <FormText className="font-weight-bold">
-              Redeems may take up to 2 hours
-            </FormText>
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>
                   <FormGroup>
                     <Label for="userName">Account</Label>
-                    <Input
-                      id="userName"
-                      name="userName"
-                      type="text"
-                      value={userName}
-                      required
-                      disabled
-                    />
+                    <Input id="userName" name="userName" type="text" value={userName} required disabled />
                   </FormGroup>
                 </Col>
+
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="userName">Payment Mthod Type : {record?.paymentMode}</Label>
-                    <Input
-                      id="cashAppId"
-                      name="cashAppId"
-                      type="text"
-                      value={record?.paymentMethodType}
-                      required
-                      disabled
-                    />
+                    <Label>Payment Method Type</Label>
+                    <Input id="paymentMethodType" type="text" value={record?.paymentMethodType} disabled />
                   </FormGroup>
                 </Col>
 
                 <Col md={12}>
                   <FormGroup>
                     <Label for="redeemAmount">Redeem Amount</Label>
-                    <Input
-                      id="redeemAmount"
-                      name="redeemAmount"
-                      type="number"
-                      autoComplete="off"
-                      value={redeemAmount}
-                      disabled
-                    />
+                    <Input id="redeemAmount" name="redeemAmount" type="number" value={redeemAmount} disabled />
                   </FormGroup>
                 </Col>
 
-                {/* <p className="mb-0">
-                  <small>Redeem Service Fee @ {redeemFees}%</small>
-                </p>
-                {redeemPercentage !== null &&
-                  redeemPercentage !== undefined && (
-                    <p className="mb-1">
-                      <small>
-                        Total amount to be redeemed = $
-                        {redeemAmount - redeemAmount * (redeemFees / 100) || 0}
-                      </small>
-                    </p>
-                  )} */}
+                {record?.paymentMode === "virtualCardId" && (
+  <>
+    <Col md={12} >
+      <Row>
+        {filteredGiftCards.map((card) => (
+          <Col md={6} key={card.productId}>
+            <Card
+              onClick={() => setSelectedGiftCard(card)}
+              style={{
+                cursor: "pointer",
+                border: selectedGiftCard?.productId === card.productId ? "2px solid #007bff" : "1px solid #ddd",
+                transition: "all 0.3s ease-in-out",
+              }}
+            >
+              <CardImg top width="100%" src={card.productImage} alt={card.brandName} />
+              <CardBody>
+                <CardTitle tag="h6">{card.brandName}</CardTitle>
+                <CardText>{card.productDescription}</CardText>
+                <CardText>
+                  <small>
+                    Value Range: ${card.valueRestrictions.minVal} - ${card.valueRestrictions.maxVal}
+                  </small>
+                </CardText>
+              </CardBody>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Col>
+  </>
+)}
 
-                <Col md={12}>
-                  <FormGroup>
-                    <Label for="remark">Remark</Label>
-                    <Input
-                      id="remark"
-                      name="remark"
-                      type="textarea"
-                      autoComplete="off"
-                      value={remark}
-                      disabled
-                    />
-                  </FormGroup>
-                </Col>
 
                 <Col md={12}>
                   <FormGroup>
@@ -176,33 +187,22 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       id="redeemRemarks"
                       name="redeemRemarks"
                       type="textarea"
-                      autoComplete="off"
                       value={redeemRemarks}
                       maxLength={30}
                       onChange={(e) => setRedeemRemarks(e.target.value)}
                     />
                   </FormGroup>
                 </Col>
+
                 {responseData && (
                   <Col sm={12}>
-                    <Label
-                      for="errorResponse"
-                      invalid={true}
-                      className="text-danger mb-2"
-                    >
-                      {responseData}
-                    </Label>
+                    <Label className="text-danger mb-2">{responseData}</Label>
                   </Col>
                 )}
 
                 <Col md={12}>
                   <div className="d-flex justify-content-end">
-                    <Button
-                      color="success"
-                      type="submit"
-                      className="mx-2"
-                      disabled={loading}
-                    >
+                    <Button color="success" type="submit" className="mx-2" disabled={loading}>
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
                     <Button color="secondary" onClick={handleClose}>

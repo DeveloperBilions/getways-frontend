@@ -1800,7 +1800,7 @@ if (role === "Super-User" && !filter?.username) {
       if (!useWallet) {
         // Process Stripe transaction
         session = await stripe.checkout.sessions.create({
-          //payment_method_types: ["card", "cashapp"], // Accept card payments
+         // payment_method_types: ["card", "cashapp"], // Accept card payments
           mode: "payment", // One-time payment
           success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
           cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL

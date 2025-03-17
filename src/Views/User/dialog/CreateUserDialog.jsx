@@ -203,6 +203,39 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
             userParentId: parentType?.id,
             userParentName: parentType?.name,
           });
+        } else if (permissions === "Master-Agent") {
+          if (userType === "Agent") {
+            if (!identity?.objectId && !identity?.name) {
+              setErrorMessage("Parent User data is not valid");
+              return;
+            }
+            response = await Parse.Cloud.run("createUser", {
+              roleName: userType,
+              username: userName,
+              name,
+              phoneNumber,
+              email,
+              password,
+              userParentId: parentType?.id,
+              userParentName: parentType?.name,
+              redeemService: 5,
+            });
+          } else if (userType === "Player") {
+            if (!parentType?.id && !parentType?.name) {
+              setErrorMessage("Parent User data is not valid");
+              return;
+            }
+            response = await Parse.Cloud.run("createUser", {
+              roleName: userType,
+              username: userName,
+              name,
+              phoneNumber,
+              email,
+              password,
+              userParentId: parentType?.id,
+              userParentName: parentType?.name,
+            });
+          }
         }
       } else if (permissions === "Agent") {
         response = await Parse.Cloud.run("createUser", {
