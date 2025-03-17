@@ -18,7 +18,7 @@
   line-height: 14px;
   letter-spacing: 1.2%;
   vertical-align: middle;
-  color: #0000008F; /* Hex color value for text */
+  color: var(--text-color); /* Hex color value for text */
   padding-bottom: 0px; /* Same as pb-1 in Bootstrap */
   margin-bottom: 4px !important; /* Same as mb-0 in Bootstrap */
 }
@@ -36,8 +36,8 @@
 }
 
 .cancel{
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
+    background-color: var(--secondary-color) !important;
+    color: var(--primary-color) !important;
     border-color: grey !important;
 }
 
@@ -50,9 +50,9 @@
 }
 
 .confirm{
-    background-color: #000000 !important;
-    color: #FFFFFF !important;
-    border-color: #000000 !important;
+    background-color: var(--primary-color) !important;
+    color: var(--secondary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
 .custom-modal .modal-dialog {
@@ -72,7 +72,7 @@
   width: 428px;
   border-radius: 4px;
   padding: 8px 16px;
-  background: var(--Color-Surface-page-bg, #F6F4F4);
+  background: var(--secondary-color);
   font-family: 'Inter', sans-serif; /* Keep the Inter font */
   margin-bottom: 0px !important;
 }
@@ -119,7 +119,7 @@
 
 .btn-change {
   background-color: #22C55E !important; /* Green color for the button */
-  color: white;
+  color: var(--secondary-color) !important;
   font-weight: bold;
   height: 36px;
   padding: 0 16px;
