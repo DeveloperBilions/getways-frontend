@@ -645,3 +645,159 @@ export const fetchTransactionsofPlayer = async ({
     return { status: "error", code: 500, message: error.message };
   }
 };
+
+export const fetchPlayerTransactionComparison = async ({ sortOrder = "desc", selectedDates, type = "date",playerId }) => {
+  try {
+    let dateFormat = "%Y-%m-%d";
+    if (type === "month") {
+      dateFormat = "%Y-%m";
+    } else if (type === "year") {
+      dateFormat = "%Y";
+    }
+    const pipeline = [
+      {
+        $match: {
+          username: { $exists: true, $ne: null }, // Ensure valid username
+          status: { $in: [2, 3, 8, 12] },
+          transactionAmount: { $gt: 0 },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            username: "$username",
+            date: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+          },
+          totalRecharge: {
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] },
+          },
+          totalRedeem: {
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] },
+          },
+          totalCashout: {
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] },
+          },
+        },
+      },
+      {
+        $match: {
+          "_id.date": { $in: selectedDates }, // Match only selected dates
+        },
+      },
+      {
+        $sort: { "_id.date": sortOrder === "asc" ? 1 : -1 },
+      },
+    ];
+
+    if (playerId) {
+      pipeline[0].$match.userId = { $exists: true, $ne: null, $eq: playerId } // Ensure valid userId
+    }
+
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
+    }
+
+    const formattedData = {};
+    transactions.forEach((transaction) => {
+      const username = transaction.objectId.username;
+      const dateKey = transaction.objectId.date;
+
+      if (!formattedData[username]) {
+        formattedData[username] = {
+          username,
+          transactions: {},
+        };
+      }
+
+      formattedData[username].transactions[dateKey] = {
+        totalRecharge: Math.floor(transaction.totalRecharge || 0),
+        totalRedeem: Math.floor(transaction.totalRedeem || 0),
+        totalCashout: Math.floor(transaction.totalCashout || 0),
+      };
+    });
+
+    return { status: "success", data: Object.values(formattedData) };
+
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};
+
+export const fetchTransactionsofPlayerByDate = async ({
+  sortOrder = "desc",
+  startDate,
+  endDate,
+  playerId,
+} = {}) => {
+  try {
+    // Step 1: Set start and end date with correct hours
+    const start = new Date(startDate);
+    start.setUTCHours(0, 0, 0, 0); // Start of the day
+
+    const end = new Date(endDate);
+    end.setUTCHours(23, 59, 59, 999); // End of the day
+
+    // Step 2: Fetch transactions grouped by playerId and date
+    const matchConditions = {
+      userId: { $exists: true, $ne: null }, // Ensure valid userId
+      status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+      createdAt: { $gte: start, $lte: end },
+      transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+    };
+
+    if (playerId) {
+      matchConditions.userId = playerId; // Filter for specific player
+    }
+
+    const pipeline = [
+      { $match: matchConditions },
+      { 
+        $group: {
+          _id: { player: "$userId", date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } },
+          totalRecharge: { 
+            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
+          }, // Sum only recharge transactions
+          totalRedeem: { 
+            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+          }, // Sum only redeem transactions
+          totalCashout: { 
+            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
+          } // Sum only cashout transactions
+        }
+      }
+    ];
+
+    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+
+    if (transactions.length === 0) {
+      return { status: "success", data: [] };
+    }
+
+    // Step 3: Format Data 
+    const formattedData = {};
+    transactions.forEach(transaction => {
+      const playerId = transaction.objectId.player;
+      const dateKey = transaction.objectId.date;
+
+      if (!formattedData[playerId]) {
+        formattedData[playerId] = {
+          transactions: {}
+        };
+      }
+
+      formattedData[playerId].transactions[dateKey] = {
+        totalRecharge: Math.floor(transaction.totalRecharge || 0),
+        totalRedeem: Math.floor(transaction.totalRedeem || 0),
+        totalCashout: Math.floor(transaction.totalCashout || 0)
+      };
+    });
+
+    return { status: "success", data: Object.values(formattedData) };
+
+  } catch (error) {
+    console.error("Error fetching transactions:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};

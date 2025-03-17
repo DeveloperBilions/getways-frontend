@@ -15,6 +15,8 @@ import {
   Stack
 } from "@mui/material";
 import { PlayerOverview } from "./PlayerOverview";
+import { PlayerComparison } from "./PlayerComparison";
+import { ParticularPlayer } from "./ParticularPlayer";
 
 export const Reports = () => {
   const { identity } = useGetIdentity();
@@ -71,6 +73,20 @@ export const Reports = () => {
           >
             Player Overview
           </Button>
+          <Button
+            variant={activeComponent === "playerComparison" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => handleComponentChange("playerComparison")}
+          >
+            Player Comparison
+          </Button>
+          <Button
+            variant={activeComponent === "particularPlayer" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => handleComponentChange("particularPlayer")}
+          >
+            Particular Player
+          </Button>
         </Stack>
       </Paper>
       
@@ -96,6 +112,18 @@ export const Reports = () => {
       {activeComponent === "playerOverview" && (
         <Box sx={{ mb: 3 }}>
           <PlayerOverview />
+        </Box>
+      )}
+
+      {activeComponent === "playerComparison" && (
+        <Box sx={{ mb: 3 }}>
+          <PlayerComparison />
+        </Box>
+      )}
+
+      {activeComponent === "particularPlayer" && (
+        <Box sx={{ mb: 3 }}>
+          <ParticularPlayer />
         </Box>
       )}
     </Box>
