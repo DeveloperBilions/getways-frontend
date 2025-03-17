@@ -325,7 +325,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     { key: "paypalId", label: "PayPal", disabled: paymentMethods.isPaypalDisabled },
     { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
     { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
-    { key: "virtualCardId", label: "Gift Card", disabled: paymentMethods.isVirtualCardIdDisabled }
+    //{ key: "virtualCardId", label: "Gift Card", disabled: paymentMethods.isVirtualCardIdDisabled }
   ];
   console.log(paymentMethods,"paymentMethods")
   return (

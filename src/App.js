@@ -46,6 +46,8 @@ import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
 import { Box, Typography, Button } from "@mui/material";
+import CheckoutForm from "./Views/Stripe/CheckoutForm";
+import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -205,6 +207,24 @@ function App() {
                     />
                   </CustomRoutes>
               </>}
+              <CustomRoutes>
+
+              <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    /> </CustomRoutes>
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>
@@ -249,6 +269,22 @@ function App() {
                     </Authenticated>
                   }
                 />
+                 <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    />
               </CustomRoutes>
             </>
           );
@@ -265,6 +301,22 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-email" element={<PasswordResetEmail />} />
         <Route path="/create-user" element={<ReferralLinkForm />} />
+        <Route
+                      path="/checkout"
+                      element={
+                        <Authenticated>
+                          <CheckoutForm />
+                        </Authenticated>
+                      }
+                    />
+                    <Route
+                      path="/checkout-version2"
+                      element={
+                        <Authenticated>
+                          <CheckoutFormV2 />
+                        </Authenticated>
+                      }
+                    />
           </CustomRoutes>
         );}
       }}
