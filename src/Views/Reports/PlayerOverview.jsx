@@ -15,18 +15,21 @@ import {
   TableSortLabel,
   Paper,
   Box,
+  Autocomplete,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import { PieChart } from '@mui/x-charts/PieChart';
-import PersonIcon from "@mui/icons-material/Person";
+import { PieChart } from "@mui/x-charts/PieChart";
 import { useGetIdentity } from "react-admin";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
+import { fetchTransactionsofPlayer } from "../../Utils/utils";
+import debounce from "lodash/debounce";
 import { dataProvider } from "../../Provider/parseDataProvider";
-import { fetchTransactionsofAgent } from "../../Utils/utils";
 
-export const Overview = () => {
-  const [data, setData] = useState();
-  const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
+export const PlayerOverview = () => {
+  const [playerData, setPlayerData] = useState([]); // For Player transaction report
+  const [playerRechargeData, setPlayerRechargeData] = useState([]); // For Player recharge report
+  const [playerRedeemData, setPlayerRedeemData] = useState([]); // For Player recharge report
+  const [playerCashoutData, setPlayerCashoutData] = useState([]); // For Player recharge report
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,31 +39,70 @@ export const Overview = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
+  const [choices, setChoices] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(false);
+  const perPage = 10;
+
+  const fetchUsers = async (search = "", pageNum = 1) => {
+    setUserLoading(true);
+    try {
+      const { data } = await dataProvider.getList("users", {
+        pagination: { page: pageNum, perPage },
+        sort: { field: "username", order: "ASC" },
+        filter: search
+          ? {
+              username: search,
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+              roleName: "Agent",
+            }
+          : {
+              $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+              roleName: "Agent",
+            },
+      });
+
+      const formattedData = data
+        ?.map(
+          (item) =>
+            item?.id !== identity?.objectId && {
+              ...item,
+              optionName: `${item.username} (${item.roleName})`,
+            }
+        )
+        .filter(Boolean); // Remove `false` values (filtered-out identities)
+
+      setChoices(formattedData);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+    setUserLoading(false);
+  };
 
   const fetchData = async () => {
     try {
-      console.log(fromDate, toDate, "date");
       setLoading(true);
-      const filter = {};
-      if (fromDate) filter.startDate = fromDate;
-      if (toDate) filter.endDate = toDate;
-
-      const result = await dataProvider.getList("Report", {
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: "transactionDate", order: "DESC" },
-        filter,
-      });
-
-      setData(result[0]);
-
-      // Fetch agent recharge report
-      const transactionResult = await fetchTransactionsofAgent({
-        sortOrder: "desc",
+      // Fetch Player recharge report
+      const playerTransactionResult = await fetchTransactionsofPlayer({
         startDate: fromDate,
         endDate: toDate,
+        userParentId: selectedUser?.id,
       });
-      setRechargeData(transactionResult?.data || []);
-      console.log(transactionResult, "rechargeDatarechargeDatarechargeData");
+
+      setPlayerData(playerTransactionResult?.data || []);
+      // Sort playerTransactionResult by totalRecharge and select top 30 players
+      const sortedPlayerRechargeData = playerTransactionResult?.data
+        .sort((a, b) => b.totalRecharge - a.totalRecharge)
+        .slice(0, 30);
+      setPlayerRechargeData(sortedPlayerRechargeData);
+      const sortedPlayerRedeemData = playerTransactionResult?.data
+        .sort((a, b) => b.totalRedeem - a.totalRedeem)
+        .slice(0, 30);
+      setPlayerRedeemData(sortedPlayerRedeemData);
+      const sortedPlayerCashoutData = playerTransactionResult?.data
+        .sort((a, b) => b.totalCashout - a.totalCashout)
+        .slice(0, 30);
+      setPlayerCashoutData(sortedPlayerCashoutData);
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {
@@ -72,47 +114,29 @@ export const Overview = () => {
     fetchData();
   };
 
-  const finalData = [
-    {
-      id: 1,
-      name: "Conversion Rate (Fees Collected)",
-      value: data?.totalFeesAmount?.[0]?.totalFees
-        ? data.totalFeesAmount[0].totalFees.toFixed(2)
-        : "0.00",
-      bgColor: "#E3F2FD",
-      borderColor: "#7EB9FB",
-      icon: <PersonIcon color="primary" />,
-    },
-    {
-      id: 2,
-      name: "Ticket Amount",
-      value: data?.totalTicketAmount?.[0]?.totalTicketAmount
-        ? data.totalTicketAmount[0].totalTicketAmount.toFixed(2)
-        : "0.00",
-      bgColor: "#dedede",
-      borderColor: "#adb5bd",
-      icon: <PersonIcon color="info" />,
-    },
-  ];
-
   // Calculate totals for PieChart
   const calculateTotals = () => {
-    if (!rechargeData.length) return [];
-    
+    if (!playerData.length) return [];
+
     let totalRecharge = 0;
     let totalRedeem = 0;
     let totalCashout = 0;
-    
-    rechargeData.forEach(agent => {
-      totalRecharge += agent.totalRecharge;
-      totalRedeem += agent.totalRedeem;
-      totalCashout += agent.totalCashout;
+
+    playerData.forEach((username) => {
+      totalRecharge += username.totalRecharge;
+      totalRedeem += username.totalRedeem;
+      totalCashout += username.totalCashout;
     });
-    
+
     return [
-      { id: 0, value: totalRecharge, label: 'Total Recharge', color: '#4caf50' },
-      { id: 1, value: totalRedeem, label: 'Total Redeem', color: '#2196f3' },
-      { id: 2, value: totalCashout, label: 'Total Cashout', color: '#f44336' }
+      {
+        id: 0,
+        value: totalRecharge,
+        label: "Total Recharge",
+        color: "#4caf50",
+      },
+      { id: 1, value: totalRedeem, label: "Total Redeem", color: "#2196f3" },
+      { id: 2, value: totalCashout, label: "Total Cashout", color: "#f44336" },
     ];
   };
 
@@ -121,7 +145,7 @@ export const Overview = () => {
     setSortOrder((prevSortOrder) => {
       const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
 
-      setRechargeData((prevData) => {
+      setPlayerData((prevData) => {
         const sortedData = [...prevData].sort((a, b) => {
           if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
           if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
@@ -136,43 +160,83 @@ export const Overview = () => {
 
   const pieChartData = calculateTotals();
 
+  const handleUserChange = (selectedId) => {
+    setSelectedUser(selectedId);
+  };
+
+  const debouncedFetchUsers = useCallback(debounce(fetchUsers, 500), []);
+
   return (
     <>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2,height: "auto"  }}>
-              <TextField
-                label="From Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                inputProps={{
-                  min: startDateLimit,
-                  max: toDate || today,
-                }}
-              />
-              <TextField
-                label="To Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                inputProps={{
-                  min: fromDate || startDateLimit,
-                  max: today,
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                disabled={loading || !fromDate || !toDate}
-              >
-                {loading ? "Loading..." : "Apply Filter"}
-              </Button>
-            </Box>
+          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
+            <Autocomplete
+              sx={{ width: { xs: "100%", md: 230 } }}
+              options={choices}
+              getOptionLabel={(option) => option.optionName}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+              loading={userLoading}
+              loadingText="....Loading"
+              value={selectedUser}
+              onChange={(event, newValue) => handleUserChange(newValue)}
+              onInputChange={(event, newInputValue, reason) => {
+                if (reason === "input") {
+                  debouncedFetchUsers(newInputValue, 1);
+                  setSelectedUser(null);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Username"
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {userLoading ? <CircularProgress size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+            <TextField
+              sx={{ width: { xs: "100%", md: "auto" } }}
+              label="From Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              inputProps={{
+                min: startDateLimit,
+                max: toDate || today,
+              }}
+            />
+            <TextField
+              sx={{ width: { xs: "100%", md: "auto" } }}
+              label="To Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              inputProps={{
+                min: fromDate || startDateLimit,
+                max: today,
+              }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={loading || !fromDate || !toDate}
+            >
+              {loading ? "Loading..." : "Apply Filter"}
+            </Button>
+          </Box>
 
           {loading ? (
             <Grid container justifyContent="center">
@@ -181,40 +245,6 @@ export const Overview = () => {
           ) : (
             submitted && (
               <>
-                {/* Summary Cards */}
-                <Grid container spacing={2}>
-                  {finalData?.map((item) => (
-                    <Grid item xs={12} md={4} key={item?.id}>
-                      <Card
-                        sx={{
-                          backgroundColor: item?.bgColor,
-                          border: 2,
-                          borderColor: item?.borderColor,
-                          borderRadius: 0,
-                          boxShadow: 0,
-                        }}
-                      >
-                        <CardContent>
-                          <Typography
-                            variant="subtitle1"
-                            display="flex"
-                            alignItems="center"
-                          >
-                            {item?.icon}
-                            &nbsp;{item?.name}
-                          </Typography>
-                          <Typography
-                            variant="h4"
-                            sx={{ mt: 1, fontWeight: "bold" }}
-                          >
-                            {item?.value}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-
                 {/* PieChart for Totals */}
                 <Grid container spacing={2} sx={{ mt: 4 }}>
                   <Grid item xs={12}>
@@ -223,26 +253,50 @@ export const Overview = () => {
                         <Typography variant="h6" gutterBottom>
                           Transaction Overview - Total Distribution
                         </Typography>
-                        <div style={{ height: 400, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                        <div
+                          style={{
+                            height: 400,
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
                           {pieChartData.length > 0 ? (
                             <PieChart
                               series={[
                                 {
                                   data: pieChartData,
-                                  highlightScope: { faded: 'global', highlighted: 'item' },
-                                  faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                  highlightScope: {
+                                    faded: "global",
+                                    highlighted: "item",
+                                  },
+                                  faded: {
+                                    innerRadius: 30,
+                                    additionalRadius: -30,
+                                    color: "gray",
+                                  },
                                 },
                               ]}
                               height={400}
                               width={500}
-                              margin={{ top: 0, bottom: 100, left: 30, right: 30 }}
-                              legend={{ 
-                                direction: 'row', 
-                                position: { vertical: 'bottom', horizontal: 'middle' } 
+                              margin={{
+                                top: 0,
+                                bottom: 100,
+                                left: 30,
+                                right: 30,
+                              }}
+                              legend={{
+                                direction: "row",
+                                position: {
+                                  vertical: "bottom",
+                                  horizontal: "middle",
+                                },
                               }}
                             />
                           ) : (
-                            <Typography>No data available for pie chart</Typography>
+                            <Typography>
+                              No data available for pie chart
+                            </Typography>
                           )}
                         </div>
                       </CardContent>
@@ -261,20 +315,20 @@ export const Overview = () => {
                         ) : (
                           <div style={{ overflowX: "auto", width: "100%" }}>
                             <Typography variant="h6" gutterBottom>
-                              Agent Recharge Overview
+                              Player Recharge Overview
                             </Typography>
                             <BarChart
                               xAxis={[
                                 {
-                                  data: rechargeData.map(
-                                    (item) => item.agentName
+                                  data: playerRechargeData.map(
+                                    (item) => item.username
                                   ),
                                   scaleType: "band",
                                 },
                               ]}
                               series={[
                                 {
-                                  data: rechargeData.map(
+                                  data: playerRechargeData.map(
                                     (item) => item.totalRecharge
                                   ),
                                   color: "#4caf50",
@@ -285,21 +339,21 @@ export const Overview = () => {
                               margin={{ left: 100, right: 50, bottom: 50 }}
                             />
                             <Typography variant="h6" gutterBottom>
-                              Agent Redeem Overview
+                              Player Redeem Overview
                             </Typography>
                             <BarChart
                               xAxis={[
                                 {
-                                  data: rechargeData.map(
-                                    (item) => item.agentName
+                                  data: playerRedeemData.map(
+                                    (item) => item.username
                                   ),
                                   scaleType: "band",
                                 },
                               ]}
                               series={[
                                 {
-                                  data: rechargeData.map(
-                                    (item) => item.totalCashout
+                                  data: playerRedeemData.map(
+                                    (item) => item.totalRedeem
                                   ),
                                   color: "#4caf50",
                                 },
@@ -309,21 +363,21 @@ export const Overview = () => {
                               margin={{ left: 100, right: 50, bottom: 50 }}
                             />
                             <Typography variant="h6" gutterBottom>
-                              Agent Cashout Overview
+                              Player Cashout Overview
                             </Typography>
                             <BarChart
                               xAxis={[
                                 {
-                                  data: rechargeData.map(
-                                    (item) => item.agentName
+                                  data: playerCashoutData.map(
+                                    (item) => item.username
                                   ),
                                   scaleType: "band",
                                 },
                               ]}
                               series={[
                                 {
-                                  data: rechargeData.map(
-                                    (item) => item.totalRedeem
+                                  data: playerCashoutData.map(
+                                    (item) => item.totalCashout
                                   ),
                                   color: "#4caf50",
                                 },
@@ -339,9 +393,9 @@ export const Overview = () => {
                   </Grid>
                 </Grid>
 
-                {/* Data Grid for Agent Recharge Report */}
+                {/* Data Grid for Player Recharge Report */}
                 <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                  Agent Recharge Report
+                  Top {playerData.slice(0,30).length} Player Transaction Report
                 </Typography>
                 <TableContainer component={Paper}>
                   <Table>
@@ -349,11 +403,11 @@ export const Overview = () => {
                       <TableRow>
                         <TableCell>
                           <TableSortLabel
-                            active={sortColumn === "agentName"}
+                            active={sortColumn === "username"}
                             direction={sortOrder}
-                            onClick={() => handleSort("agentName")}
+                            onClick={() => handleSort("username")}
                           >
-                            Agent Name
+                            Player Name
                           </TableSortLabel>
                         </TableCell>
                         <TableCell>
@@ -386,9 +440,9 @@ export const Overview = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {rechargeData.map((row, index) => (
+                      {playerData.slice(0, 30).map((row, index) => (
                         <TableRow key={index}>
-                          <TableCell>{row.agentName}</TableCell>
+                          <TableCell>{row.username}</TableCell>
                           <TableCell>{row.totalRecharge}</TableCell>
                           <TableCell>{row.totalRedeem}</TableCell>
                           <TableCell>{row.totalCashout}</TableCell>

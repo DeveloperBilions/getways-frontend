@@ -9,7 +9,7 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Stack,
+  Box,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import {
@@ -132,9 +132,7 @@ export const Comparison = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Grid container spacing={2} sx={{ mb: 2, mt: 2 }} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Stack direction="row" spacing={2} alignItems="center">
+          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
                 {type === "date" && (
                   <>
                     <TextField
@@ -245,11 +243,9 @@ export const Comparison = () => {
                   onClick={handleSubmitCompare}
                   disabled={compareLoading || !fromDate || !toDate}
                 >
-                  {compareLoading ? "Loading..." : "Submit"}
+                  {compareLoading ? "Loading..." : "Apply filter"}
                 </Button>
-              </Stack>
-            </Grid>
-          </Grid>
+              </Box>
           {compareLoading ? (
             <Grid container justifyContent="center">
               <CircularProgress />
