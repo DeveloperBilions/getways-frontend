@@ -17,7 +17,7 @@ import {
   Box,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import { PieChart } from '@mui/x-charts/PieChart';
+import { PieChart } from "@mui/x-charts/PieChart";
 import PersonIcon from "@mui/icons-material/Person";
 import { useGetIdentity } from "react-admin";
 import React, { useState } from "react";
@@ -36,6 +36,7 @@ export const Overview = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
+  const [noDataFound, setNoDataFound] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -60,6 +61,11 @@ export const Overview = () => {
         endDate: toDate,
       });
       setRechargeData(transactionResult?.data || []);
+      if (!transactionResult?.data || !transactionResult?.data.length) {
+        setNoDataFound(true);
+      } else {
+        setNoDataFound(false);
+      }
       console.log(transactionResult, "rechargeDatarechargeDatarechargeData");
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -98,21 +104,26 @@ export const Overview = () => {
   // Calculate totals for PieChart
   const calculateTotals = () => {
     if (!rechargeData.length) return [];
-    
+
     let totalRecharge = 0;
     let totalRedeem = 0;
     let totalCashout = 0;
-    
-    rechargeData.forEach(agent => {
+
+    rechargeData.forEach((agent) => {
       totalRecharge += agent.totalRecharge;
       totalRedeem += agent.totalRedeem;
       totalCashout += agent.totalCashout;
     });
-    
+
     return [
-      { id: 0, value: totalRecharge, label: 'Total Recharge', color: '#4caf50' },
-      { id: 1, value: totalRedeem, label: 'Total Redeem', color: '#2196f3' },
-      { id: 2, value: totalCashout, label: 'Total Cashout', color: '#f44336' }
+      {
+        id: 0,
+        value: totalRecharge,
+        label: "Total Recharge",
+        color: "#4caf50",
+      },
+      { id: 1, value: totalRedeem, label: "Total Redeem", color: "#2196f3" },
+      { id: 2, value: totalCashout, label: "Total Cashout", color: "#f44336" },
     ];
   };
 
@@ -141,45 +152,57 @@ export const Overview = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2,height: "auto"  }}>
-              <TextField
-                label="From Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                inputProps={{
-                  min: startDateLimit,
-                  max: toDate || today,
-                }}
-              />
-              <TextField
-                label="To Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                inputProps={{
-                  min: fromDate || startDateLimit,
-                  max: today,
-                }}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                disabled={loading || !fromDate || !toDate}
-              >
-                {loading ? "Loading..." : "Apply Filter"}
-              </Button>
-            </Box>
+          <Box display="flex" sx={{ mb: 1, gap: 2, height: "auto" }}>
+            <TextField
+              label="From Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              inputProps={{
+                min: startDateLimit,
+                max: toDate || today,
+              }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
+            />
+            <TextField
+              label="To Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              inputProps={{
+                min: fromDate || startDateLimit,
+                max: today,
+              }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={loading || !fromDate || !toDate}
+            >
+              {loading ? "Loading..." : "Apply Filter"}
+            </Button>
+          </Box>
 
           {loading ? (
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : (
-            submitted && (
+          ) : submitted ? (
+            !noDataFound ? (
               <>
                 {/* Summary Cards */}
                 <Grid container spacing={2}>
@@ -223,26 +246,50 @@ export const Overview = () => {
                         <Typography variant="h6" gutterBottom>
                           Transaction Overview - Total Distribution
                         </Typography>
-                        <div style={{ height: 400, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                        <div
+                          style={{
+                            height: 400,
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
                           {pieChartData.length > 0 ? (
                             <PieChart
                               series={[
                                 {
                                   data: pieChartData,
-                                  highlightScope: { faded: 'global', highlighted: 'item' },
-                                  faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                  highlightScope: {
+                                    faded: "global",
+                                    highlighted: "item",
+                                  },
+                                  faded: {
+                                    innerRadius: 30,
+                                    additionalRadius: -30,
+                                    color: "gray",
+                                  },
                                 },
                               ]}
                               height={400}
                               width={500}
-                              margin={{ top: 0, bottom: 100, left: 30, right: 30 }}
-                              legend={{ 
-                                direction: 'row', 
-                                position: { vertical: 'bottom', horizontal: 'middle' } 
+                              margin={{
+                                top: 0,
+                                bottom: 100,
+                                left: 30,
+                                right: 30,
+                              }}
+                              legend={{
+                                direction: "row",
+                                position: {
+                                  vertical: "bottom",
+                                  horizontal: "middle",
+                                },
                               }}
                             />
                           ) : (
-                            <Typography>No data available for pie chart</Typography>
+                            <Typography>
+                              No data available for pie chart
+                            </Typography>
                           )}
                         </div>
                       </CardContent>
@@ -299,7 +346,7 @@ export const Overview = () => {
                               series={[
                                 {
                                   data: rechargeData.map(
-                                    (item) => item.totalCashout
+                                    (item) => item.totalRedeem
                                   ),
                                   color: "#4caf50",
                                 },
@@ -323,7 +370,7 @@ export const Overview = () => {
                               series={[
                                 {
                                   data: rechargeData.map(
-                                    (item) => item.totalRedeem
+                                    (item) => item.totalCashout
                                   ),
                                   color: "#4caf50",
                                 },
@@ -398,7 +445,19 @@ export const Overview = () => {
                   </Table>
                 </TableContainer>
               </>
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
+              </Grid>
             )
+          ) : (
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
+            </Grid>
           )}
         </>
       )}

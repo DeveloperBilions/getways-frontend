@@ -43,6 +43,7 @@ export const PlayerOverview = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userLoading, setUserLoading] = useState(false);
   const perPage = 10;
+  const [noDataFound, setNoDataFound] = useState(false);
 
   const fetchUsers = async (search = "", pageNum = 1) => {
     setUserLoading(true);
@@ -90,6 +91,12 @@ export const PlayerOverview = () => {
       });
 
       setPlayerData(playerTransactionResult?.data || []);
+      if (!playerTransactionResult?.data.length) {
+        setNoDataFound(true);
+        return;
+      } else {
+        setNoDataFound(false);
+      }
       // Sort playerTransactionResult by totalRecharge and select top 30 players
       const sortedPlayerRechargeData = playerTransactionResult?.data
         .sort((a, b) => b.totalRecharge - a.totalRecharge)
@@ -190,7 +197,7 @@ export const PlayerOverview = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Username"
+                  label="Agent Username"
                   variant="outlined"
                   InputProps={{
                     ...params.InputProps,
@@ -205,7 +212,13 @@ export const PlayerOverview = () => {
               )}
             />
             <TextField
-              sx={{ width: { xs: "100%", md: "auto" } }}
+              required
+              sx={{
+                width: { xs: "100%", md: "auto" },
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
               label="From Date"
               type="date"
               InputLabelProps={{ shrink: true }}
@@ -217,7 +230,13 @@ export const PlayerOverview = () => {
               }}
             />
             <TextField
-              sx={{ width: { xs: "100%", md: "auto" } }}
+              required
+              sx={{
+                width: { xs: "100%", md: "auto" },
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
               label="To Date"
               type="date"
               InputLabelProps={{ shrink: true }}
@@ -242,8 +261,8 @@ export const PlayerOverview = () => {
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : (
-            submitted && (
+          ) : submitted ? (
+            !noDataFound ? (
               <>
                 {/* PieChart for Totals */}
                 <Grid container spacing={2} sx={{ mt: 4 }}>
@@ -315,7 +334,8 @@ export const PlayerOverview = () => {
                         ) : (
                           <div style={{ overflowX: "auto", width: "100%" }}>
                             <Typography variant="h6" gutterBottom>
-                              Player Recharge Overview
+                              Top {playerRechargeData.length} Player Recharge
+                              Overview
                             </Typography>
                             <BarChart
                               xAxis={[
@@ -339,7 +359,8 @@ export const PlayerOverview = () => {
                               margin={{ left: 100, right: 50, bottom: 50 }}
                             />
                             <Typography variant="h6" gutterBottom>
-                              Player Redeem Overview
+                              Top {playerRedeemData.length} Player Redeem
+                              Overview
                             </Typography>
                             <BarChart
                               xAxis={[
@@ -363,7 +384,8 @@ export const PlayerOverview = () => {
                               margin={{ left: 100, right: 50, bottom: 50 }}
                             />
                             <Typography variant="h6" gutterBottom>
-                              Player Cashout Overview
+                              Top {playerCashoutData.length} Player Cashout
+                              Overview
                             </Typography>
                             <BarChart
                               xAxis={[
@@ -395,7 +417,7 @@ export const PlayerOverview = () => {
 
                 {/* Data Grid for Player Recharge Report */}
                 <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                  Top {playerData.slice(0,30).length} Player Transaction Report
+                  Top {playerData.slice(0, 30).length} Player Transaction Report
                 </Typography>
                 <TableContainer component={Paper}>
                   <Table>
@@ -452,7 +474,19 @@ export const PlayerOverview = () => {
                   </Table>
                 </TableContainer>
               </>
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
+              </Grid>
             )
+          ) : (
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
+            </Grid>
           )}
         </>
       )}
