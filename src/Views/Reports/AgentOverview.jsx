@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { LineChart } from "@mui/x-charts/LineChart";
-import { PieChart } from '@mui/x-charts/PieChart';
+import { PieChart } from "@mui/x-charts/PieChart";
 import { useGetIdentity } from "react-admin";
 import React, { useCallback, useState } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
@@ -35,8 +35,10 @@ export const AgentOverview = () => {
   const [totalData, setTotalData] = useState({
     totalRecharge: 0,
     totalRedeem: 0,
-    totalCashout: 0
+    totalCashout: 0,
   });
+  const [noDataFound, setNoDataFound] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const fetchUsers = async (search = "", pageNum = 1) => {
     setUserLoading(true);
@@ -48,11 +50,11 @@ export const AgentOverview = () => {
           ? {
               username: search,
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-              roleName:"Agent"
+              roleName: "Agent",
             }
           : {
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-              roleName:"Agent"
+              roleName: "Agent",
             },
       });
 
@@ -88,6 +90,12 @@ export const AgentOverview = () => {
         agentId: selectedUsertemp.id,
       });
       console.log("transactionResultByDate", transactionResultByDate);
+      if (transactionResultByDate?.data.length === 0) {
+        setNoDataFound(true);
+        return;
+      } else {
+        setNoDataFound(false);
+      }
 
       const agent = transactionResultByDate.data[0];
       setAgentUsername(agent);
@@ -108,7 +116,7 @@ export const AgentOverview = () => {
       let totalRedeem = 0;
       let totalCashout = 0;
 
-      dates.forEach(date => {
+      dates.forEach((date) => {
         totalRecharge += agent.transactions[date].totalRecharge;
         totalRedeem += agent.transactions[date].totalRedeem;
         totalCashout += agent.transactions[date].totalCashout;
@@ -117,9 +125,8 @@ export const AgentOverview = () => {
       setTotalData({
         totalRecharge,
         totalRedeem,
-        totalCashout
+        totalCashout,
       });
-      
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {
@@ -128,6 +135,7 @@ export const AgentOverview = () => {
   };
 
   const handleFilterSubmit = () => {
+    setIsSubmitted(true);
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setSelectedUser(selectedUsertemp);
@@ -158,8 +166,14 @@ export const AgentOverview = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Username"
+                  label="Agent Username"
                   variant="outlined"
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -182,6 +196,12 @@ export const AgentOverview = () => {
                 min: startDateLimit,
                 max: tempEndDate || today,
               }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
             />
             <TextField
               label="To Date"
@@ -193,12 +213,23 @@ export const AgentOverview = () => {
                 min: tempStartDate || startDateLimit,
                 max: today,
               }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
             />
             <Button
               variant="contained"
               onClick={handleFilterSubmit}
               sx={{ whiteSpace: "nowrap" }}
-              disabled={!tempStartDate || !tempEndDate || !selectedUsertemp || agentLoading}
+              disabled={
+                !tempStartDate ||
+                !tempEndDate ||
+                !selectedUsertemp ||
+                agentLoading
+              }
             >
               {agentLoading ? "Loading..." : "Apply Filter"}
             </Button>
@@ -208,108 +239,149 @@ export const AgentOverview = () => {
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : formattedData && lineChartDates && agentUsername ? (
-            <>
-              {/* Charts Container */}
-              <Grid container spacing={3}>
-                {/* Line Chart */}
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Daily Transactions
-                  </Typography>
-                  <LineChart
-                    xAxis={[
-                      {
-                        data: formattedData,
-                        scaleType: "band",
-                        label: "Date",
-                      },
-                    ]}
-                    yAxis={[
-                      {
-                        label: "Amount",
-                      },
-                    ]}
-                    series={[
-                      {
-                        data: lineChartDates.map(
-                          (date) => agentUsername.transactions[date].totalRecharge
-                        ),
-                        label: "Total Recharge",
-                        color: "#2196f3",
-                      },
-                      {
-                        data: lineChartDates.map(
-                          (date) => agentUsername.transactions[date].totalRedeem
-                        ),
-                        label: "Total Redeem",
-                        color: "#f44336",
-                      },
-                      {
-                        data: lineChartDates.map(
-                          (date) => agentUsername.transactions[date].totalCashout
-                        ),
-                        label: "Total Cashout",
-                        color: "#4caf50",
-                      },
-                    ]}
-                    width={1200}
-                    height={400}
-                    margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
-                  />
-                </Grid>
-                
-                {/* Pie Chart */}
-                <Grid item xs={12} md={6} lg={6}>
-                  <Box sx={{ p: 2, border: '1px solid #eaeaea', borderRadius: 2, }}>
-                    <Typography variant="h6" gutterBottom align="center">
-                      Total Transaction Summary
+          ) : isSubmitted ? (
+            !noDataFound ? (
+              <>
+                {/* Charts Container */}
+                <Grid container spacing={3}>
+                  {/* Line Chart */}
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Daily Transactions
                     </Typography>
-                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                    <PieChart
-                      series={[
+                    <LineChart
+                      xAxis={[
                         {
-                          data: [
-                            { id: 0, value: totalData.totalRecharge, label: 'Total Recharge', color: '#2196f3' },
-                            { id: 1, value: totalData.totalRedeem, label: 'Total Redeem', color: '#f44336' },
-                            { id: 2, value: totalData.totalCashout, label: 'Total Cashout', color: '#4caf50' },
-                          ],
-                          innerRadius: 30,
-                          outerRadius: 100,
-                          paddingAngle: 1,
-                          cornerRadius: 5,
-                          startAngle: -90,
-                          endAngle: 270,
-                          cx: 150,
-                          cy: 150,
+                          data: formattedData,
+                          scaleType: "band",
+                          label: "Date",
                         },
                       ]}
-                      width={400}
-                      height={300}
-                      slotProps={{
-                        legend: {
-                          direction: 'row',
-                          position: { vertical: 'bottom', horizontal: 'middle' },
-                          padding: 0,
+                      yAxis={[
+                        {
+                          label: "Amount",
                         },
-                      }}
+                      ]}
+                      series={[
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              agentUsername.transactions[date].totalRecharge
+                          ),
+                          label: "Total Recharge",
+                          color: "#2196f3",
+                        },
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              agentUsername.transactions[date].totalRedeem
+                          ),
+                          label: "Total Redeem",
+                          color: "#f44336",
+                        },
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              agentUsername.transactions[date].totalCashout
+                          ),
+                          label: "Total Cashout",
+                          color: "#4caf50",
+                        },
+                      ]}
+                      width={1200}
+                      height={400}
+                      margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
                     />
-                    </Box>
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="body2" align="center">
-                        Period: {tempStartDate} to {tempEndDate}
+                  </Grid>
+
+                  {/* Pie Chart */}
+                  <Grid item xs={12} md={6} lg={6}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        border: "1px solid #eaeaea",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom align="center">
+                        Total Transaction Summary
                       </Typography>
+                      <Box
+                        sx={{
+                          mt: 2,
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <PieChart
+                          series={[
+                            {
+                              data: [
+                                {
+                                  id: 0,
+                                  value: totalData.totalRecharge,
+                                  label: "Total Recharge",
+                                  color: "#2196f3",
+                                },
+                                {
+                                  id: 1,
+                                  value: totalData.totalRedeem,
+                                  label: "Total Redeem",
+                                  color: "#f44336",
+                                },
+                                {
+                                  id: 2,
+                                  value: totalData.totalCashout,
+                                  label: "Total Cashout",
+                                  color: "#4caf50",
+                                },
+                              ],
+                              innerRadius: 30,
+                              outerRadius: 100,
+                              paddingAngle: 1,
+                              cornerRadius: 5,
+                              startAngle: -90,
+                              endAngle: 270,
+                              cx: 150,
+                              cy: 150,
+                            },
+                          ]}
+                          width={400}
+                          height={300}
+                          slotProps={{
+                            legend: {
+                              direction: "row",
+                              position: {
+                                vertical: "bottom",
+                                horizontal: "middle",
+                              },
+                              padding: 0,
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" align="center">
+                          Period: {tempStartDate} to {tempEndDate}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
+                  </Grid>
                 </Grid>
+              </>
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
               </Grid>
-            </>
+            )
           ) : (
-            <>
-              <Grid container justifyContent="center">
-                <p>No data found for the selected filters.</p>
-              </Grid>
-            </>
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
+            </Grid>
           )}
         </>
       )}

@@ -33,10 +33,12 @@ export const ParticularPlayer = () => {
   const [endDate, setEndDate] = useState(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [totalData, setTotalData] = useState({
-    totalDeposit: 0,
-    totalWithdraw: 0,
-    totalBet: 0,
+    totalRecharge: 0,
+    totalRedeem: 0,
+    totalCashout: 0,
   });
+  const [noDataFound, setNoDataFound] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const fetchUsers = async (search = "", pageNum = 1) => {
     setUserLoading(true);
@@ -48,11 +50,11 @@ export const ParticularPlayer = () => {
           ? {
               username: search,
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-              roleName:"Player"
+              roleName: "Player",
             }
           : {
               $or: [{ userReferralCode: "" }, { userReferralCode: null }],
-              roleName:"Player"
+              roleName: "Player",
             },
       });
 
@@ -87,7 +89,12 @@ export const ParticularPlayer = () => {
         endDate: tempEndDate,
         playerId: selectedUsertemp.id,
       });
-
+      if (!transactionResultByDate.data.length) {
+        setNoDataFound(true);
+        return;
+      } else {
+        setNoDataFound(false);
+      }
       const player = transactionResultByDate.data[0];
       setPlayerUsername(player);
       const dates = Object.keys(player.transactions).sort(
@@ -104,20 +111,20 @@ export const ParticularPlayer = () => {
       setFormattedData(formattedDates);
 
       // Calculate totals for pie chart
-      let totalDeposit = 0;
-      let totalWithdraw = 0;
-      let totalBet = 0;
+      let totalRecharge = 0;
+      let totalRedeem = 0;
+      let totalCashout = 0;
 
       dates.forEach((date) => {
-        totalDeposit += player.transactions[date].totalRecharge;
-        totalWithdraw += player.transactions[date].totalRedeem;
-        totalBet += player.transactions[date].totalCashout;
+        totalRecharge += player.transactions[date].totalRecharge;
+        totalRedeem += player.transactions[date].totalRedeem;
+        totalCashout += player.transactions[date].totalCashout;
       });
 
       setTotalData({
-        totalDeposit,
-        totalWithdraw,
-        totalBet,
+        totalRecharge,
+        totalRedeem,
+        totalCashout,
       });
     } catch (error) {
       console.error("Error fetching player reports:", error);
@@ -127,6 +134,7 @@ export const ParticularPlayer = () => {
   };
 
   const handleFilterSubmit = () => {
+    setIsSubmitted(true);
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setSelectedUser(selectedUsertemp);
@@ -158,6 +166,12 @@ export const ParticularPlayer = () => {
                   {...params}
                   label="Player Username"
                   variant="outlined"
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -180,6 +194,12 @@ export const ParticularPlayer = () => {
                 min: startDateLimit,
                 max: tempEndDate || today,
               }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
+              }}
             />
             <TextField
               label="To Date"
@@ -190,6 +210,12 @@ export const ParticularPlayer = () => {
               inputProps={{
                 min: tempStartDate || startDateLimit,
                 max: today,
+              }}
+              required
+              sx={{
+                "& .MuiFormLabel-asterisk": {
+                  color: "red",
+                },
               }}
             />
             <Button
@@ -211,118 +237,136 @@ export const ParticularPlayer = () => {
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : formattedData && lineChartDates && playerUsername ? (
-            <>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Daily Player Transactions
-                  </Typography>
-                  <LineChart
-                    xAxis={[
-                      {
-                        data: formattedData,
-                        scaleType: "band",
-                        label: "Date",
-                      },
-                    ]}
-                    yAxis={[{ label: "Amount" }]}
-                    series={[
-                      {
-                        data: lineChartDates.map(
-                          (date) =>
-                            playerUsername.transactions[date].totalRecharge
-                        ),
-                        label: "Total Recharge",
-                        color: "#2196f3",
-                      },
-                      {
-                        data: lineChartDates.map(
-                          (date) =>
-                            playerUsername.transactions[date].totalRedeem
-                        ),
-                        label: "Total Redeem",
-                        color: "#f44336",
-                      },
-                      {
-                        data: lineChartDates.map(
-                          (date) =>
-                            playerUsername.transactions[date].totalCashout
-                        ),
-                        label: "Total Cashout",
-                        color: "#4caf50",
-                      },
-                    ]}
-                    width={1200}
-                    height={400}
-                    margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6} lg={6}>
-                  <Box
-                    sx={{ p: 2, border: "1px solid #eaeaea", borderRadius: 2 }}
-                  >
-                    <Typography variant="h6" gutterBottom align="center">
-                      Total Transaction Summary
+          ) : isSubmitted ? (
+            !noDataFound ? (
+              <>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                      Daily Player Transactions
                     </Typography>
+                    <LineChart
+                      xAxis={[
+                        {
+                          data: formattedData,
+                          scaleType: "band",
+                          label: "Date",
+                        },
+                      ]}
+                      yAxis={[{ label: "Amount" }]}
+                      series={[
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              playerUsername.transactions[date].totalRecharge
+                          ),
+                          label: "Total Recharge",
+                          color: "#2196f3",
+                        },
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              playerUsername.transactions[date].totalRedeem
+                          ),
+                          label: "Total Redeem",
+                          color: "#f44336",
+                        },
+                        {
+                          data: lineChartDates.map(
+                            (date) =>
+                              playerUsername.transactions[date].totalCashout
+                          ),
+                          label: "Total Cashout",
+                          color: "#4caf50",
+                        },
+                      ]}
+                      width={1200}
+                      height={400}
+                      margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6} lg={6}>
                     <Box
-                      sx={{ mt: 2, display: "flex", justifyContent: "center" }}
+                      sx={{
+                        p: 2,
+                        border: "1px solid #eaeaea",
+                        borderRadius: 2,
+                      }}
                     >
-                      <PieChart
-                        series={[
-                          {
-                            data: [
-                              {
-                                id: 0,
-                                value: totalData.totalDeposit,
-                                label: "Recharge",
-                                color: "#2196f3",
-                              },
-                              {
-                                id: 1,
-                                value: totalData.totalWithdraw,
-                                label: "Redeem",
-                                color: "#f44336",
-                              },
-                              {
-                                id: 2,
-                                value: totalData.totalBet,
-                                label: "Cashout",
-                                color: "#4caf50",
-                              },
-                            ],
-                            innerRadius: 30,
-                            outerRadius: 100,
-                            cx: 150,
-                            cy: 150,
-                          },
-                        ]}
-                        width={400}
-                        height={300}
-                        slotProps={{
-                          legend: {
-                            direction: "row",
-                            position: {
-                              vertical: "bottom",
-                              horizontal: "middle",
-                            },
-                          },
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="body2" align="center">
-                        Period: {tempStartDate} to {tempEndDate}
+                      <Typography variant="h6" gutterBottom align="center">
+                        Total Transaction Summary
                       </Typography>
+                      <Box
+                        sx={{
+                          mt: 2,
+                          display: "flex",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <PieChart
+                          series={[
+                            {
+                              data: [
+                                {
+                                  id: 0,
+                                  value: totalData.totalRecharge,
+                                  label: "Recharge",
+                                  color: "#2196f3",
+                                },
+                                {
+                                  id: 1,
+                                  value: totalData.totalRedeem,
+                                  label: "Redeem",
+                                  color: "#f44336",
+                                },
+                                {
+                                  id: 2,
+                                  value: totalData.totalCashout,
+                                  label: "Cashout",
+                                  color: "#4caf50",
+                                },
+                              ],
+                              innerRadius: 30,
+                              outerRadius: 100,
+                              cx: 150,
+                              cy: 150,
+                            },
+                          ]}
+                          width={400}
+                          height={300}
+                          slotProps={{
+                            legend: {
+                              direction: "row",
+                              position: {
+                                vertical: "bottom",
+                                horizontal: "middle",
+                              },
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" align="center">
+                          Period: {tempStartDate} to {tempEndDate}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
+                  </Grid>
                 </Grid>
+              </>
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
               </Grid>
-            </>
+            )
           ) : (
-            <Grid container justifyContent="center">
-              <p>No data found for the selected player and date range.</p>
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
             </Grid>
           )}
         </>

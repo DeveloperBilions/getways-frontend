@@ -33,7 +33,6 @@ export const PlayerComparison = () => {
   const [cashoutPlayerCount, setCashoutPlayerCount] = useState("30");
   const [dataNotFound, setDataNotFound] = useState(false);
 
-
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
   const currentYear = new Date().getFullYear(); // Get current year
@@ -79,9 +78,9 @@ export const PlayerComparison = () => {
   };
 
   const handleUserChange = (selectedId) => {
-      setSelectedUser(selectedId);
-    };
-  
+    setSelectedUser(selectedId);
+  };
+
   const debouncedFetchUsers = useCallback(debounce(fetchUsers, 500), []);
 
   const fetchCompareData = async () => {
@@ -97,7 +96,7 @@ export const PlayerComparison = () => {
       setComparisonData(transactionComparison?.data || []);
       if (transactionComparison?.data.length === 0) {
         setDataNotFound(true);
-      }else{
+      } else {
         setDataNotFound(false);
       }
       console.log(
@@ -240,9 +239,7 @@ export const PlayerComparison = () => {
               sx={{ width: { xs: "100%", md: 230 } }}
               options={choices}
               getOptionLabel={(option) => option.optionName}
-              isOptionEqualToValue={(option, value) =>
-                option.id === value?.id
-              }
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
               loading={userLoading}
               loadingText="....Loading"
               value={selectedUser}
@@ -256,15 +253,13 @@ export const PlayerComparison = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Username"
+                  label="Player Username"
                   variant="outlined"
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
                       <>
-                        {userLoading ? (
-                          <CircularProgress size={20} />
-                        ) : null}
+                        {userLoading ? <CircularProgress size={20} /> : null}
                         {params.InputProps.endAdornment}
                       </>
                     ),
@@ -284,6 +279,12 @@ export const PlayerComparison = () => {
                     min: startDateLimit,
                     max: today,
                   }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
                 />
                 <TextField
                   label="Date"
@@ -294,6 +295,12 @@ export const PlayerComparison = () => {
                   inputProps={{
                     min: startDateLimit,
                     max: today,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
                   }}
                 />
               </>
@@ -310,6 +317,12 @@ export const PlayerComparison = () => {
                     min: startDateLimit.slice(0, 7),
                     max: today.slice(0, 7),
                   }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
                 />
                 <TextField
                   label="Month"
@@ -320,6 +333,12 @@ export const PlayerComparison = () => {
                   inputProps={{
                     min: startDateLimit.slice(0, 7),
                     max: today.slice(0, 7),
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
                   }}
                 />
               </>
@@ -340,6 +359,12 @@ export const PlayerComparison = () => {
                     min: 2024,
                     max: currentYear,
                   }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
                   onInput={(e) => {
                     if (e.target.value < 2024) e.target.value = 2024;
                     if (e.target.value > currentYear)
@@ -359,6 +384,12 @@ export const PlayerComparison = () => {
                   inputProps={{
                     min: 2024,
                     max: currentYear,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
                   }}
                   onInput={(e) => {
                     if (e.target.value < 2024) e.target.value = 2024;
@@ -393,10 +424,9 @@ export const PlayerComparison = () => {
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : (
-            compareSubmitted && (
-              !dataNotFound ? (
-                <>
+          ) : compareSubmitted ? (
+            !dataNotFound ? (
+              <>
                 {/* Date Comparison Charts */}
                 <Grid container spacing={2} sx={{ mt: 4 }}>
                   <Grid item xs={12}>
@@ -560,14 +590,19 @@ export const PlayerComparison = () => {
                   </Grid>
                 </Grid>
               </>
-              ):(
-                <Grid container justifyContent="center" sx={{ mt: 4 }}>
-                  <Typography variant="h6" color="error">
-                    No data found for the selected filters.
-                  </Typography>
-                </Grid>
-              )
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
+              </Grid>
             )
+          ) : (
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
+            </Grid>
           )}
         </>
       )}

@@ -12,9 +12,7 @@ import {
   Box,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import {
-  useGetIdentity,
-} from "react-admin";
+import { useGetIdentity } from "react-admin";
 import React, { useState } from "react";
 import { fetchTransactionComparison } from "../../Utils/utils";
 
@@ -29,6 +27,7 @@ export const Comparison = () => {
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
   const currentYear = new Date().getFullYear(); // Get current year
+  const [noDataFound, setNoDataFound] = useState(false);
 
   const fetchCompareData = async () => {
     try {
@@ -41,6 +40,14 @@ export const Comparison = () => {
         type: type,
       });
       setComparisonData(transactionComparison?.data || []);
+      if (
+        transactionComparison?.data.length === 0 ||
+        !transactionComparison?.data
+      ) {
+        setNoDataFound(true);
+      } else {
+        setNoDataFound(false);
+      }
       console.log(
         transactionComparison,
         "transactionComparisontransactionComparisontransactionComparison"
@@ -133,125 +140,165 @@ export const Comparison = () => {
       {identity?.email === "zen@zen.com" && (
         <>
           <Box display="flex" sx={{ mb: 1, gap: 2 }}>
-                {type === "date" && (
-                  <>
-                    <TextField
-                      label="Date"
-                      type="date"
-                      InputLabelProps={{ shrink: true }}
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      inputProps={{
-                        min: startDateLimit,
-                        max: today,
-                      }}
-                    />
-                    <TextField
-                      label="Date"
-                      type="date"
-                      InputLabelProps={{ shrink: true }}
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      inputProps={{
-                        min: startDateLimit,
-                        max: today,
-                      }}
-                    />
-                  </>
-                )}
-                {type === "month" && (
-                  <>
-                    <TextField
-                      label="Month"
-                      type="month"
-                      InputLabelProps={{ shrink: true }}
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      inputProps={{
-                        min: startDateLimit.slice(0, 7),
-                        max: today.slice(0, 7),
-                      }}
-                    />
-                    <TextField
-                      label="Month"
-                      type="month"
-                      InputLabelProps={{ shrink: true }}
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      inputProps={{
-                        min: startDateLimit.slice(0, 7),
-                        max: today.slice(0, 7),
-                      }}
-                    />
-                  </>
-                )}
-                {type === "year" && (
-                  <>
-                    <TextField
-                      label="Year"
-                      type="number"
-                      InputLabelProps={{ shrink: true }}
-                      value={fromDate}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value, 10);
-                        if (value >= 2024 && value <= currentYear) setFromDate(value.toString());
-                      }}
-                      inputProps={{
-                        min: 2024,
-                        max: currentYear,
-                      }}
-                      onInput={(e) => {
-                        if (e.target.value < 2024) e.target.value = 2024;
-                        if (e.target.value > currentYear) e.target.value = currentYear;
-                      }}
-                    />
-                    <TextField
-                      label="Year"
-                      type="number"
-                      InputLabelProps={{ shrink: true }}
-                      value={toDate}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value, 10);
-                        if (value >= 2024 && value <= currentYear) setToDate(value.toString());
-                      }}
-                      inputProps={{
-                        min: 2024,
-                        max: currentYear,
-                      }}
-                      onInput={(e) => {
-                        if (e.target.value < 2024) e.target.value = 2024;
-                        if (e.target.value > currentYear) e.target.value = currentYear;
-                      }}
-                    />
-                  </>
-                )}
+            {type === "date" && (
+              <>
+                <TextField
+                  label="Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  inputProps={{
+                    min: startDateLimit,
+                    max: today,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                />
+                <TextField
+                  label="Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  inputProps={{
+                    min: startDateLimit,
+                    max: today,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                />
+              </>
+            )}
+            {type === "month" && (
+              <>
+                <TextField
+                  label="Month"
+                  type="month"
+                  InputLabelProps={{ shrink: true }}
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  inputProps={{
+                    min: startDateLimit.slice(0, 7),
+                    max: today.slice(0, 7),
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                />
+                <TextField
+                  label="Month"
+                  type="month"
+                  InputLabelProps={{ shrink: true }}
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  inputProps={{
+                    min: startDateLimit.slice(0, 7),
+                    max: today.slice(0, 7),
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                />
+              </>
+            )}
+            {type === "year" && (
+              <>
+                <TextField
+                  label="Year"
+                  type="number"
+                  InputLabelProps={{ shrink: true }}
+                  value={fromDate}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    if (value >= 2024 && value <= currentYear)
+                      setFromDate(value.toString());
+                  }}
+                  inputProps={{
+                    min: 2024,
+                    max: currentYear,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                  onInput={(e) => {
+                    if (e.target.value < 2024) e.target.value = 2024;
+                    if (e.target.value > currentYear)
+                      e.target.value = currentYear;
+                  }}
+                />
+                <TextField
+                  label="Year"
+                  type="number"
+                  InputLabelProps={{ shrink: true }}
+                  value={toDate}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    if (value >= 2024 && value <= currentYear)
+                      setToDate(value.toString());
+                  }}
+                  inputProps={{
+                    min: 2024,
+                    max: currentYear,
+                  }}
+                  required
+                  sx={{
+                    "& .MuiFormLabel-asterisk": {
+                      color: "red",
+                    },
+                  }}
+                  onInput={(e) => {
+                    if (e.target.value < 2024) e.target.value = 2024;
+                    if (e.target.value > currentYear)
+                      e.target.value = currentYear;
+                  }}
+                />
+              </>
+            )}
 
-                <FormControl>
-                  <Select
-                    value={type}
-                    onChange={(e) => handleSetType(e.target.value)}
-                  >
-                    <MenuItem value="date">Date</MenuItem>
-                    <MenuItem value="month">Month</MenuItem>
-                    <MenuItem value="year">Year</MenuItem>
-                  </Select>
-                </FormControl>
+            <FormControl>
+              <Select
+                value={type}
+                onChange={(e) => handleSetType(e.target.value)}
+              >
+                <MenuItem value="date">Date</MenuItem>
+                <MenuItem value="month">Month</MenuItem>
+                <MenuItem value="year">Year</MenuItem>
+              </Select>
+            </FormControl>
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmitCompare}
-                  disabled={compareLoading || !fromDate || !toDate}
-                >
-                  {compareLoading ? "Loading..." : "Apply filter"}
-                </Button>
-              </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmitCompare}
+              disabled={compareLoading || !fromDate || !toDate}
+            >
+              {compareLoading ? "Loading..." : "Apply filter"}
+            </Button>
+          </Box>
           {compareLoading ? (
             <Grid container justifyContent="center">
               <CircularProgress />
             </Grid>
-          ) : (
-            compareSubmitted && (
+          ) : compareSubmitted ? (
+            !noDataFound ? (
               <>
                 {/* Date Comparison Charts */}
                 <Grid container spacing={2} sx={{ mt: 4 }}>
@@ -335,7 +382,19 @@ export const Comparison = () => {
                   </Grid>
                 </Grid>
               </>
+            ) : (
+              <Grid container justifyContent="center" sx={{ mt: 4 }}>
+                <Typography variant="h6" color="error">
+                  No data found for the selected filters.
+                </Typography>
+              </Grid>
             )
+          ) : (
+            <Grid container justifyContent="center" sx={{ mt: 4 }}>
+              <Typography variant="h6" color="info">
+                Please apply filter to view data.
+              </Typography>
+            </Grid>
           )}
         </>
       )}
