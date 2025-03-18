@@ -10,6 +10,7 @@ import {
   Label,
   Form,
   Input,
+  ModalFooter,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -65,16 +66,25 @@ const DeleteUserDialog = ({
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleCancel} size="md" centered>
-          <ModalHeader toggle={handleCancel} className="border-bottom-0">
+        <Modal
+          isOpen={open}
+          toggle={handleCancel}
+          size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={handleCancel}
+            className="custom-modal-header border-bottom-0"
+          >
             Delete User
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className="custom-modal-body">
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="name" className="pb-0 mb-0">
+                    <Label for="name" className="custom-label">
                       Name
                     </Label>
                     <Input
@@ -82,6 +92,7 @@ const DeleteUserDialog = ({
                       name="name"
                       type="text"
                       autoComplete="off"
+                      className="custom-input"
                       value={record.name}
                       disabled
                     />
@@ -90,13 +101,14 @@ const DeleteUserDialog = ({
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="email" className="pb-0 mb-0">
+                    <Label for="email" className="custom-label">
                       Email
                     </Label>
                     <Input
                       id="email"
                       name="email"
                       type="email"
+                      className="custom-input"
                       autoComplete="off"
                       value={record.email}
                       disabled
@@ -106,41 +118,45 @@ const DeleteUserDialog = ({
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="delete" className="pb-0 mb-1">
-                      To confirm this, type”DELETE”
+                    <Label for="delete" className="custom-label">
+                      To confirm this, type ”
+                      <span style={{ color: "red" }}>DELETE</span>”
                     </Label>
                     <Input
                       id="delete"
                       name="delete"
                       type="text"
                       autoComplete="off"
+                      className="custom-input"
                       placeholder="DELETE"
+                      style={{ color: "red" }}
                       value={deleteInput}
                       onChange={handleInputChange}
                       required
                     />
                   </FormGroup>
                 </Col>
-
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      className="mx-2"
-                      color="danger"
-                      type="submit"
-                      onClick={handleSubmit}
-                      disabled={deleteInput !== "DELETE"}
-                    >
-                      Delete
-                    </Button>
-                    <Button color="secondary" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Col>
               </Row>
             </Form>
           </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12}>
+              <div className="d-flex w-100 justify-content-between">
+                <Button className="custom-button cancel" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button
+                  className="mx-2 custom-button"
+                  color="danger"
+                  type="submit"
+                  onClick={handleSubmit}
+                  disabled={deleteInput !== "DELETE"}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>

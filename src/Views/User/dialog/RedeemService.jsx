@@ -11,6 +11,7 @@ import {
   Form,
   Input,
   FormText,
+  ModalFooter,
 } from "reactstrap";
 // loader
 import { Loader } from "../../Loader";
@@ -114,15 +115,26 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleCancel} size="md" centered>
-          <ModalHeader toggle={handleCancel} className="border-bottom-0">
+        <Modal
+          isOpen={open}
+          toggle={handleCancel}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={handleCancel}
+            className="custom-modal-header border-bottom-0"
+          >
             Redeem Service Fee
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className="custom-modal-body">
             <Form onSubmit={handleSubmit}>
               <Row>
                 <Col md={12}>
-                  <Label for="serviceFee">Redeem Service Fee (%)</Label>
+                  <Label for="serviceFee" className="custom-label">
+                    Redeem Service Fee (%)
+                  </Label>
                   <FormGroup>
                     <Input
                       id="serviceFee"
@@ -132,6 +144,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                       value={serviceFee}
                       onChange={handleServiceFeeChange}
                       maxLength={2}
+                      className="custom-input"
                       required
                       disabled={
                         !identity?.redeemServiceEnabled &&
@@ -148,54 +161,88 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
 
                 {identity?.role === "Master-Agent" &&
                   identity?.redeemServiceEnabled === true && (
-                    <Col md={12} className="mt-3">
+                    <Col
+                      md={12}
+                      className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                    >
+                      <Label
+                        for="redeemSwitch"
+                        check
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          fontFamily: "var(--font-family)",
+                          marginLeft: "5px",
+                        }}
+                      >
+                        Allow Agent to change Redeem Service ?
+                      </Label>
                       <FormGroup check className="form-switch">
                         <Input
                           type="switch"
                           id="redeemSwitch"
                           checked={redeemServiceEnabled}
+                          className="green-switch"
                           onChange={() =>
                             setRedeemServiceEnabled(!redeemServiceEnabled)
                           }
                         />
-                        <Label
-                          for="redeemSwitch"
-                          check
-                          style={{ fontSize: "14px" }}
-                        >
-                          Allow Agent to change Redeem Service ?
-                        </Label>
                       </FormGroup>
                     </Col>
                   )}
                 {identity?.role === "Super-User" && (
-                  <Col md={12} className="mt-3">
+                  <Col
+                    md={12}
+                    className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                  >
+                    <Label
+                      for="redeemSwitch"
+                      check
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        fontFamily: "var(--font-family)",
+                        marginLeft: "5px",
+                      }}
+                    >
+                      Allow Agent to change Redeem Service ?
+                    </Label>
                     <FormGroup check className="form-switch">
                       <Input
                         type="switch"
                         id="redeemSwitch"
                         checked={redeemServiceEnabled}
+                        className="green-switch"
                         onChange={() =>
                           setRedeemServiceEnabled(!redeemServiceEnabled)
                         }
                       />
-                      <Label
-                        for="redeemSwitch"
-                        check
-                        style={{ fontSize: "14px" }}
-                      >
-                        Allow Agent to change Redeem Service ?
-                      </Label>
                     </FormGroup>
                   </Col>
                 )}
                 {identity?.role === "Master-Agent" &&
                   identity?.isReedeemZeroAllowed === true && (
-                    <Col md={12} className="mt-3">
+                    <Col
+                      md={12}
+                      className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                    >
+                      <Label
+                        for="redeemSwitch1"
+                        check
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          fontFamily: "var(--font-family)",
+                          marginLeft: "5px",
+                        }}
+                      >
+                        Allow Agent to Add 0 Redeem Service ?
+                      </Label>
                       <FormGroup check className="form-switch">
                         <Input
                           type="switch"
                           id="redeemSwitch1"
+                          className="green-switch"
                           checked={redeemServiceZeroAllowed}
                           onChange={() =>
                             setRedeemServiceZeroAllowed(
@@ -203,63 +250,66 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                             )
                           }
                         />
-                        <Label
-                          for="redeemSwitch1"
-                          check
-                          style={{ fontSize: "14px" }}
-                        >
-                          Allow Agent to Add 0 Redeem Service ?
-                        </Label>
                       </FormGroup>
                     </Col>
                   )}
                 {identity?.role === "Super-User" && (
-                  <Col md={12} className="mt-3">
+                  <Col
+                    md={12}
+                    className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                  >
+                    <Label
+                      for="redeemSwitch1"
+                      check
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        fontFamily: "var(--font-family)",
+                        marginLeft: "5px",
+                      }}
+                    >
+                      Allow Agent to Add 0 Redeem Service ?
+                    </Label>
                     <FormGroup check className="form-switch">
                       <Input
                         type="switch"
                         id="redeemSwitch1"
+                        className="green-switch"
                         checked={redeemServiceZeroAllowed}
                         onChange={() =>
                           setRedeemServiceZeroAllowed(!redeemServiceZeroAllowed)
                         }
                       />
-                      <Label
-                        for="redeemSwitch1"
-                        check
-                        style={{ fontSize: "14px" }}
-                      >
-                        Allow Agent to Add 0 Redeem Service ?
-                      </Label>
                     </FormGroup>
                   </Col>
                 )}
-                <Col md={12} className="mt-3">
-                  <div className="d-flex justify-content-end">
-                    {identity?.redeemServiceEnabled &&
-                      identity?.role === "Master-Agent" && (
-                        <Button className="mx-2" color="success" type="submit">
-                          Confirm
-                        </Button>
-                      )}
-                    {identity?.role === "Super-User" && (
-                      <Button className="mx-2" color="success" type="submit">
-                        Confirm
-                      </Button>
-                    )}
-
-                    <Button color="secondary" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Col>
               </Row>
             </Form>
           </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12} className="mt-3">
+              <div className="d-flex w-100 justify-content-between">
+                {identity?.redeemServiceEnabled &&
+                  identity?.role === "Master-Agent" && (
+                    <Button className="custom-button confirm" type="submit">
+                      Confirm
+                    </Button>
+                  )}
+                {identity?.role === "Super-User" && (
+                  <Button className="custom-button confirm" type="submit">
+                    Confirm
+                  </Button>
+                )}
+
+                <Button className="custom-button cancel" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>
   );
 };
-
 export default RedeemService;

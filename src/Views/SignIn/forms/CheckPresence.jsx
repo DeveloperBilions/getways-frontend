@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNotify, useRedirect } from "react-admin";
+import { Form, useNotify, useRedirect } from "react-admin";
 // mui
 import {
   Button,
@@ -22,6 +22,8 @@ import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
+import logo from "../../../Assets/icons/Logo.svg";
+import { Label } from "reactstrap";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -34,8 +36,8 @@ const LoginPage = () => {
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
   const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef();
-  const [captchaVerified, setCaptchaVerified] = useState(false);  // Track captcha verification
-  const [isCaptchaReady, setIsCaptchaReady] = useState(false);  // Track captcha load status
+  const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false); // Track captcha load status
   const isSmallScreen = useMediaQuery("(max-width:900px)");
   const {
     register,
@@ -61,7 +63,7 @@ const LoginPage = () => {
       setIsCaptchaReady(true); // Set ready status to true when ref is available
     }
     const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
-    
+
     if (savedAccounts.length > 0) {
       const lastUsedAccount = savedAccounts[savedAccounts.length - 1]; // Get last used account
       setValue("emailPhone", lastUsedAccount.email);
@@ -70,32 +72,34 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     try {
-        setLoading(true);
-        if (data?.emailPhone === "") {
-          setErrorMessage("Please enter email or phone number");
-          return;
-        }
-        const response = await Parse.Cloud.run("checkpresence", data);
+      setLoading(true);
+      if (data?.emailPhone === "") {
+        setErrorMessage("Please enter email or phone number");
+        return;
+      }
+      const response = await Parse.Cloud.run("checkpresence", data);
 
-        if (response?.fromAgentExcel) {
-            redirect(
-              `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
-            );
-        } else {
-            redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
-        }
-        let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
-        const existingAccount = savedAccounts.find(acc => acc.email === data.emailPhone);
-        if (!existingAccount) {
-            savedAccounts.push({ email: data.emailPhone });
-        }
-        localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+      if (response?.fromAgentExcel) {
+        redirect(
+          `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
+        );
+      } else {
+        redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
+      }
+      let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+      const existingAccount = savedAccounts.find(
+        (acc) => acc.email === data.emailPhone
+      );
+      if (!existingAccount) {
+        savedAccounts.push({ email: data.emailPhone });
+      }
+      localStorage.setItem("accounts", JSON.stringify(savedAccounts));
     } catch (error) {
-        notify(error?.message || "User Checking failed. Please try again.");
+      notify(error?.message || "User Checking failed. Please try again.");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   if (loading) {
     return <Loader />;
@@ -103,59 +107,60 @@ const LoginPage = () => {
 
   return (
     <React.Fragment>
-      <Grid container component="main" sx={{ height: "100vh" }}>
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "var(--secondary-color)",
+        }}
+      >
         <CssBaseline />
-        {!isSmallScreen && (
-          <Grid
-            item
-            xs={false}
-            sm={4}
-            md={7}
-            sx={{
-              backgroundImage: "url(/assets/login.jpg)",
-              backgroundRepeat: "no-repeat",
-              backgroundColor: (t) =>
-                t.palette.mode === "light"
-                  ? t.palette.grey[50]
-                  : t.palette.grey[900],
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-        )}
-        <Grid
-          item
-          xs={12}
-          sm={isSmallScreen ? 12 : 8}
-          md={isSmallScreen ? 12 : 5}
-          component={Paper}
-          elevation={6}
-          square
+        <Box
           sx={{
+            flex: 1,
+            backgroundColor: "var(--primary-color)",
             display: "flex",
-            height: "100%",
-            justifyContent: "center",
             flexDirection: "column",
-            backgroundColor: "#e6e6e6",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "40vh", // Adjust based on your design
+            color: "var(--secondary-color)",
+            maxHeight: "384px",
+          }}
+        >
+          <img src={logo} alt="cancel" style={{ width: 185, height: 64 }} />
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: "var(--font-family)",
+              fontWeight: 400,
+              fontSize: "24px",
+            }}
+          >
+            Sign in to your Account
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            backgroundColor: "var(--secondary-color)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            padding: 4,
           }}
         >
           <Box
             sx={{
-              my: 30,
-              mx: 8,
-              display: "flex",
-              justifyContent: "center",
-              flexDirection: "column",
-              alignItems: "left",
-              border: "1px solid grey",
-              backgroundColor: "white",
-              borderRadius: "2px",
-              padding: 3,
+              width: "100%",
+              maxWidth: 400,
+              backgroundColor: "var(--secondary-color)",
+              padding: "0px 24px",
+              borderRadius: 2,
+              boxShadow: 0,
             }}
           >
-            <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
-              Sign in
-            </Typography>
             <Box mb={3}>
               {errorMessage && (
                 <Alert severity="error" onClose={() => setErrorMessage("")}>
@@ -163,10 +168,8 @@ const LoginPage = () => {
                 </Alert>
               )}
             </Box>
-            <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-              <Typography htmlFor="emailPhone" sx={{ mt: 1 }}>
-                Email / Phone
-              </Typography>
+            <Form component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
+              <Label className="custom-label">Email / Phone</Label>
 
               <OutlinedInput
                 required
@@ -176,6 +179,13 @@ const LoginPage = () => {
                 label="emailPhone"
                 name="emailPhone"
                 autoComplete="tel"
+                sx={{
+                  mb: 2,
+                  height: "40px",
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid var(--text-color)",
+                  },
+                }}
                 autoFocus
                 {...register("emailPhone")}
               />
@@ -198,11 +208,19 @@ const LoginPage = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 3, mb: 1 }}
+                sx={{
+                  mb: 2,
+                  backgroundColor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  fontWeight: 400,
+                  "&:hover": {
+                    backgroundColor: "var(--primary-color)",
+                  },
+                }}
               >
                 Next
               </Button>
-            </Box>
+            </Form>
             {/* <Button
               fullWidth
               variant="outlined"
@@ -212,8 +230,8 @@ const LoginPage = () => {
               Need Help? Watch Videos
             </Button> */}
           </Box>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
       <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </React.Fragment>
   );

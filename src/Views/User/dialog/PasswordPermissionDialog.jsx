@@ -8,6 +8,7 @@ import {
   FormGroup,
   Label,
   Input,
+  Col,
 } from "reactstrap";
 import { Box, Typography, Slider, CircularProgress ,Alert} from "@mui/material";
 import { Parse } from "parse";
@@ -67,9 +68,12 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={onClose} centered>
+    <Modal isOpen={open} toggle={onClose} centered className="custom-modal">
       <ModalHeader toggle={onClose}>
-        <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: "center" }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: "400", textAlign: "center" }}
+        >
           Password Permission Settings
         </Typography>
       </ModalHeader>
@@ -85,18 +89,18 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
           </Alert>
         )}
         <FormGroup>
-          <Label for="passwordPermission">
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+          <Label className="custom-label">
+            <Typography variant="body1" sx={{ fontWeight: "500", marginTop: "10px" }}>
               Enable Password Permission
             </Typography>
           </Label>
-          <div className="d-flex align-items-center">
+          <div className="d-flex align-items-center bg-light rounded p-2 mt-2">
             <Input
               type="checkbox"
               id="passwordPermission"
               checked={passwordPermission}
               onChange={(e) => setPasswordPermission(e.target.checked)}
-              className="me-2"
+              className="black-checkbox me-2"
             />
             <Typography variant="body2">
               Allow the Agent to set or reset their Player's password.
@@ -105,21 +109,28 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
         </FormGroup>
       </ModalBody>
       <ModalFooter>
-        <Button color="secondary" onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          color="primary"
-          onClick={handleSave}
-          disabled={loading}
-          className="ms-2"
-        >
-          {loading ? (
-            <CircularProgress size={20} sx={{ color: "white" }} />
-          ) : (
-            "Save Changes"
-          )}
-        </Button>
+        <Col md={12}>
+          <div className="d-flex w-100 justify-content-between">
+            <Button
+              className="custom-button cancel"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="custom-button confirm"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={20} sx={{ color: "white" }} />
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        </Col>
       </ModalFooter>
     </Modal>
   );

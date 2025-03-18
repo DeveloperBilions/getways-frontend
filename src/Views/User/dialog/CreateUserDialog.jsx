@@ -13,6 +13,7 @@ import {
   FormText,
   InputGroup,
   InputGroupText,
+  ModalFooter,
 } from "reactstrap";
 //react admin
 import { useGetIdentity, usePermissions, useRefresh } from "react-admin";
@@ -26,6 +27,7 @@ import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { validateCreateUser } from "../../../Validators/user.validator";
 import { validatePassword } from "../../../Validators/Password";
+import "../../../Assets/css/Dialog.css";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -58,10 +60,10 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     setEmail("");
     setPhoneNumber("");
     setPassword("");
-    setPhoneNumber("")
+    setPhoneNumber("");
     setConfirmPassword("");
     setErrorMessage("");
-    setUserType("")
+    setUserType("");
     // setParentType({})
   };
 
@@ -83,24 +85,27 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
   const handleCancel = () => {
     onClose();
     resetFields();
+    setPasswordErrors("");
   };
 
   const fetchUsersByRole = async () => {
     try {
       let params = {
-        roleName: permissions === "Master-Agent" ? ["Agent"] : ["Agent", "Master-Agent"],
-        currentusr: permissions === "Master-Agent" ? identity?.objectId : undefined
+        roleName:
+          permissions === "Master-Agent"
+            ? ["Agent"]
+            : ["Agent", "Master-Agent"],
+        currentusr:
+          permissions === "Master-Agent" ? identity?.objectId : undefined,
+      };
 
-    };
-
-        const users = await Parse.Cloud.run("getUsersByRole", params);
-        setParentOptions(users);
+      const users = await Parse.Cloud.run("getUsersByRole", params);
+      setParentOptions(users);
     } catch (error) {
-        console.error("Error fetching users by role:", error.message);
-        return [];
+      console.error("Error fetching users by role:", error.message);
+      return [];
     }
-};
-
+  };
 
   useEffect(() => {
     fetchUsersByRole();
@@ -118,12 +123,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     event.preventDefault();
 
     const validationData = {
-      username:userName,
+      username: userName,
       name,
       phoneNumber,
       email,
       password,
-    }
+    };
 
     const validationResponse = validateCreateUser(validationData);
     if (!validationResponse.isValid) {
@@ -151,57 +156,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     setLoading(true);
     try {
       let response;
-    if (permissions === "Super-User") {
-      if (userType === "Agent") {
-        if (!identity?.objectId && !identity?.name) {
-          setErrorMessage("Parent User data is not valid");
-          return;
-        }
-        response = await Parse.Cloud.run("createUser", {
-          roleName: userType,
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: parentType?.id,
-          userParentName: parentType?.name,
-          redeemService: 5,
-        });
-      } else if (userType === "Player") {
-        if (!parentType?.id && !parentType?.name) {
-          setErrorMessage("Parent User data is not valid");
-          return;
-        }
-        response = await Parse.Cloud.run("createUser", {
-          roleName: userType,
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: parentType?.id,
-          userParentName: parentType?.name,
-        });
-      } else if (userType === "Master-Agent") {
-        if (!parentType?.id && !parentType?.name) {
-          setErrorMessage("Parent User data is not valid");
-          return;
-        }
-        response = await Parse.Cloud.run("createUser", {
-          roleName: userType,
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: parentType?.id,
-          userParentName: parentType?.name,
-        });
-      }
-      else if (permissions === "Master-Agent") {
-
-       if (userType === "Agent") {
+      if (permissions === "Super-User") {
+        if (userType === "Agent") {
           if (!identity?.objectId && !identity?.name) {
             setErrorMessage("Parent User data is not valid");
             return;
@@ -217,7 +173,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
             userParentName: parentType?.name,
             redeemService: 5,
           });
-        
         } else if (userType === "Player") {
           if (!parentType?.id && !parentType?.name) {
             setErrorMessage("Parent User data is not valid");
@@ -233,31 +188,78 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
             userParentId: parentType?.id,
             userParentName: parentType?.name,
           });
+        } else if (userType === "Master-Agent") {
+          if (!parentType?.id && !parentType?.name) {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
+          response = await Parse.Cloud.run("createUser", {
+            roleName: userType,
+            username: userName,
+            name,
+            phoneNumber,
+            email,
+            password,
+            userParentId: parentType?.id,
+            userParentName: parentType?.name,
+          });
+        } else if (permissions === "Master-Agent") {
+          if (userType === "Agent") {
+            if (!identity?.objectId && !identity?.name) {
+              setErrorMessage("Parent User data is not valid");
+              return;
+            }
+            response = await Parse.Cloud.run("createUser", {
+              roleName: userType,
+              username: userName,
+              name,
+              phoneNumber,
+              email,
+              password,
+              userParentId: parentType?.id,
+              userParentName: parentType?.name,
+              redeemService: 5,
+            });
+          } else if (userType === "Player") {
+            if (!parentType?.id && !parentType?.name) {
+              setErrorMessage("Parent User data is not valid");
+              return;
+            }
+            response = await Parse.Cloud.run("createUser", {
+              roleName: userType,
+              username: userName,
+              name,
+              phoneNumber,
+              email,
+              password,
+              userParentId: parentType?.id,
+              userParentName: parentType?.name,
+            });
+          }
         }
+      } else if (permissions === "Agent") {
+        response = await Parse.Cloud.run("createUser", {
+          roleName: "Player",
+          username: userName,
+          name,
+          phoneNumber,
+          email,
+          password,
+          userParentId: identity?.objectId,
+          userParentName: identity?.name,
+        });
+      } else if (permissions === "Master-Agent") {
+        response = await Parse.Cloud.run("createUser", {
+          roleName: "Player",
+          username: userName,
+          name,
+          phoneNumber,
+          email,
+          password,
+          userParentId: identity?.objectId,
+          userParentName: identity?.name,
+        });
       }
-    } else if (permissions === "Agent") {
-      response = await Parse.Cloud.run("createUser", {
-        roleName: "Player",
-        username: userName,
-        name,
-        phoneNumber,
-        email,
-        password,
-        userParentId: identity?.objectId,
-        userParentName: identity?.name,
-      });
-    } else if (permissions === "Master-Agent") {
-      response = await Parse.Cloud.run("createUser", {
-        roleName: "Player",
-        username: userName,
-        name,
-        phoneNumber,
-        email,
-        password,
-        userParentId: identity?.objectId,
-        userParentName: identity?.name,
-      });
-    }
       console.log("API Response:", response);
       if (!response?.success) {
         setErrorMessage(response?.message);
@@ -306,13 +308,22 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleCancel} size="md" centered>
-          <ModalHeader toggle={handleCancel} className="border-bottom-0">
+        <Modal
+          isOpen={open}
+          toggle={handleCancel}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={handleCancel}
+            className="custom-modal-header border-bottom-0"
+          >
             Add New user
           </ModalHeader>
 
-          <ModalBody>
-            <Form onSubmit={handleSubmit}>
+          <ModalBody className="custom-modal-body">
+            <Form>
               {errorMessage && (
                 <Grid item xs={12}>
                   <Alert severity="error">{errorMessage}</Alert>
@@ -322,14 +333,16 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
               <Row>
                 <Col md={6}>
                   <FormGroup>
-                    <Label for="userName" className="pb-0 mb-0">
-                      User Name
+                    <Label for="userName" className="custom-label">
+                      User name
                     </Label>
                     <Input
                       id="userName"
                       name="userName"
                       type="text"
                       autoComplete="off"
+                      placeholder="e.g. John_Doe"
+                      className="custom-input"
                       value={userName}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -345,7 +358,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                 <Col md={6}>
                   <FormGroup>
-                    <Label for="name" className="pb-0 mb-0">
+                    <Label for="name" className="custom-label">
                       Name
                     </Label>
                     <Input
@@ -353,10 +366,13 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                       name="name"
                       type="text"
                       autoComplete="off"
+                      placeholder="e.g. John"
+                      className="custom-input"
                       value={name}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          // Prevents invalid characters from being typed
                           setName(value);
                         }
                       }}
@@ -367,21 +383,23 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="phoneNumber" className="pb-0 mb-0">
-                      Phone Number
+                    <Label for="phoneNumber" className="custom-label">
+                      Phone number
                     </Label>
                     <Input
                       id="phoneNumber"
                       name="phoneNumber"
                       type="text"
                       autoComplete="off"
+                      placeholder="e.g. 0123456789"
+                      className="custom-input"
                       value={phoneNumber}
                       onChange={(e) => {
                         const value = e.target.value;
                         if (/^\d{0,10}$/.test(value)) {
                           setPhoneNumber(value);
                         }
-                      }}                      
+                      }}
                       required
                     />
                   </FormGroup>
@@ -389,7 +407,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="email" className="pb-0 mb-0">
+                    <Label for="email" className="custom-label">
                       Email
                     </Label>
                     <Input
@@ -397,6 +415,8 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                       name="email"
                       type="email"
                       autoComplete="off"
+                      placeholder="e.g. johndoe@example.com"
+                      className="custom-input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -404,22 +424,29 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
-                {(permissions === "Super-User" || permissions === "Master-Agent") && (
+                {(permissions === "Super-User" ||
+                  permissions === "Master-Agent") && (
                   <>
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="exampleSelect">User Type</Label>
+                        <Label for="exampleSelect" className="custom-label">
+                          User Type
+                        </Label>
                         <Input
                           id="exampleSelect"
                           name="select"
                           type="select"
+                          className="custom-input"
                           value={userType}
                           onChange={(e) => setUserType(e.target.value)}
                           required
                         >
-                          <option value="">Select User Type</option>
-                          {permissions === "Super-User" && 
-                          <option value="Master-Agent">Master Agent</option>}
+                          <option value="" style={{ color: "#0000008F" }}>
+                            Select User Type
+                          </option>
+                          {permissions === "Super-User" && (
+                            <option value="Master-Agent">Master Agent</option>
+                          )}
                           <option value="Agent">Agent</option>
                           <option value="Player">Player</option>
                         </Input>
@@ -428,11 +455,14 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                     <Col md={6}>
                       <FormGroup>
-                        <Label for="exampleSelect">Parent Type</Label>
+                        <Label for="exampleSelect" className="custom-label">
+                          Parent Type
+                        </Label>
                         <Input
                           id="exampleSelect"
                           name="select"
                           type="select"
+                          className="custom-input"
                           value={parentType.id}
                           onChange={handleParentTypeChange}
                           disabled={userType === "Master-Agent"}
@@ -468,7 +498,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="password" className="pb-0 mb-0">
+                    <Label for="password" className="custom-label">
                       Password
                     </Label>
                     <InputGroup>
@@ -478,6 +508,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                         type={showPassword ? "text" : "password"}
                         autoComplete="off"
                         value={password}
+                        className="custom-input"
                         onChange={handlePasswordChange}
                         required
                       />
@@ -502,7 +533,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label for="confirmPassword" className="pb-0 mb-0">
+                    <Label for="confirmPassword" className="custom-label">
                       Confirm Password
                     </Label>
                     <InputGroup>
@@ -512,6 +543,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                         type={showConfirmPassword ? "text" : "password"}
                         autoComplete="off"
                         value={confirmPassword}
+                        className="custom-input"
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                       />
@@ -530,8 +562,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                     </InputGroup>
                   </FormGroup>
                 </Col>
+              </Row>
+            </Form>
+          </ModalBody>
 
-                {/* {errorMessage && (
+          {/* {errorMessage && (
                   <Col sm={12}>
                     <Label
                       for="errorResponse"
@@ -542,20 +577,21 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                     </Label>
                   </Col>
                 )} */}
-
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button className="mx-2" color="success" type="submit">
-                      Confirm
-                    </Button>
-                    <Button color="secondary" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Col>
-              </Row>
-            </Form>
-          </ModalBody>
+          <ModalFooter className="modal-footer">
+            <Col md={12}>
+              <div className="d-flex w-100 justify-content-between">
+                <Button className="custom-button cancel" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button
+                  className="custom-button confirm"
+                  onClick={handleSubmit}
+                >
+                  Confirm
+                </Button>
+              </div>
+            </Col>
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>

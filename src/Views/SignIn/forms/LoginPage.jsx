@@ -6,6 +6,7 @@ import {
   useRedirect,
   useRefresh,
   usePermissions,
+  Form,
 } from "react-admin";
 // mui
 import {
@@ -35,6 +36,9 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
+import logo from "../../../Assets/icons/Logo.svg";
+import "../../../Assets/css/Dialog.css";
+import { Label } from "reactstrap";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -43,7 +47,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const LoginPage = () => {
   const { permissions, refetch } = usePermissions();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
-   const isSmallScreen = useMediaQuery("(max-width:900px)");
+  const isSmallScreen = useMediaQuery("(max-width:900px)");
 
   const refresh = useRefresh();
   const redirect = useRedirect();
@@ -66,70 +70,72 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (emailPhoneParams) {
-        const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
-        const matchedAccount = savedAccounts.find(acc => acc.email === emailPhoneParams);
-        if (matchedAccount) {
-            setValue("emailPhone", matchedAccount.email);
-            if (matchedAccount.password) {
-                setValue("password", matchedAccount.password);
-                setRememberMe(true);
-            }
+      const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
+      const matchedAccount = savedAccounts.find(
+        (acc) => acc.email === emailPhoneParams
+      );
+      if (matchedAccount) {
+        setValue("emailPhone", matchedAccount.email);
+        if (matchedAccount.password) {
+          setValue("password", matchedAccount.password);
+          setRememberMe(true);
         }
+      }
     }
-  },[]);
-
+  }, []);
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
       const response = await login({
-          email: emailPhoneParams,
-          password: data.password,
+        email: emailPhoneParams,
+        password: data.password,
       });
       await refetch();
       await refresh();
       // Retrieve existing saved accounts
       let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
       // Check if the current account exists
-      const existingIndex = savedAccounts.findIndex(acc => acc.email === emailPhoneParams);
+      const existingIndex = savedAccounts.findIndex(
+        (acc) => acc.email === emailPhoneParams
+      );
       if (rememberMe) {
-          if (existingIndex !== -1) {
-              // Update the existing account with a new password
-              savedAccounts[existingIndex].password = data.password;
-          } else {
-              // Add new account with email & password
-              savedAccounts.push({
-                  email: emailPhoneParams,
-                  password: data.password,
-              });
-          }
-          // Save updated accounts to localStorage
-          localStorage.setItem("accounts", JSON.stringify(savedAccounts));
-          localStorage.setItem("rememberMe", "true");
+        if (existingIndex !== -1) {
+          // Update the existing account with a new password
+          savedAccounts[existingIndex].password = data.password;
+        } else {
+          // Add new account with email & password
+          savedAccounts.push({
+            email: emailPhoneParams,
+            password: data.password,
+          });
+        }
+        // Save updated accounts to localStorage
+        localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+        localStorage.setItem("rememberMe", "true");
       } else {
-          // Remove password for non-remembered accounts
-          if (existingIndex !== -1) {
-                savedAccounts.splice(existingIndex, 1);
-          }
-          localStorage.setItem("accounts", JSON.stringify(savedAccounts));
-          localStorage.removeItem("rememberMe");
+        // Remove password for non-remembered accounts
+        if (existingIndex !== -1) {
+          savedAccounts.splice(existingIndex, 1);
+        }
+        localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+        localStorage.removeItem("rememberMe");
       }
       // Redirect based on user role
       setTimeout(() => {
-          if (response?.role === "Player") {
-              redirect("/playerDashboard");
-          } else if (["Super-User", "Agent"].includes(response?.role)) {
-              redirect("/users");
-          }
+        if (response?.role === "Player") {
+          redirect("/playerDashboard");
+        } else if (["Super-User", "Agent"].includes(response?.role)) {
+          redirect("/users");
+        }
       }, 5);
     } catch (error) {
-        notify(error?.message || "Login failed. Please try again.");
+      notify(error?.message || "Login failed. Please try again.");
     } finally {
-        setLoading(false);
-        setTimeout(() => refresh(), 0);
+      setLoading(false);
+      setTimeout(() => refresh(), 0);
     }
   };
-
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -140,63 +146,62 @@ const LoginPage = () => {
   }
   return (
     <>
-      <Grid container component="main" sx={{ height: "100vh" }}>
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "var(--secondary-color)",
+        }}
+      >
         <CssBaseline />
-        {!isSmallScreen && (
-          <Grid
-            item
-            xs={false}
-            sm={4}
-            md={7}
-            sx={{
-              backgroundImage: "url(/assets/login.jpg)",
-              backgroundRepeat: "no-repeat",
-              backgroundColor: (t) =>
-                t.palette.mode === "light"
-                  ? t.palette.grey[50]
-                  : t.palette.grey[900],
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-        )}
-        <Grid
-          item
-          xs={12}
-          sm={isSmallScreen ? 12 : 8}
-          md={isSmallScreen ? 12 : 5}
-          component={Paper}
-          elevation={6}
-          square
+        <Box
           sx={{
-            backgroundColor: "#e6e6e6",
-            height: "100%",
+            flex: 1,
+            backgroundColor: "var(--primary-color)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "40vh", // Adjust based on your design
+            color: "var(--secondary-color)",
+            maxHeight: "384px",
+          }}
+        >
+          <img src={logo} alt="cancel" style={{ width: 185, height: 64 }} />
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: "var(--font-family)",
+              fontWeight: 400,
+              fontSize: "24px",
+            }}
+          >
+            Sign in to your Account
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            backgroundColor: "var(--secondary-color)",
             display: "flex",
             justifyContent: "center",
-            flexDirection: "column",
+            alignItems: "flex-start",
+            padding: 4,
           }}
         >
           <Box
             sx={{
-              my: 20,
-              mx: 8,
-              display: "flex",
-              justifyContent: "center",
-              flexDirection: "column",
-              alignItems: "left",
-              border: "1px solid grey",
-              backgroundColor: "white",
-              borderRadius: "2px",
-              padding: 3,
+              width: "100%",
+              maxWidth: 400,
+              backgroundColor: "var(--secondary-color)",
+              padding: "0px 24px",
+              borderRadius: 2,
+              boxShadow: 0,
             }}
           >
-            <Typography component="h4" variant="h4" sx={{ mb: 1.5 }}>
-              Sign in
-            </Typography>
-            <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-              <Typography htmlFor="email" sx={{ mb: 0, mt: 1 }}>
-                Email / Phone
-              </Typography>
+            <Form component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
+              <Label className="custom-label">Email address or User name</Label>
               <OutlinedInput
                 margin="normal"
                 required
@@ -206,14 +211,12 @@ const LoginPage = () => {
                 name="emailPhone"
                 id="emailPhone"
                 autoComplete="off"
-                sx={{ mt: 0 }}
+                sx={{ mb: 2, height: "40px" }}
                 disabled
                 value={emailPhoneParams}
               />
 
-              <Typography htmlFor="password" sx={{ mb: 0, mt: 1 }}>
-                Password
-              </Typography>
+              <Label className="custom-label">Password</Label>
               <OutlinedInput
                 margin="normal"
                 required
@@ -223,7 +226,14 @@ const LoginPage = () => {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
-                sx={{ mt: 0 }}
+                sx={{
+                  mb: 2,
+                  height: "40px",
+                  backgroundColor: "var(--secondary-color)",
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid var(--text-color)",
+                  },
+                }}
                 endAdornment={
                   <InputAdornment position="end">
                     <IconButton
@@ -247,6 +257,12 @@ const LoginPage = () => {
                     control={
                       <Checkbox
                         checked={rememberMe}
+                        sx={{
+                          color: "var(--primary-color)", // Unchecked color
+                          "&.Mui-checked": {
+                            color: "var(--primary-color)", // Checked color
+                          },
+                        }}
                         onChange={(e) => setRememberMe(e.target.checked)}
                       />
                     }
@@ -258,34 +274,60 @@ const LoginPage = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{ mt: 1, mb: 1 }}
+                sx={{
+                  mb: 2,
+                  backgroundColor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  fontWeight: 400,
+                  "&:hover": {
+                    backgroundColor: "var(--primary-color)",
+                  },
+                }}
               >
-                Sign in
+                Login
               </Button>
 
               <Button
                 fullWidth
                 variant="contained"
-                sx={{ mt: 1, mb: 1 }}
+                sx={{
+                  mb: 2,
+                  backgroundColor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  fontWeight: 400,
+                  "&:hover": {
+                    backgroundColor: "var(--primary-color)",
+                  },
+                }}
                 onClick={() => redirect("/login")}
               >
                 Back
               </Button>
-            </Box>
-            <Button
-              fullWidth
-              variant="outlined"
-              sx={{ mt: 1 }}
+            </Form>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                marginTop: "10px",
+              }}
               onClick={() => setHelpOpen(true)}
             >
-              Need Help? Watch Videos
-            </Button>
+              <span style={{ color: "var(--primary-color)", fontWeight: 400 }}>
+                Need Help?{" "}
+              </span>
+              &nbsp;
+              <span style={{ color: "#1671C5", fontWeight: 400 }}>
+                {" "}
+                Watch Videos
+              </span>
+            </Box>
           </Box>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
       <HelpVideoModal open={helpOpen} handleClose={() => setHelpOpen(false)} />
     </>
   );
 };
-
 export default LoginPage;
