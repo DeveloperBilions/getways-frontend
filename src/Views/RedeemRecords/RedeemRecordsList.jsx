@@ -34,7 +34,7 @@ import {
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 // dialog
 import RejectRedeemDialog from "./dialog/RejectRedeemDialog";
@@ -361,7 +361,8 @@ export const RedeemRecordsList = (props) => {
       <Button
         variant="contained"
         size="small"
-        startIcon={<RefreshIcon />}
+        color="secondary"
+        startIcon={<AutorenewIcon />}
         onClick={handleRefresh}
         sx={{ width: { xs: "100%", sm: "auto" } }}
       >
@@ -708,19 +709,19 @@ export const RedeemRecordsList = (props) => {
                   const getColor = (status) => {
                     switch (status) {
                       case 4:
-                        return "success";
+                        return "#EBFFEC";
                       case 12:
-                        return "success";
+                        return "#EBFFEC";
                       case 5:
-                        return "error";
+                        return "#FFEBEB";
                       case 13:
-                        return "error";
+                        return "#FFEBEB";
                       case 6:
-                        return "warning";
+                        return "#FFFCEB";
                       case 7:
-                        return "error";
+                        return "#FFEBEB";
                       case 8:
-                        return "success";
+                        return "#EBFFEC";
                       default:
                         return "default";
                     }
@@ -739,7 +740,11 @@ export const RedeemRecordsList = (props) => {
                   return (
                     <Chip
                       label={statusMessage}
-                      color={getColor(record.status)}
+                      sx={{
+                        color: "black",
+                        backgroundColor: getColor(record.status),
+                        borderRadius: "8px",
+                      }}
                       size="small"
                       variant="outlined"
                     />

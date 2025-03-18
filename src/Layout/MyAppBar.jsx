@@ -1,6 +1,12 @@
 import * as React from "react";
-import { Toolbar, Typography, Box, MenuItem } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
+import {
+  Toolbar,
+  Typography,
+  Box,
+  MenuItem,
+  Menu,
+  IconButton,
+} from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
@@ -15,53 +21,138 @@ import {
   UserMenu,
   Logout,
   useGetIdentity,
-  useSidebarState,
 } from "react-admin";
+import PersonIcon from "@mui/icons-material/Person";
+import LocalAtmIcon from "@mui/icons-material/LocalAtm";
+import SummarizeIcon from "@mui/icons-material/Summarize";
+import AnnouncementIcon from "@mui/icons-material/Announcement";
 import ChangePassword from "./ChangePassword";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
 import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
-import GuidelineModal from "../Views/User/dialog/GuidelineModal";
 import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
-import AnnouncementIcon from "@mui/icons-material/Announcement";
-//to be used when we create custom user menu
-// const MyUserMenu = React.forwardRef((props, ref) => {
-//   return <></>;
-// });
+import { useMediaQuery } from "@mui/system";
 
-export default function MyAppBar({ props }) {
+export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
-  const [open, setOpen] = useSidebarState(); // Sidebar state
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
-  const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false); // State for Recharge Limit Dialog
+  const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
-  const [openHelpVideo, setOpenHelpVideo] = React.useState(false); // New state for Help Video Modal
+  const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
-  const [openGuideline, setOpenGuideline] = React.useState(false); // State for Guideline Modal
-  const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false); // State for Guideline Modal
-
-  const role = localStorage.getItem("role");
+  const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
+  const isMobile = useMediaQuery("(max-width:1023px)");
   const navigate = useNavigate();
-  const handleOpenModal = () => {
-    setOpenModal(true);
-  };
+  const role = localStorage.getItem("role");
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-  const handleOpenRechargeLimit = () => {
-    setOpenRechargeLimit(true);
-  };
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+  const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
+  const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
+  const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
 
-  const handleCloseRechargeLimit = () => {
-    setOpenRechargeLimit(false);
-  };
-  const handleCloseEmergencymodal = () => {
-    setOpenEmergencyModal(false);
-  };
-  const toggleSidebar = () => setOpen(!open);
-  console.log(identity, "identity");
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  if (!identity) return null;
+
+  const menuItems = [];
+  if (role && role !== "Player") {
+    menuItems.push(
+      <MenuItem
+        key="users"
+        onClick={() => {
+          navigate("/users");
+          handleMenuClose();
+        }}
+      >
+        <PersonIcon sx={{ mr: 1 }} /> User Management
+      </MenuItem>,
+      <MenuItem
+        key="rechargeRecords"
+        onClick={() => {
+          navigate("/rechargeRecords");
+          handleMenuClose();
+        }}
+      >
+        <LocalAtmIcon sx={{ mr: 1 }} /> Recharge Records
+      </MenuItem>,
+      <MenuItem
+        key="redeemRecords"
+        onClick={() => {
+          navigate("/redeemRecords");
+          handleMenuClose();
+        }}
+      >
+        <LocalAtmIcon sx={{ mr: 1 }} /> Redeem Records
+      </MenuItem>,
+      <MenuItem
+        key="summary"
+        onClick={() => {
+          navigate("/summary");
+          handleMenuClose();
+        }}
+      >
+        <SummarizeIcon sx={{ mr: 1 }} /> Summary
+      </MenuItem>
+    );
+    if (role === "Super-User") {
+      menuItems.push(
+        <MenuItem
+          key="reports"
+          onClick={() => {
+            navigate("/Reports");
+            handleMenuClose();
+          }}
+        >
+          <SummarizeIcon sx={{ mr: 1 }} /> Reports
+        </MenuItem>
+      );
+    }
+  }
+  // else if (role === "Player") {
+  //   menuItems.push(
+  //     <MenuItem
+  //       key="playerDashboard"
+  //       onClick={() => {
+  //         navigate("/playerDashboard");
+  //         handleMenuClose();
+  //       }}
+  //     >
+  //       <SummarizeIcon sx={{ mr: 1 }} /> Dashboard
+  //     </MenuItem>,
+  //     <MenuItem
+  //       key="wallet"
+  //       onClick={() => {
+  //         navigate("/Wallet");
+  //         handleMenuClose();
+  //       }}
+  //     >
+  //       <SummarizeIcon sx={{ mr: 1 }} /> Wallet
+  //     </MenuItem>,
+  //     <MenuItem
+  //       key="rechargeRecords"
+  //       onClick={() => {
+  //         navigate("/rechargeRecords");
+  //         handleMenuClose();
+  //       }}
+  //     >
+  //       <LocalAtmIcon sx={{ mr: 1 }} /> Recharge Records
+  //     </MenuItem>,
+  //     <MenuItem
+  //       key="redeemRecords"
+  //       onClick={() => {
+  //         navigate("/redeemRecords");
+  //         handleMenuClose();
+  //       }}
+  //     >
+  //       <LocalAtmIcon sx={{ mr: 1 }} /> Redeem Records
+  //     </MenuItem>
+  //   );
+  // }
+
   return (
     <AppBar
       sx={{
@@ -69,36 +160,34 @@ export default function MyAppBar({ props }) {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingRight: { xs: "0.5em", md: "1em" }, // Reduce padding on small screens
-        paddingLeft: { xs: "0.5em", md: "1em" },
-        backgroundColor: "#272E35",
+        padding: "0",
+        backgroundColor: "#000",
         position: "fixed",
         top: 0,
         width: "100%",
         height: "3.5em",
         color: "white",
-        zIndex: 1300, // Above sidebar
+        zIndex: 1300,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        {/* Hamburger Menu for small screens */}
-        {/* {(role === "Player") && */}
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          onClick={toggleSidebar}
-          sx={{ display: { xs: "block", sm: "none" } }} // Show only on small screens
-        >
-          <MenuIcon />
-        </IconButton>
-        {/* } */}
-        {/* Logo */}
+      <Box sx={{ display: "flex", alignItems: "center", pl: 1 }}>
+        {role !== "Player" && (
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={handleMenuOpen}
+            sx={{ display: { xs: "block", md: "none" }, mr: 1, ml: 0.5 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
         <Toolbar
           sx={{
-            width: { xs: "auto", md: "15em" }, // Auto width on mobile, fixed on desktop
+            width: "auto",
             cursor: "pointer",
-            padding: { xs: "0 0.5em", md: "0" }, // Adjust padding for mobile
+            padding: 0,
+            minHeight: "3.5em",
           }}
           onClick={() => navigate("/")}
         >
@@ -107,154 +196,188 @@ export default function MyAppBar({ props }) {
             alt="Company Logo"
             loading="lazy"
             style={{
-              maxHeight: { xs: "2em", md: "3em" }, // Smaller logo on mobile
+              maxHeight: { xs: "2em", md: "3em" },
               width: "auto",
             }}
           />
         </Toolbar>
-
-        {/* Title */}
-        <TitlePortal
-          variant="h5"
-          component="h3"
-          sx={{
-            paddingLeft: { xs: 12, md: 0 }, // Adjust padding for mobile
-            fontSize: { xs: "1.2rem", md: "1.5rem" }, // Smaller font on mobile
-            display: { xs: "none", sm: "block" }, // Hide on very small screens
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        />
+        {!isMobile && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: "#000",
+              "& > *": {
+                padding: "0 1em",
+                height: "3.5em",
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                fontWeight: 400,
+                "&:hover": {
+                  backgroundColor: "#333",
+                },
+              },
+            }}
+          >
+            {menuItems.map((item) => (
+              <Box
+                key={item.key}
+                onClick={item.props.onClick}
+                sx={{
+                  color: "white",
+                  textTransform: "none",
+                  padding: "0 1em",
+                  height: "3.5em",
+                  display: "flex",
+                  alignItems: "center", // Vertically center the text
+                  "&:hover": {
+                    transition: "background-color 0.3s ease", // Smooth transition
+                    borderRadius: "8px",
+                  },
+                }}
+              >
+                {item.props.children[1]}
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: { xs: 0.5, md: 1 }, // Reduce gap on mobile
+          flexGrow: 1,
+          backgroundColor: "#000",
         }}
       >
-        {(role === "Master-Agent" || role === "Agent") &&
-          identity?.balance !== undefined && (
-            <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-              <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
-              <span style={{ fontWeight: 600, color: "#fff" }}>
-                Balance: {identity.balance}
-              </span>
+        <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
+          {(role === "Master-Agent" || role === "Agent") &&
+            identity?.balance !== undefined && (
+              <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                <span style={{ fontWeight: 600, color: "#fff" }}>
+                  Balance: {identity.balance}
+                </span>
+              </Box>
+            )}
+          {role !== "Player" && (
+            <Box sx={{ ml: 1, minWidth: 0 }}>
+              <Typography
+                noWrap
+                variant="subtitle2"
+                sx={{
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: { xs: "0.8rem", md: "1rem" },
+                  maxWidth: { xs: "100px", md: "200px" },
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {identity?.name}
+              </Typography>
             </Box>
           )}
-        <Box sx={{ ml: 0, minWidth: 0 }}>
-          <Typography
-            noWrap
-            variant="subtitle2"
-            sx={{
-              color: "white",
-              fontWeight: 500,
-              fontSize: { xs: "0.8rem", md: "1rem" }, // Smaller text on mobile
-              maxWidth: { xs: "100px", md: "200px" }, // Limit width to prevent overflow
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {identity?.name}
-          </Typography>
-          {/* {identity?.role === "Player" && (
-          <Typography
-            noWrap
-            variant="subtitle2"
-            sx={{ color: "text.secondary", fontWeight: 500 }}
-          >
-            Agent: {identity?.userParentName}
-          </Typography>
-        )} */}
-        </Box>
-
-        <RefreshButton
-          label=""
-          icon={
-            <RefreshIcon
+          {role !== "Player" && (
+            <RefreshButton
+              label=""
+              icon={
+                <RefreshIcon
+                  sx={{
+                    fontSize: { xs: "20px !important", md: "24px !important" },
+                    marginRight: "-6px",
+                  }}
+                />
+              }
               sx={{
-                fontSize: { xs: "20px !important", md: "24px !important" },
-                marginRight: "-6px",
+                color: "white",
+                minWidth: { xs: "30px", md: "40px" },
+                justifyContent: "flex-end",
+                ml: 1,
               }}
             />
-          }
-          sx={{
-            color: "white",
-            minWidth: { xs: "30px", md: "40px" }, // Smaller button on mobile
-            justifyContent: "flex-end",
-          }}
-        />
-        <UserMenu>
-          {(role === "Agent" ||
-            role === "Player" ||
-            role === "Master-Agent") && (
-            <MenuItem onClick={handleOpenModal} style={{ color: "#0000008a" }}>
-              <LockOutlinedIcon sx={{ marginRight: 1 }} /> {/* Add icon */}
-              Change Password
-            </MenuItem>
           )}
-          {(role === "Agent" || role === "Master-Agent") && (
+          <UserMenu sx={{ ml: 1 }}>
+            {(role === "Agent" ||
+              role === "Player" ||
+              role === "Master-Agent") && (
+              <MenuItem
+                onClick={handleOpenModal}
+                style={{ color: "#0000008a" }}
+              >
+                <LockOutlinedIcon sx={{ marginRight: 1 }} /> Change Password
+              </MenuItem>
+            )}
+            {(role === "Agent" || role === "Master-Agent") && (
+              <MenuItem
+                onClick={handleOpenRechargeLimit}
+                style={{ color: "#0000008a" }}
+              >
+                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Recharge
+                Limit
+              </MenuItem>
+            )}
+            {role === "Super-User" && (
+              <MenuItem
+                onClick={() => setDisableDialogOpen(true)}
+                style={{ color: "#0000008a" }}
+              >
+                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Payment
+                Methods
+              </MenuItem>
+            )}
+            {role === "Super-User" && (
+              <MenuItem
+                onClick={() => {
+                  navigate("/transactionData");
+                }}
+                style={{ color: "#0000008a" }}
+              >
+                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Transaction
+                Export
+              </MenuItem>
+            )}
+            {role === "Super-User" && (
+              <MenuItem
+                onClick={() => setOpenEmergencyModal(true)}
+                style={{ color: "#0000008a" }}
+              >
+                <AnnouncementIcon sx={{ marginRight: 1 }} /> Emergency Message
+              </MenuItem>
+            )}
+            {identity?.redeemServiceEnabled && role === "Master-Agent" && (
+              <MenuItem
+                onClick={() => setOpenRedeemService(true)}
+                style={{ color: "#0000008a" }}
+              >
+                <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
+              </MenuItem>
+            )}
             <MenuItem
-              onClick={handleOpenRechargeLimit}
+              onClick={() => setOpenHelpVideo(true)}
               style={{ color: "#0000008a" }}
             >
-              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
-              Recharge Limit
+              <HelpOutlineIcon sx={{ marginRight: 1 }} /> Help Videos
             </MenuItem>
-          )}
-          {role === "Super-User" && (
-            <MenuItem
-              onClick={(e) => {
-                setDisableDialogOpen(true);
-              }}
-              style={{ color: "#0000008a" }}
-            >
-              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
-              Payment Methods
-            </MenuItem>
-          )}
-          {role === "Super-User" && (
-            <MenuItem
-              onClick={(e) => {
-                navigate("/transactionData");
-              }}
-              style={{ color: "#0000008a" }}
-            >
-              <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />
-              Transaction Export
-            </MenuItem>
-          )}
-          {role === "Super-User" && (
-            <MenuItem
-              onClick={(e) => {
-                setOpenEmergencyModal(true);
-              }}
-              style={{ color: "#0000008a" }}
-            >
-              <AnnouncementIcon sx={{ marginRight: 1 }} />
-              Emergency Message
-            </MenuItem>
-          )}
-          {identity?.redeemServiceEnabled && role === "Master-Agent" && (
-            <MenuItem
-              onClick={() => setOpenRedeemService(true)}
-              style={{ color: "#0000008a" }}
-            >
-              <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
-            </MenuItem>
-          )}
-          <MenuItem
-            onClick={() => setOpenHelpVideo(true)}
-            style={{ color: "#0000008a" }}
-          >
-            <HelpOutlineIcon sx={{ marginRight: 1 }} />
-            Help Videos
-          </MenuItem>
-          <Logout style={{ color: "#0000008a" }} />
-        </UserMenu>
+            <Logout style={{ color: "#0000008a" }} />
+          </UserMenu>
+        </Box>
       </Box>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        sx={{
+          "& .MuiMenu-paper": {
+            backgroundColor: "#000",
+            color: "#c0c7d8",
+          },
+        }}
+      >
+        {menuItems}
+      </Menu>
       <ChangePassword open={openModal} onClose={handleCloseModal} />
       <RechargeLimitDialog
         open={openRechargeLimit}
@@ -272,13 +395,9 @@ export default function MyAppBar({ props }) {
         open={openRedeemService}
         onClose={() => setOpenRedeemService(false)}
       />
-      <GuidelineModal
-        open={openGuideline}
-        onClose={() => setOpenGuideline(false)}
-      />
       <EmergencyMessageDialog
         open={openEmergencyModal}
-        onClose={() => setOpenEmergencyModal(false)}
+        onClose={handleCloseEmergencyModal}
       />
     </AppBar>
   );

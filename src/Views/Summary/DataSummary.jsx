@@ -21,6 +21,7 @@ import { Loader, KPILoader } from "../Loader";
 import debounce from "lodash/debounce"; // Import Lodash debounce
 import { Autocomplete, TextField } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
+import GroupsIcon from "@mui/icons-material/Groups";
 // mui
 import {
   Typography,
@@ -49,6 +50,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
+import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -146,17 +150,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 alignItems="center"
                 justifyContent="flex-start"
               >
-                <img
+                {/* <img
                   src={AOGSymbol}
                   alt="AOG Symbol"
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
+                /> */}
                 <span>{filteredRechargeValue}</span>
               </Box>
             ),
-            bgColor: "#EBF9F0",
-            borderColor: "#9CDAB8",
-            icon: <PaidIcon color="secondary" />,
+            bgColor: "#FFEBEB",
+            borderColor: "#FF9C9C",
+            icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
             filter:
               role === "Super-User" ? (
                 <FormControl fullWidth>
@@ -180,17 +184,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       id: 1,
       name: "Total User",
       value: data[0].totalRegisteredUsers,
-      bgColor: "#E3F2FD",
+      bgColor: "#EBF4FF",
       borderColor: "#7EB9FB",
-      icon: <PersonIcon color="primary" />,
+      icon: <GroupsIcon color="primary" sx={{ mr: 1 }} />,
     },
     {
       id: 2,
       name: "Total Agent",
       value: data[0].totalAgents,
-      bgColor: "#dedede",
-      borderColor: "#adb5bd",
-      icon: <PersonIcon color="info" />,
+      bgColor: "#EEEBFF",
+      borderColor: "#937EFB",
+      icon: <GroupsIcon color="info" sx={{ mr: 1 }} />,
     },
     {
       id: 3,
@@ -203,17 +207,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             justifyContent: "flex-start",
           }}
         >
-          <img
+          {/* <img
             src={AOGSymbol}
             alt="AOG Symbol"
             style={{ width: "20px", height: "20px", marginRight: "8px" }}
-          />
+          /> */}
           <span>{data[0].totalRechargeAmount}</span>
         </div>
       ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
-      icon: <PaidIcon color="success" />,
+      icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
     },
     {
       id: 4,
@@ -226,17 +230,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             justifyContent: "flex-start",
           }}
         >
-          <img
+          {/* <img
             src={AOGSymbol}
             alt="AOG Symbol"
             style={{ width: "20px", height: "20px", marginRight: "8px" }}
-          />
+          /> */}
           <span>{data[0].totalRedeemAmount}</span>
         </div>
       ),
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
-      icon: <PaidIcon color="secondary" />,
+      icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
     },
     {
       id: 5,
@@ -249,17 +253,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             justifyContent: "flex-start",
           }}
         >
-          <img
+          {/* <img
             src={AOGSymbol}
             alt="AOG Symbol"
             style={{ width: "20px", height: "20px", marginRight: "8px" }}
-          />
+          /> */}
           <span>{data[0].totalPendingRechargeAmount}</span>
         </div>
       ),
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
-      icon: <WarningIcon color="warning" />,
+      icon: <WarningIcon color="warning" sx={{ mr: 1 }} />,
     },
     {
       id: 6,
@@ -272,17 +276,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             justifyContent: "flex-start",
           }}
         >
-          <img
+          {/* <img
             src={AOGSymbol}
             alt="AOG Symbol"
             style={{ width: "20px", height: "20px", marginRight: "8px" }}
-          />
+          /> */}
           <span>{data[0].totalFailRedeemAmount}</span>
         </div>
       ),
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
-      icon: <ErrorIcon color="error" />,
+      icon: <ErrorIcon color="error" sx={{ mr: 1 }} />,
     },
     ...(role === "Super-User"
       ? [
@@ -297,17 +301,17 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   justifyContent: "flex-start",
                 }}
               >
-                <img
+                {/* <img
                   src={AOGSymbol}
                   alt="AOG Symbol"
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
+                /> */}
                 <span>{data[0].totalCashoutRedeemsSuccess}</span>
               </div>
             ),
-            bgColor: "#E3F2FD",
-            borderColor: "#7EB9FB",
-            icon: <PaidIcon color="primary" />,
+            bgColor: "#EBFFF1",
+            borderColor: "#9CFFBD",
+            icon: <TaskAltIcon color="info" sx={{ mr: 1 }} />,
           },
           {
             id: 8,
@@ -320,26 +324,18 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   justifyContent: "flex-start",
                 }}
               >
-                <img
+                {/* <img
                   src={AOGSymbol}
                   alt="AOG Symbol"
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
+                /> */}
                 <span>{data[0].totalCashoutRedeemsInProgress}</span>
               </div>
             ),
-            bgColor: "#dedede",
-            borderColor: "#adb5bd",
-            icon: <PaidIcon color="success" />,
+            bgColor: "#FCFFEB",
+            borderColor: "#EEFF9C",
+            icon: <ReportGmailerrorredIcon color="info" sx={{ mr: 1 }} />,
           },
-          // {
-          //   id: 9,
-          //   name: "Total Recharge (Wallet)",
-          //   value: "$" + data[0].totalRechargeByType?.wallet,
-          //   bgColor: "#EBF9F0",
-          //   borderColor: "#9CDAB8",
-          //   icon: <PaidIcon color="secondary" />,
-          // },
           // {
           //   id: 10,
           //   name: "Total Recharge (Others)",
@@ -359,18 +355,26 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   justifyContent: "flex-start",
                 }}
               >
-                <img
+                {/* <img
                   src={AOGSymbol}
                   alt="AOG Symbol"
                   style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                />
+                /> */}
                 <span>{data[0].totalFeesCharged}</span>
               </div>
             ),
-            bgColor: "#FFFCEB",
-            borderColor: "#FFE787",
-            icon: <ErrorIcon color="error" />,
-          }
+            bgColor: "#FDEBFF",
+            borderColor: "#F79CFF",
+            icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
+          },
+          {
+            id: 9,
+            name: "Total Wallet Balance",
+            value: data[0].totalRechargeByType?.wallet,
+            bgColor: "#FFF3EB",
+            borderColor: "#FFC79C",
+            icon: <AccountBalanceWalletIcon color="info" sx={{ mr: 1 }} />,
+          },
         ]
       : []),
   ];
@@ -379,7 +383,48 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
 
   return (
     <Grid container spacing={{ xs: 1, sm: 2 }} mt={{ xs: 1, sm: 2 }}>
-      {finalData?.map((item) => (
+      {/* First Row: 4 boxes */}
+      {[...finalData, ...recharge].slice(0, 4).map((item) => (
+        <Grid item xs={12} sm={6} md={3} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: 1,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item?.icon} {item?.name}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 2,
+                  fontWeight: 400,
+                  fontSize: "header-xl",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  verticalAlign: "middle",
+                }}
+              >
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+
+      {/* Second Row: 3 boxes */}
+      {[...finalData, ...recharge].slice(4, 7).map((item) => (
         <Grid item xs={12} sm={6} md={4} key={item?.id}>
           <Card
             sx={{
@@ -400,12 +445,16 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
               >
                 {item?.icon} {item?.name}
               </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
               <Typography
                 variant="h4"
                 sx={{
-                  mt: 1,
-                  fontWeight: "bold",
-                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                  mt: 2,
+                  fontWeight: 400,
+                  fontSize: "header-xl",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  verticalAlign: "middle",
                 }}
               >
                 {item?.value}
@@ -414,13 +463,15 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           </Card>
         </Grid>
       ))}
-      {recharge.map((item) => (
-        <Grid item xs={12} sm={6} md={4} key={item.id}>
+
+      {/* Third Row: 3 boxes */}
+      {[...finalData, ...recharge].slice(7, 10).map((item) => (
+        <Grid item xs={12} sm={6} md={4} key={item?.id}>
           <Card
             sx={{
-              backgroundColor: item.bgColor,
+              backgroundColor: item?.bgColor,
               border: 2,
-              borderColor: item.borderColor,
+              borderColor: item?.borderColor,
               borderRadius: 0,
               boxShadow: 0,
               px: { xs: 1, sm: 2 },
@@ -433,19 +484,62 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 alignItems="center"
                 sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
               >
-                {item.icon} {item.name}
+                {item?.icon} {item?.name}
               </Typography>
               {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
               <Typography
                 variant="h4"
                 sx={{
                   mt: 2,
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  fontSize: { xs: "1.5rem", sm: "2rem" },
+                  fontWeight: 400,
+                  fontSize: "header-xl",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  verticalAlign: "middle",
                 }}
               >
-                {item.value}
+                {item?.value}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+
+      {/* Last Row: 1 box */}
+      {[...finalData, ...recharge].slice(10, 11).map((item) => (
+        <Grid item xs={12} sm={6} md={12} key={item?.id}>
+          <Card
+            sx={{
+              backgroundColor: item?.bgColor,
+              border: 2,
+              borderColor: item?.borderColor,
+              borderRadius: 0,
+              boxShadow: 0,
+              px: { xs: 1, sm: 2 },
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="subtitle1"
+                display="flex"
+                alignItems="center"
+                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+              >
+                {item?.icon} {item?.name}
+              </Typography>
+              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
+              <Typography
+                variant="h4"
+                sx={{
+                  mt: 2,
+                  fontWeight: 400,
+                  fontSize: "header-xl",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  verticalAlign: "middle",
+                }}
+              >
+                {item?.value}
               </Typography>
             </CardContent>
           </Card>

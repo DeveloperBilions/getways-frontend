@@ -39,9 +39,9 @@ import LinkIcon from "@mui/icons-material/Link";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircularProgress from "@mui/material/CircularProgress";
 // pdf xls
@@ -360,39 +360,40 @@ const postListActions = (
       width: "100%", // Ensure full width for the toolbar
     }}
   >
-      {permissions === "Player" && (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AttachMoneyIcon />}
-          onClick={() => setRechargeDialogOpen(true)}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-        >
-          Recharge
-        </Button>
-      )}
-
+    {permissions === "Player" && (
       <Button
         variant="contained"
         size="small"
-        startIcon={<RefreshIcon />}
-        onClick={handleRefresh}
+        startIcon={<AttachMoneyIcon />}
+        onClick={() => setRechargeDialogOpen(true)}
         sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
       >
-        Refresh
+        Recharge
       </Button>
+    )}
 
-      {permissions !== "Player" && (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<GetAppIcon />}
-          onClick={handleMenuOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-        >
-          Export
-        </Button>
-      )}
+    <Button
+      variant="contained"
+      color="secondary"
+      size="small"
+      startIcon={<AutorenewIcon />}
+      onClick={handleRefresh}
+      sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+    >
+      Refresh
+    </Button>
+
+    {permissions !== "Player" && (
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<GetAppIcon />}
+        onClick={handleMenuOpen}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+      >
+        Export
+      </Button>
+    )}
     <Menu
       anchorEl={menuAnchor}
       open={Boolean(menuAnchor)}
@@ -449,10 +450,8 @@ const postListActions = (
   }
   return (
     <>
-     {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
-         {(role === "Master-Agent" || role  === "Agent" )&& 
-    <PersistentMessage /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
+      {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
 
       <Box
         sx={{
@@ -539,10 +538,15 @@ const postListActions = (
                   record?.status === 2 && identity?.role !== "Player" ? (
                     <Button
                       variant="outlined"
-                      color="primary"
                       size="small"
-                      startIcon={<MonetizationOnIcon />}
+                      startIcon={<MonetizationOnIcon/>}
                       onClick={() => handleCoinCredit(record)}
+                      sx={{
+                        mr: 1,
+                        color: "black",
+                        backgroundColor: "#FFFDEB",
+                        border: "1px solid #FFF260",
+                      }}
                     >
                       Coins Credit
                     </Button>
@@ -556,10 +560,12 @@ const postListActions = (
                     >
                       <Button
                         variant="outlined"
-                        color="primary"
                         size="small"
                         sx={{
                           mr: 1,
+                          color: "black",
+                          backgroundColor: "#EBEEFF",
+                          border: "1px solid #607BFF",
                         }}
                         startIcon={<ContentCopyIcon />}
                         onClick={() => handleUrlClick(record)}
@@ -592,6 +598,32 @@ const postListActions = (
                     >
                       Generate Link
                     </Button>
+                  ) : record.status === 3 ? (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        mr: 1,
+                        color: "black",
+                        backgroundColor: "#EBFFEC",
+                        border: "1px solid #60FF6D",
+                      }}
+                    >
+                      Success
+                    </Button>
+                  ) : record.status === 9 ? (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        mr: 1,
+                        color: "black",
+                        backgroundColor: "#FFEBEB",
+                        border: "1px solid #FF6060",
+                      }}
+                    >
+                      Expire
+                    </Button>
                   ) : null
                 }
               />
@@ -609,17 +641,17 @@ const postListActions = (
                   const getColor = (status) => {
                     switch (status) {
                       case 3:
-                        return "success";
+                        return "#EBFFEC";
                       case 2:
-                        return "primary";
+                        return "#EBEEFF";
                       case 1:
-                        return "warning";
+                        return "#FFFCEB";
                       case 0:
-                        return "error";
+                        return "#FFEBEB";
                       case 9:
-                        return "error";
+                        return "#FFEBEB";
                       case 10:
-                        return "error";
+                        return "#FFEBEB";
                       default:
                         return "default";
                     }
@@ -635,7 +667,11 @@ const postListActions = (
                   return (
                     <Chip
                       label={statusMessage}
-                      color={getColor(record.status)}
+                      sx={{
+                        color: "black",
+                        backgroundColor: getColor(record.status),
+                        borderRadius:"8px"
+                      }}
                       size="small"
                       variant="outlined"
                     />

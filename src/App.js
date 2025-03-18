@@ -8,12 +8,10 @@ import {
   ListGuesser,
 } from "react-admin";
 import { Route, Navigate, Routes } from "react-router-dom";
-// mui icon
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 import GridViewIcon from "@mui/icons-material/GridView";
-// pages
 import LoginPage from "./Views/SignIn/forms/CheckPresence";
 import { Maintenance } from "./Views/Maintenance";
 import UpdateUser from "./Views/SignIn/forms/UpdateUser";
@@ -23,28 +21,23 @@ import PasswordResetEmail from "./Views/SignIn/forms/PasswordResetEmail";
 import ResetPassword from "./Views/SignIn/forms/ResetPassword";
 import EmailSent from "./Views/SignIn/EmailSent";
 import ReferralLinkForm from "./Views/ReferralLink/ReferralLinkForm";
-// provider
 import { authProvider } from "./Provider/parseAuthProvider";
 import { dataProvider } from "./Provider/parseDataProvider";
-// layout
 import { MyLayout } from "./Layout/MyLayout";
-import { MyTheme } from "./Layout/MyDefaultTheme";
-// components
+import { MyTheme } from "./Layout/MyDefaultThemeCopy";
 import { UserList } from "./Views/User/UserList";
 import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList";
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
-// import { SummaryList } from "./Views/Summary/SummaryList ";
-// import { Summary } from "./Views/Summary/Summary";
 import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
 import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient } from "react-query";
 import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
-import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
+import WifiOffIcon from "@mui/icons-material/WifiOff";
 import { Box, Typography, Button } from "@mui/material";
 import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
@@ -55,43 +48,17 @@ function App() {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      window.location.reload(); // Reload when back online
+      window.location.reload();
     };
-  
     const handleOffline = () => setIsOnline(false);
-  
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-  
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-  // useEffect(() => {
-  //   // Disable right-click
-  //   const disableRightClick = (event) => event.preventDefault();
-  //   document.addEventListener("contextmenu", disableRightClick);
-  
-  //   // Detect DevTools open
-  //   const checkDevTools = () => {
-  //     if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
-  //       if (!navigator.userAgent.toLowerCase().includes("mobi")) { // Ignore mobile devices
-  //         alert("DevTools is open! Closing the page for security.");
-  //         // window.location.href = "about:blank"; // Redirect or block
-  //       }
-  //     }
-  //   };
-  
-  //   const interval = setInterval(checkDevTools, 1000); // Check every second
-  
-  //   return () => {
-  //     document.removeEventListener("contextmenu", disableRightClick);
-  //     clearInterval(interval);
-  //   };
-  // }, []);
 
-  // Attractive No Internet Screen
   if (!isOnline) {
     return (
       <Box
@@ -117,7 +84,7 @@ function App() {
           variant="contained"
           color="primary"
           sx={{ marginTop: 3, padding: "10px 20px" }}
-          onClick={() => window.location.reload()} // Retry
+          onClick={() => window.location.reload()}
         >
           Retry
         </Button>
@@ -125,18 +92,16 @@ function App() {
     );
   }
 
-  
-
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        refetchOnWindowFocus: false, // Prevent unnecessary API calls
-        retry: false, // Optional: Prevent retries on errors
-        staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+        refetchOnWindowFocus: false,
+        retry: false,
+        staleTime: 5 * 60 * 1000,
       },
     },
   });
-  
+
   if (Config?.maintenance) {
     return (
       <Admin>
@@ -148,7 +113,6 @@ function App() {
     );
   }
 
-
   return (
     <Admin
       dataProvider={dataProvider}
@@ -156,7 +120,6 @@ function App() {
       loginPage={LoginPage}
       layout={MyLayout}
       theme={MyTheme}
-     // queryClient={queryClient}
     >
       {(permissions) => {
         if (permissions && permissions !== "Player") {
@@ -165,20 +128,28 @@ function App() {
               <Resource
                 name="users"
                 list={UserList}
-                options={{ label: "User Management", defaultQuery: { sort: "createdAt", order: "DESC" } }}
+                options={{
+                  label: "User Management",
+                  defaultQuery: { sort: "createdAt", order: "DESC" },
+                }}
                 icon={PersonIcon}
               />
               <Resource
                 name="rechargeRecords"
                 list={RechargeRecordsList}
-                options={{ label: "Recharge Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
+                options={{
+                  label: "Recharge Records",
+                  defaultQuery: { sort: "transactionDate", order: "DESC" },
+                }}
                 icon={LocalAtmIcon}
               />
               <Resource
                 name="redeemRecords"
-                recordRepresentation="redeemRecords"
                 list={RedeemRecordsList}
-                options={{ label: "Redeem Records" ,defaultQuery: { sort: "transactionDate", order: "DESC" } }}
+                options={{
+                  label: "Redeem Records",
+                  defaultQuery: { sort: "transactionDate", order: "DESC" },
+                }}
                 icon={LocalAtmIcon}
               />
               <Resource
@@ -187,16 +158,15 @@ function App() {
                 options={{ label: "Summary" }}
                 icon={SummarizeIcon}
               />
-             
-              { permissions === "Super-User" &&
-              <>
-               <Resource
-                name="Reports"
-                list={Reports}
-                options={{ label: "Reports" }}
-                icon={SummarizeIcon}
-              />
-                <CustomRoutes>
+              {permissions === "Super-User" && (
+                <>
+                  <Resource
+                    name="Reports"
+                    list={Reports}
+                    options={{ label: "Reports" }}
+                    icon={SummarizeIcon}
+                  />
+                  <CustomRoutes>
                     <Route
                       path="/transactionData"
                       element={
@@ -206,25 +176,26 @@ function App() {
                       }
                     />
                   </CustomRoutes>
-              </>}
+                </>
+              )}
               <CustomRoutes>
-
-              <Route
-                      path="/checkout"
-                      element={
-                        <Authenticated>
-                          <CheckoutForm />
-                        </Authenticated>
-                      }
-                    />
-                    <Route
-                      path="/checkout-version2"
-                      element={
-                        <Authenticated>
-                          <CheckoutFormV2 />
-                        </Authenticated>
-                      }
-                    /> </CustomRoutes>
+                <Route
+                  path="/checkout"
+                  element={
+                    <Authenticated>
+                      <CheckoutForm />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/checkout-version2"
+                  element={
+                    <Authenticated>
+                      <CheckoutFormV2 />
+                    </Authenticated>
+                  }
+                />
+              </CustomRoutes>
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
             </>
@@ -240,7 +211,11 @@ function App() {
               />
               <Resource
                 name="Wallet"
-                list={ <Authenticated><Wallet /></Authenticated>}
+                list={
+                  <Authenticated>
+                    <Wallet />
+                  </Authenticated>
+                }
                 options={{ label: "Wallet" }}
                 icon={SummarizeIcon}
               />
@@ -269,84 +244,57 @@ function App() {
                     </Authenticated>
                   }
                 />
-                 <Route
-                      path="/checkout"
-                      element={
-                        <Authenticated>
-                          <CheckoutForm />
-                        </Authenticated>
-                      }
-                    />
-                    <Route
-                      path="/checkout-version2"
-                      element={
-                        <Authenticated>
-                          <CheckoutFormV2 />
-                        </Authenticated>
-                      }
-                    />
+                <Route
+                  path="/checkout"
+                  element={
+                    <Authenticated>
+                      <CheckoutForm />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/checkout-version2"
+                  element={
+                    <Authenticated>
+                      <CheckoutFormV2 />
+                    </Authenticated>
+                  }
+                />
               </CustomRoutes>
             </>
           );
-        }else{        
-          
+        } else {
           return (
-          <CustomRoutes noLayout>
-            <Route path="*" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<LoginPage />} />
-           < Route path="/loginEmail" element={<LoginEmailPage />} />
-        <Route path="/updateUser" element={<UpdateUser />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/reset-email-sent" element={<EmailSent />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/reset-email" element={<PasswordResetEmail />} />
-        <Route path="/create-user" element={<ReferralLinkForm />} />
-        <Route
-                      path="/checkout"
-                      element={
-                        <Authenticated>
-                          <CheckoutForm />
-                        </Authenticated>
-                      }
-                    />
-                    <Route
-                      path="/checkout-version2"
-                      element={
-                        <Authenticated>
-                          <CheckoutFormV2 />
-                        </Authenticated>
-                      }
-                    />
-          </CustomRoutes>
-        );}
+            <CustomRoutes noLayout>
+              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/loginEmail" element={<LoginEmailPage />} />
+              <Route path="/updateUser" element={<UpdateUser />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/reset-email-sent" element={<EmailSent />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-email" element={<PasswordResetEmail />} />
+              <Route path="/create-user" element={<ReferralLinkForm />} />
+              <Route
+                path="/checkout"
+                element={
+                  <Authenticated>
+                    <CheckoutForm />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path="/checkout-version2"
+                element={
+                  <Authenticated>
+                    <CheckoutFormV2 />
+                  </Authenticated>
+                }
+              />
+            </CustomRoutes>
+          );
+        }
       }}
-
-      {/* <CustomRoutes>
-        <Route
-          path="/playerDashboard"
-          element={
-            <Authenticated>
-              <PlayerList resource="playerDashboard" />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/rechargeRecords"
-          element={
-            <Authenticated>
-              <RechargeRecordsList resource="rechargeRecords" />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/redeemRecords"
-          element={
-            <Authenticated>
-              <RedeemRecordsList resource="redeemRecords" />
-            </Authenticated>
-          }
-        />
-      </CustomRoutes> */}
     </Admin>
   );
 }

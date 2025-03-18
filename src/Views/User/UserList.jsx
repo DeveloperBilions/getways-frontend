@@ -45,6 +45,7 @@ import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
 import setting from "../../Assets/icons/setting.svg";
 import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -159,7 +160,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         }}
       >
         {(record?.roleName === "Player" && <MenuItem onClick={handleRedeem}>Redeem</MenuItem> )}
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") && role === "Super-User" && (
+        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") && (role === "Super-User" || role === "Master-Agent") && (
           <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
         )}
         {(record?.roleName === "Agent" ||
@@ -504,7 +505,7 @@ useEffect(() => {
       <Button
         variant="contained"
         size="small"
-        startIcon={<AddIcon />}
+        startIcon={<PersonAddAlt1Icon />}
         onClick={handleCreateUser}
         sx={{
           width: { xs: "100%", sm: "auto" },

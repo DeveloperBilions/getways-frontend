@@ -1,12 +1,19 @@
-import { fontSize, fontStyle, lineHeight } from "@mui/system";
+import {
+  borderRadius,
+  fontFamily,
+  fontSize,
+  fontStyle,
+  lineHeight,
+  minWidth,
+} from "@mui/system";
 import { defaultTheme } from "react-admin";
 import { defaultDarkTheme } from "react-admin";
 
 export const MyTheme = {
   ...defaultTheme,
   palette: {
-    primary: { main: "#0288d1" },
-    secondary: { main: "#ab47bc" },
+    primary: { main: "#000" },
+    secondary: { main: "#fff" },
     error: { main: "#d32f2f" },
     warning: { main: "#f57c00" },
     info: { main: "#737373" },
@@ -46,20 +53,53 @@ export const MyTheme = {
     MuiTableCell: {
       styleOverrides: {
         root: {
-          width: 100,
-          maxWidth: 100,
+          width: "auto", // Allow dynamic width based on content
+          minWidth: 100, // Minimum width to ensure readability
+          padding: "8px 12px", // Consistent padding
+          fontSize: "0.875rem", // Match the font size in the image
+          fontFamily: "Inter, sans-serif", // Match the font family in the image
+          textAlign: "left", // Center-align text as in the image
           overflow: "hidden",
           textOverflow: "ellipsis",
-          paddingLeft: "0.5",
-          fontSize: "0.75em",
+          borderBottom: "1px solid #ddd", // Light border between rows
+          "&:first-child": {
+            paddingLeft: "16px", // Extra padding for the first column
+          },
+          "&:last-child": {
+            paddingRight: "16px", // Extra padding for the last column
+          },
+        },
+        head: {
+          backgroundColor: "#E6E6E6", // Light gray header background
+          fontWeight: 600, // Bold headers
         },
       },
     },
     MuiTable: {
       styleOverrides: {
         root: {
-          boxShadow:
-            "0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)",
+          boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)", // Subtle shadow
+          border: "1px solid #e0e0e0", // Border around the table
+          borderRadius: "10px", // Slight rounding
+        },
+      },
+    },
+    RaDatagrid: {
+      styleOverrides: {
+        root: {
+          "& .RaDatagrid-thead": {
+            backgroundColor: "#E6E6E6", // Grey background for the header
+          },
+          "& .RaDatagrid-row": {
+            "&:hover": {
+              backgroundColor: "#f9f9f9", // Hover effect
+            },
+          },
+          "& .RaDatagrid-headerCell": {
+            backgroundColor: "#E6E6E6", // Ensure header cells are grey
+            fontWeight: 500,
+            // fontFamily: "Inter, sans-serif",
+          },
         },
       },
     },

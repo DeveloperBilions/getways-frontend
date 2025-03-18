@@ -249,17 +249,41 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
           userParentName: identity?.name,
         });
       } else if (permissions === "Master-Agent") {
-        response = await Parse.Cloud.run("createUser", {
-          roleName: "Player",
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: identity?.objectId,
-          userParentName: identity?.name,
-        });
-      }
+
+        if (userType === "Agent") {
+           if (!identity?.objectId && !identity?.name) {
+             setErrorMessage("Parent User data is not valid");
+             return;
+           }
+           response = await Parse.Cloud.run("createUser", {
+             roleName: userType,
+             username: userName,
+             name,
+             phoneNumber,
+             email,
+             password,
+             userParentId: parentType?.id,
+             userParentName: parentType?.name,
+             redeemService: 5,
+           });
+         
+         } else if (userType === "Player") {
+           if (!parentType?.id && !parentType?.name) {
+             setErrorMessage("Parent User data is not valid");
+             return;
+           }
+           response = await Parse.Cloud.run("createUser", {
+             roleName: userType,
+             username: userName,
+             name,
+             phoneNumber,
+             email,
+             password,
+             userParentId: parentType?.id,
+             userParentName: parentType?.name,
+           });
+         }
+       }
       console.log("API Response:", response);
       if (!response?.success) {
         setErrorMessage(response?.message);
