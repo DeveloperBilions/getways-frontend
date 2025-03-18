@@ -159,7 +159,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         }}
       >
         {(record?.roleName === "Player" && <MenuItem onClick={handleRedeem}>Redeem</MenuItem> )}
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") && role === "Super-User" && (
+        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") && (role === "Super-User" || role === "Master-Agent") && (
           <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
         )}
         {(record?.roleName === "Agent" ||
