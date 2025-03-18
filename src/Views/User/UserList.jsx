@@ -45,6 +45,7 @@ import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
 import setting from "../../Assets/icons/setting.svg";
 import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -504,7 +505,7 @@ useEffect(() => {
       <Button
         variant="contained"
         size="small"
-        startIcon={<AddIcon />}
+        startIcon={<PersonAddAlt1Icon />}
         onClick={handleCreateUser}
         sx={{
           width: { xs: "100%", sm: "auto" },
