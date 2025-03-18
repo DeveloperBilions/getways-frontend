@@ -352,169 +352,256 @@ export const dataProvider = {
          }
        }
        count = await query.count();
-     }else if (resource === "summary") {
-      if (filter?.startDate && filter?.endDate && new Date(filter.startDate) > new Date(filter.endDate)) {
-          throw new Error("Start date cannot be greater than end date");
+     } else if (resource === "summary") {
+      if (
+        filter?.startDate &&
+        filter?.endDate &&
+        new Date(filter.startDate) > new Date(filter.endDate)
+      ) {
+        throw new Error("Start date cannot be greater than end date");
       }
-  
+
       let result = null;
       let userIds = [];
       let selectedUser = null;
       let data = [];
-      
+
       if (filter?.username) {
-          selectedUser = await new Parse.Query(Parse.User).get(filter.username, { useMasterKey: true });
+        selectedUser = await new Parse.Query(Parse.User).get(
+          filter.username,
+          { useMasterKey: true }
+        );
       }
-  
+
       if (role === "Agent" || role === "Master-Agent") {
-          if (!selectedUser) {
-              selectedUser = await Parse.User.current();
-          }
+        if (!selectedUser) {
+          selectedUser = await Parse.User.current();
+        }
       }
-  
+
       if (selectedUser) {
-          userIds.push(selectedUser.id);
+        userIds.push(selectedUser.id);
       }
-  
+
       const matchConditions = [];
       if (filter.startDate && filter.endDate) {
-          matchConditions.push({
-              createdAt: {
-                  $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
-                  $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
-              }
-          });
+        matchConditions.push({
+          createdAt: {
+            $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+            $lte: new Date(
+              new Date(filter.endDate).setHours(23, 59, 59, 999)
+            ),
+          },
+        });
       }
       if (userIds.length) {
-          matchConditions.push({
-              $or: [
-                  { userParentId: { $in: userIds } },
-                  { userId: { $in: userIds } }
-              ]
-          });
+        matchConditions.push({
+          $or: [
+            { userParentId: { $in: userIds } },
+            { userId: { $in: userIds } },
+          ],
+        });
       }
-  
-      const baseMatch = matchConditions.length ? { $and: matchConditions } : {};
-  
-      const queryPipeline = [
-          { $match: baseMatch },
-          {
-              $facet: {
-                  totalRechargeAmount: [
-                      { $match: { status: { $in: [2, 3] } } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalRedeemAmount: [
-                      { $match: { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0 } } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalPendingRechargeAmount: [
-                      { $match: { status: 1 } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalCashoutRedeemsSuccess: [
-                      { $match: { status: 12 } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalCashoutRedeemsInProgress: [
-                      { $match: { status: 11, transactionAmount: { $gt: 0 } } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalRecords: [{ $count: "total" }],
-                  totalAmt: [{ $group: { _id: null, total: { $sum: "$transactionAmount" } } }],
-                  totalFeesCharged: [
-                      { $match: { type: "redeem", status: { $in: [4, 8] }, redeemServiceFee: { $gt: 0 } } },
-                      { $project: { calculatedFee: { $multiply: ["$redeemServiceFee", "$transactionAmount", 0.01] } } },
-                      { $group: { _id: null, total: { $sum: "$calculatedFee" } } }
-                  ],
-                  totalRedeemSuccessful: [{ $match: { status: 8 } }, { $count: "count" }],
-                  totalFailRedeemAmount: [
-                      { $match: { transactionAmount: { $gt: 0 }, status: { $eq: 7 } } },
-                      { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
-                  ],
-                  totalRechargeByType: [
-                    {
-                        $group: {
-                            _id: {
-                                type: "$type",
-                                useWallet: "$useWallet"
-                            },
-                            total: { $sum: "$transactionAmount" }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            wallet: {
-                                $sum: {
-                                    $cond: {
-                                        if: { $and: [{ $eq: ["$_id.type", "recharge"] }, { $eq: ["$_id.useWallet", true] }] },
-                                        then: "$total",
-                                        else: 0
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ]
-              }
-          }
-      ];
-  
-      const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline, { useMasterKey: true });
-      
-      const totalRegisteredUsers = selectedUser 
-      ? await new Parse.Query(Parse.User)
-          .equalTo("userParentId", selectedUser.id)
-          .doesNotExist("userReferralCode")  // Exclude users with userReferralCode
-          .count({ useMasterKey: true }) 
-      : await new Parse.Query(Parse.User)
-          .doesNotExist("userReferralCode")  // Exclude users with userReferralCode
-          .count({ useMasterKey: true });
-          const roles = ["Agent", "Master-Agent"];
 
-let totalAgents;
-if (role === "Super-User" && !filter?.username) {
-  // If Super-User and no username filter, fetch all agents without conditions
-  totalAgents = await new Parse.Query(Parse.User)
-      .containedIn("roleName", roles)
-      .count({ useMasterKey: true });
-} else {
-  // Otherwise, apply filters
-  totalAgents = selectedUser 
-      ? await new Parse.Query(Parse.User)
-          .equalTo("userParentId", selectedUser.id)
-          .containedIn("roleName", roles)
-          .count({ useMasterKey: true }) 
-      : await new Parse.Query(Parse.User)
+      const baseMatch = matchConditions.length
+        ? { $and: matchConditions }
+        : {};
+
+      const queryPipeline = [
+        { $match: baseMatch },
+        {
+          $facet: {
+            totalRechargeAmount: [
+              { $match: { status: { $in: [2, 3] } } },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalRedeemAmount: [
+              {
+                $match: {
+                  type: "redeem",
+                  status: { $in: [4, 8] },
+                  transactionAmount: { $gt: 0 },
+                },
+              },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalPendingRechargeAmount: [
+              { $match: { status: 1 } },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalCashoutRedeemsSuccess: [
+              { $match: { status: 12 } },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalCashoutRedeemsInProgress: [
+              { $match: { status: 11, transactionAmount: { $gt: 0 } } },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalRecords: [{ $count: "total" }],
+            totalAmt: [
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalFeesCharged: [
+              {
+                $match: {
+                  type: "redeem",
+                  status: { $in: [4, 8] },
+                  redeemServiceFee: { $gt: 0 },
+                },
+              },
+              {
+                $project: {
+                  calculatedFee: {
+                    $multiply: [
+                      "$redeemServiceFee",
+                      "$transactionAmount",
+                      0.01,
+                    ],
+                  },
+                },
+              },
+              { $group: { _id: null, total: { $sum: "$calculatedFee" } } },
+            ],
+            totalRedeemSuccessful: [
+              { $match: { status: 8 } },
+              { $count: "count" },
+            ],
+            totalFailRedeemAmount: [
+              {
+                $match: { transactionAmount: { $gt: 0 }, status: { $eq: 7 } },
+              },
+              {
+                $group: { _id: null, total: { $sum: "$transactionAmount" } },
+              },
+            ],
+            totalRechargeByType: [
+              {
+                $group: {
+                  _id: {
+                    type: "$type",
+                    useWallet: "$useWallet",
+                  },
+                  total: { $sum: "$transactionAmount" },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  wallet: {
+                    $sum: {
+                      $cond: {
+                        if: {
+                          $and: [
+                            { $eq: ["$_id.type", "recharge"] },
+                            { $eq: ["$_id.useWallet", true] },
+                          ],
+                        },
+                        then: "$total",
+                        else: 0,
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      const newResults = await new Parse.Query(
+        "TransactionRecords"
+      ).aggregate(queryPipeline, { useMasterKey: true });
+
+      const referralCodeNullQuery = new Parse.Query(Parse.User).equalTo(
+        "userReferralCode",
+        null
+      );
+      const referralCodeEmptyQuery = new Parse.Query(Parse.User).equalTo(
+        "userReferralCode",
+        ""
+      );
+
+      let finalQuery = Parse.Query.or(
+        referralCodeNullQuery,
+        referralCodeEmptyQuery
+      ).notEqualTo("isDeleted", true); // exclude deleted users
+
+      if (selectedUser) {
+        finalQuery.equalTo("userParentId", selectedUser.id);
+      }
+
+      const totalRegisteredUsers = await finalQuery.count({
+        useMasterKey: true,
+      });
+
+      const roles = ["Agent", "Master-Agent"];
+
+      let totalAgents;
+      if (role === "Super-User" && !filter?.username) {
+        // If Super-User and no username filter, fetch all agents without conditions
+        totalAgents = await new Parse.Query(Parse.User)
           .containedIn("roleName", roles)
           .count({ useMasterKey: true });
-}
+      } else {
+        // Otherwise, apply filters
+        totalAgents = selectedUser
+          ? await new Parse.Query(Parse.User)
+              .equalTo("userParentId", selectedUser.id)
+              .containedIn("roleName", roles)
+              .count({ useMasterKey: true })
+          : await new Parse.Query(Parse.User)
+              .containedIn("roleName", roles)
+              .count({ useMasterKey: true });
+      }
 
       const summary = {
-          totalRechargeAmount: newResults[0]?.totalRechargeAmount?.[0]?.total || 0,
-          totalRedeemAmount: newResults[0]?.totalRedeemAmount?.[0]?.total || 0,
-          totalPendingRechargeAmount: newResults[0]?.totalPendingRechargeAmount?.[0]?.total || 0,
-          totalCashoutRedeemsSuccess: newResults[0]?.totalCashoutRedeemsSuccess?.[0]?.total || 0,
-          totalCashoutRedeemsInProgress: newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0,
-          totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0,
-          totalAmt: newResults[0]?.totalAmt?.[0]?.total || 0,
-          totalFeesCharged: newResults[0]?.totalFeesCharged?.[0]?.total || 0,
-          totalRedeemSuccessful: newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0,
-          totalFailRedeemAmount: newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0,
-          totalRegisteredUsers,
-          totalAgents,
-          totalRechargeByType: {
+        totalRechargeAmount:
+          newResults[0]?.totalRechargeAmount?.[0]?.total || 0,
+        totalRedeemAmount: newResults[0]?.totalRedeemAmount?.[0]?.total || 0,
+        totalPendingRechargeAmount:
+          newResults[0]?.totalPendingRechargeAmount?.[0]?.total || 0,
+        totalCashoutRedeemsSuccess:
+          newResults[0]?.totalCashoutRedeemsSuccess?.[0]?.total || 0,
+        totalCashoutRedeemsInProgress:
+          newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0,
+        totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0,
+        totalAmt: newResults[0]?.totalAmt?.[0]?.total || 0,
+        totalFeesCharged: newResults[0]?.totalFeesCharged?.[0]?.total || 0,
+        totalRedeemSuccessful:
+          newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0,
+        totalFailRedeemAmount:
+          newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0,
+        totalRegisteredUsers,
+        totalAgents,
+        totalRechargeByType: {
           wallet: newResults[0]?.totalRechargeByType?.[0]?.wallet || 0,
-          others: newResults[0]?.totalRechargeAmount?.[0]?.total - newResults[0]?.totalRechargeByType?.[0]?.wallet 
-      }
+          others:
+            newResults[0]?.totalRechargeAmount?.[0]?.total -
+            newResults[0]?.totalRechargeByType?.[0]?.wallet,
+        },
       };
-  
-      result = calculateDataSummariesForSummary({ id: role === "Super-User" ? 0 : 1, users: data, walletBalances: 0 });
 
-      result.data[0] = { ...result.data[0] ,  ...summary};
+      result = calculateDataSummariesForSummary({
+        id: role === "Super-User" ? 0 : 1,
+        users: data,
+        walletBalances: 0,
+      });
+
+      result.data[0] = { ...result.data[0], ...summary };
       return result;
-  }else if (resource === "summaryExport") {
+    }else if (resource === "summaryExport") {
        var result = null;
        if (role === "Super-User") {
          //users
