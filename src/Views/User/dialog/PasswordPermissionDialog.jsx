@@ -69,7 +69,7 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
 
   return (
     <Modal isOpen={open} toggle={onClose} centered className="custom-modal">
-      <ModalHeader toggle={onClose}>
+      <ModalHeader toggle={onClose} className="custom-modal-header">
         <Typography
           variant="h6"
           sx={{ fontWeight: "400", textAlign: "center" }}
@@ -77,7 +77,7 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
           Password Permission Settings
         </Typography>
       </ModalHeader>
-      <ModalBody>
+      <ModalBody className="custom-modal-body">
         {errorMessage && (
           <Alert severity="danger" className="mb-3">
             {errorMessage}
@@ -90,7 +90,10 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
         )}
         <FormGroup>
           <Label className="custom-label">
-            <Typography variant="body1" sx={{ fontWeight: "500", marginTop: "10px" }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: "500", marginTop: "10px" }}
+            >
               Enable Password Permission
             </Typography>
           </Label>
@@ -108,9 +111,18 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
           </div>
         </FormGroup>
       </ModalBody>
-      <ModalFooter>
+      <ModalFooter className="custom-modal-footer">
         <Col md={12}>
-          <div className="d-flex w-100 justify-content-between">
+          <Box
+            className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+            }}
+          >
             <Button
               className="custom-button cancel"
               onClick={onClose}
@@ -129,7 +141,7 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
                 "Save Changes"
               )}
             </Button>
-          </div>
+          </Box>
         </Col>
       </ModalFooter>
     </Modal>

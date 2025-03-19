@@ -2,60 +2,112 @@ import * as React from "react";
 import { useSidebarState } from "react-admin";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import { useNavigate } from "react-router-dom";
 import { useGetIdentity } from "react-admin";
 import { useMediaQuery } from "@mui/system";
 
-export const MySidebar = ({ children }) => {
+export const MySidebar = () => {
   const { identity } = useGetIdentity();
-  const [open, setOpen] = useSidebarState(); // React Admin's sidebar state hook
-  const isMobile = useMediaQuery("(max-width:600px)");
+  const [open, setOpen] = useSidebarState();
+  const isMobile = useMediaQuery("(max-width:1023px)");
+  const navigate = useNavigate();
+  const role = localStorage.getItem("role");
 
-  if (!identity) {
+  if (!identity || !isMobile) {
+    // Don't render sidebar on larger screens
     return null;
   }
 
-  const drawerWidth = identity?.role === "Player" ? "0em" : "15em";
-
-  const handleMenuItemClick = () => {
-    if (isMobile) {
-      setOpen(false);
+  // Generate menu items
+  const menuItems = [];
+  if (role && role !== "Player") {
+    menuItems.push(
+      {
+        key: "users",
+        label: "User Management",
+        // icon: <PersonIcon />,
+        onClick: () => navigate("/users"),
+      },
+      {
+        key: "rechargeRecords",
+        label: "Recharge Records",
+        // icon: <LocalAtmIcon />,
+        onClick: () => navigate("/rechargeRecords"),
+      },
+      {
+        key: "redeemRecords",
+        label: "Redeem Records",
+        // icon: <LocalAtmIcon />,
+        onClick: () => navigate("/redeemRecords"),
+      },
+      {
+        key: "summary",
+        label: "Summary",
+        // icon: <SummarizeIcon />,
+        onClick: () => navigate("/summary"),
+      }
+    );
+    if (role === "Super-User") {
+      menuItems.push({
+        key: "reports",
+        label: "Reports",
+        // icon: <SummarizeIcon />,
+        onClick: () => navigate("/Reports"),
+      });
     }
+  }
+
+  const handleMenuItemClick = (onClick) => {
+    if (onClick) onClick();
+    setOpen(false);
   };
 
   return (
     <Drawer
-      variant="permanent" // Always visible on large screens
+      variant="temporary"
+      anchor="left"
+      open={open}
+      onClose={() => setOpen(false)}
       sx={{
-        width: { xs: open ? drawerWidth : "0em", sm: drawerWidth }, // Collapse on small screens when closed
+        width: open ? "100%" : 0,
         flexShrink: 0,
-        transition: "width 0.3s ease", // Smooth transition for opening/closing
         "& .MuiDrawer-paper": {
-          position: "fixed",
-          width: { xs: open ? "100vw" : "0em", sm: drawerWidth },
+          width: "100%",
           boxSizing: "border-box",
-          backgroundColor: "#272E3E",
-          overflowX: "hidden", // Prevent horizontal scroll
-          marginTop: "3.5em", // Adjust based on AppBar height
-          height: "calc(100% - 3.5em)", // Full height minus AppBar
-          zIndex: 1200, // Ensure it stays above content
+          backgroundColor: "var(--secondary-color)",
+          color: "var(--primery-color)",
+          zIndex: 1200,
+          marginTop: "3.5em",
         },
-        "& .MuiMenuItem-root": {
-          color: "#c0c7d8",
-          fontSize: 18,
-        },
-        "& .MuiSvgIcon-root": {
-          color: "#d0d5e2",
+        "& .MuiModal-backdrop": {
+          backgroundColor: "transparent !important",
         },
       }}
-      open={open} // Controlled by sidebar state
     >
-      <List sx={{ display: "block" }}>
-        {/* Wrap children (menu items) to handle clicks */}
-        {React.Children.map(children, (child) =>
-          React.cloneElement(child, {
-            onClick: handleMenuItemClick, // Close sidebar on click in mobile
-          })
-        )}
+      <List sx={{ padding: "8px 0" }}>
+        {menuItems.map((item) => (
+          <ListItem
+            button
+            key={item.key}
+            onClick={() => handleMenuItemClick(item.onClick)}
+            sx={{
+              padding: "12px 20px",
+            }}
+          >
+            <ListItemText
+              primary={item.label}
+              sx={{
+                "& .MuiTypography-root": {
+                  fontSize: "16px",
+                  fontWeight: 400,
+                },
+              }}
+            />
+          </ListItem>
+        ))}
       </List>
     </Drawer>
   );

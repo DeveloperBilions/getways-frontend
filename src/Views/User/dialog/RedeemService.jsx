@@ -17,6 +17,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { useGetIdentity } from "react-admin";
+import { Box } from "@mui/material";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -286,9 +287,18 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
               </Row>
             </Form>
           </ModalBody>
-          <ModalFooter className="modal-footer">
+          <ModalFooter className="custom-modal-footer">
             <Col md={12} className="mt-3">
-              <div className="d-flex w-100 justify-content-between">
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                }}
+              >
                 {identity?.redeemServiceEnabled &&
                   identity?.role === "Master-Agent" && (
                     <Button className="custom-button confirm" type="submit">
@@ -304,7 +314,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                 <Button className="custom-button cancel" onClick={handleCancel}>
                   Cancel
                 </Button>
-              </div>
+              </Box>
             </Col>
           </ModalFooter>
         </Modal>

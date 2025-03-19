@@ -16,6 +16,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { useNotify } from "react-admin";
+import Box from "@mui/material/Box";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -139,14 +140,20 @@ const DeleteUserDialog = ({
               </Row>
             </Form>
           </ModalBody>
-          <ModalFooter className="modal-footer">
+          <ModalFooter className="custom-modal-footer">
             <Col md={12}>
-              <div className="d-flex w-100 justify-content-between">
-                <Button className="custom-button cancel" onClick={handleCancel}>
-                  Cancel
-                </Button>
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                }}
+              >
                 <Button
-                  className="mx-2 custom-button"
+                  className="custom-button"
                   color="danger"
                   type="submit"
                   onClick={handleSubmit}
@@ -154,7 +161,10 @@ const DeleteUserDialog = ({
                 >
                   Delete
                 </Button>
-              </div>
+                <Button className="custom-button cancel" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </Box>
             </Col>
           </ModalFooter>
         </Modal>
