@@ -16,7 +16,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
-import { Alert } from "@mui/material";
+import { Alert, Box, Typography } from "@mui/material";
 import cancel from "../../../Assets/icons/cancel.svg";
 import { validatePositiveNumber } from "../../../Validators/number.validator";
 import "../../../Assets/css/Dialog.css";
@@ -352,9 +352,9 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                           Change
                         </Button>
                       </div>
-                        {serviceError && (
-                          <small className="text-danger">{serviceError}</small>
-                        )}
+                      {serviceError && (
+                        <small className="text-danger">{serviceError}</small>
+                      )}
                     </>
                   )}
                 </p>
@@ -370,10 +370,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       </small>
                     </p>
                   )}
-                <div
+                <Box
                   style={{
-                    width: "428px",
-                    height: "26px",
+                    width: "95%",
+                    height: "auto",
                     borderRadius: "4px",
                     gap: "8px",
                     padding: "0 12px",
@@ -384,7 +384,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     alignItems: "center",
                   }}
                 >
-                  <span
+                  <Typography
                     style={{
                       fontFamily: "Inter, sans-serif",
                       fontWeight: 400,
@@ -398,8 +398,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   >
                     "The amount has been rounded down to the nearest lower
                     value."
-                  </span>
-                </div>
+                  </Typography>
+                </Box>
 
                 <Col md={12}>
                   <FormGroup>
@@ -433,16 +433,18 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
               </Row>
             </Form>
           </ModalBody>
-          <ModalFooter className="modal-footer">
+          <ModalFooter className="custom-modal-footer">
             <Col md={12}>
-              <div className="d-flex w-100 justify-content-between">
-                <Button
-                  className="custom-button cancel"
-                  onClick={handleClose}
-                  // Check and open confirmation modal if needed
-                >
-                  Cancel
-                </Button>
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                }}
+              >
                 <Button
                   type="button"
                   className="custom-button confirm"
@@ -451,7 +453,14 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 >
                   {loading ? "Processing..." : "Confirm"}
                 </Button>
-              </div>
+                <Button
+                  className="custom-button cancel"
+                  onClick={handleClose}
+                  // Check and open confirmation modal if needed
+                >
+                  Cancel
+                </Button>
+              </Box>
             </Col>
           </ModalFooter>
         </Modal>

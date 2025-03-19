@@ -132,21 +132,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
-        style={{
-          backgroundColor: "#F4F4F5", // White background as in the image
-          border: "1px solid #F4F4F5", // Light grey border
-          borderRadius: "5px", // Rounded corners
-          padding: "2px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "32px", // Square dimensions
-          height: "32px",
-          cursor: "pointer",
-          "&:hover": {
-            backgroundColor: "#f5f5f5", // Slight grey on hover
-          },
-        }}
+        className="settings-button"
       >
         <img src={setting} alt="setting" width={20} height={20} />
       </Box>
@@ -158,11 +144,22 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         MenuListProps={{
           "aria-labelledby": "basic-button",
         }}
+        sx={{
+          "& .MuiMenu-paper": {
+            width: "240px"
+          },
+        }}
       >
-        {(record?.roleName === "Player" && <MenuItem onClick={handleRedeem}>Redeem</MenuItem> )}
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") && (role === "Super-User" || role === "Master-Agent") && (
-          <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleRedeem} sx={{ width: "100%" }}>
+            Redeem
+          </MenuItem>
         )}
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          (role === "Super-User" || role === "Master-Agent") && (
+            <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
+          )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
@@ -183,7 +180,9 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
             Password Permission
           </MenuItem>
         )}
-      {(record?.roleName === "Player" &&  <MenuItem onClick={handleRecharge}>Recharge</MenuItem> )}
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+        )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
@@ -201,8 +200,9 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
               handleClose();
               setBlacklistDialogOpen(true);
             }}
+            sx={{ color: "red" }}
           >
-            Black List User
+            Blacklist User
           </MenuItem>
         )}
       </Menu>
@@ -261,7 +261,13 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         record={record}
         handleRefresh={handleRefresh}
       />
-            <RechargeLimitDialog open={rechargeLimitDialogOpen} onClose={() => setRechargeLimitDialogOpen(false)} record={record} handleRefresh={handleRefresh} /> {/* Recharge Limit Dialog */}
+      <RechargeLimitDialog
+        open={rechargeLimitDialogOpen}
+        onClose={() => setRechargeLimitDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />{" "}
+      {/* Recharge Limit Dialog */}
       <TransactionSummaryModal
         open={drawerDialogOpen}
         onClose={() => setDrawerDialogOpen(false)}
@@ -494,8 +500,8 @@ useEffect(() => {
           onClick={handleGenerateLink}
           sx={{
             width: { xs: "100%", sm: "auto" },
-            backgroundColor: "#000",
-            color: "#fff",
+            backgroundColor: "var(--primary-color)",
+            color: "var(--secondary-color)",
           }}
         >
           Referral Link
@@ -509,8 +515,8 @@ useEffect(() => {
         onClick={handleCreateUser}
         sx={{
           width: { xs: "100%", sm: "auto" },
-          backgroundColor: "#000",
-          color: "#fff",
+          backgroundColor: "var(--primary-color)",
+          color: "var(--secondary-color)",
         }} // Full width on small screens
       >
         Add New User

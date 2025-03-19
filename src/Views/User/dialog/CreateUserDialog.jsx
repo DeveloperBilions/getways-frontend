@@ -17,7 +17,7 @@ import {
 } from "reactstrap";
 //react admin
 import { useGetIdentity, usePermissions, useRefresh } from "react-admin";
-import { Grid, Alert } from "@mui/material";
+import { Grid, Alert, Box } from "@mui/material";
 // mui icon
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -601,19 +601,28 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                     </Label>
                   </Col>
                 )} */}
-          <ModalFooter className="modal-footer">
+          <ModalFooter className="custom-modal-footer">
             <Col md={12}>
-              <div className="d-flex w-100 justify-content-between">
-                <Button className="custom-button cancel" onClick={handleCancel}>
-                  Cancel
-                </Button>
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                }}
+              >
                 <Button
                   className="custom-button confirm"
                   onClick={handleSubmit}
                 >
                   Confirm
                 </Button>
-              </div>
+                <Button className="custom-button cancel" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              </Box>
             </Col>
           </ModalFooter>
         </Modal>

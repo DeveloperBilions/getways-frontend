@@ -52,7 +52,7 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
           },
           "& .css-1cak187-MuiTypography-root-MuiDialogTitle-root": {
             padding: "12px 12px",
-          }
+          },
         }}
       >
         <DialogTitle className="custom-modal-header">
@@ -77,16 +77,15 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
           )}
         </DialogContent>
         {!record?.isBlackListed && (
-          <DialogActions className="p-16 d-flex w-100 justify-content-between">
-            <Button
-              onClick={onClose}
-              color="secondary"
-              variant="outlined"
-              disabled={loading}
-              className="custom-button cancel"
-            >
-              Cancel
-            </Button>
+          <DialogActions
+            className="p-16 d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              alignItems: { xs: "center", sm: "stretch" }, // Center items in column, stretch in row
+              gap: { xs: 2, sm: 0 }, // Add spacing between buttons in column mode
+              marginBottom: { xs: 2, sm: 2 },
+            }}
+          >
             <Button
               onClick={() => blacklistUser(record.id)}
               color="error"
@@ -95,6 +94,15 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
               className="mx-2 custom-button"
             >
               {loading ? <CircularProgress size={24} /> : "Confirm"}
+            </Button>
+            <Button
+              onClick={onClose}
+              color="secondary"
+              variant="outlined"
+              disabled={loading}
+              className="custom-button cancel"
+            >
+              Cancel
             </Button>
           </DialogActions>
         )}

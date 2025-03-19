@@ -1,5 +1,6 @@
 import { Layout } from "react-admin";
 import MyAppBar from "./MyAppBar";
+import { MySidebar } from "./MySidebar";
 import Config from "../Config.json";
 import { Navigate } from "react-router-dom";
 
@@ -13,7 +14,7 @@ export const MyLayout = (props) => {
     <Layout
       {...props}
       appBar={MyAppBar}
-      sidebar={() => null} // Remove sidebar completely
+      sidebar={MySidebar}
       sx={{
         "& .RaLayout-content": {
           marginLeft: { xs: "0", md: "120px" }, // Remove left margin on small screens, apply on medium+
