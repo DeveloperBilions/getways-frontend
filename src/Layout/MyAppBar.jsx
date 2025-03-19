@@ -178,7 +178,7 @@ export default function MyAppBar(props) {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-          {(role === "Master-Agent" || role === "Agent") &&
+          {(role === "Agent") &&
             identity?.balance !== undefined && (
               <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                 <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
