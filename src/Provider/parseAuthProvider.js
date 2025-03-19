@@ -121,6 +121,23 @@ export const authProvider = {
         throw new Error("Your account has been deactivated.");
       }
 
+      let totalPotBalanceOfChildren = 0;
+if (user.get("roleName") === "Master-Agent") {
+  const pipeline = [
+    { $match: { userParentId: user.id, isDeleted: { $ne: true } } },
+    {
+      $group: {
+        _id: null,
+        totalPotBalance: { $sum: { $ifNull: ["$potBalance", 0] } },
+      },
+    },
+  ];
+
+  const result = await new Parse.Query(Parse.User)
+    .aggregate(pipeline, { useMasterKey: true });
+
+  totalPotBalanceOfChildren = result[0]?.totalPotBalance || 0;
+}
       return {
         objectId: user.id,
         email: user.get("email"),
@@ -136,7 +153,8 @@ export const authProvider = {
         redeemServiceEnabled: user.get("redeemServiceEnabled"),
         isDeleted: user.get("isDeleted"),
         isBlackListed:user.get("isBlackListed"),
-        balance:user.get("potBalance")
+        balance:user.get("potBalance"),
+        totalPotBalanceOfChildren
       };
     } catch (error) {
       console.error("Error getting user identity:", error?.message);

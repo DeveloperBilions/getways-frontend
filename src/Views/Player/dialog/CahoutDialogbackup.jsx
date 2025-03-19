@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import CryptoJS from "crypto-js"; // ✅ Using crypto-js for SHA-256 hashing
 import {
   Button,
   Modal,
@@ -22,6 +21,7 @@ import { Loader } from "../../Loader";
 import { walletService } from "../../../Provider/WalletManagement";
 import axios from "axios";
 import "../../../Assets/css/cashoutDialog.css";
+import Parse from "parse";
 
 // Xremit API Config
 const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
@@ -71,7 +71,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   // Fetch gift cards from API when "virtualCardId" is selected
   useEffect(() => {
     if (selectedPaymentMethod === "virtualCardId") {
-      //fetchGiftCards();
+      fetchGiftCards();
     }
   }, [selectedPaymentMethod, searchTerm]);
 
@@ -85,29 +85,21 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
 //     return signature;
 // };
 
-//   const fetchGiftCards = async () => {
-//     const method = "GET";
-//     const path = `/brands/country/USA?currentPage=1`;
 
-//     setLoadingGiftCards(true);
-//     const signature = generateSignature(method, path);
+const fetchGiftCards = async () => {
+  setLoadingGiftCards(true);
+  setErrorMessage("");
+  try {
+    const response = await Parse.Cloud.run("fetchGiftCards");
+    setGiftCards(response.data); // adjust according to your cloud function response structure
+  } catch (error) {
+    console.error("Error fetching gift cards:", error);
+    setErrorMessage("Failed to load gift cards.");
+  } finally {
+    setLoadingGiftCards(false);
+  }
+};
 
-//     try {
-//       const response = await axios.get(`${XREMIT_API_URL}${path}`, {
-//         headers: {
-//           "API-Key": XREMIT_API_KEY,
-//           "signature": signature,
-//           "Access-Control-Allow-Origin":"*"
-//         },
-//       });
-//       setGiftCards(response.data.data);
-//     } catch (error) {
-//       console.error("Error fetching gift cards:", error);
-//       setErrorMessage("Failed to load gift cards.");
-//     } finally {
-//       setLoadingGiftCards(false);
-//     }
-//   };
 
   const handleConfirm = () => {
     if (!selectedPaymentMethod) {
@@ -133,45 +125,49 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
    */
   const handleSubmit = async () => {
     setLoading(true);
-    const method = "POST";
-    const path = "/playerRedeemRedords";
+    // const method = "POST";
+    // const path = "/playerRedeemRedords";
 
-    const requestData = {
-      transactionAmount: redeemAmount,
-      remark,
-      type: "redeem",
-      username: userName,
-      id: userId,
-      isCashOut: true,
-      paymentMode: selectedPaymentMethod,
-      paymentMethodType: selectedPaymentMethod,
-      productId: selectedGiftCard?.productId || null, // Pass gift card productId
-    };
+    // const requestData = {
+    //   transactionAmount: redeemAmount,
+    //   remark,
+    //   type: "redeem",
+    //   username: userName,
+    //   id: userId,
+    //   isCashOut: true,
+    //   paymentMode: selectedPaymentMethod,
+    //   paymentMethodType: selectedPaymentMethod,
+    //   productId: selectedGiftCard?.productId || null, // Pass gift card productId
+    // };
 
-    const signature = generateSignature(method, path);
+    // const signature = generateSignature(method, path);
 
-    try {
-      const response = await axios.post(`${XREMIT_API_URL}${path}`, requestData, {
-        headers: {
-          "X-API-KEY": XREMIT_API_KEY,
-          "Signature": signature,
-          "Content-Type": "application/json",
-        },
-      });
+    // try {
+    //   const response = await axios.post(`${XREMIT_API_URL}${path}`, requestData, {
+    //     headers: {
+    //       "X-API-KEY": XREMIT_API_KEY,
+    //       "Signature": signature,
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
 
-      if (response.data.status === "error") {
-        setErrorMessage(response.data.message);
-      } else {
-        onClose();
-        handleRefresh();
-      }
-    } catch (error) {
-      console.error("Error submitting redeem request:", error);
-      setErrorMessage("An error occurred while processing your request.");
-    } finally {
-      setLoading(false);
-    }
+    //   if (response.data.status === "error") {
+    //     setErrorMessage(response.data.message);
+    //   } else {
+    //     onClose();
+    //     handleRefresh();
+    //   }
+    // } catch (error) {
+    //   console.error("Error submitting redeem request:", error);
+    //   setErrorMessage("An error occurred while processing your request.");
+    // } finally {
+    //   setLoading(false);
+    // }
   };
+
+  const filteredGiftCards = giftCards.filter((card) =>
+  card.brandName.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   return (
     <Modal isOpen={open} toggle={onClose} size="md" centered>
@@ -221,7 +217,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
             </Col>
 
             {/* Gift Card Selection */}
-            {selectedPaymentMethodType === "virtualCardId" && (
+            {/* {selectedPaymentMethodType === "virtualCardId" && ( */}
   <>
     <Col md={12}>
       <FormGroup>
@@ -263,7 +259,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       </Row>
     </Col>
   </>
-)}
+{/* )} */}
 
 
             <Col md={12} className="text-end mt-3">
