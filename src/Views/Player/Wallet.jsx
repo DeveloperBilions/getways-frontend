@@ -29,6 +29,7 @@ import AddPaymentMethods from "./dialog/AddPayementMethods";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import Back Icon
 import { Pagination } from "@mui/material";
 import TablePagination from "@mui/material/TablePagination";
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
 export const Wallet = () => {
   const { data, isLoading } = useRefresh("playerDashboard");
   const navigate = useNavigate();
@@ -163,7 +164,7 @@ export const Wallet = () => {
             </div>
           </div>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={6}>
+            <Grid item xs={12} sm={4} md={4}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -192,7 +193,7 @@ export const Wallet = () => {
                 Cash out
               </Button>
             </Grid>
-            <Grid item xs={12} sm={6} md={6}>
+            <Grid item xs={12} sm={4} md={4}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -214,6 +215,31 @@ export const Wallet = () => {
                 Add Payment Methods
               </Button>
             </Grid>
+            <Grid item xs={12} sm={4} md={4}>
+  <Button
+    variant="contained"
+    startIcon={<CardGiftcardIcon />}
+    sx={{
+      mt: 2,
+      p: 2,
+      fontSize: "18px",
+      textTransform: "capitalize",
+      background: "linear-gradient(135deg, #6D5BBA, #8D58BF)",
+      boxShadow: "0 4px 14px rgba(109, 91, 186, 0.4)",
+      transition: "all 0.3s ease",
+      '&:hover': {
+        background: "linear-gradient(135deg, #8D58BF, #A26DD4)",
+        boxShadow: "0 6px 20px rgba(109, 91, 186, 0.5)",
+      },
+    }}
+    fullWidth
+    onClick={() => {
+      navigate("/gift-card-history")
+    }}
+  >
+    Gift Card History
+  </Button>
+</Grid>
           </Grid>
         </CardContent>
       </Card>

@@ -41,6 +41,7 @@ import WifiOffIcon from "@mui/icons-material/WifiOff";
 import { Box, Typography, Button } from "@mui/material";
 import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
+import GiftCardHistory from "./Views/Player/GiftCardHistory";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -225,6 +226,14 @@ function App() {
                   element={
                     <Authenticated>
                       <PlayerList resource="DashBoard" />
+                    </Authenticated>
+                  }
+                />
+                 <Route
+                  path="/gift-card-history"
+                  element={
+                    <Authenticated>
+                      <GiftCardHistory resource="GiftCardHistory" />
                     </Authenticated>
                   }
                 />
