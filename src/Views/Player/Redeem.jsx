@@ -98,12 +98,12 @@ const Redeem = () => {
   const rechargeData = async () => {
     try {
       console.log("Fetching redeem records...");
-      const { data } = await dataProvider.getList("redeemRecords", {
+      const { data, total } = await dataProvider.getList("redeemRecords", {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from redeemRecords:", data);
-      return data; // Return the fetched data
+      return {data,total}; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
       return []; // Return empty array on error
@@ -157,10 +157,10 @@ const Redeem = () => {
     }
     const fetchData = async () => {
       const data = await rechargeData();
-      const transactionData = convertTransactions(data);
+      const transactionData = convertTransactions(data?.data);
       if (data) {
         setTransactionData(transactionData);
-        setTotalTransactions(data.length);
+        setTotalTransactions(data?.total);
       } else {
         setTransactionData([]);
         setTotalTransactions(0);
