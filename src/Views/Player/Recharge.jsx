@@ -208,10 +208,7 @@ const Recharge = () => {
 
                 <Box>
                   <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent double triggering from the parent onClick
-                      handleToggleDropdown();
-                    }}
+                    
                   >
                     <ExpandMoreIcon
                       sx={{
