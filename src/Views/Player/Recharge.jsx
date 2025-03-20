@@ -87,15 +87,15 @@ const Recharge = () => {
   const rechargeData = async () => {
     try {
       console.log("Fetching recharge records...");
-      const { data } = await dataProvider.getList("rechargeRecords", {
+      const { data, total } = await dataProvider.getList("rechargeRecords", {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from rechargeRecords:", data);
-      return data; // Return the fetched data
+      return {data, total};
     } catch (error) {
       console.error("Error fetching data for export:", error);
-      return []; // Return empty array on error
+      return [];
     }
   };
 
@@ -106,12 +106,12 @@ const Recharge = () => {
   useEffect(() => {
     const fetchData = async () => {
       const data = await rechargeData();
-      const transactionData = convertTransactions(data);
-      console.log(transactionData, "bhavin");
+      const transactionData = convertTransactions(data.data);
+      console.log(data, "bhavin");
 
       if (data) {
         setTransactionData(transactionData);
-        setTotalTransactions(data.length);
+        setTotalTransactions(data.total);
       } else {
         setTransactionData([]);
         setTotalTransactions(0);

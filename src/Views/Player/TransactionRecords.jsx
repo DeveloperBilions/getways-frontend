@@ -13,7 +13,9 @@ const TransactionRecords = ({
 }) => {
   const redirect = useRedirect();
   return (
-    <>      <Box
+    <>
+      {" "}
+      <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -58,7 +60,6 @@ const TransactionRecords = ({
           <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
         </Button>
       </Box>
-
       {/* Last transactions */}
       <Box>
         <Box
@@ -72,7 +73,8 @@ const TransactionRecords = ({
         >
           <img src={Iicon} alt="Iicon" style={{ width: 16, marginRight: 8 }} />
           <Typography sx={{ fontSize: "12px", color: "#666" }}>
-            Last {totalTransactions} transactions here
+            Last {totalTransactions < 10 ? totalTransactions : "10"}{" "}
+            transactions here
           </Typography>
         </Box>
 
@@ -167,7 +169,7 @@ const TransactionRecords = ({
           </Box>
         ))}
       </Box>
-      </>
+    </>
   );
 };
 
