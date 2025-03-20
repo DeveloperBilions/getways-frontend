@@ -36,6 +36,7 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import InfoIcon from "@mui/icons-material/Info";
 // dialog
 import RejectRedeemDialog from "./dialog/RejectRedeemDialog";
 import ApproveRedeemDialog from "./dialog/ApproveRedeemDialog";
@@ -89,9 +90,9 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
-   const [searchBy, setSearchBy] = useState("username");
-   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
-   const prevFilterValuesRef = useRef();
+  const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
 
   if (!role) {
     navigate("/login");
@@ -294,7 +295,12 @@ export const RedeemRecordsList = (props) => {
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}} />,
+    <SearchInput
+      source={searchBy}
+      alwaysOn
+      resettable
+      sx={{ width: { xs: "100%", sm: "auto" }, minWidth: "200px" }}
+    />,
     <SelectInput
       source="searchBy"
       label="Search By"
@@ -349,82 +355,123 @@ export const RedeemRecordsList = (props) => {
     <TopToolbar
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-end", // Align buttons to the right
-        gap: 2, // Add space between buttons
-        p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
-        width: "100%", // Ensure full width for the toolbar
+        justifyContent: "flex-end",
+        width: { xs: "100%", sm: "auto" },
       }}
     >
-      <Typography>Redeems may take up to 2 hours</Typography>
-      <Button
-        variant="contained"
-        size="small"
-        color="secondary"
-        startIcon={<AutorenewIcon />}
-        onClick={handleRefresh}
-        sx={{ width: { xs: "100%", sm: "auto" } }}
+      <Box
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          height: "26px",
+          borderRadius: "4px",
+          gap: "8px",
+          padding: "0 12px",
+          marginLeft: "10px",
+          background: "var(--semantic-warning-light, #FEF3C7)",
+          border: "1px solid var(--semantic-warning, #F59E0B)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        Refresh
-      </Button>
-      {permissions !== "Player" && (
+        <Typography
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 400,
+            fontSize: "12px",
+            lineHeight: "150%",
+            letterSpacing: "1.2%",
+            verticalAlign: "middle",            
+            color: "var(--semantic-warning, #F59E0B)",
+            padding: "0 4px",
+          }}
+        >
+          <InfoIcon style={{ marginRight: "4px" }} />
+          Redeems may take up to 2 hours
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+          justifyContent: "flex-end",
+          p: { xs: 1, sm: 0 },
+          width: { xs: "100%", sm: "auto" },
+          gap: { xs: 1, sm: 2 },
+          
+        }}
+      >
         <Button
           variant="contained"
           size="small"
-          startIcon={<GetAppIcon />}
-          onClick={handleMenuOpen}
+          color="secondary"
+          startIcon={<AutorenewIcon />}
+          onClick={handleRefresh}
           sx={{ width: { xs: "100%", sm: "auto" } }}
         >
-          Export
+          Refresh
         </Button>
-      )}
+        {permissions !== "Player" && (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<GetAppIcon />}
+            onClick={handleMenuOpen}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            Export
+          </Button>
+        )}
 
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleMenuClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
-      >
-        <MenuItem
-          onClick={() => {
-            handleExportPDF();
-            //handleMenuClose();
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            "aria-labelledby": "basic-button",
           }}
-          disabled={isExporting}
         >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <PictureAsPdfIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            PDF file
-          </Typography>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleExportXLS();
-            //handleMenuClose();
-          }}
-          disabled={isExporting}
-        >
-          <ListItemIcon>
-            {isExporting ? (
-              <CircularProgress size={20} />
-            ) : (
-              <BackupTableIcon fontSize="small" />
-            )}
-          </ListItemIcon>
-          <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Excel file
-          </Typography>
-        </MenuItem>
-      </Menu>
+          <MenuItem
+            onClick={() => {
+              handleExportPDF();
+              //handleMenuClose();
+            }}
+            disabled={isExporting}
+          >
+            <ListItemIcon>
+              {isExporting ? (
+                <CircularProgress size={20} />
+              ) : (
+                <PictureAsPdfIcon fontSize="small" />
+              )}
+            </ListItemIcon>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              PDF file
+            </Typography>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleExportXLS();
+              //handleMenuClose();
+            }}
+            disabled={isExporting}
+          >
+            <ListItemIcon>
+              {isExporting ? (
+                <CircularProgress size={20} />
+              ) : (
+                <BackupTableIcon fontSize="small" />
+              )}
+            </ListItemIcon>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Excel file
+            </Typography>
+          </MenuItem>
+        </Menu>
+      </Box>
     </TopToolbar>
   );
   if (isLoading) {
@@ -437,15 +484,13 @@ export const RedeemRecordsList = (props) => {
   return (
     <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
-      {(role === "Master-Agent" || role  === "Agent" )&& 
-    <PersistentMessage /> }
+      {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
 
-      {(identity?.role === "Agent") &&
-        identity?.balance < 500 && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Your balance is too low to approve transactions.
-          </Alert>
-        )}
+      {identity?.role === "Agent" && identity?.balance < 500 && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Your balance is too low to approve transactions.
+        </Alert>
+      )}
       <Box
         sx={{
           display: "flex",

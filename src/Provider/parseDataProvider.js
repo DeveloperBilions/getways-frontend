@@ -380,8 +380,20 @@ export const dataProvider = {
       }
 
       if (selectedUser) {
-        userIds.push(selectedUser.id);
+        if (selectedUser.get("roleName") === "Master-Agent") {
+          // fetch all agents under this Master-Agent
+          const agentQuery = new Parse.Query(Parse.User);
+          agentQuery.equalTo("userParentId", selectedUser.id);
+          agentQuery.equalTo("roleName", "Agent");
+          const agents = await agentQuery.findAll({ useMasterKey: true });
+      
+          userIds.push(selectedUser.id, ...agents.map((agent) => agent.id));
+        } else {
+          // if normal agent or user
+          userIds.push(selectedUser.id);
+        }
       }
+      
 
       const matchConditions = [];
       if (filter.startDate && filter.endDate) {

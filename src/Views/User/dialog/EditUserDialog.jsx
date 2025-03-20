@@ -126,18 +126,23 @@ const EditUserDialog = ({
             Edit User Details
           </ModalHeader>
           <ModalBody className="custom-modal-body">
-            {(errorMessage || successMessage) && (<Box mb={3}>
-              {errorMessage && (
-                <Alert severity="error" onClose={() => setErrorMessage("")}>
-                  {errorMessage}
-                </Alert>
-              )}
-              {successMessage && (
-                <Alert severity="success" onClose={() => setSuccessMessage("")}>
-                  {successMessage}
-                </Alert>
-              )}
-            </Box>)}
+            {(errorMessage || successMessage) && (
+              <Box mb={3}>
+                {errorMessage && (
+                  <Alert severity="error" onClose={() => setErrorMessage("")}>
+                    {errorMessage}
+                  </Alert>
+                )}
+                {successMessage && (
+                  <Alert
+                    severity="success"
+                    onClose={() => setSuccessMessage("")}
+                  >
+                    {successMessage}
+                  </Alert>
+                )}
+              </Box>
+            )}
             <Form>
               <Row>
                 <Col md={12}>
@@ -241,19 +246,28 @@ const EditUserDialog = ({
               </Row>
             </Form>
           </ModalBody>
-          <ModalFooter className="modal-footer">
+          <ModalFooter className="custom-modal-footer">
             <Col md={12}>
-              <div className="d-flex w-100 justify-content-between">
-                <Button className="custom-button cancel" onClick={onClose}>
-                  Cancel
-                </Button>
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                }}
+              >
                 <Button
                   className="custom-button confirm"
                   onClick={handleSubmit}
                 >
-                  Confirm
+                  Update
                 </Button>
-              </div>
+                <Button className="custom-button cancel" onClick={onClose}>
+                  Cancel
+                </Button>
+              </Box>
             </Col>
           </ModalFooter>
         </Modal>

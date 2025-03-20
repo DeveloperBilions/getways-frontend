@@ -1,14 +1,8 @@
 import * as React from "react";
-import {
-  Toolbar,
-  Typography,
-  Box,
-  MenuItem,
-  Menu,
-  IconButton,
-} from "@mui/material";
+import { Toolbar, Typography, Box, IconButton, MenuItem } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -16,11 +10,11 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AppBar from "@mui/material/AppBar";
 import {
-  TitlePortal,
   RefreshButton,
   UserMenu,
   Logout,
   useGetIdentity,
+  useSidebarState,
 } from "react-admin";
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -36,7 +30,6 @@ import { useMediaQuery } from "@mui/system";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
@@ -46,6 +39,7 @@ export default function MyAppBar(props) {
   const isMobile = useMediaQuery("(max-width:1023px)");
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
+  const [open, setOpen] = useSidebarState(); // Use the sidebar state
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
@@ -53,105 +47,46 @@ export default function MyAppBar(props) {
   const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
   const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
 
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
+  // Toggle sidebar state
+  const toggleSidebar = () => {
+    setOpen(!open);
+  };
 
   if (!identity) return null;
 
+  // Generate menu items for the desktop navigation
   const menuItems = [];
   if (role && role !== "Player") {
     menuItems.push(
-      <MenuItem
-        key="users"
-        onClick={() => {
-          navigate("/users");
-          handleMenuClose();
-        }}
-      >
-        <PersonIcon sx={{ mr: 1 }} /> User Management
-      </MenuItem>,
-      <MenuItem
-        key="rechargeRecords"
-        onClick={() => {
-          navigate("/rechargeRecords");
-          handleMenuClose();
-        }}
-      >
-        <LocalAtmIcon sx={{ mr: 1 }} /> Recharge Records
-      </MenuItem>,
-      <MenuItem
-        key="redeemRecords"
-        onClick={() => {
-          navigate("/redeemRecords");
-          handleMenuClose();
-        }}
-      >
-        <LocalAtmIcon sx={{ mr: 1 }} /> Redeem Records
-      </MenuItem>,
-      <MenuItem
-        key="summary"
-        onClick={() => {
-          navigate("/summary");
-          handleMenuClose();
-        }}
-      >
-        <SummarizeIcon sx={{ mr: 1 }} /> Summary
-      </MenuItem>
+      {
+        key: "users",
+        label: "User Management",
+        onClick: () => navigate("/users"),
+      },
+      {
+        key: "rechargeRecords",
+        label: "Recharge Records",
+        onClick: () => navigate("/rechargeRecords"),
+      },
+      {
+        key: "redeemRecords",
+        label: "Redeem Records",
+        onClick: () => navigate("/redeemRecords"),
+      },
+      {
+        key: "summary",
+        label: "Summary",
+        onClick: () => navigate("/summary"),
+      }
     );
     if (role === "Super-User") {
-      menuItems.push(
-        <MenuItem
-          key="reports"
-          onClick={() => {
-            navigate("/Reports");
-            handleMenuClose();
-          }}
-        >
-          <SummarizeIcon sx={{ mr: 1 }} /> Reports
-        </MenuItem>
-      );
+      menuItems.push({
+        key: "reports",
+        label: "Reports",
+        onClick: () => navigate("/Reports"),
+      });
     }
   }
-  // else if (role === "Player") {
-  //   menuItems.push(
-  //     <MenuItem
-  //       key="playerDashboard"
-  //       onClick={() => {
-  //         navigate("/playerDashboard");
-  //         handleMenuClose();
-  //       }}
-  //     >
-  //       <SummarizeIcon sx={{ mr: 1 }} /> Dashboard
-  //     </MenuItem>,
-  //     <MenuItem
-  //       key="wallet"
-  //       onClick={() => {
-  //         navigate("/Wallet");
-  //         handleMenuClose();
-  //       }}
-  //     >
-  //       <SummarizeIcon sx={{ mr: 1 }} /> Wallet
-  //     </MenuItem>,
-  //     <MenuItem
-  //       key="rechargeRecords"
-  //       onClick={() => {
-  //         navigate("/rechargeRecords");
-  //         handleMenuClose();
-  //       }}
-  //     >
-  //       <LocalAtmIcon sx={{ mr: 1 }} /> Recharge Records
-  //     </MenuItem>,
-  //     <MenuItem
-  //       key="redeemRecords"
-  //       onClick={() => {
-  //         navigate("/redeemRecords");
-  //         handleMenuClose();
-  //       }}
-  //     >
-  //       <LocalAtmIcon sx={{ mr: 1 }} /> Redeem Records
-  //     </MenuItem>
-  //   );
-  // }
 
   return (
     <AppBar
@@ -161,8 +96,7 @@ export default function MyAppBar(props) {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "0",
-        backgroundColor: "#000",
-        position: "fixed",
+        backgroundColor: "var(--primary-color)",
         top: 0,
         width: "100%",
         height: "3.5em",
@@ -170,18 +104,8 @@ export default function MyAppBar(props) {
         zIndex: 1300,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", pl: 1 }}>
-        {role !== "Player" && (
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={handleMenuOpen}
-            sx={{ display: { xs: "block", md: "none" }, mr: 1, ml: 0.5 }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
+      <Box sx={{ display: "flex", alignItems: "center", pl: { xs: 2, sm: 1 } }}>
+        {/* Only show menu icon on mobile */}
         <Toolbar
           sx={{
             width: "auto",
@@ -196,17 +120,18 @@ export default function MyAppBar(props) {
             alt="Company Logo"
             loading="lazy"
             style={{
-              maxHeight: { xs: "2em", md: "3em" },
+              maxHeight: "3em",
               width: "auto",
             }}
           />
         </Toolbar>
+        {/* Desktop navigation - only show on non-mobile */}
         {!isMobile && (
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              backgroundColor: "#000",
+              backgroundColor: "var(--primary-color)",
               "& > *": {
                 padding: "0 1em",
                 height: "3.5em",
@@ -223,7 +148,7 @@ export default function MyAppBar(props) {
             {menuItems.map((item) => (
               <Box
                 key={item.key}
-                onClick={item.props.onClick}
+                onClick={item.onClick}
                 sx={{
                   color: "white",
                   textTransform: "none",
@@ -237,7 +162,7 @@ export default function MyAppBar(props) {
                   },
                 }}
               >
-                {item.props.children[1]}
+                {item.icon} {item.label}
               </Box>
             ))}
           </Box>
@@ -249,20 +174,22 @@ export default function MyAppBar(props) {
           alignItems: "center",
           justifyContent: "flex-end",
           flexGrow: 1,
-          backgroundColor: "#000",
+          backgroundColor: "var(--primary-color)",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-          {(role === "Master-Agent" || role === "Agent") &&
+          {(role === "Agent") &&
             identity?.balance !== undefined && (
               <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                 <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                <span style={{ fontWeight: 600, color: "#fff" }}>
+                <span
+                  style={{ fontWeight: 600, color: "var(--secondery-color)" }}
+                >
                   Balance: {identity.balance}
                 </span>
               </Box>
             )}
-          {role !== "Player" && (
+          {!isMobile && (
             <Box sx={{ ml: 1, minWidth: 0 }}>
               <Typography
                 noWrap
@@ -280,7 +207,7 @@ export default function MyAppBar(props) {
               </Typography>
             </Box>
           )}
-          {role !== "Player" && (
+          {!isMobile && (
             <RefreshButton
               label=""
               icon={
@@ -363,21 +290,19 @@ export default function MyAppBar(props) {
             </MenuItem>
             <Logout style={{ color: "#0000008a" }} />
           </UserMenu>
+          {isMobile && role !== "Player" && (
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={toggleSidebar}
+              sx={{ mr: 1, ml: 0.5 }}
+            >
+              {open ? <CloseIcon /> : <MenuIcon />}
+            </IconButton>
+          )}
         </Box>
       </Box>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        sx={{
-          "& .MuiMenu-paper": {
-            backgroundColor: "#000",
-            color: "#c0c7d8",
-          },
-        }}
-      >
-        {menuItems}
-      </Menu>
       <ChangePassword open={openModal} onClose={handleCloseModal} />
       <RechargeLimitDialog
         open={openRechargeLimit}

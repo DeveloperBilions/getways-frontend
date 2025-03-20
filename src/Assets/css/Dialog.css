@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 .custom-modal-header {
-  width: 460px; /* Set the width */
-  height: 56px; /* Set the height */
+  width: 100%; /* Set the width */
+  height: 100%; /* Set the height */
   justify-content: space-between; /* Align content with space between */
   display: flex; /* Ensure flexbox layout for justify-content */
   align-items: center; /* Vertically align content */
@@ -25,7 +25,7 @@
 }
 
 .custom-button {    
-  width: 210px;
+  width: 100% !important;
   height: 48px;
   border-radius: 4px;
   border-width: 1px;
@@ -35,6 +35,7 @@
   padding: 14px 20px;
   align-items: center;
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box !important;
 }
 
 .cancel{
@@ -50,7 +51,7 @@
 }
 
 .custom-modal .modal-dialog {
-  width: 460px; /* Set modal width */
+  width: 100%; /* Set modal width */
   height: 100%; /* Set modal height */
   min-height: 88px; /* Set the minimum height */
   gap: 16px; /* Gap between elements inside (if applicable) */
@@ -59,11 +60,11 @@
 
 .custom-modal .modal-content {
   height: 100%; /* Ensures content takes full height */
-  width: auto;
+  width: 100%;
 }
 
 .redeem-fees-text {
-  width: 428px;
+  width: 100%;
   border-radius: 4px;
   padding: 8px 16px;
   background: var(--secondary-color);
@@ -72,7 +73,8 @@
 }
 
 .custom-input {
-  height: 40px; /* Set the height */
+  width: 100%; /* Set the width */
+  height: 100%; /* Set the height */
   border-radius: 5px; /* Set the border radius */
   border-width: 1px; /* Set the border width */
   border-style: solid; /* Add a solid border style */
@@ -84,7 +86,7 @@
 }
 
 .custom-modal-body {
-  width: 460px;
+  width: 100%;
   height: 100%;
   min-height: 88px;
   padding: 0 16px !important; /* Adjust padding as needed */
@@ -92,15 +94,17 @@
   flex-direction: column; /* If you want vertical alignment of items */
 }
 
-.modal-footer {
-  border-top: 0px !important; /* Remove the top border */
-  margin-left: 4px !important;
-  width: 460px;
-  height: 80px;
+.custom-modal-footer {
+ border-top: 0px !important; /* Remove the top border */
+  margin-left: 0 !important; /* Remove unnecessary margin */
+  width: 100% !important;
+  height: 100% !important;
   gap: 8px;
-  padding: 0 16px !important; /* Adjust padding as needed */
-  display: flex; /* This will apply the gap between elements inside the footer */
-  justify-content: space-between; /* Adjust based on how you want items to be spaced */
+  padding: 0px 16px !important; /* Consistent padding */
+  display: flex;
+  flex-direction: column !important; /* Ensure buttons stack vertically */
+  align-items: stretch !important; /* Stretch buttons to full width */
+  justify-content: center !important;
 }
 
 .fee-edit-container {
@@ -130,6 +134,28 @@
 }
 
 .black-checkbox:checked {
-  background-color: #000000 !important;
-  border-color: #000000 !important;
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.settings-button {
+  background-color: #F4F4F5; /* White background */
+  border: 1px solid #F4F4F5; /* Light grey border */
+  border-radius: 10px; /* Rounded corners */
+  padding: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px; /* Square dimensions */
+  height: 32px;
+  margin-left: 10px !important;
+  cursor: pointer;
+}
+
+.settings-button:hover {
+  background-color: #f5f5f5; /* Slight grey on hover */
+}
+
+.setting-menu {
+  padding-right: 40px !important;
 }
