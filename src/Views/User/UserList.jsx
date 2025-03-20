@@ -46,6 +46,7 @@ import setting from "../../Assets/icons/setting.svg";
 import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import CustomPagination from "../Common/CustomPagination";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -146,7 +147,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         }}
         sx={{
           "& .MuiMenu-paper": {
-            width: "240px"
+            width: "240px",
           },
         }}
       >
@@ -290,7 +291,7 @@ export const UserList = (props) => {
     filterValues,
     setFilters,
     setSort,
-  } = listContext;
+  } = listContext;  
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -362,78 +363,79 @@ export const UserList = (props) => {
     }
   };
 
-const searchFields = ["username", "email", "userParentName"];
+  const searchFields = ["username", "email", "userParentName"];
 
-const handleSearchByChange = (newSearchBy) => {
-  setSearchBy(newSearchBy);
-  setPrevSearchBy(newSearchBy);
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
 
-  const currentSearchValue = filterValues[prevSearchBy] || "";
-  const newFilters = {};
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
 
-  Object.keys(filterValues).forEach((key) => {
-    if (key !== prevSearchBy && !searchFields.includes(key)) {
-      newFilters[key] = filterValues[key];
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
     }
-  });
 
-  if (currentSearchValue && currentSearchValue.trim() !== "") {
-    newFilters[newSearchBy] = currentSearchValue;
-  }
+    newFilters.searchBy = newSearchBy;
 
-  newFilters.searchBy = newSearchBy;
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
 
-  if (filterValues.role) {
-    newFilters.role = filterValues.role;
-  }
-
-  setFilters(newFilters, false);
-};
-
-useEffect(() => {
-  // Compare current filterValues with previous filterValues
-  const prevFilterValues = prevFilterValuesRef.current;
-  const filterValuesChanged =
-    JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
-
-  // Update the ref with current filterValues for the next run
-  prevFilterValuesRef.current = filterValues;
-
-  // Skip if no meaningful change
-  if (!filterValuesChanged) {
-    return;
-  }
-  const currentSearchValue = filterValues[searchBy] || "";
-  const newFilters = {
-    searchBy,
+    setFilters(newFilters, false);
   };
 
-  if (currentSearchValue && currentSearchValue.trim() !== "") {
-    newFilters[searchBy] = currentSearchValue;
-  }
+  useEffect(() => {
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
 
-  if (filterValues.role) {
-    newFilters.role = filterValues.role;
-  }
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
 
-  const cleanedFilters = Object.keys(filterValues)
-    .filter(
-      (key) => !searchFields.includes(key) || key === searchBy || key === "role"
-    )
-    .reduce((obj, key) => {
-      obj[key] = filterValues[key];
-      return obj;
-    }, {});
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
+    }
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
 
-  setFilters({ ...cleanedFilters, ...newFilters }, false);
-}, [filterValues, searchBy, setFilters]);
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter(
+        (key) =>
+          !searchFields.includes(key) || key === searchBy || key === "role"
+      )
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
     <SearchInput
       source={searchBy}
       alwaysOn
       resettable
-      sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}}
+      sx={{ width: { xs: "100%", sm: "auto" }, minWidth: "200px" }}
     />,
     <SelectInput
       source="searchBy"
@@ -524,7 +526,6 @@ useEffect(() => {
     </TopToolbar>
   );
 
-
   useEffect(() => {
     if (identity) {
       fetchAllUsers();
@@ -558,10 +559,8 @@ useEffect(() => {
 
   return (
     <>
-    {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
-     {(role === "Master-Agent" || role  === "Agent" )&& 
-    <PersistentMessage /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
+      {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
       <List
         title="User Management"
         filters={dataFilters}
@@ -648,15 +647,18 @@ useEffect(() => {
             <Box
               sx={{
                 display: "flex",
-                justifyContent: {
-                  xs: "flex-start",
-                  lg: "flex-end",
-                },
-                width: "100%",
+                justifyContent: "center",
+                width: "100% !important",
                 mt: 1,
               }}
             >
-              <Pagination sx={{ display: "inline-flex" }} />
+              <CustomPagination
+                page={page}
+                perPage={perPage}
+                total={total}
+                setPage={setPage}
+                setPerPage={setPerPage}
+              />
             </Box>
           </Box>
         </Box>
