@@ -27,6 +27,7 @@ import { Card } from "reactstrap";
 import MoneyReceiveWhite from "../../../Assets/icons/money-recive-light.svg";
 import WalletIconBlack from "../../../Assets/icons/WalletIcon_black.svg";
 import TransactionRecords from "../TransactionRecords";
+import { Loader } from "../../Loader";
 
 export const WalletDetails = () => {
   // Sample transaction data
@@ -35,7 +36,6 @@ export const WalletDetails = () => {
   const [paymentMethod, setPaymentMethod] = useState();
   const [paymentMethodId, setPaymentMethodId] = useState();
   const [paymentMethodLogo, setPaymentMethodLogo] = useState();
-  const [balance, setBalance] = useState(0);
   const [walletLoading, setWalletLoading] = useState(false);
   const [wallet, setWallet] = useState({});
   const { identity } = useGetIdentity();
@@ -49,6 +49,7 @@ export const WalletDetails = () => {
   const [cashOutDialogOpen, setcashOutDialogOpen] = useState(false);
   const [transactionData, setTransactionData] = useState([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const [cashoutAmount, setCashoutAmount] = useState(50);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -106,6 +107,10 @@ export const WalletDetails = () => {
     WalletService();
   }, []);
 
+  if (walletLoading) {
+    return <Loader />;
+  }
+
   async function WalletService() {
     setWalletLoading(true);
     try {
@@ -128,7 +133,6 @@ export const WalletDetails = () => {
         setPaymentMethodId(wallet?.wallet?.zelleId);
         setPaymentMethodLogo(ZelleLogo);
       }
-      setBalance(wallet?.wallet?.balance || 0);
     } catch (error) {
       console.error("Failed to fetch wallet data:", error);
     } finally {
@@ -262,20 +266,47 @@ export const WalletDetails = () => {
           </Typography>
 
           {/* Amount options */}
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          {/* <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
             {[10, 20, 50, 100].map((amount) => (
               <Box
                 key={amount}
                 sx={{
+                  borderRadius: "20px",
+                  width: "64px",
+                  padding: "2px 12px",
                   border: "1px dashed #ccc",
-                  borderRadius: "50px",
-                  padding: "6px 16px",
                   fontSize: "14px",
                   color: "#333",
                 }}
+                
               >
                 {amount}
               </Box>
+            ))}
+          </Box> */}
+          <Box sx={{ display: "flex", gap: "6px" , mt: 2}}>
+            {[10, 20, 50, 100].map((amount) => (
+              <Button
+                key={amount}
+                variant="outlined"
+                sx={{
+                  borderRadius: "20px",
+                  width: "64px",
+                  padding: "2px 12px",
+                  border:
+                    amount !== cashoutAmount ? "1px dashed #7e57c2" : "none",
+                  bgcolor: amount === cashoutAmount ? "#7e57c2" : "transparent",
+                  color: amount === cashoutAmount ? "white" : "black",
+                  ":hover": {
+                    border: "none",
+                    bgcolor: "#7e57c2",
+                    color: "white",
+                  },
+                }}
+                onClick={() => setCashoutAmount(amount)}
+              >
+                {amount}
+              </Button>
             ))}
           </Box>
           <Divider sx={{ mt: 1 }} />
@@ -299,7 +330,7 @@ export const WalletDetails = () => {
                 component="span"
                 sx={{ fontSize: "18px", fontWeight: 500 }}
               >
-                500
+                {cashoutAmount}
               </Typography>
             </Box>
 
@@ -567,7 +598,10 @@ export const WalletDetails = () => {
             </Box>
           )}
         </Box>
-        <TransactionRecords totalTransactions={totalTransactions} transactionData={transactionData}/>
+        <TransactionRecords
+          totalTransactions={totalTransactions}
+          transactionData={transactionData}
+        />
       </Box>
       <CashOutDialog
         open={cashOutDialogOpen}

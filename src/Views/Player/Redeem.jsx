@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
 import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import Docs from "../../Assets/icons/Docs.svg";
 import iIcon from "../../Assets/icons/Iicon.svg";
-import { useGetIdentity } from "react-admin";
+import { useGetIdentity, useRefresh } from "react-admin";
+import RedeemDialog from "./dialog/PlayerRedeemDialog";
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import TransactionRecords from "./TransactionRecords";
+import { walletService } from "../../Provider/WalletManagement";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -107,10 +109,35 @@ const Redeem = () => {
       return []; // Return empty array on error
     }
   };
+  const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
+  const refresh = useRefresh();
+  const [remark, setRemark] = useState("");
+  const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
+    useState(false);
+  const [walletId, setWalletId] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState({
+    cashAppId: "",
+    paypalId: "",
+    venmoId: "",
+    zelleId: "",
+  });
+  useEffect(() => {
+      async function WalletService() {
+        const wallet = await walletService.getMyWalletData();
+        const { cashAppId, paypalId, venmoId, objectId } = wallet?.wallet;
+        setPaymentMethods({ cashAppId, paypalId, venmoId });
+        setWalletId(objectId);
+      }
+        WalletService();
+    }, []);
 
   const transformedIdentity = {
     id: identity?.objectId,
     ...identity,
+  };
+
+  const handleRefresh = async () => {
+    refresh();
   };
 
   const parentServiceFee = async () => {
@@ -255,6 +282,32 @@ const Redeem = () => {
             </Box>
           </Box>
 
+          {isTransactionNoteVisible && (
+            <>
+              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+              <Box sx={{ mt: 1, mb: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Add Transaction Note"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        border: "none",
+                      },
+                      "&:hover fieldset": {
+                        border: "none",
+                      },
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+            </>
+          )}
+
           <Box
             sx={{
               height: "48px",
@@ -273,11 +326,18 @@ const Redeem = () => {
             </Box>
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <img
-                src={Docs}
-                alt="Docs Icon"
-                style={{ width: "24px", height: "24px" }}
-              />
+              <IconButton
+                onClick={() =>
+                  setIsTransactionNoteVisible(!isTransactionNoteVisible)
+                }
+                sx={{ mr: 1 }}
+              >
+                <img
+                  src={Docs}
+                  alt="Docs Icon"
+                  style={{ width: "24px", height: "24px" }}
+                />
+              </IconButton>
               <Button
                 variant="outlined"
                 sx={{
@@ -288,40 +348,42 @@ const Redeem = () => {
                   textTransform: "none",
                   padding: "6px 16px",
                 }}
-                // onClick={() => setRedeemDialogOpen(true)}
+                onClick={() => setRedeemDialogOpen(true)}
               >
                 {!isMobile && "REDEEM"} REQUEST
               </Button>
             </Box>
           </Box>
-        </Box>
-
-        <Box
-          sx={{
-            height: "17px",
-            marginTop: "12px", // Adjust top margin for proper spacing
-            paddingLeft: "2px", // Small left padding for alignment
-          }}
-        >
-          <Typography
+          <Box
             sx={{
-              fontFamily: "Inter",
-              fontWeight: 500,
-              fontSize: "14px",
-              lineHeight: "100%",
-              letterSpacing: "0px",
-              color: "#4D4D4D",
+              height: "17px", // Adjust top margin for proper spacing
+              paddingLeft: "2px", // Small left padding for alignment
             }}
           >
-            Redeem Service Fee @ {redeemFees}%
-          </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Inter",
+                fontWeight: 500,
+                fontSize: "14px",
+                color: "#4D4D4D",
+              }}
+            >
+              Redeem Service Fee @ {redeemFees}%
+            </Typography>
           <TransactionRecords
             totalTransactions={totalTransactions}
             transactionData={transactionData}
             redirectUrl={"redeemRecords"}
           />
+          </Box>
         </Box>
       </Box>
+      <RedeemDialog
+        open={redeemDialogOpen}
+        onClose={() => setRedeemDialogOpen(false)}
+        record={transformedIdentity}
+        handleRefresh={handleRefresh}
+      />
     </>
   );
 };

@@ -456,161 +456,171 @@ export const PlayerList = () => {
         </Paper>
       </Box>
 
-      {isMobile && (
-        <Box sx={{ bgcolor: "background.paper", p: 2 }}>
-          <Stack
-            direction="row"
-            spacing={1}
+      {!dropdownOpen && (
+        <>
+          {isMobile && (
+            <Box sx={{ bgcolor: "background.paper", p: 2 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-around",
+                  padding: "4px",
+                  borderRadius: "8px",
+                  border: "1px solid #CFD4DB",
+                }}
+              >
+                <Button
+                  variant={selectedTab === "recharge" ? "contained" : "text"}
+                  size="small"
+                  onClick={() => setSelectedTab("recharge")}
+                  sx={{
+                    width: "50%",
+                    height: "40px",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    textTransform: "none",
+                  }}
+                >
+                  <img
+                    src={
+                      selectedTab === "recharge"
+                        ? MoneySendWhite
+                        : MoneySendBlack
+                    }
+                    alt="Money Send Icon"
+                    style={{ width: 18, height: 18, marginRight: 8 }}
+                  />
+                  Recharge
+                </Button>
+
+                <Button
+                  variant={selectedTab === "redeem" ? "contained" : "text"}
+                  size="small"
+                  onClick={() => setSelectedTab("redeem")}
+                  sx={{
+                    width: "50%",
+                    height: "40px",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    textTransform: "none",
+                  }}
+                >
+                  <img
+                    src={
+                      selectedTab === "redeem"
+                        ? MoneyReceiveWhite
+                        : MoneyReceiveBlack
+                    }
+                    alt="Money Receive Icon"
+                    style={{ width: 18, height: 18, marginRight: 8 }}
+                  />
+                  Redeem
+                </Button>
+              </Stack>
+            </Box>
+          )}
+
+          <Box
             sx={{
               display: "flex",
-              justifyContent: "space-around",
-              padding: "4px",
-              borderRadius: "8px",
-              border: "1px solid #CFD4DB",
+              flexDirection: { xs: "column", sm: "row" },
+              width: "100%",
+              justifyContent: "space-between",
             }}
           >
-            <Button
-              variant={selectedTab === "recharge" ? "contained" : "text"}
-              size="small"
-              onClick={() => setSelectedTab("recharge")}
-              sx={{
-                width: "50%",
-                height: "40px",
-                fontSize: "16px",
-                fontWeight: 400,
-                textTransform: "none",
-              }}
-            >
-              <img
-                src={
-                  selectedTab === "recharge" ? MoneySendWhite : MoneySendBlack
-                }
-                alt="Money Send Icon"
-                style={{ width: 18, height: 18, marginRight: 8 }}
-              />
-              Recharge
-            </Button>
+            <Box width={{ xs: "100%", sm: "50%" }}>
+              {!isMobile && (
+                <Box
+                  sx={{
+                    padding: "16px",
+                    bgcolor: "#F9F9F9",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      height: "36px",
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "24px",
+                    }}
+                  >
+                    Recharge
+                  </Typography>
 
-            <Button
-              variant={selectedTab === "redeem" ? "contained" : "text"}
-              size="small"
-              onClick={() => setSelectedTab("redeem")}
-              sx={{
-                width: "50%",
-                height: "40px",
-                fontSize: "16px",
-                fontWeight: 400,
-                textTransform: "none",
-              }}
-            >
-              <img
-                src={
-                  selectedTab === "redeem"
-                    ? MoneyReceiveWhite
-                    : MoneyReceiveBlack
-                }
-                alt="Money Receive Icon"
-                style={{ width: 18, height: 18, marginRight: 8 }}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      height: "19px",
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "16px",
+                      color: "#4D4D4D", // Corrected text color
+                      mt: "8px",
+                    }}
+                  >
+                    Seamless Recharge: Add Funds Instantly
+                  </Typography>
+                </Box>
+              )}
+
+              {((isMobile && selectedTab === "recharge") || !isMobile) && (
+                <Recharge />
+              )}
+            </Box>
+
+            {!isMobile && (
+              <Divider
+                orientation="vertical"
+                flexItem
+                sx={{ height: "100%" }}
               />
-              Redeem
-            </Button>
-          </Stack>
-        </Box>
+            )}
+
+            <Box width={{ xs: "100%", sm: "50%" }}>
+              {!isMobile && (
+                <Box
+                  sx={{
+                    padding: "16px",
+                    bgcolor: "#F9F9F9",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      height: "36px",
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "24px",
+                    }}
+                  >
+                    Redeem
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      height: "19px",
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 500,
+                      fontSize: "16px",
+                      color: "#4D4D4D", // Corrected text color
+                      mt: "8px",
+                    }}
+                  >
+                    Withdraw Your Winnings: Easy & Secure
+                  </Typography>
+                </Box>
+              )}
+              {((isMobile && selectedTab === "redeem") || !isMobile) && (
+                <Redeem />
+              )}
+            </Box>
+          </Box>
+        </>
       )}
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          width: "100%",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box width={{ xs: "100%", sm: "50%" }}>
-          {!isMobile && (
-            <Box
-              sx={{
-                padding: "16px",
-                bgcolor: "#F9F9F9",
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  height: "36px",
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "24px",
-                }}
-              >
-                Recharge
-              </Typography>
-
-              <Typography
-                variant="body2"
-                sx={{
-                  height: "19px",
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                  color: "#4D4D4D", // Corrected text color
-                  mt: "8px",
-                }}
-              >
-                Seamless Recharge: Add Funds Instantly
-              </Typography>
-            </Box>
-          )}
-
-          {((isMobile && selectedTab === "recharge") || !isMobile) && (
-            <Recharge />
-          )}
-        </Box>
-
-        {!isMobile && (
-          <Divider orientation="vertical" flexItem sx={{ height: "100%" }} />
-        )}
-
-        <Box width={{ xs: "100%", sm: "50%" }}>
-          {!isMobile && (
-            <Box
-              sx={{
-                padding: "16px",
-                bgcolor: "#F9F9F9",
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  height: "36px",
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "24px",
-                }}
-              >
-                Redeem
-              </Typography>
-
-              <Typography
-                variant="body2"
-                sx={{
-                  height: "19px",
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                  color: "#4D4D4D", // Corrected text color
-                  mt: "8px",
-                }}
-              >
-                Withdraw Your Winnings: Easy & Secure
-              </Typography>
-            </Box>
-          )}
-          {((isMobile && selectedTab === "redeem") || !isMobile) && (
-            <Redeem />
-          )}
-        </Box>
-      </Box>
     </>
   );
 };
