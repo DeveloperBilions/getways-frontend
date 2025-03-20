@@ -6,6 +6,8 @@ import Docs from "../../Assets/icons/Docs.svg";
 import iIcon from "../../Assets/icons/Iicon.svg";
 import { useGetIdentity } from "react-admin";
 import { Parse } from "parse";
+import { dataProvider } from "../../Provider/parseDataProvider";
+import TransactionRecords from "./TransactionRecords";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -15,6 +17,96 @@ const Redeem = () => {
   const [selectedRedeemAmount, setSelectedRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [redeemFees, setRedeemFees] = useState(0);
+  const [transactionData, setTransactionData] = useState([]);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+
+  function convertTransactions(transactions) {
+    const formattedData = {};
+
+    transactions.forEach((txn) => {
+      const dateObj = new Date(txn.transactionDate);
+      const formattedDate = dateObj.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+      const formattedTime = dateObj.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+
+      const getColor = (status) => {
+        switch (status) {
+          case 4:
+          case 8:
+          case 2:
+            return "green";
+          case 5:
+          case 7:
+          case 9:
+          case 13:
+            return "red";
+          case 6:
+          case 11:
+            return "#F59E0B";
+          case 12:
+            return "green";
+          default:
+            return "black";
+        }
+      };
+
+      const statusMessage = {
+        2: "Recharge Successful",
+        4: "Success",
+        5: "Fail",
+        6: "Pending Approval",
+        7: "Redeem Rejected",
+        8: "Redeem Successful",
+        9: "Redeem Expired",
+        11: "In-Progress",
+        12: "Cashout Successful",
+        13: "Cashout Rejected",
+      };
+
+      const transactionItem = {
+        type: statusMessage[txn.status] || "Unknown Status",
+        time: formattedTime,
+        // tag: "D",
+        amount: txn.transactionAmount,
+        color: getColor(txn.status),
+      };
+
+      if (!formattedData[formattedDate]) {
+        formattedData[formattedDate] = {
+          date: formattedDate,
+          items: [],
+        };
+      }
+
+      formattedData[formattedDate].items.push(transactionItem);
+    });
+
+    return Object.values(formattedData);
+  }
+
+  const rechargeData = async () => {
+    try {
+      console.log("Fetching redeem records...");
+      const { data } = await dataProvider.getList("redeemRecords", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "id", order: "DESC" },
+      });
+      console.log("Data from redeemRecords:", data);
+      return data; // Return the fetched data
+    } catch (error) {
+      console.error("Error fetching data for export:", error);
+      return []; // Return empty array on error
+    }
+  };
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -36,6 +128,18 @@ const Redeem = () => {
     if (transformedIdentity?.userParentId) {
       parentServiceFee();
     }
+    const fetchData = async () => {
+      const data = await rechargeData();
+      const transactionData = convertTransactions(data);
+      if (data) {
+        setTransactionData(transactionData);
+        setTotalTransactions(data.length);
+      } else {
+        setTransactionData([]);
+        setTotalTransactions(0);
+      }
+    };
+    fetchData();
   }, []);
 
   return (
@@ -211,6 +315,11 @@ const Redeem = () => {
           >
             Redeem Service Fee @ {redeemFees}%
           </Typography>
+          <TransactionRecords
+            totalTransactions={totalTransactions}
+            transactionData={transactionData}
+            redirectUrl={"redeemRecords"}
+          />
         </Box>
       </Box>
     </>

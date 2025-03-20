@@ -189,7 +189,7 @@ export default function MyAppBar(props) {
                 </span>
               </Box>
             )}
-          {!isMobile && (
+          {role !== "Player" && !isMobile && (
             <Box sx={{ ml: 1, minWidth: 0 }}>
               <Typography
                 noWrap
@@ -207,7 +207,7 @@ export default function MyAppBar(props) {
               </Typography>
             </Box>
           )}
-          {!isMobile && (
+          {role !== "Player" && !isMobile && (
             <RefreshButton
               label=""
               icon={

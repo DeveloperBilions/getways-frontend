@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import FileCheck from "../../Assets/icons/FileCheck.svg";
 import Iicon from "../../Assets/icons/Iicon.svg";
@@ -13,13 +13,12 @@ const TransactionRecords = ({
 }) => {
   const redirect = useRedirect();
   return (
-    <Box sx={{ padding: "0" }}>
-      <Box
+    <>      <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "16px 24px",
+          paddingTop: "16px",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -38,13 +37,7 @@ const TransactionRecords = ({
           >
             <img src={FileCheck} alt="FileCheck" style={{ width: 24 }} />
           </Box>
-          <Box
-            onClick={() => {
-              if (redirectUrl) {
-                redirect(`/${redirectUrl}`);
-              }
-            }}
-          >
+          <Box>
             <Typography sx={{ fontSize: "14px", color: "#333" }}>
               Total number of transactions
             </Typography>
@@ -55,11 +48,19 @@ const TransactionRecords = ({
             </Typography>
           </Box>
         </Box>
-        <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
+        <Button
+          onClick={() => {
+            if (redirectUrl) {
+              redirect(`/${redirectUrl}`);
+            }
+          }}
+        >
+          <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
+        </Button>
       </Box>
 
       {/* Last transactions */}
-      <Box sx={{ padding: "16px 20px" }}>
+      <Box>
         <Box
           sx={{
             display: "flex",
@@ -91,7 +92,7 @@ const TransactionRecords = ({
                 paddingRight: "16px",
               }}
             >
-              {dateGroup.date}
+              {dateGroup?.date}
             </Typography>
 
             {dateGroup.items.map((item, itemIndex) => (
@@ -166,7 +167,7 @@ const TransactionRecords = ({
           </Box>
         ))}
       </Box>
-    </Box>
+      </>
   );
 };
 
