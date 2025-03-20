@@ -601,6 +601,7 @@ export const WalletDetails = () => {
         <TransactionRecords
           totalTransactions={totalTransactions}
           transactionData={transactionData}
+          redirectUrl={"wallet"}
         />
       </Box>
       <CashOutDialog
