@@ -11,16 +11,17 @@ export const MyLayout = (props) => {
   }
 
   const role = localStorage.getItem("role");
-  console.log(role,"role");
-  
+  console.log(role, "role");
 
   const isSidebarOpen = role !== "Player";
+
+  const EmptySidebar = () => null;
 
   return (
     <Layout
       {...props}
       appBar={MyAppBar}
-      sidebar={MySidebar}  
+      sidebar={isSidebarOpen ? MySidebar : EmptySidebar}
       sx={{
         "& .RaLayout-content": {
           marginLeft: { xs: "0", md: isSidebarOpen ? "120px" : "0" }, // Remove left margin on small screens, apply on medium+

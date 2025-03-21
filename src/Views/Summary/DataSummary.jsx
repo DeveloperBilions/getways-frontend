@@ -160,14 +160,18 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#FFEBEB",
             borderColor: "#FF9C9C",
-            icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
+            icon: <WarningIcon color="warning" sx={{ mr: 1 }} />,
             filter:
               role === "Super-User" ? (
                 <FormControl fullWidth>
                   <Select
                     value={selectedRechargeType}
                     onChange={(e) => setSelectedRechargeType(e.target.value)}
-                    sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                    sx={{
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                      height: "40px",
+                      backgroundColor: "var(--secondary-color)",
+                    }}
                   >
                     <MenuItem value="all">All</MenuItem>
                     <MenuItem value="wallet">Wallet</MenuItem>
@@ -518,29 +522,50 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
               px: { xs: 1, sm: 2 },
             }}
           >
-            <CardContent>
-              <Typography
-                variant="subtitle1"
+            <CardContent
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                padding: "16px",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 2, sm: 0 },
+              }}
+            >
+              <Box
                 display="flex"
-                alignItems="center"
-                sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                alignItems={{ xs: "center", sm: "flex-start" }}
+                flexDirection="column"
               >
-                {item?.icon} {item?.name}
-              </Typography>
-              {item.filter && <Box sx={{ mt: 2 }}>{item.filter}</Box>}
-              <Typography
-                variant="h4"
-                sx={{
-                  mt: 2,
-                  fontWeight: 400,
-                  fontSize: "header-xl",
-                  lineHeight: "100%",
-                  letterSpacing: "0%",
-                  verticalAlign: "middle",
-                }}
-              >
-                {item?.value}
-              </Typography>
+                <Typography
+                  variant="subtitle1"
+                  display={{ xs: "none", sm: "flex" }}
+                  alignItems="center"
+                  sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                >
+                  {item?.icon} {item?.name}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    mt: 2, // Small margin to separate from the name
+                    fontWeight: 400, // Bold to match the image
+                    fontSize: "header-xl", // Large font size
+                    lineHeight: "100%",
+                    letterSpacing: "0%",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  {item?.value} {/* e.g., 9346 */}
+                </Typography>
+              </Box>
+
+              {/* Right Section: Filter Dropdown */}
+              {item.filter && (
+                <Box sx={{ minWidth: 320 }}>
+                  {item.filter} {/* e.g., the Select component */}
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
