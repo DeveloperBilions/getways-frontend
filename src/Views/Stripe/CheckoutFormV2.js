@@ -102,7 +102,7 @@ const CheckoutFormV2 = () => {
         </Box>
         <Box sx={{ flex: 1, paddingLeft: 4, marginY: 4 }}>
         <iframe
-    src="https://buy.moneybridge.net/buy/select-coin?apiKey=61ce7d0dcc1eb99ddbb2e81bfc177e974f3dd6026510277a76c4bb6528871d6b"
+    src="https://buy.moneybridge.net/buy/select-coin?apiKey=7b354e84e417f840460e3d7686ccd0598082aff542ac657acc599f1679d29345"
     height="600px"
     width="600px"
   ></iframe>
