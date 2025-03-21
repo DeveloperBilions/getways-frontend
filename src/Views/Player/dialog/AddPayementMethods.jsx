@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { walletService } from "../../../Provider/WalletManagement";
 import {
   Modal,
@@ -20,6 +20,10 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
   const [paymentMethods, setPaymentMethods] = useState({...wallet});
   const [loading, setLoading] = useState(false); // State to track loading status
   const [error, setError] = useState(""); // State to track errors
+  useEffect(() => {
+    setPaymentMethods({...wallet});
+    setOriginalPaymentMethods({...wallet});
+  }, [wallet]);
 
   const handleAddPaymentMethod = async (newMethods) => {
     const trimmedMethods = {

@@ -97,8 +97,8 @@ export const dataProvider = {
     const { page, perPage } = params.pagination;
     const { field, order } = params.sort;
     var filter = params.filter;
-    var q = filter.q;
-    delete filter.q;
+    // var q = filter.q;
+    // delete filter.q;
     // console.log("==== =", filter);
     var query = new Parse.Query(Parse.Object);
     var count = null;
@@ -294,7 +294,7 @@ export const dataProvider = {
        const Resource = Parse.Object.extend("TransactionRecords");
        query = new Parse.Query(Resource);
        filter = { type: "recharge", ...filter };
-
+       console.log(filter,"scssdkclsc");
        if (role === "Player") {
          filter = { userId: userid, ...filter };
         //  filter &&

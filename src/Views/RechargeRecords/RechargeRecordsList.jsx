@@ -372,7 +372,7 @@ export const RechargeRecordsList = (props) => {
           size="small"
           startIcon={<AttachMoneyIcon />}
           onClick={() => setRechargeDialogOpen(true)}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+          sx={{ width: { xs: "100%", sm: "auto" },bgcolor:"#28A745" }} // Full width on small screens
         >
           Recharge
         </Button>
