@@ -4,23 +4,27 @@ import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import Docs from "../../Assets/icons/Docs.svg";
 import iIcon from "../../Assets/icons/Iicon.svg";
-import { useGetIdentity, useRefresh } from "react-admin";
+import { useGetIdentity, useNotify, useRefresh } from "react-admin";
 import RedeemDialog from "./dialog/PlayerRedeemDialog";
 import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import TransactionRecords from "./TransactionRecords";
 import { walletService } from "../../Provider/WalletManagement";
+import { Loader } from "../Loader";
+import { validatePositiveNumber } from "../../Validators/number.validator";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const Redeem = () => {
   const { isMobile } = useDeviceType();
-  const [selectedRedeemAmount, setSelectedRedeemAmount] = useState(50);
+  const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [redeemFees, setRedeemFees] = useState(0);
   const [transactionData, setTransactionData] = useState([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const notify = useNotify();
 
   function convertTransactions(transactions) {
     const formattedData = {};
@@ -95,7 +99,7 @@ const Redeem = () => {
     return Object.values(formattedData);
   }
 
-  const rechargeData = async () => {
+  const redeemData = async () => {
     try {
       console.log("Fetching redeem records...");
       const { data, total } = await dataProvider.getList("redeemRecords", {
@@ -103,7 +107,7 @@ const Redeem = () => {
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from redeemRecords:", data);
-      return {data,total}; // Return the fetched data
+      return { data, total }; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
       return []; // Return empty array on error
@@ -121,15 +125,23 @@ const Redeem = () => {
     venmoId: "",
     zelleId: "",
   });
+
+  const resetFields = () => {
+    setRedeemAmount(50);
+    setRemark("");
+  };
+
   useEffect(() => {
-      async function WalletService() {
-        const wallet = await walletService.getMyWalletData();
-        const { cashAppId, paypalId, venmoId, objectId } = wallet?.wallet;
-        setPaymentMethods({ cashAppId, paypalId, venmoId });
-        setWalletId(objectId);
-      }
-        WalletService();
-    }, []);
+    async function WalletService() {
+      setLoading(true);
+      const wallet = await walletService.getMyWalletData();
+      const { cashAppId, paypalId, venmoId, objectId } = wallet?.wallet;
+      setPaymentMethods({ cashAppId, paypalId, venmoId });
+      setWalletId(objectId);
+      setLoading(false);
+    }
+    WalletService();
+  }, []);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -156,7 +168,8 @@ const Redeem = () => {
       parentServiceFee();
     }
     const fetchData = async () => {
-      const data = await rechargeData();
+      setLoading(true);
+      const data = await redeemData();
       const transactionData = convertTransactions(data?.data);
       if (data) {
         setTransactionData(transactionData);
@@ -165,9 +178,92 @@ const Redeem = () => {
         setTransactionData([]);
         setTotalTransactions(0);
       }
+      setLoading(false);
     };
     fetchData();
   }, []);
+
+  const handleConfirm = () => {
+    const { cashAppId, paypalId, venmoId } = paymentMethods;
+    const methodCount = [cashAppId, paypalId, venmoId].filter(Boolean).length;
+
+    if (methodCount === 0) {
+      notify(
+        "No payment methods are added. Please add a payment method to proceed.",
+        {
+          type: "warning",
+        }
+      );
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
+    if (!cashAppId && !paypalId && !venmoId && !zelleId) {
+      // setErrorMessage("Refund cannot be processed without a payment mode.");
+      notify("Refund cannot be processed without a payment mode.", {
+        type: "error",
+      });
+      return;
+    }
+
+    const validationResponse = validatePositiveNumber(redeemAmount);
+    if (!validationResponse.isValid) {
+      // setErrorMessage(validationResponse.error);
+      notify(validationResponse.error, {
+        type: "error",
+      });
+      return;
+    }
+
+    if (redeemAmount < 15) {
+      // setErrorMessage("RedeemAmount amount cannot be less than 15.");
+      notify("RedeemAmount amount cannot be less than 15.", {
+        type: "error",
+      });
+      return;
+    }
+    const rawData = {
+      ...transformedIdentity,
+      redeemServiceFee: redeemFees,
+      transactionAmount: redeemAmount,
+      remark,
+      type: "redeem",
+      walletId: walletId,
+    };
+    setLoading(true);
+    try {
+      const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
+      if (response?.status === "error") {
+        // setErrorMessage(response?.message);
+        notify(response?.message, {
+          type: "error",
+        });
+      } else {
+        const data = await redeemData();
+        const transactionData = convertTransactions(data?.data);
+        if (data) {
+          setTransactionData(transactionData);
+          setTotalTransactions(data?.total);
+        } else {
+          setTransactionData([]);
+          setTotalTransactions(0);
+        }
+        resetFields();
+        handleRefresh();
+      }
+    } catch (error) {
+      console.error("Error Redeem Record details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -201,6 +297,7 @@ const Redeem = () => {
             bgcolor: " #EDF7FF",
             borderRadius: "4px",
             paddingLeft: "8px",
+            marginBottom:"16px"
           }}
         >
           {/* Icon */}
@@ -258,22 +355,17 @@ const Redeem = () => {
                       width: "64px",
                       padding: "2px 12px",
                       border:
-                        amount !== selectedRedeemAmount
-                          ? "1px dashed #7e57c2"
-                          : "none",
+                        amount !== redeemAmount ? "1px dashed #7e57c2" : "none",
                       bgcolor:
-                        amount === selectedRedeemAmount
-                          ? "#7e57c2"
-                          : "transparent",
-                      color:
-                        amount === selectedRedeemAmount ? "white" : "black",
+                        amount === redeemAmount ? "#7e57c2" : "transparent",
+                      color: amount === redeemAmount ? "white" : "black",
                       ":hover": {
                         border: "none",
                         bgcolor: "#7e57c2",
                         color: "white",
                       },
                     }}
-                    onClick={() => setSelectedRedeemAmount(amount)}
+                    onClick={() => setRedeemAmount(amount)}
                   >
                     {amount}
                   </Button>
@@ -307,7 +399,7 @@ const Redeem = () => {
               <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
             </>
           )}
-
+          <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1, mb: 1 }} />
           <Box
             sx={{
               height: "48px",
@@ -315,13 +407,14 @@ const Redeem = () => {
               justifyContent: "space-between",
               alignItems: "center", // Align items vertically
               paddingTop: "8px",
+              paddingBottom: "4px",
             }}
           >
             {/* Redeem Action */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <img src={AOG_Symbol} alt="AOG Symbol" width={16} height={16} />
               <Typography sx={{ fontSize: "16px", fontWeight: 600 }}>
-                {selectedRedeemAmount}
+                {redeemAmount}
               </Typography>
             </Box>
 
@@ -341,14 +434,18 @@ const Redeem = () => {
               <Button
                 variant="outlined"
                 sx={{
-                  border: "1px solid #E0E0E0",
+                  border: "1px solid #D9DCE1",
                   borderRadius: "6px",
                   fontSize: "14px",
                   fontWeight: "bold",
                   textTransform: "none",
                   padding: "6px 16px",
+                  bgcolor:"#F8FBFF",
+                  ":hover":{
+                    bgcolor:"#F8FBFF"
+                  }
                 }}
-                onClick={() => setRedeemDialogOpen(true)}
+                onClick={() => handleConfirm()}
               >
                 {!isMobile && "REDEEM"} REQUEST
               </Button>
@@ -356,7 +453,6 @@ const Redeem = () => {
           </Box>
           <Box
             sx={{
-              height: "17px", // Adjust top margin for proper spacing
               paddingLeft: "2px", // Small left padding for alignment
             }}
           >
@@ -369,12 +465,13 @@ const Redeem = () => {
               }}
             >
               Redeem Service Fee @ {redeemFees}%
+              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1, mb: 1 }} />
             </Typography>
-          <TransactionRecords
-            totalTransactions={totalTransactions}
-            transactionData={transactionData}
-            redirectUrl={"redeemRecords"}
-          />
+            <TransactionRecords
+              totalTransactions={totalTransactions}
+              transactionData={transactionData}
+              redirectUrl={"redeemRecords"}
+            />
           </Box>
         </Box>
       </Box>
