@@ -242,7 +242,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
 
     setLoading(true);
 
-    if (selectedPaymentMethod === "virtualCardId") {
+    if (selectedPaymentMethod === "Gift Card") {
       try {
         const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         const purchasePayload = {
