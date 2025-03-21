@@ -305,7 +305,6 @@ const Recharge = ({data,totalData}) => {
 
             {isTransactionNoteVisible && (
               <>
-                <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
                 <Box sx={{ mt: 1, mb: 1 }}>
                   <TextField
                     fullWidth

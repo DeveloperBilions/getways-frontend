@@ -15,7 +15,7 @@ import { validatePositiveNumber } from "../../Validators/number.validator";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Redeem = ({data,totalData}) => {
+const Redeem = ({data,totalData,wallet}) => {
   const { isMobile } = useDeviceType();
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
@@ -40,18 +40,13 @@ const Redeem = ({data,totalData}) => {
     setRedeemAmount(50);
     setRemark("");
   };
-
   useEffect(() => {
-    async function WalletService() {
-      setLoading(true);
-      const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId, objectId } = wallet?.wallet;
+    if (wallet) {
+      const { cashAppId, paypalId, venmoId, objectId } = wallet;
       setPaymentMethods({ cashAppId, paypalId, venmoId });
       setWalletId(objectId);
-      setLoading(false);
     }
-    WalletService();
-  }, []);
+  }, [wallet]);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -283,7 +278,6 @@ const Redeem = ({data,totalData}) => {
                   }}
                 />
               </Box>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
             </>
           )}
           <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1, mb: 1 }} />

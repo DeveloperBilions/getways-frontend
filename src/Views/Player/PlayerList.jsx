@@ -39,6 +39,7 @@ export const PlayerList = () => {
   const [totalRechargeData, setTotalRechargeData] = useState(0);
   const [redeemTransactionData, setRedeemTransactionData] = useState([]);
   const [totalRedeemData, setTotalRedeemData] = useState(0);
+  const [ walletData, setWalletData ] = useState([]);
 
   useEffect(() => {
     WalletService();
@@ -55,6 +56,7 @@ export const PlayerList = () => {
     try {
       const wallet = await walletService.getMyWalletData();
       console.log(wallet.wallet);
+      setWalletData(wallet.wallet);
       setBalance(wallet.wallet.balance);
     } catch (error) {
       console.error("Failed to fetch wallet data:", error);
@@ -472,7 +474,7 @@ export const PlayerList = () => {
             )}
             {selectedTab === "redeem" && (
               <Box sx={{ width: "100%" }}>
-                <Redeem data={redeemTransactionData} totalData={totalRedeemData}/>
+                <Redeem data={redeemTransactionData} totalData={totalRedeemData} wallet={walletData}/>
               </Box>
             )}
           </Box>
