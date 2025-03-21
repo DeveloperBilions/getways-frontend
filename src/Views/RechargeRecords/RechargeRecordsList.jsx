@@ -56,6 +56,7 @@ import { Parse } from "parse";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
+import CustomPagination from "../Common/CustomPagination";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -144,7 +145,7 @@ export const RechargeRecordsList = (props) => {
         return "Unknown Status";
     }
   };
-  
+
   // const totalTransactionAmount =
   //   Data &&
   //   Data.filter((item) => item.status === 2 || item.status === 3).reduce(
@@ -304,7 +305,12 @@ export const RechargeRecordsList = (props) => {
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput source={searchBy} alwaysOn resettable sx={{ width: { xs: "100%", sm: "auto" } , minWidth:"200px"}} />,
+    <SearchInput
+      source={searchBy}
+      alwaysOn
+      resettable
+      sx={{ width: { xs: "100%", sm: "auto" }, minWidth: "200px" }}
+    />,
     <SelectInput
       source="searchBy"
       label="Search By"
@@ -348,98 +354,97 @@ export const RechargeRecordsList = (props) => {
     ),
   ].filter(Boolean);
 
-const postListActions = (
-  <TopToolbar
-    sx={{
-      display: "flex",
-      flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
-      alignItems: "center",
-      justifyContent: "flex-end", // Align buttons to the right
-      gap: 2, // Add space between buttons
-      p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
-      width: "100%", // Ensure full width for the toolbar
-    }}
-  >
-    {permissions === "Player" && (
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<AttachMoneyIcon />}
-        onClick={() => setRechargeDialogOpen(true)}
-        sx={{ width: { xs: "100%", sm: "auto" },bgcolor:"#28A745" }} // Full width on small screens
-      >
-        Recharge
-      </Button>
-    )}
-
-    <Button
-      variant="contained"
-      color="secondary"
-      size="small"
-      startIcon={<AutorenewIcon />}
-      onClick={handleRefresh}
-      sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-    >
-      Refresh
-    </Button>
-
-    {permissions !== "Player" && (
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<GetAppIcon />}
-        onClick={handleMenuOpen}
-        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-      >
-        Export
-      </Button>
-    )}
-    <Menu
-      anchorEl={menuAnchor}
-      open={Boolean(menuAnchor)}
-      onClose={handleMenuClose}
-      MenuListProps={{
-        "aria-labelledby": "basic-button",
+  const postListActions = (
+    <TopToolbar
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        alignItems: "center",
+        justifyContent: "flex-end", // Align buttons to the right
+        gap: 2, // Add space between buttons
+        p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+        width: "100%", // Ensure full width for the toolbar
       }}
     >
-      <MenuItem
-        onClick={() => {
-          handleExportPDF();
-        }}
-        disabled={isExporting}
-      >
-        <ListItemIcon>
-          {isExporting ? (
-            <CircularProgress size={20} />
-          ) : (
-            <PictureAsPdfIcon fontSize="small" />
-          )}
-        </ListItemIcon>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          PDF file
-        </Typography>
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          handleExportXLS();
-        }}
-        disabled={isExporting}
-      >
-        <ListItemIcon>
-          {isExporting ? (
-            <CircularProgress size={20} />
-          ) : (
-            <BackupTableIcon fontSize="small" />
-          )}
-        </ListItemIcon>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Excel file
-        </Typography>
-      </MenuItem>
-    </Menu>
-  </TopToolbar>
-);
+      {permissions === "Player" && (
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<AttachMoneyIcon />}
+          onClick={() => setRechargeDialogOpen(true)}
+          sx={{ width: { xs: "100%", sm: "auto" },bgcolor:"#28A745" }} // Full width on small screens
+        >
+          Recharge
+        </Button>
+      )}
 
+      <Button
+        variant="contained"
+        color="secondary"
+        size="small"
+        startIcon={<AutorenewIcon />}
+        onClick={handleRefresh}
+        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+      >
+        Refresh
+      </Button>
+
+      {permissions !== "Player" && (
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<GetAppIcon />}
+          onClick={handleMenuOpen}
+          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+        >
+          Export
+        </Button>
+      )}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        MenuListProps={{
+          "aria-labelledby": "basic-button",
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleExportPDF();
+          }}
+          disabled={isExporting}
+        >
+          <ListItemIcon>
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PictureAsPdfIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            PDF file
+          </Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleExportXLS();
+          }}
+          disabled={isExporting}
+        >
+          <ListItemIcon>
+            {isExporting ? (
+              <CircularProgress size={20} />
+            ) : (
+              <BackupTableIcon fontSize="small" />
+            )}
+          </ListItemIcon>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Excel file
+          </Typography>
+        </MenuItem>
+      </Menu>
+    </TopToolbar>
+  );
 
   if (isLoading) {
     return (
@@ -539,7 +544,7 @@ const postListActions = (
                     <Button
                       variant="outlined"
                       size="small"
-                      startIcon={<MonetizationOnIcon/>}
+                      startIcon={<MonetizationOnIcon />}
                       onClick={() => handleCoinCredit(record)}
                       sx={{
                         mr: 1,
@@ -670,7 +675,7 @@ const postListActions = (
                       sx={{
                         color: "black",
                         backgroundColor: getColor(record.status),
-                        borderRadius:"8px"
+                        borderRadius: "8px",
                       }}
                       size="small"
                       variant="outlined"
@@ -713,15 +718,18 @@ const postListActions = (
             <Box
               sx={{
                 display: "flex",
-                justifyContent: {
-                  xs: "flex-start",
-                  lg: "flex-end",
-                },
-                width: "100%",
+                justifyContent: "center",
+                width: "100% !important",
                 mt: 1,
               }}
             >
-              <Pagination sx={{ display: "inline-flex" }} />
+              <CustomPagination
+                page={page}
+                perPage={perPage}
+                total={total}
+                setPage={setPage}
+                setPerPage={setPerPage}
+              />
             </Box>
           </Box>
         </Box>
