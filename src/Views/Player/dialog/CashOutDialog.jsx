@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Button,
   Modal,
   ModalHeader,
   ModalBody,
@@ -17,19 +16,26 @@ import {
   CardTitle,
   CardText,
   CardImg,
-  Spinner
+  Spinner,
 } from "reactstrap";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { walletService } from "../../../Provider/WalletManagement";
 import "../../../Assets/css/cashoutDialog.css";
+import {
+  Button
+} from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
- const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
- const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
- 
+const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
+const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
+
 const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(50); // You can change how many cards per page
+  const [totalPages, setTotalPages] = useState(1);
+
   const [userName, setUserName] = useState(localStorage.getItem("username"));
   const role = localStorage.getItem("role");
   const userId = localStorage.getItem("id");
@@ -45,25 +51,24 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     paypalId: "",
     venmoId: "",
     zelleId: "",
-    virtualCardId:"Gift Card",
+    virtualCardId: "Gift Card",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
     isZelleDisabled: false,
-    isVirtualCardIdDisabled:false
+    isVirtualCardIdDisabled: false,
   });
   const [displayPaymentMethods, setDisplayPaymentMethods] = useState({
     cashAppId: "",
     paypalId: "",
     venmoId: "",
     zelleId: "",
-    virtualCardId:"Gift Card",
+    virtualCardId: "Gift Card",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
     isZelleDisabled: false,
-    isVirtualCardIdDisabled:false
-
+    isVirtualCardIdDisabled: false,
   });
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,8 +82,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [error, setError] = useState(""); // State to track errors
   const [selectedPaymentMethodType, setSelectedPaymentMethodType] =
     useState(""); // Store selected payment method type (e.g., cashAppId)
-    const [giftCards, setGiftCards] = useState([]);
-    const [loadingGiftCards, setLoadingGiftCards] = useState(false);
+  const [giftCards, setGiftCards] = useState([]);
+  const [loadingGiftCards, setLoadingGiftCards] = useState(false);
   const resetFields = () => {
     setRedeemAmount("");
     setRemark("");
@@ -98,7 +103,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId,zelleId, objectId, balance } = wallet.wallet;
+      const { cashAppId, paypalId, venmoId, zelleId, objectId, balance } =
+        wallet.wallet;
       setBalance(balance);
       setPaymentMethods((prev) => ({
         ...prev,
@@ -106,7 +112,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
         paypalId,
         venmoId,
         zelleId,
-        virtualCardId:"Gift Card"
+        virtualCardId: "Gift Card",
       }));
       setDisplayPaymentMethods((prev) => ({
         ...prev,
@@ -124,15 +130,17 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   }, [open]);
 
-
   useEffect(() => {
     if (selectedPaymentMethod === "Gift Card" && searchTerm.length >= 2) {
       fetchGiftCards(searchTerm);
-    } else if (searchTerm.length === 0 && selectedPaymentMethod === "Gift Card") {
+    } else if (
+      searchTerm.length === 0 &&
+      selectedPaymentMethod === "Gift Card"
+    ) {
       fetchGiftCards("");
     }
   }, [selectedPaymentMethod, searchTerm]);
-  
+
   const fetchPaymentMethods = async () => {
     setLoadingPaymentMethods(true);
     try {
@@ -147,7 +155,8 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
             paymentMethodsRecord.get("isPaypalDisabled") || false,
           isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
           isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
-          isVirtualCardIdDisabled: paymentMethodsRecord.get("isVirtualCardIdDisabled") || false,
+          isVirtualCardIdDisabled:
+            paymentMethodsRecord.get("isVirtualCardIdDisabled") || false,
         }));
       } else {
         setErrorMessage("No payment methods found in the table.");
@@ -245,9 +254,12 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
           externalUserLastName: "User",
           externalUserEmail: record?.email,
         };
-  
-        const response = await Parse.Cloud.run("purchaseGiftCard", purchasePayload);
-  
+
+        const response = await Parse.Cloud.run(
+          "purchaseGiftCard",
+          purchasePayload
+        );
+
         if (response && response.status === "success") {
           onClose();
           handleRefresh();
@@ -260,30 +272,66 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       } finally {
         setLoading(false);
       }
-    }
-    else{
-    try {
-      const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
-      if (response?.status === "error") {
-        setErrorMessage(response?.message);
-      } else {
-        onClose();
-        setRedeemAmount("");
-        setRemark("");
-        handleRefresh();
+    } else {
+      try {
+        const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
+        if (response?.status === "error") {
+          setErrorMessage(response?.message);
+        } else {
+          onClose();
+          setRedeemAmount("");
+          setRemark("");
+          handleRefresh();
+        }
+      } catch (error) {
+        console.error("Error Redeem Record details:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error Redeem Record details:", error);
-    } finally {
-      setLoading(false);
-    }}
+    }
   };
-  const fetchGiftCards = async (search = "") => {
+  
+  const fetchGiftCards = async (search, page = 1) => {
     setLoadingGiftCards(true);
     setErrorMessage("");
+
     try {
-      const response = await Parse.Cloud.run("fetchGiftCards", { searchTerm: search });
-      setGiftCards(response.brands); // adjust according to your cloud function response structure
+      let combinedResults = [];
+
+      if ((!search || search.trim() === "") && page <= 1) {
+        const masterResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "Mastercard",
+          currentPage: page,
+          perPage,
+        });
+        const masterCards = masterResponse.brands || [];
+
+        const allResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "",
+          currentPage: page,
+          perPage,
+        });
+        const allCards = allResponse.brands || [];
+
+        const productIds = new Set();
+        combinedResults = [...masterCards, ...allCards].filter((card) => {
+          if (productIds.has(card.productId)) return false;
+          productIds.add(card.productId);
+          return true;
+        });
+
+        setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+      } else {
+        const response = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: search.trim(),
+          currentPage: page,
+          perPage,
+        });
+        combinedResults = response.brands || [];
+        setTotalPages(Math.ceil(response.totalCount / perPage));
+      }
+
+      setGiftCards(combinedResults);
     } catch (error) {
       console.error("Error fetching gift cards:", error);
       setErrorMessage("Failed to load gift cards.");
@@ -291,7 +339,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       setLoadingGiftCards(false);
     }
   };
-  
+
   const handleAddPaymentMethod = async (newMethods) => {
     const trimmedMethods = {
       cashAppId: paymentMethods?.cashAppId?.trim() || "",
@@ -362,11 +410,27 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
   const paymentOptions = [
-    { key: "cashAppId", label: "CashApp", disabled: paymentMethods.isCashAppDisabled },
-    { key: "paypalId", label: "PayPal", disabled: paymentMethods.isPaypalDisabled },
-    { key: "venmoId", label: "Venmo", disabled: paymentMethods.isVenmoDisabled },
-    { key: "zelleId", label: "Zelle", disabled: paymentMethods.isZelleDisabled },
-    { key: "virtualCardId", label: "Gift Card", disabled: false }
+    // {
+    //   key: "cashAppId",
+    //   label: "CashApp",
+    //   disabled: paymentMethods.isCashAppDisabled,
+    // },
+    // {
+    //   key: "paypalId",
+    //   label: "PayPal",
+    //   disabled: paymentMethods.isPaypalDisabled,
+    // },
+    // {
+    //   key: "venmoId",
+    //   label: "Venmo",
+    //   disabled: paymentMethods.isVenmoDisabled,
+    // },
+    // {
+    //   key: "zelleId",
+    //   label: "Zelle",
+    //   disabled: paymentMethods.isZelleDisabled,
+    // },
+    { key: "virtualCardId", label: "Gift Card", disabled: false },
   ];
   // console.log(paymentMethods, "paymentMethods");
   return (
@@ -374,7 +438,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={onClose} size="md" centered>
+        <Modal isOpen={open} toggle={onClose} size="lg" centered>
           <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
             Cash Out Request
           </ModalHeader>
@@ -516,68 +580,126 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                 </Col>
 
                 {selectedPaymentMethod === "Gift Card" && (
-  <>
-    <Col md={12}>
-      <FormGroup>
-        <Label>Find a Gift Card</Label>
-        <Input
-          type="text"
-          placeholder="Search by brand name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </FormGroup>
-    </Col>
+                  <>
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label>Find a Gift Card</Label>
+                        <Input
+                          type="text"
+                          placeholder="Search by brand name..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
 
-    <Col md={12}>
-  {loadingGiftCards ? (
-    <div style={{ textAlign: "center", marginTop: "20px" }}>
-     <Spinner size="sm" color="primary" /> {/* or replace with  */}
-    </div>
-  ) : (
-    <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-      <Row>
-        {giftCards.map((card) => (
-          <Col md={6} key={card.productId}>
-            <Card
-              onClick={() => setSelectedGiftCard(card)}
-              style={{
-                cursor: "pointer",
-                border:
-                  selectedGiftCard?.productId === card.productId
-                    ? "2px solid #007bff"
-                    : "1px solid #ddd",
-                transition: "all 0.3s ease-in-out",
-              }}
-            >
-              <CardImg
-                top
-                width="100%"
-                src={card.productImage}
-                alt={card.brandName}
-              />
-              <CardBody>
-                <CardTitle tag="h6">{card.brandName}</CardTitle>
-                <CardText>{card.productDescription}</CardText>
-                <CardText>
-                  <small>
-                    Value Range: ${card.valueRestrictions.minVal} - $
-                    {card.valueRestrictions.maxVal}
-                  </small>
-                </CardText>
-              </CardBody>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </div>
-  )}
-</Col>
+                    <Col md={12}>
+                      {loadingGiftCards ? (
+                        <div style={{ textAlign: "center", marginTop: "20px" }}>
+                          <Spinner size="sm" color="primary" />{" "}
+                          {/* or replace with  */}
+                        </div>
+                      ) : (
+                        <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                          <Row>
+                            {giftCards.map((card) => (
+                              <Col md={6} key={card.productId}>
+                                <Card
+                                  onClick={() => setSelectedGiftCard(card)}
+                                  style={{
+                                    cursor: "pointer",
+                                    border:
+                                      selectedGiftCard?.productId ===
+                                      card.productId
+                                        ? "2px solid #007bff"
+                                        : "1px solid #ddd",
+                                    transition: "all 0.3s ease-in-out",
+                                  }}
+                                >
+                                  <CardImg
+                                    top
+                                    width="100%"
+                                    src={card.productImage}
+                                    alt={card.brandName}
+                                    style={{
+                                      height: "150px",
+                                      objectFit: "contain",
+                                      padding: "10px",
+                                    }} // Smaller image
+                                  />
+                                  <CardBody>
+                                    <CardTitle
+                                      tag="h6"
+                                      style={{
+                                        fontWeight: "600",
+                                        color: "#222", // dark blackish color
+                                        fontSize: "16px",
+                                        marginBottom: "8px",
+                                      }}
+                                    >
+                                      {card.brandName}
+                                    </CardTitle>
+                                    <CardText
+                                      style={{
+                                        color: "#6c757d", // gray color
+                                        fontSize: "13px",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 4,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        minHeight: "72px",
+                                      }}
+                                    >
+                                      {card.productDescription}
+                                    </CardText>
+                                    <CardText>
+                                      <small>
+                                        Value Range: $
+                                        {card.valueRestrictions.minVal} - $
+                                        {card.valueRestrictions.maxVal}
+                                      </small>
+                                    </CardText>
+                                  </CardBody>
+                                </Card>
+                              </Col>
+                            ))}
+                          </Row>
+                        </div>
+                      )}
+                    </Col>
+                  </>
+                )}
 
-  </>
-)} 
+                <Col md={12} className="d-flex justify-content-center mt-3">
+                  <Button
+                  variant="outlined"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage(currentPage - 1);
+                      fetchGiftCards(searchTerm, currentPage - 1);
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  <span style={{ margin: "0 10px", alignSelf: "center" }}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                  variant="outlined"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage(currentPage + 1);
+                      fetchGiftCards(searchTerm, currentPage + 1);
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Col>
 
-                <Col md={12} className="d-flex justify-content-end my-2">
+                {/* <Col md={12} className="d-flex justify-content-end my-2">
                   <span
                     style={{
                       textDecoration: "underline",
@@ -590,18 +712,18 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   >
                     Add / Edit Payment Method
                   </span>
-                </Col>
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
+                </Col> */}
+                <Col md={12} >
+                  <div className="d-flex justify-content-end mt-3">
                     <Button
-                      color="success"
+                      variant="contained" color="success"
                       className="mx-2"
                       onClick={handleConfirm}
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
-                    <Button color="secondary" onClick={onClose}>
+                    <Button variant="outlined" onClick={onClose}>
                       Cancel
                     </Button>
                   </div>

@@ -16,8 +16,11 @@ import {
   Switch
 } from "@mui/material";
 import { Parse } from "parse";
+import { useGetIdentity } from "react-admin";
 
 const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
+  const role = localStorage.getItem("role");
+  const { identity } = useGetIdentity();
   const [monthlyLimit, setMonthlyLimit] = useState("");
   const [dailyLimit, setDailyLimit] = useState("");
   const [activeLimit, setActiveLimit] = useState(""); // No default selection
@@ -62,40 +65,78 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-
-    // Run validation before saving
+  
     if (!validateInputs()) {
       setLoading(false);
       return;
     }
-
+  
     try {
       if (!record?.id) {
         throw new Error("No user record selected.");
       }
-
-      // Fetch user from Parse
+  
+      const currentRole = role;
+  
+      // If current user is Master-Agent, validate against Super-User config
+      if (currentRole === "Master-Agent") {
+        const configQuery = new Parse.Query("RechargeLimitConfig");
+        configQuery.equalTo("userId", record.id);  // Filter by the record's userId
+        const superUserConfig = await configQuery.first({ useMasterKey: true });
+  
+        if (superUserConfig) {
+          const maxDailyLimit = superUserConfig.get("maxDailyLimit") || 0;
+          const maxMonthlyLimit = superUserConfig.get("maxMonthlyLimit") || 0;
+  
+          if (Number(dailyLimit) > maxDailyLimit) {
+            setErrorMessage(`Daily limit cannot exceed Super-User's daily limit of ${maxDailyLimit}.`);
+            setLoading(false);
+            return;
+          }
+          if (Number(monthlyLimit) > maxMonthlyLimit) {
+            setErrorMessage(`Monthly limit cannot exceed Super-User's monthly limit of ${maxMonthlyLimit}.`);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+  
+      // Fetch user record to update
       const userQuery = new Parse.Query(Parse.User);
       const user = await userQuery.get(record.id, { useMasterKey: true });
-
-      // If restriction is OFF, clear activeRechargeLimit
+  
       if (!limitEnabled) {
         user.set("activeRechargeLimit", "");
       } else {
-        user.set("activeRechargeLimit", activeLimit); // Set active limit if enabled
+        user.set("activeRechargeLimit", activeLimit);
       }
-
-      // Update limits only if restriction is ON
+  
       user.set("monthlyRechargeLimit", limitEnabled ? Number(monthlyLimit) : 0);
       user.set("dailyRechargeLimit", limitEnabled ? Number(dailyLimit) : 0);
-
-      // Save updated record
+      user.set("limitLastUpdatedByRole", currentRole);
+  
+      // Update global config if current role is Super-User
+      if (currentRole === "Super-User") {
+        const configQuery = new Parse.Query("RechargeLimitConfig");
+        let config = await configQuery.first({ useMasterKey: true });
+  
+        if (!config) {
+          const Config = Parse.Object.extend("RechargeLimitConfig");
+          config = new Config();
+        }
+  
+        config.set("maxDailyLimit", Number(dailyLimit));
+        config.set("maxMonthlyLimit", Number(monthlyLimit));
+        config.set("updatedBy", identity?.objectId);
+        config.set("userId", record?.id);
+        await config.save(null, { useMasterKey: true });
+      }
+  
       await user.save(null, { useMasterKey: true });
-
+  
       setSuccessMessage("Recharge limits updated successfully!");
-      if (handleRefresh) handleRefresh(); // Refresh parent data
-
-      // Close after success
+      if (handleRefresh) handleRefresh();
+  
       setTimeout(() => {
         onClose();
         setSuccessMessage("");
@@ -108,6 +149,8 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
       setLoading(false);
     }
   };
+  
+  
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
