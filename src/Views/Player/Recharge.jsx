@@ -25,14 +25,10 @@ import { validatePositiveNumber } from "../../Validators/number.validator";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = () => {
-  const { isMobile } = useDeviceType();
+const Recharge = ({data,totalData}) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
-  const [transactionData, setTransactionData] = useState([]);
-  const [totalTransactions, setTotalTransactions] = useState(0);
   const refresh = useRefresh();
-  //   const [errorMessage, setErrorMessage] = useState("");
   const [redeemFees, setRedeemFees] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -45,106 +41,6 @@ const Recharge = () => {
 
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Wallet");
-
-  const convertTransactions = (transactions) => {
-    const formattedData = {};
-
-    transactions.forEach((txn) => {
-      const dateObj = new Date(txn.transactionDate);
-      const formattedDate = dateObj.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-
-      const formattedTime = dateObj.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      });
-
-      const getColor = (status) => {
-        switch (status) {
-          case 3:
-            return "#22C55E";
-          case 2:
-            return "#22C55E";
-          case 1:
-            return "#F59E0B";
-          case 0:
-            return "#F59E0B";
-          case 9:
-            return "Red";
-          case 10:
-            return "Red";
-          default:
-            return "default";
-        }
-      };
-
-      const statusMessage = {
-        0: "Pending Referral Link",
-        1: "Pending Confirmation",
-        2: "Confirmed",
-        3: "Coins Credited",
-        9: "Expired",
-        10: "Failed Transaction",
-      };
-
-      const transactionItem = {
-        type: statusMessage[txn.status] || "Unknown Status",
-        time: formattedTime,
-        // tag: "D",
-        amount: txn.transactionAmount,
-        color: getColor(txn.status),
-      };
-
-      if (!formattedData[formattedDate]) {
-        formattedData[formattedDate] = {
-          date: formattedDate,
-          items: [],
-        };
-      }
-
-      formattedData[formattedDate].items.push(transactionItem);
-    });
-
-    return Object.values(formattedData);
-  };
-
-  const rechargeData = async () => {
-    try {
-      console.log("Fetching recharge records...");
-      const { data, total } = await dataProvider.getList("rechargeRecords", {
-        pagination: { page: 1, perPage: 10 },
-        sort: { field: "id", order: "DESC" },
-      });
-      console.log("Data from rechargeRecords:", data);
-      return { data, total };
-    } catch (error) {
-      console.error("Error fetching data for export:", error);
-      return [];
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const data = await rechargeData();
-      const transactionData = convertTransactions(data.data);
-
-      if (data) {
-        setTransactionData(transactionData);
-        setTotalTransactions(data.total);
-      } else {
-        setTransactionData([]);
-        setTotalTransactions(0);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
 
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
@@ -272,17 +168,6 @@ const Recharge = () => {
           // Display success message using useNotify
           notify("Recharge successful!", { type: "success" });
           handleRefresh();
-          const data = await rechargeData();
-          const transactionData = convertTransactions(data.data);
-
-          if (data) {
-            setTransactionData(transactionData);
-            setTotalTransactions(data.total);
-          } else {
-            setTransactionData([]);
-            setTotalTransactions(0);
-          }
-
           resetFields();
         } else {
           //   setErrorMessage(
@@ -342,16 +227,6 @@ const Recharge = () => {
           );
         }
         handleRefresh();
-        const data = await rechargeData();
-        const transactionData = convertTransactions(data.data);
-
-        if (data) {
-          setTransactionData(transactionData);
-          setTotalTransactions(data.total);
-        } else {
-          setTransactionData([]);
-          setTotalTransactions(0);
-        }
         resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
@@ -379,7 +254,7 @@ const Recharge = () => {
           padding: "10px 16px",
         }}
       >
-        {isMobile && (
+        {/* {isMobile && ( */}
           <Typography
             variant="body2"
             sx={{
@@ -394,7 +269,7 @@ const Recharge = () => {
           >
             Seamless Recharge: Add Funds Instantly
           </Typography>
-        )}
+        {/* )} */}
         <Box sx={{ width: "100%", paddingTop: "8px" }}>
           <Box sx={{ display: "flex", gap: "6px" }}>
             {[10, 20, 50, 100].map((amount) => (
@@ -653,8 +528,8 @@ const Recharge = () => {
             </Box>
           )}
           <TransactionRecords
-            totalTransactions={totalTransactions}
-            transactionData={transactionData}
+            totalTransactions={totalData}
+            transactionData={data}
             redirectUrl={"rechargeRecords"}
           />
         </Box>
