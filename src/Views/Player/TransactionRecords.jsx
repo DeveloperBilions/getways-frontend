@@ -13,17 +13,16 @@ const TransactionRecords = ({
 }) => {
   const redirect = useRedirect();
   return (
-    <>
+    <Box border={{ sm: "1px solid #CFD4DB" }}>
       {" "}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          paddingTop: "16px",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center", padding: "16px" }}>
           <Box
             sx={{
               bgcolor: "#D6F5DD",
@@ -169,7 +168,7 @@ const TransactionRecords = ({
           </Box>
         ))}
       </Box>
-    </>
+    </Box>
   );
 };
 

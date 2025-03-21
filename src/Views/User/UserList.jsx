@@ -533,11 +533,8 @@ useEffect(() => {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
-  }, []);
-
-  useEffect(() => {
-    setFilters({}, {}); // Clear filters when the component mounts
-    setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
+    setFilters({searchBy:"username"},{}); // Clear filters when the component mounts
+    setSort({ field: "createdAt", order: "DESC" });
   }, []);
 
   // useEffect(() => {
