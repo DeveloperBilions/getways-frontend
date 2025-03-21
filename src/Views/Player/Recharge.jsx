@@ -17,21 +17,20 @@ import Docs from "../../Assets/icons/Docs.svg";
 import TransactionRecords from "./TransactionRecords";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { useGetIdentity, useNotify, useRefresh } from "react-admin";
-import RechargeDialog from "../RechargeRecords/dialog/RechargeDialog";
 import { checkActiveRechargeLimit } from "../../Utils/utils";
 import { Parse } from "parse";
+import { Loader } from "../Loader";
+import { validatePositiveNumber } from "../../Validators/number.validator";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const Recharge = () => {
   const { isMobile } = useDeviceType();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [transactionData, setTransactionData] = useState([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
-  const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const refresh = useRefresh();
   //   const [errorMessage, setErrorMessage] = useState("");
   const [redeemFees, setRedeemFees] = useState(0);
@@ -47,7 +46,7 @@ const Recharge = () => {
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Wallet");
 
-  function convertTransactions(transactions) {
+  const convertTransactions = (transactions) => {
     const formattedData = {};
 
     transactions.forEach((txn) => {
@@ -112,7 +111,7 @@ const Recharge = () => {
     });
 
     return Object.values(formattedData);
-  }
+  };
 
   const rechargeData = async () => {
     try {
@@ -122,22 +121,18 @@ const Recharge = () => {
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from rechargeRecords:", data);
-      return {data, total};
+      return { data, total };
     } catch (error) {
       console.error("Error fetching data for export:", error);
       return [];
     }
   };
 
-  const handleToggleDropdown = async () => {
-    setDropdownOpen((prevState) => !prevState);
-  };
-
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const data = await rechargeData();
       const transactionData = convertTransactions(data.data);
-      console.log(data, "bhavin");
 
       if (data) {
         setTransactionData(transactionData);
@@ -146,6 +141,7 @@ const Recharge = () => {
         setTransactionData([]);
         setTotalTransactions(0);
       }
+      setLoading(false);
     };
     fetchData();
   }, []);
@@ -155,7 +151,7 @@ const Recharge = () => {
     // Update the header display based on selected payment method
     if (event.target.value === "wallet") {
       setDisplayMethod("Wallet");
-    } else if (event.target.value === "paymentportal") {
+    } else if (event.target.value === "stripe") {
       setDisplayMethod("Payment Portal");
     }
   };
@@ -196,7 +192,7 @@ const Recharge = () => {
   };
 
   const resetFields = () => {
-    setRechargeAmount("");
+    setRechargeAmount(50);
     setRemark("");
     setPaymentSource("stripe");
     // setErrorMessage(""); // Reset error message
@@ -217,12 +213,19 @@ const Recharge = () => {
     if (transformedIdentity?.userParentId) {
       parentServiceFee();
     }
-  }, []);
+  }, [transformedIdentity]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     // setErrorMessage(""); // Clear previous errors
+
+    const numberValidation = validatePositiveNumber(rechargeAmount);
+    if (!numberValidation.isValid) {
+      //   setErrorMessage(numberValidation.error);
+      notify(numberValidation.error, { type: "warning" });
+      return;
+    }
 
     if (parseFloat(rechargeAmount) < redeemFees) {
       //   setErrorMessage(
@@ -269,6 +272,17 @@ const Recharge = () => {
           // Display success message using useNotify
           notify("Recharge successful!", { type: "success" });
           handleRefresh();
+          const data = await rechargeData();
+          const transactionData = convertTransactions(data.data);
+
+          if (data) {
+            setTransactionData(transactionData);
+            setTotalTransactions(data.total);
+          } else {
+            setTransactionData([]);
+            setTotalTransactions(0);
+          }
+
           resetFields();
         } else {
           //   setErrorMessage(
@@ -328,6 +342,16 @@ const Recharge = () => {
           );
         }
         handleRefresh();
+        const data = await rechargeData();
+        const transactionData = convertTransactions(data.data);
+
+        if (data) {
+          setTransactionData(transactionData);
+          setTotalTransactions(data.total);
+        } else {
+          setTransactionData([]);
+          setTotalTransactions(0);
+        }
         resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
@@ -337,9 +361,15 @@ const Recharge = () => {
         });
       } finally {
         setLoading(false);
+        setIsTransactionNoteVisible(false);
+        setExpanded(false);
       }
     }
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -392,119 +422,125 @@ const Recharge = () => {
               </Button>
             ))}
           </Box>
-
-          {isTransactionNoteVisible && (
-            <>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-              <Box sx={{ mt: 1, mb: 1 }}>
-                <TextField
-                  fullWidth
-                  label="Add Transaction Note"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  variant="outlined"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        border: "none",
-                      },
-                      "&:hover fieldset": {
-                        border: "none",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-            </>
-          )}
-
-          
-        </Box>
-
-        <Box sx={{ height: "52px", gap: "8px", padding: "8px 0" }}>
-          <Box
-            sx={{
-              height: "36px",
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "8px 0",
-            }}
-          >
+          <Box sx={{ width: "100%", paddingTop: "8px" }}>
+            {/* First horizontal line */}
             <Box
-            sx={{
-              height: "40px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingTop: "8px",
-              paddingRight: "24px",
-              paddingBottom: "8px",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <img
-                src={AOG_Symbol}
-                alt="AOG Symbol"
-                style={{ width: "16px", height: "16px" }}
-              />
-              <Typography
-                sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "18px",
-                  lineHeight: "100%",
-                  letterSpacing: "0px",
-                  color: "#000000",
-                }}
-              >
-                {rechargeAmount}
-              </Typography>
-            </Box>
-          </Box>
+              sx={{ borderBottom: "1px solid #e0e0e0", my: 1, padding: "4px" }}
+            />
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <IconButton
-                onClick={() =>
-                  setIsTransactionNoteVisible(!isTransactionNoteVisible)
-                }
-                sx={{ mr: 1 }}
-              >
-                <img
-                  src={Docs}
-                  alt="Docs Icon"
-                  style={{ width: "24px", height: "24px" }}
-                />
-              </IconButton>
-              <Button
-                variant="contained"
+            {isTransactionNoteVisible && (
+              <>
+                <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+                <Box sx={{ mt: 1, mb: 1 }}>
+                  <TextField
+                    fullWidth
+                    label="Add Transaction Note"
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    variant="outlined"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          border: "none",
+                        },
+                        "&:hover fieldset": {
+                          border: "none",
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+              </>
+            )}
+            {/* </Box>
+
+        <Box sx={{ height: "52px", gap: "8px", padding: "8px 0" }}> */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: "52px",
+                gap: "8px",
+              }}
+            >
+              <Box
                 sx={{
-                  width: "118px",
-                  height: "40px",
-                  gap: "24px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
                   paddingTop: "8px",
-                  paddingRight: "20px",
+                  paddingRight: "24px",
                   paddingBottom: "8px",
-                  paddingLeft: "20px",
-                  borderRadius: "4px",
-                  backgroundColor: "#28A745",
-                  color: "#FFFFFF",
-                  "&:disabled": {
-                    backgroundColor: "#A5D6A7", // Optional: Lighter green for disabled state
-                  },
-                }}
-                disabled={identity?.isBlackListed || loading}
-                onClick={() => {
-                  if (!identity?.isBlackListed) {
-                    setRechargeDialogOpen(true);
-                  }
                 }}
               >
-                RECHARGE
-              </Button>
-            </Box>
-          </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <img
+                    src={AOG_Symbol}
+                    alt="AOG Symbol"
+                    style={{ width: "16px", height: "16px" }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 600,
+                      fontSize: "18px",
+                      lineHeight: "100%",
+                      letterSpacing: "0px",
+                      color: "#000000",
+                    }}
+                  >
+                    {rechargeAmount}
+                  </Typography>
+                </Box>
 
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <IconButton
+                    onClick={() =>
+                      setIsTransactionNoteVisible(!isTransactionNoteVisible)
+                    }
+                    sx={{ mr: 1 }}
+                  >
+                    <img
+                      src={Docs}
+                      alt="Docs Icon"
+                      style={{ width: "24px", height: "24px" }}
+                    />
+                  </IconButton>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      width: "118px",
+                      height: "40px",
+                      gap: "24px",
+                      paddingTop: "8px",
+                      paddingRight: "20px",
+                      paddingBottom: "8px",
+                      paddingLeft: "20px",
+                      borderRadius: "4px",
+                      backgroundColor: "#28A745",
+                      color: "#FFFFFF",
+                      "&:disabled": {
+                        backgroundColor: "#A5D6A7", // Optional: Lighter green for disabled state
+                      },
+                    }}
+                    disabled={identity?.isBlackListed || loading}
+                    onClick={(event) => {
+                      if (!identity?.isBlackListed) {
+                        handleSubmit(event);
+                      }
+                    }}
+                  >
+                    RECHARGE
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+
+            <Box sx={{ borderBottom: "1px solid #e0e0e0", padding: "4px" }} />
+          </Box>
           {/* Wallet Selection Header */}
           <Box
             sx={{
@@ -571,8 +607,7 @@ const Recharge = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
-                          bgcolor:
-                            paymentSource === "wallet" ? "#D6F5DD" : "#f5f5f5",
+                          bgcolor: "#D6F5DD",
                           width: "24px",
                           height: "24px",
                           borderRadius: "4px",
@@ -580,8 +615,8 @@ const Recharge = () => {
                         }}
                       >
                         <img
-                          src={paymentSource === "wallet" ? WalletIcon : Docs}
-                          alt="Payment Method Icon"
+                          src={WalletIcon}
+                          alt="Wallet Icon"
                           style={{ width: "14px", height: "14px" }}
                         />
                       </Box>
@@ -590,7 +625,7 @@ const Recharge = () => {
                   }
                 />
                 <FormControlLabel
-                  value="paymentportal"
+                  value="stripe"
                   control={
                     <Radio
                       sx={{
@@ -617,18 +652,13 @@ const Recharge = () => {
               </RadioGroup>
             </Box>
           )}
-        <TransactionRecords
-          totalTransactions={totalTransactions}
-          transactionData={transactionData}
-          redirectUrl={"rechargeRecords"}
-        />
+          <TransactionRecords
+            totalTransactions={totalTransactions}
+            transactionData={transactionData}
+            redirectUrl={"rechargeRecords"}
+          />
         </Box>
       </Box>
-      <RechargeDialog
-        open={rechargeDialogOpen}
-        onClose={() => setRechargeDialogOpen(false)}
-        handleRefresh={handleRefresh}
-      />
     </>
   );
 };

@@ -551,7 +551,8 @@ export const dataProvider = {
       ).notEqualTo("isDeleted", true); // exclude deleted users
 
       if (selectedUser) {
-        finalQuery.equalTo("userParentId", selectedUser.id);
+        finalQuery.containedIn("userParentId", userIds)
+        //finalQuery.equalTo("userParentId", selectedUser.id);
       }
 
       const totalRegisteredUsers = await finalQuery.count({

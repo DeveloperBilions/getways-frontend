@@ -16,9 +16,6 @@ import {
   useGetIdentity,
   useSidebarState,
 } from "react-admin";
-import PersonIcon from "@mui/icons-material/Person";
-import LocalAtmIcon from "@mui/icons-material/LocalAtm";
-import SummarizeIcon from "@mui/icons-material/Summarize";
 import AnnouncementIcon from "@mui/icons-material/Announcement";
 import ChangePassword from "./ChangePassword";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
@@ -27,6 +24,7 @@ import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
 import { useMediaQuery } from "@mui/system";
+import { useState } from "react";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -46,6 +44,8 @@ export default function MyAppBar(props) {
   const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
   const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
   const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
+
+  const [activeTab, setActiveTab] = useState("users");
 
   // Toggle sidebar state
   const toggleSidebar = () => {
@@ -133,36 +133,43 @@ export default function MyAppBar(props) {
               alignItems: "center",
               backgroundColor: "var(--primary-color)",
               "& > *": {
-                padding: "0 1em",
                 height: "3.5em",
                 display: "flex",
                 alignItems: "center",
                 cursor: "pointer",
                 fontWeight: 400,
-                "&:hover": {
-                  backgroundColor: "#333",
-                },
+                padding: "0 5px",
+                // "&:hover": {
+                //   backgroundColor: "#333",
+                // },
               },
             }}
           >
             {menuItems.map((item) => (
+              <Box >
               <Box
                 key={item.key}
-                onClick={item.onClick}
+                onClick={() => {
+                  setActiveTab(item.key);
+                  item.onClick();
+                }}
                 sx={{
                   color: "white",
                   textTransform: "none",
+                  bgcolor: activeTab === item.key ? "#292929":"none",
+                  borderRadius: activeTab === item.key ? "4px":"0px",
                   padding: "0 1em",
-                  height: "3.5em",
+                  height: "2.5rem",
                   display: "flex",
                   alignItems: "center", // Vertically center the text
-                  "&:hover": {
-                    transition: "background-color 0.3s ease", // Smooth transition
-                    borderRadius: "8px",
-                  },
+                  ":hover":{
+                    backgroundColor: "#292929",
+                    borderRadius: "4px",
+                  }
                 }}
               >
                 {item.icon} {item.label}
+              </Box>
               </Box>
             ))}
           </Box>
