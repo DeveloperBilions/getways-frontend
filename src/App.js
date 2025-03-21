@@ -42,6 +42,7 @@ import { Box, Typography, Button } from "@mui/material";
 import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 import GiftCardHistory from "./Views/Player/GiftCardHistory";
+import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -253,19 +254,27 @@ function App() {
                     </Authenticated>
                   }
                 />
-                  <Route
-                   path="/gift-card-history"
-                   element={
-                     <Authenticated>
-                       <GiftCardHistory resource="GiftCardHistory" />
-                     </Authenticated>
-                   }
-                 />
+                <Route
+                  path="/gift-card-history"
+                  element={
+                    <Authenticated>
+                      <GiftCardHistory resource="GiftCardHistory" />
+                    </Authenticated>
+                  }
+                />
                 <Route
                   path="/checkout-version2"
                   element={
                     <Authenticated>
                       <CheckoutFormV2 />
+                    </Authenticated>
+                  }
+                />
+                <Route
+                  path="/wallet-details"
+                  element={
+                    <Authenticated>
+                      <WalletDetails />
                     </Authenticated>
                   }
                 />

@@ -10,6 +10,7 @@ import {
   Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import WalletIcon from "../../Assets/icons/WalletIcon.svg";
 import MoneyReceiveWhite from "../../Assets/icons/money-recive-light.svg";
 import MoneyReceiveBlack from "../../Assets/icons/money-recive-dark.svg";
@@ -308,7 +309,6 @@ export const PlayerList = () => {
         <Paper sx={{ margin: 0, borderRadius: 0, boxShadow: "none" }}>
           {/* Make the entire header area clickable */}
           <Box
-            onClick={handleToggleDropdown}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -376,19 +376,13 @@ export const PlayerList = () => {
                 </Box>
               </Box>
             </Box>
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent double triggering from the parent onClick
-                handleToggleDropdown();
+            <Button
+              onClick={() => {
+                navigate(`/wallet-details`);
               }}
             >
-              <ExpandMoreIcon
-                sx={{
-                  transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.3s",
-                }}
-              />
-            </IconButton>
+              <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
+            </Button>
           </Box>
 
           <Collapse in={dropdownOpen}>

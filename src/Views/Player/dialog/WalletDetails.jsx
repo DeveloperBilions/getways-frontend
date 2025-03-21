@@ -4,30 +4,31 @@ import {
   Typography,
   Button,
   Divider,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  CardContent,
-  Stack,
-  IconButton,
+  // RadioGroup,
+  // FormControlLabel,
+  // Radio,
+  // CardContent,
+  // Stack,
+  // IconButton,
   TextField,
 } from "@mui/material";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
-import Docs from "../../../Assets/icons/Docs.svg";
+// import Docs from "../../../Assets/icons/Docs.svg";
 import CashAppLogo from "../../../Assets/icons/cashapp_logo.svg";
 import PayPalLogo from "../../../Assets/icons/paypal_logo.svg";
 import VenmoLogo from "../../../Assets/icons/venmo_logo.svg";
 import ZelleLogo from "../../../Assets/icons/zelle_logo.svg";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+// import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+// import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { walletService } from "../../../Provider/WalletManagement";
 import { useGetIdentity, useNotify, useRefresh } from "react-admin";
 import AddPaymentMethods from "./AddPayementMethods";
 import CashOutDialog from "./CashOutDialog";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
-import { Card } from "reactstrap";
-import MoneyReceiveWhite from "../../../Assets/icons/money-recive-light.svg";
-import WalletIconBlack from "../../../Assets/icons/WalletIcon_black.svg";
+// import { Card } from "reactstrap";
+// import MoneyReceiveWhite from "../../../Assets/icons/money-recive-light.svg";
+// import WalletIconBlack from "../../../Assets/icons/WalletIcon_black.svg";
 import TransactionRecords from "../TransactionRecords";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
@@ -36,7 +37,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const WalletDetails = () => {
   // Sample transaction data
-  const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
+  // const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState();
   const [paymentMethodId, setPaymentMethodId] = useState();
@@ -53,9 +54,9 @@ export const WalletDetails = () => {
   const [transactionData, setTransactionData] = useState([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [cashoutAmount, setCashoutAmount] = useState(50);
-  const notify = useNotify();
-  const [userName, setUserName] = useState(localStorage.getItem("username"));
-  const [redeemFees, setRedeemFees] = useState(0);
+  // const notify = useNotify();
+  // const [userName, setUserName] = useState(localStorage.getItem("username"));
+  // const [redeemFees, setRedeemFees] = useState(0);
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
   const [remark, setRemark] = useState("");
@@ -117,24 +118,24 @@ export const WalletDetails = () => {
     WalletService();
   };
 
-  const fetchPaymentMethods = async () => {
-    setLoading(true);
-    const query = new Parse.Query("PaymentMethods");
-    const paymentMethodsRecord = await query.first();
-    if (paymentMethodsRecord) {
-      setPaymentMethods((prev) => ({
-        ...prev,
-        isCashAppDisabled:
-          paymentMethodsRecord.get("isCashAppDisabled") || false,
-        isPaypalDisabled: paymentMethodsRecord.get("isPaypalDisabled") || false,
-        isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
-        isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
-        isVirtualCardIdDisabled:
-          paymentMethodsRecord.get("isVirtualCardIdDisabled") || false,
-      }));
-    }
-    setLoading(false);
-  };
+  // const fetchPaymentMethods = async () => {
+  //   setLoading(true);
+  //   const query = new Parse.Query("PaymentMethods");
+  //   const paymentMethodsRecord = await query.first();
+  //   if (paymentMethodsRecord) {
+  //     setPaymentMethods((prev) => ({
+  //       ...prev,
+  //       isCashAppDisabled:
+  //         paymentMethodsRecord.get("isCashAppDisabled") || false,
+  //       isPaypalDisabled: paymentMethodsRecord.get("isPaypalDisabled") || false,
+  //       isVenmoDisabled: paymentMethodsRecord.get("isVenmoDisabled") || false,
+  //       isZelleDisabled: paymentMethodsRecord.get("isZelleDisabled") || false,
+  //       isVirtualCardIdDisabled:
+  //         paymentMethodsRecord.get("isVirtualCardIdDisabled") || false,
+  //     }));
+  //   }
+  //   setLoading(false);
+  // };
 
   useEffect(() => {
     // fetchPaymentMethods();
@@ -218,67 +219,67 @@ export const WalletDetails = () => {
     }
   }
 
-  const handleSubmit = async () => {
-    const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
+  // const handleSubmit = async () => {
+  //   const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
 
-    if (!cashAppId && !paypalId && !venmoId && !zelleId) {
-      notify("Refund cannot be processed without a payment mode.", {
-        type: "error",
-      });
-      return;
-    }
+  //   if (!cashAppId && !paypalId && !venmoId && !zelleId) {
+  //     notify("Refund cannot be processed without a payment mode.", {
+  //       type: "error",
+  //     });
+  //     return;
+  //   }
 
-    if (!cashoutAmount) {
-      notify("Cashout amount cannot be empty. Please enter a valid amount.", {
-        type: "error",
-      });
-      return;
-    }
+  //   if (!cashoutAmount) {
+  //     notify("Cashout amount cannot be empty. Please enter a valid amount.", {
+  //       type: "error",
+  //     });
+  //     return;
+  //   }
 
-    if (cashoutAmount <= 0) {
-      notify(
-        "Cashout amount cannot be negative or 0. Please enter a valid amount.",
-        { type: "error" }
-      );
-      return;
-    }
-    if (cashoutAmount < 15) {
-      notify("Cashout request should not be less than $15.", { type: "error" });
-      return;
-    }
-    const rawData = {
-      redeemServiceFee: redeemFees,
-      transactionAmount: cashoutAmount,
-      remark,
-      type: "redeem",
-      walletId: wallet?.objectId,
-      username: userName,
-      id: userId,
-      isCashOut: true,
-      paymentMode: paymentMethod,
-      paymentMethodType: paymentMethod,
-    };
-    console.log(rawData, "rowData");
+  //   if (cashoutAmount <= 0) {
+  //     notify(
+  //       "Cashout amount cannot be negative or 0. Please enter a valid amount.",
+  //       { type: "error" }
+  //     );
+  //     return;
+  //   }
+  //   if (cashoutAmount < 15) {
+  //     notify("Cashout request should not be less than $15.", { type: "error" });
+  //     return;
+  //   }
+  //   const rawData = {
+  //     redeemServiceFee: redeemFees,
+  //     transactionAmount: cashoutAmount,
+  //     remark,
+  //     type: "redeem",
+  //     walletId: wallet?.objectId,
+  //     username: userName,
+  //     id: userId,
+  //     isCashOut: true,
+  //     paymentMode: paymentMethod,
+  //     paymentMethodType: paymentMethod,
+  //   };
+  //   console.log(rawData, "rowData");
 
-    setLoading(true);
+  //   setLoading(true);
 
-    try {
-      const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
-      if (response?.status === "error") {
-        notify(response?.message);
-      } else {
-        notify("Cashout request submitted successfully.", { type: "success" });
-        setCashoutAmount(50);
-        setRemark("");
-        handleRefresh();
-        fetchTransactions();
-      }
-    } catch (error) {
-      console.error("Error Redeem Record details:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     const response = await Parse.Cloud.run("playerRedeemRedords", rawData);
+  //     if (response?.status === "error") {
+  //       notify(response?.message);
+  //     } else {
+  //       notify("Cashout request submitted successfully.", { type: "success" });
+  //       setCashoutAmount(50);
+  //       setRemark("");
+  //       handleRefresh();
+  //       fetchTransactions();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error Redeem Record details:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   function convertTransactions(transactions) {
     const formattedData = {};
@@ -352,49 +353,71 @@ export const WalletDetails = () => {
     return Object.values(formattedData);
   }
 
-  const handlePaymentMethodChange = (event) => {
-    setPaymentMethod(event.target.value);
-    switch (event.target.value) {
-      case "cashapp":
-        setPaymentMethodId(wallet?.cashAppId);
-        setPaymentMethodLogo(CashAppLogo);
-        break;
-      case "paypal":
-        setPaymentMethodId(wallet?.paypalId);
-        setPaymentMethodLogo(PayPalLogo);
-        break;
-      case "venmo":
-        setPaymentMethodId(wallet?.venmoId);
-        setPaymentMethodLogo(VenmoLogo);
-        break;
-      case "zelle":
-        setPaymentMethodId(wallet?.zelleId);
-        setPaymentMethodLogo(ZelleLogo);
-        break;
-      default:
-        setPaymentMethodId(null);
-        setPaymentMethodLogo(null);
-    }
-  };
+  // const handlePaymentMethodChange = (event) => {
+  //   setPaymentMethod(event.target.value);
+  //   switch (event.target.value) {
+  //     case "cashapp":
+  //       setPaymentMethodId(wallet?.cashAppId);
+  //       setPaymentMethodLogo(CashAppLogo);
+  //       break;
+  //     case "paypal":
+  //       setPaymentMethodId(wallet?.paypalId);
+  //       setPaymentMethodLogo(PayPalLogo);
+  //       break;
+  //     case "venmo":
+  //       setPaymentMethodId(wallet?.venmoId);
+  //       setPaymentMethodLogo(VenmoLogo);
+  //       break;
+  //     case "zelle":
+  //       setPaymentMethodId(wallet?.zelleId);
+  //       setPaymentMethodLogo(ZelleLogo);
+  //       break;
+  //     default:
+  //       setPaymentMethodId(null);
+  //       setPaymentMethodLogo(null);
+  //   }
+  // };
 
-  const toggleEmailDropdown = () => {
-    setEmailDropdownOpen(!emailDropdownOpen);
-  };
+  // const toggleEmailDropdown = () => {
+  //   setEmailDropdownOpen(!emailDropdownOpen);
+  // };
 
-  const handlePaymentMethodBgColor = (method) => {
-    if (method === "paypal") {
-      return "#CFE6F2";
-    } else if (method === "venmo") {
-      return "#CCE8FF";
-    } else if (method === "zelle") {
-      return "#E3D2F9";
-    } else {
-      return "transparent";
-    }
-  };
+  // const handlePaymentMethodBgColor = (method) => {
+  //   if (method === "paypal") {
+  //     return "#CFE6F2";
+  //   } else if (method === "venmo") {
+  //     return "#CCE8FF";
+  //   } else if (method === "zelle") {
+  //     return "#E3D2F9";
+  //   } else {
+  //     return "transparent";
+  //   }
+  // };
 
   return (
     <React.Fragment>
+       <div
+              style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<ArrowBackIcon />} // Add Back Arrow Icon
+                onClick={() => navigate(-1)} // Navigate back to the previous page
+                sx={{
+                  textTransform: "none",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  color: "#1976D2", // Blue color for text
+                  borderColor: "#1976D2", // Blue border
+                  "&:hover": {
+                    backgroundColor: "#E3F2FD", // Light blue hover effect
+                    borderColor: "#1976D2", // Keep border consistent
+                  },
+                }}
+              >
+                Back
+              </Button>
+            </div>
       <Box sx={{ padding: 0, bgcolor: "#F7FDF8" }}>
         {/* Header */}
         <Box sx={{ padding: "16px 20px" }}>
@@ -500,7 +523,7 @@ export const WalletDetails = () => {
             </Box>
 
             <Box sx={{ display: "flex", gap: 2 }}>
-              <IconButton
+              {/* <IconButton
                 onClick={() =>
                   setIsTransactionNoteVisible(!isTransactionNoteVisible)
                 }
@@ -511,7 +534,7 @@ export const WalletDetails = () => {
                   alt="Docs Icon"
                   style={{ width: "24px", height: "24px" }}
                 />
-              </IconButton>
+              </IconButton> */}
               <Button
                 sx={{
                   bgcolor: "#F8FBFF",
@@ -522,15 +545,17 @@ export const WalletDetails = () => {
                   fontWeight: 700,
                   height: "40px",
                 }}
-                onClick={handleSubmit}
-                disabled={identity?.isBlackListed || !isPaymentMethodVisible}
+                onClick={() => {
+                  setcashOutDialogOpen(true);
+                }}
+                disabled={identity?.isBlackListed || isPaymentMethodVisible}
               >
                 CASHOUT
               </Button>
             </Box>
           </Box>
           <Divider />
-          <Box
+          {/* <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
@@ -586,10 +611,10 @@ export const WalletDetails = () => {
             ) : (
               <KeyboardArrowDownIcon sx={{ fontSize: 16, color: "black" }} />
             )}
-          </Box>
+          </Box> */}
 
           {/* Payment method dropdown content */}
-          {emailDropdownOpen && (
+          {/* {emailDropdownOpen && (
             <Box sx={{ mt: 1, mb: 2, pl: 2 }}>
               <Typography sx={{ fontSize: "14px", color: "#666", mb: 1 }}>
                 Change/Add/Edit payment method
@@ -788,7 +813,7 @@ export const WalletDetails = () => {
                 ADD/EDIT PAYMENT METHOD
               </Button>
             </Box>
-          )}
+          )} */}
         </Box>
         <TransactionRecords
           totalTransactions={totalTransactions}
