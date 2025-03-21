@@ -12,11 +12,10 @@ import AppBar from "@mui/material/AppBar";
 import {
   RefreshButton,
   UserMenu,
-  Logout,
   useGetIdentity,
   useSidebarState,
+  useLogout,
 } from "react-admin";
-import AnnouncementIcon from "@mui/icons-material/Announcement";
 import ChangePassword from "./ChangePassword";
 import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
 import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
@@ -28,6 +27,7 @@ import { useState } from "react";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
+  const logout = useLogout();
   const [openModal, setOpenModal] = React.useState(false);
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
@@ -146,30 +146,30 @@ export default function MyAppBar(props) {
             }}
           >
             {menuItems.map((item) => (
-              <Box >
-              <Box
-                key={item.key}
-                onClick={() => {
-                  setActiveTab(item.key);
-                  item.onClick();
-                }}
-                sx={{
-                  color: "white",
-                  textTransform: "none",
-                  bgcolor: activeTab === item.key ? "#292929":"none",
-                  borderRadius: activeTab === item.key ? "4px":"0px",
-                  padding: "0 1em",
-                  height: "2.5rem",
-                  display: "flex",
-                  alignItems: "center", // Vertically center the text
-                  ":hover":{
-                    backgroundColor: "#292929",
-                    borderRadius: "4px",
-                  }
-                }}
-              >
-                {item.icon} {item.label}
-              </Box>
+              <Box>
+                <Box
+                  key={item.key}
+                  onClick={() => {
+                    setActiveTab(item.key);
+                    item.onClick();
+                  }}
+                  sx={{
+                    color: "white",
+                    textTransform: "none",
+                    bgcolor: activeTab === item.key ? "#292929" : "none",
+                    borderRadius: activeTab === item.key ? "4px" : "0px",
+                    padding: "0 1em",
+                    height: "2.5rem",
+                    display: "flex",
+                    alignItems: "center", // Vertically center the text
+                    ":hover": {
+                      backgroundColor: "#292929",
+                      borderRadius: "4px",
+                    },
+                  }}
+                >
+                  {item.icon} {item.label}
+                </Box>
               </Box>
             ))}
           </Box>
@@ -185,17 +185,16 @@ export default function MyAppBar(props) {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-          {(role === "Agent") &&
-            identity?.balance !== undefined && (
-              <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                <span
-                  style={{ fontWeight: 600, color: "var(--secondery-color)" }}
-                >
-                  Balance: {identity.balance}
-                </span>
-              </Box>
-            )}
+          {role === "Agent" && identity?.balance !== undefined && (
+            <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+              <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+              <span
+                style={{ fontWeight: 600, color: "var(--secondery-color)" }}
+              >
+                Balance: {identity.balance}
+              </span>
+            </Box>
+          )}
           {role !== "Player" && !isMobile && (
             <Box sx={{ ml: 1, minWidth: 0 }}>
               <Typography
@@ -241,7 +240,7 @@ export default function MyAppBar(props) {
                 onClick={handleOpenModal}
                 style={{ color: "#0000008a" }}
               >
-                <LockOutlinedIcon sx={{ marginRight: 1 }} /> Change Password
+                Change Password
               </MenuItem>
             )}
             {(role === "Agent" || role === "Master-Agent") && (
@@ -249,8 +248,7 @@ export default function MyAppBar(props) {
                 onClick={handleOpenRechargeLimit}
                 style={{ color: "#0000008a" }}
               >
-                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Recharge
-                Limit
+                Recharge Limit
               </MenuItem>
             )}
             {role === "Super-User" && (
@@ -258,8 +256,7 @@ export default function MyAppBar(props) {
                 onClick={() => setDisableDialogOpen(true)}
                 style={{ color: "#0000008a" }}
               >
-                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Payment
-                Methods
+                Payment Methods
               </MenuItem>
             )}
             {role === "Super-User" && (
@@ -269,8 +266,7 @@ export default function MyAppBar(props) {
                 }}
                 style={{ color: "#0000008a" }}
               >
-                <AccountBalanceWalletIcon sx={{ marginRight: 1 }} /> Transaction
-                Export
+                Transaction Export
               </MenuItem>
             )}
             {role === "Super-User" && (
@@ -278,7 +274,7 @@ export default function MyAppBar(props) {
                 onClick={() => setOpenEmergencyModal(true)}
                 style={{ color: "#0000008a" }}
               >
-                <AnnouncementIcon sx={{ marginRight: 1 }} /> Emergency Message
+                Emergency Message
               </MenuItem>
             )}
             {identity?.redeemServiceEnabled && role === "Master-Agent" && (
@@ -286,16 +282,18 @@ export default function MyAppBar(props) {
                 onClick={() => setOpenRedeemService(true)}
                 style={{ color: "#0000008a" }}
               >
-                <MonetizationOnIcon sx={{ marginRight: 1 }} /> Agent Redeem Fees
+                Agent Redeem Fees
               </MenuItem>
             )}
             <MenuItem
               onClick={() => setOpenHelpVideo(true)}
               style={{ color: "#0000008a" }}
             >
-              <HelpOutlineIcon sx={{ marginRight: 1 }} /> Help Videos
+              Help Videos
             </MenuItem>
-            <Logout style={{ color: "#0000008a" }} />
+            <MenuItem onClick={() => logout()} style={{ color: "#0000008a" }}>
+              Logout
+            </MenuItem>{" "}
           </UserMenu>
           {isMobile && role !== "Player" && (
             <IconButton
