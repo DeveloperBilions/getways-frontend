@@ -10,6 +10,7 @@ import {
   Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import WalletIcon from "../../Assets/icons/WalletIcon.svg";
 import MoneyReceiveWhite from "../../Assets/icons/money-recive-light.svg";
 import MoneyReceiveBlack from "../../Assets/icons/money-recive-dark.svg";
@@ -23,7 +24,7 @@ import { Loader } from "../Loader";
 import { useNavigate } from "react-router-dom";
 import Recharge from "./Recharge";
 import Redeem from "./Redeem";
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
+import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 
 export const PlayerList = () => {
   const { isMobile } = useDeviceType();
@@ -66,46 +67,51 @@ export const PlayerList = () => {
   return (
     <Box>
       <Box sx={{ width: "100%", padding: 0, margin: 0 }}>
-      <Box sx={{ width: "100%", padding: 0, margin: 0, display: "flex",
-    justifyContent: "flex-end" }}>
-
-      <Box
-  onClick={handleToggleDropdown}
-  sx={{
-    display: "flex",
-    justifyContent: "flex-end",
-    width: "fit-content", 
-  }}
->
-  <Button
-    variant="contained"
-    startIcon={<CardGiftcardIcon />}
-    sx={{
-      mt: 2,
-      fontSize: "13px",
-      textTransform: "capitalize",
-      background: "linear-gradient(135deg, #6D5BBA, #8D58BF)",
-      boxShadow: "0 4px 14px rgba(109, 91, 186, 0.4)",
-      transition: "all 0.3s ease",
-      '&:hover': {
-        background: "linear-gradient(135deg, #8D58BF, #A26DD4)",
-        boxShadow: "0 6px 20px rgba(109, 91, 186, 0.5)",
-      },
-    }}
-    onClick={() => {
-      navigate("/gift-card-history");
-    }}
-  >
-    Gift Card History
-  </Button>
-</Box>
-</Box>
+        <Box
+          sx={{
+            width: "100%",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Box
+            onClick={handleToggleDropdown}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              width: "fit-content",
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<CardGiftcardIcon />}
+              sx={{
+                mt: 2,
+                fontSize: "13px",
+                textTransform: "capitalize",
+                background: "linear-gradient(135deg, #6D5BBA, #8D58BF)",
+                boxShadow: "0 4px 14px rgba(109, 91, 186, 0.4)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #8D58BF, #A26DD4)",
+                  boxShadow: "0 6px 20px rgba(109, 91, 186, 0.5)",
+                },
+              }}
+              onClick={() => {
+                navigate("/gift-card-history");
+              }}
+            >
+              Gift Card History
+            </Button>
+          </Box>
+        </Box>
 
         {/* Wallet Balance */}
         <Paper sx={{ margin: 0, borderRadius: 0, boxShadow: "none" }}>
           {/* Make the entire header area clickable */}
           <Box
-            onClick={handleToggleDropdown}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -173,19 +179,13 @@ export const PlayerList = () => {
                 </Box>
               </Box>
             </Box>
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent double triggering from the parent onClick
-                handleToggleDropdown();
+            <Button
+              onClick={() => {
+                navigate(`/wallet-details`);
               }}
             >
-              <ExpandMoreIcon
-                sx={{
-                  transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.3s",
-                }}
-              />
-            </IconButton>
+              <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
+            </Button>
           </Box>
 
           <Collapse in={dropdownOpen}>
