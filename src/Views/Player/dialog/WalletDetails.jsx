@@ -577,7 +577,7 @@ export const WalletDetails = () => {
             ) : (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography sx={{ fontSize: "14px", color: "red" }}>
-                  This payment mode is currently not available
+                  Payment mode is currently not available
                 </Typography>
               </Box>
             )}
