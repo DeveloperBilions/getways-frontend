@@ -422,117 +422,125 @@ const Recharge = () => {
               </Button>
             ))}
           </Box>
+          <Box sx={{ width: "100%", paddingTop: "8px" }}>
+            {/* First horizontal line */}
+            <Box
+              sx={{ borderBottom: "1px solid #e0e0e0", my: 1, padding: "4px" }}
+            />
 
-          {isTransactionNoteVisible && (
-            <>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-              <Box sx={{ mt: 1, mb: 1 }}>
-                <TextField
-                  fullWidth
-                  label="Add Transaction Note"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  variant="outlined"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        border: "none",
+            {isTransactionNoteVisible && (
+              <>
+                <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+                <Box sx={{ mt: 1, mb: 1 }}>
+                  <TextField
+                    fullWidth
+                    label="Add Transaction Note"
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    variant="outlined"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          border: "none",
+                        },
+                        "&:hover fieldset": {
+                          border: "none",
+                        },
                       },
-                      "&:hover fieldset": {
-                        border: "none",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-            </>
-          )}
-        </Box>
+                    }}
+                  />
+                </Box>
+                <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
+              </>
+            )}
+            {/* </Box>
 
-        <Box sx={{ height: "52px", gap: "8px", padding: "8px 0" }}>
-          <Box
-            sx={{
-              height: "36px",
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "8px 0",
-            }}
-          >
+        <Box sx={{ height: "52px", gap: "8px", padding: "8px 0" }}> */}
             <Box
               sx={{
-                height: "40px",
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent: "center",
                 alignItems: "center",
-                paddingTop: "8px",
-                paddingRight: "24px",
-                paddingBottom: "8px",
+                minHeight: "52px",
+                gap: "8px",
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <img
-                  src={AOG_Symbol}
-                  alt="AOG Symbol"
-                  style={{ width: "16px", height: "16px" }}
-                />
-                <Typography
-                  sx={{
-                    fontFamily: "Inter, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "18px",
-                    lineHeight: "100%",
-                    letterSpacing: "0px",
-                    color: "#000000",
-                  }}
-                >
-                  {rechargeAmount}
-                </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  paddingTop: "8px",
+                  paddingRight: "24px",
+                  paddingBottom: "8px",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <img
+                    src={AOG_Symbol}
+                    alt="AOG Symbol"
+                    style={{ width: "16px", height: "16px" }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 600,
+                      fontSize: "18px",
+                      lineHeight: "100%",
+                      letterSpacing: "0px",
+                      color: "#000000",
+                    }}
+                  >
+                    {rechargeAmount}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <IconButton
+                    onClick={() =>
+                      setIsTransactionNoteVisible(!isTransactionNoteVisible)
+                    }
+                    sx={{ mr: 1 }}
+                  >
+                    <img
+                      src={Docs}
+                      alt="Docs Icon"
+                      style={{ width: "24px", height: "24px" }}
+                    />
+                  </IconButton>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      width: "118px",
+                      height: "40px",
+                      gap: "24px",
+                      paddingTop: "8px",
+                      paddingRight: "20px",
+                      paddingBottom: "8px",
+                      paddingLeft: "20px",
+                      borderRadius: "4px",
+                      backgroundColor: "#28A745",
+                      color: "#FFFFFF",
+                      "&:disabled": {
+                        backgroundColor: "#A5D6A7", // Optional: Lighter green for disabled state
+                      },
+                    }}
+                    disabled={identity?.isBlackListed || loading}
+                    onClick={(event) => {
+                      if (!identity?.isBlackListed) {
+                        handleSubmit(event);
+                      }
+                    }}
+                  >
+                    RECHARGE
+                  </Button>
+                </Box>
               </Box>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <IconButton
-                onClick={() =>
-                  setIsTransactionNoteVisible(!isTransactionNoteVisible)
-                }
-                sx={{ mr: 1 }}
-              >
-                <img
-                  src={Docs}
-                  alt="Docs Icon"
-                  style={{ width: "24px", height: "24px" }}
-                />
-              </IconButton>
-              <Button
-                variant="contained"
-                sx={{
-                  width: "118px",
-                  height: "40px",
-                  gap: "24px",
-                  paddingTop: "8px",
-                  paddingRight: "20px",
-                  paddingBottom: "8px",
-                  paddingLeft: "20px",
-                  borderRadius: "4px",
-                  backgroundColor: "#28A745",
-                  color: "#FFFFFF",
-                  "&:disabled": {
-                    backgroundColor: "#A5D6A7", // Optional: Lighter green for disabled state
-                  },
-                }}
-                disabled={identity?.isBlackListed || loading}
-                onClick={(event) => {
-                  if (!identity?.isBlackListed) {
-                    handleSubmit(event);
-                  }
-                }}
-              >
-                RECHARGE
-              </Button>
-            </Box>
+            <Box sx={{ borderBottom: "1px solid #e0e0e0", padding: "4px" }} />
           </Box>
-
           {/* Wallet Selection Header */}
           <Box
             sx={{

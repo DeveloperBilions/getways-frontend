@@ -297,6 +297,7 @@ const Redeem = () => {
             bgcolor: " #EDF7FF",
             borderRadius: "4px",
             paddingLeft: "8px",
+            marginBottom:"16px"
           }}
         >
           {/* Icon */}
@@ -398,7 +399,7 @@ const Redeem = () => {
               <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
             </>
           )}
-
+          <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1, mb: 1 }} />
           <Box
             sx={{
               height: "48px",
@@ -406,6 +407,7 @@ const Redeem = () => {
               justifyContent: "space-between",
               alignItems: "center", // Align items vertically
               paddingTop: "8px",
+              paddingBottom: "4px",
             }}
           >
             {/* Redeem Action */}
@@ -451,7 +453,6 @@ const Redeem = () => {
           </Box>
           <Box
             sx={{
-              height: "17px", // Adjust top margin for proper spacing
               paddingLeft: "2px", // Small left padding for alignment
             }}
           >
@@ -464,6 +465,7 @@ const Redeem = () => {
               }}
             >
               Redeem Service Fee @ {redeemFees}%
+              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1, mb: 1 }} />
             </Typography>
             <TransactionRecords
               totalTransactions={totalTransactions}
