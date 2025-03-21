@@ -285,7 +285,7 @@ export const PlayerList = () => {
           >
             <Button
               variant="contained"
-              startIcon={<CardGiftcardIcon />}
+              startIcon={<CardGiftcardIcon  style={{fontSize:"15px"}}/>}
               sx={{
                 mt: 2,
                 fontSize: "13px",
