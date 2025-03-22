@@ -138,10 +138,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
       setLoading(true);
       try {
         const response = await dataProvider.userTransaction(rawData);
+        window.open(`https://nowpayments.io/payment/?iid=${response?.apiResponse?.id}`, "_blank");
+
         if (response?.success) {
           const paymentUrl = response?.apiResponse?.url;
           if (paymentUrl) {
-            window.open(paymentUrl, "_blank");
           } else {
             setErrorMessage("Payment URL is missing. Please try again.");
           }

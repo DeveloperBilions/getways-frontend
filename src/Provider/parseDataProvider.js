@@ -3,6 +3,7 @@ import { calculateDataSummaries ,calculateDataSummariesForExport,calculateDataSu
 import Stripe from "stripe";
 import { sendMoneyToPayPal } from "../Utils/sendMoney";
 import { getParentUserId, updatePotBalance } from "../Utils/utils";
+import axios from "axios";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1871,10 +1872,10 @@ export const dataProvider = {
         await wallet.save(null);
       } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
-        finalAmount += parseFloat(transactionAmount);
+        //finalAmount += parseFloat(transactionAmount);
 
         // Take the floor value of finalAmount with two decimal precision
-        finalAmount = Math.floor(finalAmount * 100) / 100;
+       // finalAmount = Math.floor(finalAmount * 100) / 100;
       }
 
       // Create a new transaction record
@@ -1898,33 +1899,31 @@ export const dataProvider = {
 
       if (!useWallet) {
         // Process Stripe transaction
-        session = await stripe.checkout.sessions.create({
-         // payment_method_types: ["card", "cashapp"], // Accept card payments
-          mode: "payment", // One-time payment
-          success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-          cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-          expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: "One-time Payment", // Placeholder for product
-                },
-                unit_amount: Math.floor(parseFloat(transactionAmount)), // Store unit amount as integer cents
-              },
-              quantity: 1,
-            },
-          ],
-          metadata: {
-            userId: id,
-            username: username,
+        session = await axios.post(
+          "https://api.nowpayments.io/v1/invoice",
+          {
+            price_amount: parseFloat(transactionAmount) / 100,
+            price_currency: "usd", // Change if required
+            pay_currency: "eth",   // You can change this to any crypto they support
+            ipn_callback_url: `${process.env.REACT_APP_REDIRECT_URL}`, // callback if needed
+            order_id: `ORDER-${id}-${Date.now()}`, // dynamic order ID
+            order_description: `Payment by ${username}`,
+            success_url: process.env.REACT_APP_REDIRECT_URL,
+            cancel_url: process.env.REACT_APP_REDIRECT_URL_CANCEL
           },
-        });
-
-        transactionDetails.set("status", 1); // Pending status
-        transactionDetails.set("referralLink", session.url);
-        transactionDetails.set("transactionIdFromStripe", session.id);
+          {
+            headers: {
+              "x-api-key": process.env.REACT_APP_NOWPAYMENTS_API_KEY, // Store API key in env
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const { invoice_url } = session.data;
+    
+        transactionDetails.set("status", 1); // Pending
+        transactionDetails.set("referralLink", invoice_url); // Payment link from NOWPayments
+        transactionDetails.set("transactionIdFromStripe",session.data.id);
+        session = session?.data
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
         const parentUserId = await getParentUserId(id);

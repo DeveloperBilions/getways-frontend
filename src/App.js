@@ -42,6 +42,7 @@ import { Box, Typography, Button } from "@mui/material";
 import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 import GiftCardHistory from "./Views/Player/GiftCardHistory";
+import { Cancel } from "./Views/Stripe/Cancel";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -196,9 +197,10 @@ function App() {
                     </Authenticated>
                   }
                 />
-              </CustomRoutes>
-              <Route path="/success" element={<Success />} />
+                  <Route path="/success" element={<Success />} />
+              <Route path="/cancel" element={<Cancel />} />
               <Route path="/maintenance" element={<Maintenance />} />
+              </CustomRoutes>
             </>
           );
         } else if (permissions && permissions === "Player") {
@@ -269,6 +271,9 @@ function App() {
                     </Authenticated>
                   }
                 />
+                 <Route path="/success" element={<Success />} />
+              <Route path="/cancel" element={<Cancel />} />
+              <Route path="/maintenance" element={<Maintenance />} />
               </CustomRoutes>
             </>
           );
