@@ -120,3 +120,55 @@
   font-size: 16px !important;
   color: #2c3e50;
 }
+
+.cancel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #ffecec, #ffffff);
+}
+
+.cancel-card {
+  background: white;
+  border: 2px solid #ff4d4f;
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(255, 77, 79, 0.2);
+  transition: transform 0.3s;
+}
+
+.cancel-card:hover {
+  transform: scale(1.03);
+}
+
+.cancel-icon {
+  margin-bottom: 20px;
+}
+
+.cancel-card h2 {
+  color: #ff4d4f;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.cancel-card p {
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 1rem;
+}
+
+.cancel-btn {
+  display: inline-block;
+  padding: 10px 25px;
+  background-color: #ff4d4f;
+  color: white;
+  border-radius: 30px;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.cancel-btn:hover {
+  background-color: #e84343;
+}

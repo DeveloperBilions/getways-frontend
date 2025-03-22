@@ -46,6 +46,7 @@ import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
 import { Box, Typography, Button } from "@mui/material";
+import { Cancel } from "./Views/Stripe/Cancel";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -205,8 +206,11 @@ function App() {
                     />
                   </CustomRoutes>
               </>}
-              <Route path="/success" element={<Success />} />
+              <CustomRoutes>
+                  <Route path="/success" element={<Success />} />
+              <Route path="/cancel" element={<Cancel />} />
               <Route path="/maintenance" element={<Maintenance />} />
+              </CustomRoutes>
             </>
           );
         } else if (permissions && permissions === "Player") {
@@ -249,6 +253,11 @@ function App() {
                     </Authenticated>
                   }
                 />
+              </CustomRoutes>
+              <CustomRoutes>
+                  <Route path="/success" element={<Success />} />
+              <Route path="/cancel" element={<Cancel />} />
+              <Route path="/maintenance" element={<Maintenance />} />
               </CustomRoutes>
             </>
           );
