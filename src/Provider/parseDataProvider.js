@@ -1921,7 +1921,7 @@ export const dataProvider = {
         const { invoice_url } = session.data;
     
         transactionDetails.set("status", 1); // Pending
-        transactionDetails.set("referralLink", invoice_url); // Payment link from NOWPayments
+        transactionDetails.set("referralLink", `https://nowpayments.io/payment/?iid=${session?.data?.id}`); // Payment link from NOWPayments
         transactionDetails.set("transactionIdFromStripe",session.data.id);
         session = session?.data
       } else {
