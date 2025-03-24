@@ -35,6 +35,8 @@ import TransactionRecords from "../TransactionRecords";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import CashOutModal from "./CashOutDialogCopy";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -356,6 +358,47 @@ export const WalletDetails = () => {
     return Object.values(formattedData);
   }
 
+  // const handlePaymentMethodChange = (event) => {
+  //   setPaymentMethod(event.target.value);
+  //   switch (event.target.value) {
+  //     case "cashapp":
+  //       setPaymentMethodId(wallet?.cashAppId);
+  //       setPaymentMethodLogo(CashAppLogo);
+  //       break;
+  //     case "paypal":
+  //       setPaymentMethodId(wallet?.paypalId);
+  //       setPaymentMethodLogo(PayPalLogo);
+  //       break;
+  //     case "venmo":
+  //       setPaymentMethodId(wallet?.venmoId);
+  //       setPaymentMethodLogo(VenmoLogo);
+  //       break;
+  //     case "zelle":
+  //       setPaymentMethodId(wallet?.zelleId);
+  //       setPaymentMethodLogo(ZelleLogo);
+  //       break;
+  //     default:
+  //       setPaymentMethodId(null);
+  //       setPaymentMethodLogo(null);
+  //   }
+  // };
+
+  // const toggleEmailDropdown = () => {
+  //   setEmailDropdownOpen(!emailDropdownOpen);
+  // };
+
+  // const handlePaymentMethodBgColor = (method) => {
+  //   if (method === "paypal") {
+  //     return "#CFE6F2";
+  //   } else if (method === "venmo") {
+  //     return "#CCE8FF";
+  //   } else if (method === "zelle") {
+  //     return "#E3D2F9";
+  //   } else {
+  //     return "transparent";
+  //   }
+  // };
+
   return (
     <React.Fragment>
       <Paper
@@ -459,7 +502,9 @@ export const WalletDetails = () => {
             }}
             disabled={identity?.isBlackListed || isPaymentMethodVisible}
           >
-            Cashout <span style={{ marginLeft: "8px" }}>→</span>
+            Cashout  <ArrowForwardIcon
+              style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+            />
           </Button>
         </Box>
         <Box
@@ -490,6 +535,7 @@ export const WalletDetails = () => {
         />
       </Box>
       <CashOutModal
+        setOpen={() => setIsOpen(true)}
         open={isOpen}
         onClose={() => setIsOpen(false)}
         balance={balance}

@@ -1,28 +1,32 @@
 import React, { useState } from "react";
-import { Modal, ModalHeader, ModalBody, Button, ModalFooter, Col } from "reactstrap";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Button,
+  ModalFooter,
+  Col,
+} from "reactstrap";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import { Box, Typography } from "@mui/material";
 import SelectGiftCardDialog from "./SelectGiftCardDialog";
+import { set } from "react-hook-form";
 
-const CashOutModal = ({ open, onClose, balance }) => {
+const CashOutModal = ({ setOpen, open, onClose, balance }) => {
   const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
   console.log(isGiftCardOpen);
   const handalOpenGiftCard = () => {
     setIsGiftCardOpen(true);
     onClose();
-  }
-    const handleGiftCardSuccess = (data) => {
-      setIsGiftCardOpen(false);
-      onClose();
-    };
+  };
+  const handleGiftCardSuccess = (data) => {
+    setIsGiftCardOpen(false);
+    onClose();
+  };
 
   return (
     <>
-      <Modal
-        isOpen={open && !isGiftCardOpen}
-        toggle={onClose}
-        centered
-      >
+      <Modal isOpen={open && !isGiftCardOpen} toggle={onClose} centered>
         <Box
           sx={{
             borderRadius: "8px",
@@ -122,11 +126,16 @@ const CashOutModal = ({ open, onClose, balance }) => {
       </Modal>
       <SelectGiftCardDialog
         open={isGiftCardOpen}
-        onClose={() => setIsGiftCardOpen(false)}
+        onClose={() => {
+          setIsGiftCardOpen(false);
+        }}
+        onBack={() => {
+          setIsGiftCardOpen(false);
+          setOpen();
+        }}
         balance={balance}
         onSuccess={handleGiftCardSuccess}
       />
-      
     </>
   );
 };

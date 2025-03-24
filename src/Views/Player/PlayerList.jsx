@@ -1,50 +1,43 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Paper,
-  IconButton,
-  Collapse,
-  Stack,
-  Button,
-  Divider,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import WalletIcon from "../../Assets/icons/WalletIcon.svg";
-import MoneyReceiveWhite from "../../Assets/icons/money-recive-light.svg";
-import MoneyReceiveBlack from "../../Assets/icons/money-recive-dark.svg";
-import MoneySendWhite from "../../Assets/icons/money-send-light.svg";
-import MoneySendBlack from "../../Assets/icons/money-send-dark.svg";
-import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
-import { WalletDetails } from "./dialog/WalletDetails";
+import { Box, Stack, Button } from "@mui/material";
 import { walletService } from "../../Provider/WalletManagement";
-import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import { Loader } from "../Loader";
 import { useNavigate } from "react-router-dom";
 import Recharge from "./Recharge";
 import Redeem from "./Redeem";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import RechargeDark from "../../Assets/icons/recharge-dark.svg";
+import RechargeLight from "../../Assets/icons/recharge-light.svg";
+import RedeemDark from "../../Assets/icons/redeem-dark.svg";
+import RedeemLight from "../../Assets/icons/redeem-light.svg";
+import WalletDark from "../../Assets/icons/wallet-dark.svg";
+import WalletLight from "../../Assets/icons/wallet-light.svg";
+import GiftCardDark from "../../Assets/icons/gift-card-dark.svg";
+import GiftCardLight from "../../Assets/icons/gift-card-light.svg";
+import { WalletDetails } from "./dialog/WalletDetails";
 
 export const PlayerList = () => {
-  const { isMobile } = useDeviceType();
   const [balance, setBalance] = useState();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("recharge");
   const role = localStorage.getItem("role");
+  const userId = localStorage.getItem("id");
   const navigate = useNavigate();
   const [rechargeTransactionData, setRechargeTransactionData] = useState([]);
   const [totalRechargeData, setTotalRechargeData] = useState(0);
   const [redeemTransactionData, setRedeemTransactionData] = useState([]);
   const [totalRedeemData, setTotalRedeemData] = useState(0);
-  const [ walletData, setWalletData ] = useState([]);
+  const [cashoutTransactionData, setCashoutTransactionData] = useState([]);
+  const [totalCashoutData, setTotalCashoutData] = useState(0);
+  const [walletData, setWalletData] = useState([]);
 
   useEffect(() => {
     WalletService();
     rechargeData();
     redeemData();
+    cashoutData();
   }, []);
 
   if (!role) {
@@ -70,10 +63,9 @@ export const PlayerList = () => {
   };
 
   const rechargeConvertTransactions = (transactions) => {
-    const formattedData = {};
-
-    transactions.forEach((txn) => {
+    return transactions.map((txn) => {
       const dateObj = new Date(txn.transactionDate);
+
       const formattedDate = dateObj.toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "long",
@@ -86,25 +78,6 @@ export const PlayerList = () => {
         second: "2-digit",
         hour12: true,
       });
-
-      const getColor = (status) => {
-        switch (status) {
-          case 3:
-            return "#22C55E";
-          case 2:
-            return "#22C55E";
-          case 1:
-            return "#F59E0B";
-          case 0:
-            return "#F59E0B";
-          case 9:
-            return "Red";
-          case 10:
-            return "Red";
-          default:
-            return "default";
-        }
-      };
 
       const statusMessage = {
         0: "Pending Referral Link",
@@ -115,32 +88,19 @@ export const PlayerList = () => {
         10: "Failed Transaction",
       };
 
-      const transactionItem = {
-        type: statusMessage[txn.status] || "Unknown Status",
+      return {
+        status: statusMessage[txn.status] || "Unknown Status",
+        date: formattedDate,
         time: formattedTime,
-        // tag: "D",
         amount: txn.transactionAmount,
-        color: getColor(txn.status),
       };
-
-      if (!formattedData[formattedDate]) {
-        formattedData[formattedDate] = {
-          date: formattedDate,
-          items: [],
-        };
-      }
-
-      formattedData[formattedDate].items.push(transactionItem);
     });
-
-    return Object.values(formattedData);
   };
 
   const redeemConvertTransactions = (transactions) => {
-    const formattedData = {};
-
-    transactions.forEach((txn) => {
+    return transactions.map((txn) => {
       const dateObj = new Date(txn.transactionDate);
+
       const formattedDate = dateObj.toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "long",
@@ -153,27 +113,6 @@ export const PlayerList = () => {
         second: "2-digit",
         hour12: true,
       });
-
-      const getColor = (status) => {
-        switch (status) {
-          case 4:
-          case 8:
-          case 2:
-            return "green";
-          case 5:
-          case 7:
-          case 9:
-          case 13:
-            return "red";
-          case 6:
-          case 11:
-            return "#F59E0B";
-          case 12:
-            return "green";
-          default:
-            return "black";
-        }
-      };
 
       const statusMessage = {
         2: "Recharge Successful",
@@ -188,35 +127,60 @@ export const PlayerList = () => {
         13: "Cashout Rejected",
       };
 
-      const transactionItem = {
-        type: statusMessage[txn.status] || "Unknown Status",
+      return {
+        status: statusMessage[txn.status] || "Unknown Status",
+        date: formattedDate,
         time: formattedTime,
-        // tag: "D",
         amount: txn.transactionAmount,
-        color: getColor(txn.status),
+      };
+    });
+  };
+
+  const cashoutConvertTransactions = (transactions) => {
+    return transactions.map((txn) => {
+      const dateObj = new Date(txn.transactionDate);
+
+      const formattedDate = dateObj.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+      const formattedTime = dateObj.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+
+      const statusMessage = {
+        2: "Recharge Successful",
+        4: "Success",
+        5: "Fail",
+        6: "Pending Approval",
+        7: "Redeem Rejected",
+        8: "Redeem Successful",
+        9: "Redeem Expired",
+        11: "In - Progress",
+        12: "Cashout Successful",
+        13: "Cashout Rejected",
       };
 
-      if (!formattedData[formattedDate]) {
-        formattedData[formattedDate] = {
-          date: formattedDate,
-          items: [],
-        };
-      }
-
-      formattedData[formattedDate].items.push(transactionItem);
+      return {
+        status: statusMessage[txn.status] || "Unknown Status",
+        date: formattedDate,
+        time: formattedTime,
+        amount: txn.transactionAmount,
+      };
     });
-
-    return Object.values(formattedData);
-  }
-
-
+  };
 
   const rechargeData = async () => {
     setLoading(true);
     try {
       console.log("Fetching recharge records...");
       const { data, total } = await dataProvider.getList("rechargeRecords", {
-        pagination: { page: 1, perPage: 10 },
+        pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from rechargeRecords:", data);
@@ -240,7 +204,7 @@ export const PlayerList = () => {
     try {
       console.log("Fetching redeem records...");
       const { data, total } = await dataProvider.getList("redeemRecords", {
-        pagination: { page: 1, perPage: 10 },
+        pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
       console.log("Data from redeemRecords:", data);
@@ -260,6 +224,38 @@ export const PlayerList = () => {
       setLoading(false);
     }
   };
+
+  const cashoutData = async () => {
+    setLoading(true);
+    try {
+      const response = await walletService.getCashoutTransactions({
+        page :1,
+        limit: 5,
+        userId: userId,
+      });
+      const formattedData = cashoutConvertTransactions(
+        response.transactions || []
+      );
+      setCashoutTransactionData(formattedData);
+      setTotalCashoutData(response.pagination?.totalRecords || 0);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRechargeRefresh = () => {
+    rechargeData();
+  };
+  const handleRedeemRefresh = () => {
+    redeemData();
+    cashoutData();
+  };
+  const handleCashoutRefresh = () => {
+    rechargeData();
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -285,7 +281,7 @@ export const PlayerList = () => {
           >
             <Button
               variant="contained"
-              startIcon={<CardGiftcardIcon  style={{fontSize:"15px"}}/>}
+              startIcon={<CardGiftcardIcon style={{ fontSize: "15px" }} />}
               sx={{
                 mt: 2,
                 fontSize: "13px",
@@ -306,180 +302,164 @@ export const PlayerList = () => {
             </Button>
           </Box>
         </Box>
-
-        {/* Wallet Balance */}
-        <Paper sx={{ margin: 0, borderRadius: 0, boxShadow: "none" }}>
-          {/* Make the entire header area clickable */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 2,
-              bgcolor: "#F7FDF8",
-              cursor: "pointer",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "top", gap: 1 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 1,
-                  borderRadius: "4px",
-                  backgroundColor: "#D6F5DD",
-                  height: 40,
-                  width: 40,
-                }}
-              >
-                <img
-                  src={WalletIcon}
-                  alt="Wallet Icon"
-                  style={{
-                    width: 20,
-                    height: 20,
-                  }}
-                />
-              </Box>
-              <Box>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    marginLeft: "4px",
-                    fontWeight: 500,
-                    fontSize: "20px",
-                  }}
-                >
-                  Wallet Balance
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginTop: "-8px",
-                  }}
-                >
-                  <img
-                    src={AOG_Symbol}
-                    alt="AOG Symbol"
-                    style={{ width: 20, height: 20, marginRight: 2 }}
-                  />
-                  <Typography
-                    sx={{
-                      color: "#109E38",
-                      fontWeight: "600",
-                      fontFamily: "Inter",
-                      fontSize: "24px",
-                    }}
-                  >
-                    {balance}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-            <Button
-              onClick={() => {
-                navigate(`/wallet-details`);
-              }}
-            >
-              <ArrowForwardIosIcon sx={{ fontSize: 16, color: "#888" }} />
-            </Button>
-          </Box>
-
-          <Collapse in={dropdownOpen}>
-            <Box sx={{ borderTop: "1px solid #e0e0e0" }}>
-              <WalletDetails />
-            </Box>
-          </Collapse>
-        </Paper>
       </Box>
 
-      {!dropdownOpen && (
-        <>
-          <Box sx={{ bgcolor: "background.paper", p: 2 }}>
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{
-                display: "flex",
-                justifyContent: "space-around",
-                padding: "4px",
-                borderRadius: "8px",
-                border: "1px solid #CFD4DB",
-              }}
-            >
-              <Button
-                variant={selectedTab === "recharge" ? "contained" : "text"}
-                size="small"
-                onClick={() => setSelectedTab("recharge")}
-                sx={{
-                  width: "50%",
-                  height: "40px",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  textTransform: "none",
-                }}
-              >
-                <img
-                  src={
-                    selectedTab === "recharge" ? MoneySendWhite : MoneySendBlack
-                  }
-                  alt="Money Send Icon"
-                  style={{ width: 18, height: 18, marginRight: 8 }}
-                />
-                Recharge
-              </Button>
-
-              <Button
-                variant={selectedTab === "redeem" ? "contained" : "text"}
-                size="small"
-                onClick={() => setSelectedTab("redeem")}
-                sx={{
-                  width: "50%",
-                  height: "40px",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  textTransform: "none",
-                }}
-              >
-                <img
-                  src={
-                    selectedTab === "redeem"
-                      ? MoneyReceiveWhite
-                      : MoneyReceiveBlack
-                  }
-                  alt="Money Receive Icon"
-                  style={{ width: 18, height: 18, marginRight: 8 }}
-                />
-                Redeem
-              </Button>
-            </Stack>
-          </Box>
-          <Box
+      <Box sx={{ mt: 2, mb: 2 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            display: "flex",
+            justifyContent: "space-around",
+            padding: "8px",
+            borderRadius: "16px",
+            border: "1px solid #CFD4DB",
+            height: "96px",
+            bgcolor: "white",
+          }}
+        >
+          <Button
+            variant={selectedTab === "recharge" ? "contained" : "text"}
+            size="small"
+            onClick={() => setSelectedTab("recharge")}
             sx={{
+              width: "25%",
+              fontSize: "16px",
+              fontWeight: 400,
+              textTransform: "none",
+              borderRadius: "8px",
+              bgcolor: selectedTab === "recharge" ? "#2E5BFF" : "none",
+              ":hover": {
+                bgcolor: selectedTab === "recharge" ? "#2E5BFF" : "none",
+              },
               display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              width: "100%",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            {selectedTab === "recharge" && (
-              <Box sx={{ width: "100%" }}>
-                <Recharge
-                  data={rechargeTransactionData}
-                  totalData={totalRechargeData}
-                />
-              </Box>
-            )}
-            {selectedTab === "redeem" && (
-              <Box sx={{ width: "100%" }}>
-                <Redeem data={redeemTransactionData} totalData={totalRedeemData} wallet={walletData}/>
-              </Box>
-            )}
+            <img
+              src={selectedTab === "recharge" ? RechargeLight : RechargeDark}
+              alt="Recharge Icon"
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            Recharge
+          </Button>
+
+          <Button
+            variant={selectedTab === "redeem" ? "contained" : "text"}
+            size="small"
+            onClick={() => setSelectedTab("redeem")}
+            sx={{
+              width: "25%",
+              fontSize: "16px",
+              fontWeight: 400,
+              textTransform: "none",
+              borderRadius: "8px",
+              bgcolor: selectedTab === "redeem" ? "#2E5BFF" : "none",
+              ":hover": {
+                bgcolor: selectedTab === "redeem" ? "#2E5BFF" : "none",
+              },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={selectedTab === "redeem" ? RedeemLight : RedeemDark}
+              alt="Redeem Icon"
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            Redeem
+          </Button>
+          <Button
+            variant={selectedTab === "wallet" ? "contained" : "text"}
+            size="small"
+            onClick={() => setSelectedTab("wallet")}
+            sx={{
+              width: "25%",
+              fontSize: "16px",
+              fontWeight: 400,
+              textTransform: "none",
+              borderRadius: "8px",
+              bgcolor: selectedTab === "wallet" ? "#2E5BFF" : "none",
+              ":hover": {
+                bgcolor: selectedTab === "wallet" ? "#2E5BFF" : "none",
+              },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={selectedTab === "wallet" ? WalletLight : WalletDark}
+              alt="Wallet Icon"
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            Wallet
+          </Button>
+          <Button
+            variant={selectedTab === "giftcard" ? "contained" : "text"}
+            size="small"
+            onClick={() => setSelectedTab("giftcard")}
+            sx={{
+              width: "25%",
+              fontSize: "16px",
+              fontWeight: 400,
+              textTransform: "none",
+              borderRadius: "8px",
+              bgcolor: selectedTab === "giftcard" ? "#2E5BFF" : "none",
+              ":hover": {
+                bgcolor: selectedTab === "giftcard" ? "#2E5BFF" : "none",
+              },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={selectedTab === "giftcard" ? GiftCardLight : GiftCardDark}
+              alt="Gift Card Icon"
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            Gift Card
+          </Button>
+        </Stack>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          width: "100%",
+          justifyContent: "space-between",
+        }}
+      >
+        {selectedTab === "recharge" && (
+          <Box sx={{ width: "100%" }}>
+            <Recharge
+              data={rechargeTransactionData}
+              totalData={totalRechargeData}
+            />
           </Box>
-        </>
-      )}
+        )}
+        {selectedTab === "redeem" && (
+          <Box sx={{ width: "100%" }}>
+            <Redeem
+              data={redeemTransactionData}
+              totalData={totalRedeemData}
+              wallet={walletData}
+            />
+          </Box>
+        )}
+        {selectedTab === "wallet" && (
+          <Box sx={{ width: "100%" }}>
+            <WalletDetails />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };
