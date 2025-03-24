@@ -11,6 +11,7 @@ import {
   // Stack,
   // IconButton,
   TextField,
+  Paper,
 } from "@mui/material";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 // import Docs from "../../../Assets/icons/Docs.svg";
@@ -26,12 +27,14 @@ import AddPaymentMethods from "./AddPayementMethods";
 import CashOutDialog from "./CashOutDialog";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import WalletIcon from "../../../Assets/icons/WalletIcon.svg";
 // import { Card } from "reactstrap";
 // import MoneyReceiveWhite from "../../../Assets/icons/money-recive-light.svg";
 // import WalletIconBlack from "../../../Assets/icons/WalletIcon_black.svg";
 import TransactionRecords from "../TransactionRecords";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import CashOutModal from "./CashOutDialogCopy";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -54,6 +57,7 @@ export const WalletDetails = () => {
   const [transactionData, setTransactionData] = useState([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [cashoutAmount, setCashoutAmount] = useState(50);
+  const [isOpen, setIsOpen] = useState(false);
   // const notify = useNotify();
   // const [userName, setUserName] = useState(localStorage.getItem("username"));
   // const [redeemFees, setRedeemFees] = useState(0);
@@ -62,6 +66,7 @@ export const WalletDetails = () => {
   const [remark, setRemark] = useState("");
   const [isPaymentMethodVisible, setIsPaymentMethodVisible] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState();
   const [paymentMethods, setPaymentMethods] = useState({
     cashAppId: "",
     paypalId: "",
@@ -167,8 +172,7 @@ export const WalletDetails = () => {
       const wallet = await walletService.getMyWalletData();
       const { cashAppId, paypalId, venmoId, zelleId } = wallet.wallet;
       setWallet(wallet.wallet);
-      console.log(paymentMethods.isCashAppDisabled);
-      console.log(isPaymentMethodVisible, "first");
+      setBalance(wallet?.wallet?.balance);
       if (
         wallet?.wallet?.cashAppId &&
         !paymentMethodsRecord.get("isCashAppDisabled")
@@ -202,7 +206,6 @@ export const WalletDetails = () => {
         setPaymentMethodLogo(ZelleLogo);
         setIsPaymentMethodVisible(true);
       } else {
-        console.log(isPaymentMethodVisible, "last");
         setIsPaymentMethodVisible(false);
       }
       setPaymentMethods((prev) => ({
@@ -396,431 +399,142 @@ export const WalletDetails = () => {
 
   return (
     <React.Fragment>
-       <div
-              style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}
+      <Paper
+        sx={{
+          margin: 0,
+          borderRadius: "8px", // Rounded corners like the image
+          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
+          border: "1px solid #E0E0E0", // Light border
+        }}
+      >
+        {/* Top Section: Balance and Coin */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: 2,
+            bgcolor: "#FFFFFF", // White background
+          }}
+        >
+          {/* Left: Wallet Icon and Available Balance */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 1,
+                borderRadius: "4px",
+                backgroundColor: "#E6E6E6",
+                width: "40px",
+                height: "40px",
+              }}
             >
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackIcon />} // Add Back Arrow Icon
-                onClick={() => navigate(-1)} // Navigate back to the previous page
-                sx={{
-                  textTransform: "none",
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  color: "#1976D2", // Blue color for text
-                  borderColor: "#1976D2", // Blue border
-                  "&:hover": {
-                    backgroundColor: "#E3F2FD", // Light blue hover effect
-                    borderColor: "#1976D2", // Keep border consistent
-                  },
-                }}
-              >
-                Back
-              </Button>
-            </div>
-      <Box sx={{ padding: 0, bgcolor: "#F7FDF8" }}>
-        {/* Header */}
-        <Box sx={{ padding: "16px 20px" }}>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 500, fontSize: "16px", color: "#333" }}
-          >
-            Your Winnings: Cash Out Easily
-          </Typography>
-
-          {/* Amount options */}
-          {/* <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-            {[10, 20, 50, 100].map((amount) => (
-              <Box
-                key={amount}
-                sx={{
-                  borderRadius: "20px",
-                  width: "64px",
-                  padding: "2px 12px",
-                  border: "1px dashed #ccc",
-                  fontSize: "14px",
-                  color: "#333",
-                }}
-                
-              >
-                {amount}
-              </Box>
-            ))}
-          </Box> */}
-          <Box sx={{ display: "flex", gap: "6px", mt: 2 }}>
-            {[10, 20, 50, 100].map((amount) => (
-              <Button
-                key={amount}
-                variant="outlined"
-                sx={{
-                  borderRadius: "20px",
-                  width: "64px",
-                  padding: "2px 12px",
-                  border:
-                    amount !== cashoutAmount ? "1px dashed #7e57c2" : "none",
-                  bgcolor: amount === cashoutAmount ? "#7e57c2" : "transparent",
-                  color: amount === cashoutAmount ? "white" : "black",
-                  ":hover": {
-                    border: "none",
-                    bgcolor: "#7e57c2",
-                    color: "white",
-                  },
-                }}
-                onClick={() => setCashoutAmount(amount)}
-              >
-                {amount}
-              </Button>
-            ))}
-          </Box>
-          {isTransactionNoteVisible && (
-            <>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-              <Box sx={{ mt: 1, mb: 1 }}>
-                <TextField
-                  fullWidth
-                  label="Add Transaction Note"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  variant="outlined"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        border: "none",
-                      },
-                      "&:hover fieldset": {
-                        border: "none",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-              <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
-            </>
-          )}
-          <Divider sx={{ mt: 1 }} />
-          {/* Current balance */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 1,
-              mb: 1,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center" }}>
               <img
-                src={AOG_Symbol}
-                alt="AOG"
-                style={{ width: "18px", marginRight: "8px" }}
+                src={WalletIcon}
+                alt="Wallet Icon"
+                style={{
+                  width: 16,
+                  height: 16,
+                }}
               />
-              <Typography
-                component="span"
-                sx={{ fontSize: "18px", fontWeight: 500 }}
-              >
-                {cashoutAmount}
-              </Typography>
             </Box>
-
-            <Box sx={{ display: "flex", gap: 2 }}>
-              {/* <IconButton
-                onClick={() =>
-                  setIsTransactionNoteVisible(!isTransactionNoteVisible)
-                }
-                sx={{ mr: 1 }}
-              >
-                <img
-                  src={Docs}
-                  alt="Docs Icon"
-                  style={{ width: "24px", height: "24px" }}
-                />
-              </IconButton> */}
-              <Button
-                sx={{
-                  bgcolor: "#F8FBFF",
-                  color: "black",
-                  padding: "4px 12px",
-                  border: "1px solid #D9DCE1",
-                  borderRadius: "4px",
-                  fontWeight: 700,
-                  height: "40px",
-                }}
-                onClick={() => {
-                  setcashOutDialogOpen(true);
-                }}
-                disabled={identity?.isBlackListed || isPaymentMethodVisible}
-              >
-                CASHOUT
-              </Button>
-            </Box>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#6B7280", // Gray color for "Available balance"
+                fontSize: "18px",
+                fontWeight: 400,
+              }}
+            >
+              Available balance
+            </Typography>
           </Box>
-          <Divider />
-          {/* <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 1,
-              cursor: "pointer",
-              py: 1,
-            }}
-            onClick={toggleEmailDropdown}
-          >
-            {isPaymentMethodVisible ? (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Box
-                  sx={{
-                    bgcolor: handlePaymentMethodBgColor(paymentMethod),
-                    color: "white",
-                    borderRadius: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "12px",
-                    mr: 1,
-                    width: 20,
-                    height: 20,
-                  }}
-                >
-                  <img
-                    src={paymentMethodLogo}
-                    alt="PaymentMethod"
-                    style={{
-                      width: 20,
-                      height: 20,
-                    }}
-                  />
-                </Box>
-                {paymentMethodId ? (
-                  <Typography sx={{ fontSize: "14px" }}>
-                    {paymentMethodId}
-                  </Typography>
-                ) : (
-                  <Typography sx={{ fontSize: "14px" }}>-</Typography>
-                )}
-              </Box>
-            ) : (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Typography sx={{ fontSize: "14px", color: "red" }}>
-                  Payment mode is currently not available
-                </Typography>
-              </Box>
-            )}
-            {emailDropdownOpen ? (
-              <KeyboardArrowUpIcon sx={{ fontSize: 16, color: "black" }} />
-            ) : (
-              <KeyboardArrowDownIcon sx={{ fontSize: 16, color: "black" }} />
-            )}
-          </Box> */}
 
-          {/* Payment method dropdown content */}
-          {/* {emailDropdownOpen && (
-            <Box sx={{ mt: 1, mb: 2, pl: 2 }}>
-              <Typography sx={{ fontSize: "14px", color: "#666", mb: 1 }}>
-                Change/Add/Edit payment method
-              </Typography>
-
-              <RadioGroup
-                value={paymentMethod}
-                onChange={handlePaymentMethodChange}
-              >
-                <FormControlLabel
-                  value="cashapp"
-                  control={
-                    <Radio
-                      size="small"
-                      disabled={
-                        paymentMethods.isCashAppDisabled ||
-                        (wallet?.cashAppId ? false : true)
-                      }
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Box
-                        sx={{
-                          mr: 1,
-                        }}
-                      >
-                        <img
-                          src={CashAppLogo}
-                          alt="CashApp"
-                          style={{ width: 20 }}
-                        />
-                      </Box>
-                      {wallet?.cashAppId ? (
-                        <Typography sx={{ fontSize: "14px" }}>
-                          {wallet?.cashAppId}
-                        </Typography>
-                      ) : (
-                        <Typography sx={{ fontSize: "14px" }}>-</Typography>
-                      )}
-                    </Box>
-                  }
-                />
-
-                <FormControlLabel
-                  value="paypal"
-                  control={
-                    <Radio
-                      size="small"
-                      disabled={
-                        paymentMethods.isPaypalDisabled ||
-                        (wallet?.paypalId ? false : true)
-                      }
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Box
-                        sx={{
-                          bgcolor: "#CFE6F2",
-                          color: "white",
-                          width: 20,
-                          height: 20,
-                          borderRadius: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "12px",
-                          mr: 1,
-                        }}
-                      >
-                        <img
-                          src={PayPalLogo}
-                          alt="PayPal"
-                          style={{ width: 16 }}
-                        />
-                      </Box>
-                      {wallet?.paypalId ? (
-                        <Typography sx={{ fontSize: "14px" }}>
-                          {wallet?.paypalId}
-                        </Typography>
-                      ) : (
-                        <Typography sx={{ fontSize: "14px" }}>-</Typography>
-                      )}
-                    </Box>
-                  }
-                />
-
-                <FormControlLabel
-                  value="venmo"
-                  control={
-                    <Radio
-                      size="small"
-                      disabled={
-                        paymentMethods.isVenmoDisabled ||
-                        (wallet?.venmoId ? false : true)
-                      }
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Box
-                        sx={{
-                          bgcolor: "#CCE8FF",
-                          color: "white",
-                          width: 20,
-                          height: 20,
-                          borderRadius: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "12px",
-                          mr: 1,
-                        }}
-                      >
-                        <img
-                          src={VenmoLogo}
-                          alt="Venmo"
-                          style={{ width: 16 }}
-                        />
-                      </Box>
-                      {wallet?.venmoId ? (
-                        <Typography sx={{ fontSize: "14px" }}>
-                          {wallet?.venmoId}
-                        </Typography>
-                      ) : (
-                        <Typography sx={{ fontSize: "14px" }}>-</Typography>
-                      )}
-                    </Box>
-                  }
-                />
-
-                <FormControlLabel
-                  value="zelle"
-                  control={
-                    <Radio
-                      size="small"
-                      disabled={
-                        paymentMethods.isZelleDisabled ||
-                        (wallet?.zelleId ? false : true)
-                      }
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Box
-                        sx={{
-                          bgcolor: "#E3D2F9",
-                          color: "white",
-                          width: 20,
-                          height: 20,
-                          borderRadius: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "12px",
-                          mr: 1,
-                        }}
-                      >
-                        <img
-                          src={ZelleLogo}
-                          alt="Zelle"
-                          style={{ width: 16 }}
-                        />
-                      </Box>
-                      {wallet?.zelleId ? (
-                        <Typography sx={{ fontSize: "14px" }}>
-                          {wallet?.zelleId}
-                        </Typography>
-                      ) : (
-                        <Typography sx={{ fontSize: "14px" }}>-</Typography>
-                      )}
-                    </Box>
-                  }
-                />
-              </RadioGroup>
-
-              <Button
-                fullWidth
-                sx={{
-                  bgcolor: "#6F42C1",
-                  color: "white",
-                  mt: 2,
-                  py: 1,
-                  ":hover": {
-                    bgcolor: "#6F42C1",
-                  },
-                }}
-                onClick={() => {
-                  if (!identity?.isBlackListed) {
-                    setPaymentDialogOpen(true);
-                  }
-                }}
-                disabled={identity?.isBlackListed}
-              >
-                ADD/EDIT PAYMENT METHOD
-              </Button>
-            </Box>
-          )} */}
+          {/* Right: Balance with Coin Icon */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <img
+              src={AOG_Symbol}
+              alt="AOG Symbol"
+              style={{ width: 32, height: 32 }}
+            />
+            <Typography
+              sx={{
+                color: "#000000", // Black for the balance
+                fontWeight: "600",
+                fontFamily: "Inter",
+                fontSize: "32px",
+              }}
+            >
+              {balance}
+            </Typography>
+          </Box>
         </Box>
+        <Box
+          sx={{
+            marginLeft: "16px",
+            marginRight: "16px",
+            height: "52px",
+          }}
+        >
+          <Button
+            sx={{
+              bgcolor: "#0d6efd",
+              color: "white",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              fontWeight: 500,
+              fontSize: "18px",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              "&:hover": {
+                bgcolor: "#1D4ED8",
+              },
+            }}
+            onClick={() => {
+              setIsOpen(true);
+            }}
+            disabled={identity?.isBlackListed || isPaymentMethodVisible}
+          >
+            Cashout <span style={{ marginLeft: "8px" }}>→</span>
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            padding: "8px 16px",
+            bgcolor: "#FFFFFF",
+            textAlign: "center",
+            marginBottom: "16px",
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "12px",
+              fontWeight: 400,
+            }}
+          >
+            Did you know? You can use Wallet funds to do Instant Recharge? Want
+            to do Recharge?
+          </Typography>
+        </Box>
+      </Paper>
+      <Box sx={{ padding: 0, bgcolor: "#F7FDF8", marginTop: "16px" }}>
         <TransactionRecords
           totalTransactions={totalTransactions}
           transactionData={transactionData}
           redirectUrl={"wallet"}
         />
       </Box>
+      <CashOutModal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        balance={balance}
+      />
       <CashOutDialog
         open={cashOutDialogOpen}
         onClose={() => setcashOutDialogOpen(false)}

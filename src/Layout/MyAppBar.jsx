@@ -24,6 +24,9 @@ import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
 import { useMediaQuery } from "@mui/system";
 import { useState } from "react";
+import { walletService } from "../Provider/WalletManagement";
+import { useEffect } from "react";
+import AOG_Symbol from "../Assets/icons/AOGsymbol.png";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -38,6 +41,7 @@ export default function MyAppBar(props) {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
+  const [balance, setBalance] = useState();
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
@@ -46,6 +50,19 @@ export default function MyAppBar(props) {
   const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
 
   const [activeTab, setActiveTab] = useState("users");
+
+  const getBalance = async () => {
+    try {
+      const wallet = await walletService.getMyWalletData();
+      setBalance(wallet?.wallet?.balance);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getBalance();
+  }, []);
 
   // Toggle sidebar state
   const toggleSidebar = () => {
@@ -125,6 +142,7 @@ export default function MyAppBar(props) {
             }}
           />
         </Toolbar>
+
         {/* Desktop navigation - only show on non-mobile */}
         {!isMobile && (
           <Box
@@ -172,6 +190,37 @@ export default function MyAppBar(props) {
                 </Box>
               </Box>
             ))}
+          </Box>
+        )}
+        {role === "Player" && (
+          <Box sx={{ gap: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#fff", // Gray color for "Available balance"
+                fontSize: "18px",
+                fontWeight: 400,
+              }}
+            >
+              Wallet balance
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <img
+                src={AOG_Symbol}
+                alt="AOG Symbol"
+                style={{ width: 24, height: 24 }}
+              />
+              <Typography
+                sx={{
+                  color: "#fff", // Black for the balance
+                  fontWeight: "600",
+                  fontFamily: "Inter",
+                  fontSize: "24px",
+                }}
+              >
+                {balance}
+              </Typography>
+            </Box>
           </Box>
         )}
       </Box>
