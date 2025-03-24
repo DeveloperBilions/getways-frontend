@@ -1624,6 +1624,7 @@ if (role === "Super-User" && !filter?.username) {
             ipn_callback_url: `${process.env.REACT_APP_REDIRECT_URL}`, // callback if needed
             order_id: `ORDER-${id}-${Date.now()}`, // dynamic order ID
             order_description: `Payment by ${username}`,
+            is_fixed_rate:true,
             success_url: process.env.REACT_APP_REDIRECT_URL,
             cancel_url: process.env.REACT_APP_REDIRECT_URL_CANCEL
           },
