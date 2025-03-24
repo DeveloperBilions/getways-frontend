@@ -370,6 +370,9 @@ const Redeem = ({ data, totalData, wallet }) => {
       <RedeemDialog
         open={redeemDialogOpen}
         onClose={() => setRedeemDialogOpen(false)}
+        onConfirm={handleConfirm}
+        redeemAmount={redeemAmount}
+        remark={remark}  // Newly added prop
         record={transformedIdentity}
         handleRefresh={handleRefresh}
       />
