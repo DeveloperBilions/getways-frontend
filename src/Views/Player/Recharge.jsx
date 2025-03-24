@@ -33,12 +33,12 @@ const Recharge = ({ data, totalData }) => {
   const refresh = useRefresh();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
-  const [paymentSource, setPaymentSource] = useState("wallet");
+  const [paymentSource, setPaymentSource] = useState("stripe");
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
 
   const [expanded, setExpanded] = useState(false);
-  const [displayMethod, setDisplayMethod] = useState("Wallet");
+  const [displayMethod, setDisplayMethod] = useState("Payment Portal");
 
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
@@ -63,7 +63,7 @@ const Recharge = ({ data, totalData }) => {
   const resetFields = () => {
     setRechargeAmount(50);
     setRemark("");
-    setPaymentSource("stripe");
+    setPaymentSource("strike");
     // setErrorMessage(""); // Reset error message
   };
 
@@ -86,7 +86,7 @@ const Recharge = ({ data, totalData }) => {
             fontWeight: 500,
             fontSize: "24px",
             color: "#4D4D4D",
-            mb: "8px",
+            mb: "16px",
           }}
         >
           Recharge your account

@@ -20,21 +20,19 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
+  console.log("data", data);
   const { identity } = useGetIdentity();
   const notify = useNotify(); // React-Admin's notification hook
-  const [rechargeAmount, setRechargeAmount] = useState(data.rechargeAmount);
-  const [remark, setRemark] = useState(data.remark);
+  const rechargeAmount = data.rechargeAmount;
+  const remark = data.remark;
   const [loading, setLoading] = useState(false);
-  const [paymentSource, setPaymentSource] = useState(data.paymentSource);
+  const paymentSource = data.paymentSource;
   const [walletBalance, setWalletBalance] = useState(0);
   const [redeemFees, setRedeemFees] = useState();
   const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState("");
 
   const resetFields = () => {
-    setRechargeAmount("");
-    setRemark("");
-    setPaymentSource("stripe");
     setErrorMessage(""); // Reset error message
   };
 
@@ -81,7 +79,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       return;
     }
 
+    console.log("paymentSource", paymentSource);
     if (paymentSource === "wallet") {
+      console.log("wallet");
       // Ensure wallet balance is sufficient
       if (parseFloat(rechargeAmount) > walletBalance) {
         setErrorMessage("Insufficient wallet balance."); // Set error message

@@ -113,6 +113,7 @@ const TransactionRecords = ({
                     fontFamily: "Inter",
                     fontSize: isMobile ? "12px" : "14px",
                     color: "#333",
+                    fontWeight:"600"
                   }}
                 >
                   Total number of transactions
