@@ -85,7 +85,6 @@ const Recharge = ({ data, totalData }) => {
             fontFamily: "Inter, sans-serif",
             fontWeight: 500,
             fontSize: "24px",
-            color: "#4D4D4D",
             mb: "16px",
           }}
         >
