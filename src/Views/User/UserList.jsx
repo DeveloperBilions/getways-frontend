@@ -17,7 +17,7 @@ import {
   useRefresh,
   useListContext,
   useListController,
-  Pagination
+  Pagination,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -40,6 +40,7 @@ import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
 import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
+import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -58,6 +59,8 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
     useState(false);
   const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
   const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
+  const [disableRechargeDialogOpen, setDisableRechargeDialogOpen] =
+    useState(false);
 
   const role = localStorage.getItem("role");
   const record = useRecordContext();
@@ -143,7 +146,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
               Redeem Service Fee
             </MenuItem>
           )}
-         
+
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") && (
           <MenuItem
@@ -155,14 +158,24 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
             Password Permission
           </MenuItem>
         )}
-        <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setDisableRechargeDialogOpen(true);
+            }}
+          >
+            Disable Recharge
+          </MenuItem>
+        )}
+
+        <MenuItem onClick={handleRecharge} disabled={identity?.rechargeDisabled}>Recharge</MenuItem>
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
             role === "Super-User") && (
-            <MenuItem onClick={handleDrawer}>
-              Drawer
-            </MenuItem>
+            <MenuItem onClick={handleDrawer}>Drawer</MenuItem>
           )}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
@@ -235,17 +248,34 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         handleRefresh={handleRefresh}
       />
       <TransactionSummaryModal
-  open={drawerDialogOpen}
-  onClose={() => setDrawerDialogOpen(false)}
-  record={record}
-  />
+        open={drawerDialogOpen}
+        onClose={() => setDrawerDialogOpen(false)}
+        record={record}
+      />
+      <DisableRechargeDialog
+        open={disableRechargeDialogOpen}
+        onClose={() => setDisableRechargeDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
     </React.Fragment>
   );
 };
 
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
-  const { data, isLoading, total, page, perPage, setPage, setPerPage, filterValues, setFilters,setSort } = listContext;
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+    setSort,
+  } = listContext;
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -275,7 +305,7 @@ export const UserList = (props) => {
   };
   const handleRefresh = async () => {
     refresh();
-  }
+  };
 
   function generateRandomString() {
     const characters =
@@ -315,17 +345,13 @@ export const UserList = (props) => {
   };
 
   const dataFilters = [
-    <SearchInput
-      source="username"
-      alwaysOn
-      resettable
-    />,
+    <SearchInput source="username" alwaysOn resettable />,
     // <TextInput source="username" label="Name" alwaysOn resettable />,
   ];
 
   const PostListActions = () => (
     <TopToolbar>
-      {role != "Super-User" &&role != "Master-Agent" && (
+      {role != "Super-User" && role != "Master-Agent" && (
         <Button
           variant="contained"
           color="primary"
@@ -356,12 +382,12 @@ export const UserList = (props) => {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
-}, []);
+  }, []);
 
-useEffect(() => {
-  setFilters({}, {}); // Clear filters when the component mounts
-  setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
-}, []);
+  useEffect(() => {
+    setFilters({}, {}); // Clear filters when the component mounts
+    setSort({ field: "createdAt", order: "DESC" }); // Set default sorting
+  }, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -371,49 +397,55 @@ useEffect(() => {
   //   return () => clearInterval(interval);
   // }, [refresh]);
 
-  if(isLoading) {
-    return(
-      <><Loader /></>
-    )
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
   }
-  
+
   return (
     <>
-    {(role === "Master-Agent" || role  === "Agent" )&& 
-    <EmergencyNotices /> }
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <List
-  title="User Management"
-  filters={dataFilters}
-  actions={<PostListActions />}
-  emptyWhileLoading={true}
-  empty={false}
-  filter={{$or: [{ userReferralCode: "" }, { userReferralCode: null },{username:""}]}}
-  {...props}
-    pagination={<Pagination />}
-          sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+        title="User Management"
+        filters={dataFilters}
+        actions={<PostListActions />}
+        emptyWhileLoading={true}
+        empty={false}
+        filter={{
+          $or: [
+            { userReferralCode: "" },
+            { userReferralCode: null },
+            { username: "" },
+          ],
+        }}
+        {...props}
+        pagination={<Pagination />}
+        sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
       >
-        
-          <Datagrid
-            size="small"
-            bulkActionButtons={false}
-            // data={data}
-          >
-            <TextField source="username" label="User Name" />
-            <TextField source="email" label="Email" />
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="userParentName" label="Parent User" />
-            )}
-            {(identity?.role === "Super-User" ||
-              identity?.role === "Master-Agent") && (
-              <TextField source="roleName" label="User Type" />
-            )}
-            <DateField source="createdAt" label="Date" showTime sortable/>
-            <WrapperField label="Actions">
-              <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
-            </WrapperField>
-          </Datagrid>
-     
+        <Datagrid
+          size="small"
+          bulkActionButtons={false}
+          // data={data}
+        >
+          <TextField source="username" label="User Name" />
+          <TextField source="email" label="Email" />
+          {(identity?.role === "Super-User" ||
+            identity?.role === "Master-Agent") && (
+            <TextField source="userParentName" label="Parent User" />
+          )}
+          {(identity?.role === "Super-User" ||
+            identity?.role === "Master-Agent") && (
+            <TextField source="roleName" label="User Type" />
+          )}
+          <DateField source="createdAt" label="Date" showTime sortable />
+          <WrapperField label="Actions">
+            <CustomButton fetchAllUsers={fetchAllUsers} identity={identity} />
+          </WrapperField>
+        </Datagrid>
+
         <CreateUserDialog
           open={userCreateDialogOpen}
           onClose={() => setUserCreateDialogOpen(false)}
@@ -427,6 +459,6 @@ useEffect(() => {
           referralCode={referralCode}
         />
       </List>
-      </>
+    </>
   );
 };

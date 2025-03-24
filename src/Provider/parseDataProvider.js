@@ -1620,7 +1620,7 @@ if (role === "Super-User" && !filter?.username) {
           {
             price_amount: parseFloat(transactionAmount) / 100,
             price_currency: "usd", // Change if required
-            pay_currency: "usdterc20",   // You can change this to any crypto they support
+            pay_currency: "btc",   // You can change this to any crypto they support
             ipn_callback_url: `${process.env.REACT_APP_REDIRECT_URL}`, // callback if needed
             order_id: `ORDER-${id}-${Date.now()}`, // dynamic order ID
             order_description: `Payment by ${username}`,

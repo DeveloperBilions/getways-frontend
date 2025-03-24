@@ -34,7 +34,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
   const [redeemFees, setRedeemFees] = useState();
   const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState(""); // New state for error message
-
+  const [ RechargeEnabled, setRechargeEnabled]=  useState(false);
   const resetFields = () => {
     setUserName("");
     setRechargeAmount("");
@@ -161,6 +161,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
         userId: identity?.userParentId,
       });
       setRedeemFees(response?.rechargeLimit || 0);
+      setRechargeEnabled(response?.rechargeDisabled || false)
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -259,7 +260,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       color="success"
                       type="submit"
                       className="mx-2"
-                      disabled={loading || minLimitLoading}
+                      disabled={loading || minLimitLoading || RechargeEnabled}
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
