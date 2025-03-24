@@ -250,10 +250,10 @@ export const PlayerList = () => {
   };
   const handleRedeemRefresh = () => {
     redeemData();
-    cashoutData();
   };
   const handleCashoutRefresh = () => {
-    rechargeData();
+    cashoutData();
+    WalletService();
   };
 
   if (loading) {
@@ -456,7 +456,13 @@ export const PlayerList = () => {
         )}
         {selectedTab === "wallet" && (
           <Box sx={{ width: "100%" }}>
-            <WalletDetails />
+            <WalletDetails
+              transactionData={cashoutTransactionData}
+              totalTransactions={totalCashoutData}
+              handleCashoutRefresh={handleCashoutRefresh}
+              wallet={walletData}
+              balance={balance}
+            />
           </Box>
         )}
       </Box>
