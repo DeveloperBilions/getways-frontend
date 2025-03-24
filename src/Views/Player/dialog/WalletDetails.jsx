@@ -356,47 +356,6 @@ export const WalletDetails = () => {
     return Object.values(formattedData);
   }
 
-  // const handlePaymentMethodChange = (event) => {
-  //   setPaymentMethod(event.target.value);
-  //   switch (event.target.value) {
-  //     case "cashapp":
-  //       setPaymentMethodId(wallet?.cashAppId);
-  //       setPaymentMethodLogo(CashAppLogo);
-  //       break;
-  //     case "paypal":
-  //       setPaymentMethodId(wallet?.paypalId);
-  //       setPaymentMethodLogo(PayPalLogo);
-  //       break;
-  //     case "venmo":
-  //       setPaymentMethodId(wallet?.venmoId);
-  //       setPaymentMethodLogo(VenmoLogo);
-  //       break;
-  //     case "zelle":
-  //       setPaymentMethodId(wallet?.zelleId);
-  //       setPaymentMethodLogo(ZelleLogo);
-  //       break;
-  //     default:
-  //       setPaymentMethodId(null);
-  //       setPaymentMethodLogo(null);
-  //   }
-  // };
-
-  // const toggleEmailDropdown = () => {
-  //   setEmailDropdownOpen(!emailDropdownOpen);
-  // };
-
-  // const handlePaymentMethodBgColor = (method) => {
-  //   if (method === "paypal") {
-  //     return "#CFE6F2";
-  //   } else if (method === "venmo") {
-  //     return "#CCE8FF";
-  //   } else if (method === "zelle") {
-  //     return "#E3D2F9";
-  //   } else {
-  //     return "transparent";
-  //   }
-  // };
-
   return (
     <React.Fragment>
       <Paper

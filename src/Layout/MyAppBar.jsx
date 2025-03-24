@@ -116,9 +116,11 @@ export default function MyAppBar(props) {
         backgroundColor: "var(--primary-color)",
         top: 0,
         width: "100%",
-        height: "3.5em",
+        height: role === "Player" ? "4em" : "3.5em",
         color: "white",
         zIndex: 1300,
+        paddingLeft: role === "Player" && !isMobile ? "272px" : "0",
+        paddingRight: role === "Player" && !isMobile ? "300px" : "0",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", pl: { xs: 2, sm: 1 } }}>
@@ -128,7 +130,7 @@ export default function MyAppBar(props) {
             width: "auto",
             cursor: "pointer",
             padding: 0,
-            minHeight: "3.5em",
+            minHeight: role === "Player" ? "4em" : "3.5em",
           }}
           onClick={() => navigate("/")}
         >
@@ -192,13 +194,16 @@ export default function MyAppBar(props) {
             ))}
           </Box>
         )}
-        {role === "Player" && (
-          <Box sx={{ gap: 1 }}>
+      </Box>
+      {role === "Player" && (
+        <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {" "}
             <Typography
               variant="body2"
               sx={{
                 color: "#fff", // Gray color for "Available balance"
-                fontSize: "18px",
+                fontSize: { xs: "14px", sm: "18px" },
                 fontWeight: 400,
               }}
             >
@@ -215,15 +220,15 @@ export default function MyAppBar(props) {
                   color: "#fff", // Black for the balance
                   fontWeight: "600",
                   fontFamily: "Inter",
-                  fontSize: "24px",
+                  fontSize: { xs: "20px", sm: "24px" },
                 }}
               >
                 {balance}
               </Typography>
             </Box>
           </Box>
-        )}
-      </Box>
+        </Box>
+      )}
       <Box
         sx={{
           display: "flex",

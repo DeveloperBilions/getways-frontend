@@ -41,7 +41,7 @@
 .cancel{
     background-color: var(--secondary-color) !important;
     color: var(--primary-color) !important;
-    border-color: grey !important;
+    border-color: #E7E7E7 !important;
 }
 
 .confirm{
