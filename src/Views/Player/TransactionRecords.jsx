@@ -6,6 +6,7 @@ import Iicon from "../../Assets/icons/Iicon.svg";
 import PaymentSuccess from "../../Assets/icons/payment-success.svg";
 import { useRedirect } from "react-admin";
 import useDeviceType from "../../Utils/Hooks/useDeviceType";
+import FileCheckWhite from "../../Assets/icons/FileCheckWhite.svg";
 
 const TransactionRecords = ({
   message,
@@ -42,7 +43,7 @@ const TransactionRecords = ({
             fontSize: isMobile ? "18px" : "20px",
             lineHeight: "100%",
             color: "#000000",
-            textTransform:"none"
+            textTransform: "none",
           }}
         >
           {message}
@@ -61,140 +62,149 @@ const TransactionRecords = ({
         </Typography>
       </Box>
       <Box>
-      {/* Transactions Summary */}
-      <Box
-        sx={{
-          width: "100%",
-          border: "1px solid #F4F3FC",
-          borderRadius: "8px",
-          marginBottom: "16px",
-          bgcolor: "#F4F3FC",
-        }}
-      >
+        {/* Transactions Summary */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: isMobile ? "12px" : "16px",
+            width: "100%",
+            border: "1px solid #F4F3FC",
+            borderRadius: "8px",
+            marginBottom: "16px",
+            bgcolor: "#F4F3FC",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "12px" }}>
-            <Box
-              sx={{
-                width: isMobile ? "32px" : "40px",
-                height: isMobile ? "32px" : "40px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <img
-                src={FileCheck}
-                alt="Transaction Icon"
-                style={{
-                  width: isMobile ? "24px" : "30px",
-                  height: isMobile ? "24px" : "30px",
-                }}
-              />
-            </Box>
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontSize: isMobile ? "12px" : "14px",
-                  color: "#333",
-                }}
-              >
-                Total number of transactions
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontSize: isMobile ? "16px" : "18px",
-                  fontWeight: 600,
-                  color: "#2E5BFF",
-                  width: "50px",
-                }}
-              >
-                {totalTransactions}
-              </Typography>
-            </Box>
-          </Box>
-          <Button
-            onClick={() => {
-              if (redirectUrl) {
-                redirect(`/${redirectUrl}`);
-              }
-            }}
-          >
-            <ArrowForwardIosIcon />
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Transaction List - Show only top 5 transactions */}
-      {transactionData.length > 0 ? (
-        transactionData.map((item, index) => (
           <Box
-            key={index}
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               padding: isMobile ? "12px" : "16px",
-              borderBottom:
-                index < transactionData.length - 1 ? "1px solid #E0E0E0" : "none",
-              bgcolor: "white",
             }}
           >
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontSize: isMobile ? "14px" : "16px",
-                }}
-              >
-                {item.status}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontWeight: 400,
-                  fontSize: isMobile ? "12px" : "14px",
-                  color: "#808080",
-                }}
-              >
-                {item.date}  |  {item.time}
-              </Typography>
-            </Box>
-            <Typography
+            <Box
               sx={{
-                fontFamily: "Inter",
-                fontWeight: 500,
-                fontSize: isMobile ? "16px" : "18px",
-                color: "#000000",
+                display: "flex",
+                alignItems: "center",
+                gap: isMobile ? "8px" : "12px",
               }}
             >
-              {item.amount}
-            </Typography>
+              <Box
+                sx={{
+                  width: isMobile ? "32px" : "40px",
+                  height: isMobile ? "32px" : "40px",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "#2E5BFF",
+                }}
+              >
+                <img
+                  src={FileCheckWhite}
+                  alt="Transaction Icon"
+                  style={{
+                    width: "20px",
+                    height: "24px",
+                  }}
+                />
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontSize: isMobile ? "12px" : "14px",
+                    color: "#333",
+                  }}
+                >
+                  Total number of transactions
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontSize: isMobile ? "16px" : "18px",
+                    fontWeight: 600,
+                    color: "#2E5BFF",
+                    width: "50px",
+                  }}
+                >
+                  {totalTransactions}
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              onClick={() => {
+                if (redirectUrl) {
+                  redirect(`/${redirectUrl}`);
+                }
+              }}
+            >
+              <ArrowForwardIosIcon />
+            </Button>
           </Box>
-        ))
-      ) : (
-        <Typography
-          sx={{
-            fontFamily: "Inter",
-            fontSize: isMobile ? "12px" : "14px",
-            color: "#666",
-            padding: "16px",
-            textAlign: "center",
-          }}
-        >
-          No transactions available
-        </Typography>
-      )}
-    </Box>
+        </Box>
+
+        {/* Transaction List - Show only top 5 transactions */}
+        {transactionData.length > 0 ? (
+          transactionData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: isMobile ? "12px" : "16px",
+                borderBottom:
+                  index < transactionData.length - 1
+                    ? "1px solid #E0E0E0"
+                    : "none",
+                bgcolor: "white",
+              }}
+            >
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontSize: isMobile ? "14px" : "16px",
+                  }}
+                >
+                  {item.status}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 400,
+                    fontSize: isMobile ? "12px" : "14px",
+                    color: "#808080",
+                  }}
+                >
+                  {item.date} | {item.time}
+                </Typography>
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: "Inter",
+                  fontWeight: 500,
+                  fontSize: isMobile ? "16px" : "18px",
+                  color: "#000000",
+                }}
+              >
+                {item.amount}
+              </Typography>
+            </Box>
+          ))
+        ) : (
+          <Typography
+            sx={{
+              fontFamily: "Inter",
+              fontSize: isMobile ? "12px" : "14px",
+              color: "#666",
+              padding: "16px",
+              textAlign: "center",
+            }}
+          >
+            No transactions available
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 };
