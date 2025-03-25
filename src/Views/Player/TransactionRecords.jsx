@@ -183,7 +183,7 @@ const TransactionRecords = ({
               <Typography
                 sx={{
                   fontFamily: "Inter",
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: isMobile ? "16px" : "18px",
                   color: "#000000",
                 }}

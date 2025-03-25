@@ -215,7 +215,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                   // outline: "none",
                 }}
               >
-                <ModalHeader toggle={onClose} className="border-bottom-0">
+                <ModalHeader
+                  toggle={onClose}
+                  className="border-bottom-0"
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: 500,
+                  }}
+                >
                   Confirm Recharge
                 </ModalHeader>
                 {errorMessage && (
@@ -227,7 +234,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                   <Box className="text-center mb-4">
                     <Typography
                       style={{
-                        fontSize: "14px",
+                        fontSize: "18px",
                         fontWeight: 400,
                         display: "block",
                         textAlign: "start",
@@ -296,8 +303,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                   variant="h6"
                   style={{
                     color: "#4CAF50",
-                    fontWeight: 600,
-                    marginBottom: "16px",
+                    fontWeight: 500,
+                    marginBottom: "20px",
                   }}
                 >
                   Recharge Successful!
@@ -307,6 +314,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                   style={{
                     color: "#4D4D4D",
                     textAlign: "center",
+                    fontSize: "12px",
+                    fontWeight: 400,
                   }}
                 >
                   Amount: {rechargeAmount}

@@ -339,7 +339,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              mt: 2,
+              mt: 3,
               mb: 1,
             }}
           >
