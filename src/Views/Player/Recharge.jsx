@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -14,12 +14,8 @@ import WalletIcon from "../../Assets/icons/WalletIcon.svg";
 import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import Docs from "../../Assets/icons/Docs.svg";
 import TransactionRecords from "./TransactionRecords";
-import { dataProvider } from "../../Provider/parseDataProvider";
-import { useGetIdentity, useNotify, useRefresh } from "react-admin";
-import { checkActiveRechargeLimit } from "../../Utils/utils";
+import { useGetIdentity, useRefresh } from "react-admin";
 import { Parse } from "parse";
-import { Loader } from "../Loader";
-import { validatePositiveNumber } from "../../Validators/number.validator";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
@@ -27,7 +23,7 @@ import RechargeDialog from "./dialog/RechargeDialog";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = ({ data, totalData }) => {
+const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -54,8 +50,8 @@ const Recharge = ({ data, totalData }) => {
     setExpanded(!expanded);
   };
 
-
   const handleRefresh = async () => {
+    handleRechargeRefresh();
     refresh();
     resetFields();
   };
@@ -75,7 +71,7 @@ const Recharge = ({ data, totalData }) => {
           borderRadius: "8px",
           border: "1px solid #E7E7E7",
           mb: 2,
-          bgcolor:"white"
+          bgcolor: "white",
         }}
       >
         <Typography
@@ -138,10 +134,15 @@ const Recharge = ({ data, totalData }) => {
                   justifyContent: "space-between",
                   alignItems: "center",
                   width: "100%",
+                  flexDirection: { xs: "column", md: "row" }
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <img src={AOG_Symbol} alt="AOG Symbol" />
+                  <img
+                    src={AOG_Symbol}
+                    alt="AOG Symbol"
+                    style={{ width: "40px", height: "40px" }}
+                  />
                   <Typography
                     sx={{
                       fontFamily: "Inter, sans-serif",
@@ -293,7 +294,9 @@ const Recharge = ({ data, totalData }) => {
               gap: "6px",
               justifyContent: "center",
               alignItems: "center",
-              m: 2,
+              mt: 2,
+              mb: 2,
+              flexWrap: { xs: "wrap", md: "nowrap" }, 
             }}
           >
             {[10, 20, 50, 100, 200, 500].map((amount) => (
@@ -301,11 +304,11 @@ const Recharge = ({ data, totalData }) => {
                 key={amount}
                 variant="outlined"
                 sx={{
-                  borderRadius: "20px",
-                  width: "100%",
-                  padding: "8px 16px",
+                  borderRadius: "40px",
+                  width: { xs: "45%", sm: "30%", md: "100%" }, 
+                  padding: { xs: "6px 12px", md: "8px 16px" }, 
                   border:
-                    amount !== rechargeAmount ? "1px dashed #2E5BFF" : "none",
+                    amount !== rechargeAmount ? "1px dashed #93B1D2" : "none",
                   bgcolor:
                     amount === rechargeAmount ? "#2E5BFF" : "transparent",
                   color: amount === rechargeAmount ? "white" : "black",
@@ -314,16 +317,18 @@ const Recharge = ({ data, totalData }) => {
                     bgcolor: "#2E5BFF",
                     color: "white",
                   },
-                  gap: "8px",
+                  gap: "8px", 
                 }}
                 onClick={() => setRechargeAmount(amount)}
               >
                 <img
                   src={AOG_Symbol}
                   alt="AOG Symbol"
-                  style={{ width: "24px", height: "24px" }}
+                  style={{ width: "24px", height: "24px" }} 
                 />
-                <Typography sx={{ fontWeight: 400, fontSize: "18px" }}>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }} 
+                >
                   {amount}
                 </Typography>
               </Button>
@@ -334,7 +339,7 @@ const Recharge = ({ data, totalData }) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              mt: 2,
+              mt: 3,
               mb: 1,
             }}
           >
@@ -393,7 +398,7 @@ const Recharge = ({ data, totalData }) => {
         data={{
           rechargeAmount: rechargeAmount,
           remark: remark,
-          paymentSource: paymentSource
+          paymentSource: paymentSource,
         }}
       />
     </>

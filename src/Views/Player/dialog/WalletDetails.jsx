@@ -74,7 +74,7 @@ export const WalletDetails = ({
                 justifyContent: "center",
                 padding: 1,
                 borderRadius: "4px",
-                backgroundColor: "#E6E6E6",
+                backgroundColor: "#F4F3FC",
                 width: "40px",
                 height: "40px",
               }}
@@ -123,6 +123,7 @@ export const WalletDetails = ({
             marginLeft: "16px",
             marginRight: "16px",
             height: "52px",
+            marginTop: 1,
           }}
         >
           <Button

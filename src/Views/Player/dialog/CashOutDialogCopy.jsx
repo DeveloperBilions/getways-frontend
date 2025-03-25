@@ -57,9 +57,15 @@ const CashOutModal = ({
     setErrorMessage(""); // Clear error message when user starts typing
   };
 
+  const handleClose = () => {
+    setBalance(initialBalance);
+    setIsGiftCardOpen(false);
+    onClose();
+  };
+
   return (
     <>
-      <Modal isOpen={open && !isGiftCardOpen} toggle={onClose} centered>
+      <Modal isOpen={open && !isGiftCardOpen} toggle={handleClose} centered>
         <Box
           sx={{
             borderRadius: "8px",
@@ -71,7 +77,7 @@ const CashOutModal = ({
           }}
         >
           <ModalHeader
-            toggle={onClose}
+            toggle={handleClose}
             className="border-bottom-0 pb-0 font-weight-[500] font-size-[24px]"
           >
             Cash out
@@ -172,7 +178,7 @@ const CashOutModal = ({
                 <Button
                   className="custom-button cancel"
                   style={{ border: "#E7E7E7 !important" }}
-                  onClick={onClose}
+                  onClick={handleClose}
                 >
                   Cancel
                 </Button>
@@ -192,6 +198,7 @@ const CashOutModal = ({
         open={isGiftCardOpen}
         onClose={() => {
           setIsGiftCardOpen(false);
+          handleClose();
         }}
         onBack={() => {
           setIsGiftCardOpen(false);

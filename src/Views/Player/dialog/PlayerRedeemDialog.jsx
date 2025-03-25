@@ -645,7 +645,7 @@ const PlayerRedeemDialog = ({
         setErrorMessage(response?.message);
       } else {
         // Updated success message format
-        setSuccessMessage(`Recharge Successful!\nAmount: $${redeemAmount}`);
+        setSuccessMessage(`Redeem Successful!\nAmount: ${redeemAmount}`);
         notify("Redeem Successful!",{
           type: "success",
         });
@@ -745,34 +745,36 @@ const PlayerRedeemDialog = ({
           }}
         >
           {/* Modal Title */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: isMobile ? "0 0 12px 0" : "0 0 16px 0",
-              borderBottom: "none",
-            }}
-          >
-            <Typography
+          {!successMessage && (
+            <Box
               sx={{
-                fontFamily: "Inter",
-                fontWeight: 600,
-                fontSize: isMobile ? "18px" : "20px",
-                color: "#000000",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: isMobile ? "0 0 12px 0" : "0 0 16px 0",
+                borderBottom: "none",
               }}
             >
-              Confirm Redeem
-            </Typography>
-            <IconButton onClick={onClose} size="small">
-              <CloseIcon
+              <Typography
                 sx={{
-                  fontSize: isMobile ? "22px" : "24px",
-                  color: "#333333",
+                  fontFamily: "Inter",
+                  fontWeight: 600,
+                  fontSize: isMobile ? "18px" : "20px",
+                  color: "#000000",
                 }}
-              />
-            </IconButton>
-          </Box>
+              >
+                Confirm Redeem
+              </Typography>
+              <IconButton onClick={onClose} size="small">
+                <CloseIcon
+                  sx={{
+                    fontSize: isMobile ? "22px" : "24px",
+                    color: "#333333",
+                  }}
+                />
+              </IconButton>
+            </Box>
+          )}
 
           {/* Modal Content */}
           {successMessage ? (
@@ -782,7 +784,7 @@ const PlayerRedeemDialog = ({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                minHeight: "100px", // Ensure enough space for the message
+                minHeight: "100px",
                 textAlign: "center",
                 padding: isMobile ? "16px 0" : "24px 0",
               }}
@@ -792,11 +794,22 @@ const PlayerRedeemDialog = ({
                   fontFamily: "Inter",
                   fontWeight: 500,
                   fontSize: isMobile ? "16px" : "18px",
-                  color: "#333333",
-                  whiteSpace: "pre-line", // Preserve line breaks in the message
+                  color: "#028B30", // Corrected to a valid hex color code
+                  marginBottom: "8px",
+                  whiteSpace: "pre-line", // This can be removed since there's no line break needed
                 }}
               >
-                {successMessage}
+                Redeem Successful!
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Inter",
+                  fontWeight: 500,
+                  fontSize: isMobile ? "16px" : "18px",
+                  color: "#333333",
+                }}
+              >
+                Amount: {redeemAmount}
               </Typography>
             </Box>
           ) : (

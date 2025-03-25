@@ -16,10 +16,21 @@ import WalletLight from "../../Assets/icons/wallet-light.svg";
 import GiftCardDark from "../../Assets/icons/gift-card-dark.svg";
 import GiftCardLight from "../../Assets/icons/gift-card-light.svg";
 import { WalletDetails } from "./dialog/WalletDetails";
+import GiftCardsDisplay from "./GiftCardDisplay";
+import Parse from "parse";
+import { useGetIdentity } from "react-admin";
+
+Parse.initialize(
+  process.env.REACT_APP_APPID,
+  process.env.REACT_APP_JAVASCRIPT_KEY,
+  process.env.REACT_APP_MASTER_KEY
+);
+Parse.serverURL = process.env.REACT_APP_URL;
+Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const PlayerList = () => {
+  const { identity } = useGetIdentity();
   const [balance, setBalance] = useState();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("recharge");
   const role = localStorage.getItem("role");
@@ -31,6 +42,10 @@ export const PlayerList = () => {
   const [totalRedeemData, setTotalRedeemData] = useState(0);
   const [cashoutTransactionData, setCashoutTransactionData] = useState([]);
   const [totalCashoutData, setTotalCashoutData] = useState(0);
+  const [giftCards, setGiftCards] = useState([]);
+  const [totalGiftCard, setTotalGiftCard] = useState(0);
+  const [totalAvailableGiftCard, setTotalAvailableGiftCard] = useState(0);
+  const [totalExpiredGiftCard, setTotalExpiredGiftCard] = useState(0);
   const [walletData, setWalletData] = useState([]);
 
   useEffect(() => {
@@ -39,6 +54,12 @@ export const PlayerList = () => {
     redeemData();
     cashoutData();
   }, []);
+
+  useEffect(() => {
+    if (identity && identity.objectId) {
+      giftCardData(identity.objectId, 0, 10);
+    }
+  }, [identity]);
 
   if (!role) {
     navigate("/login");
@@ -57,10 +78,6 @@ export const PlayerList = () => {
       setLoading(false);
     }
   }
-
-  const handleToggleDropdown = () => {
-    setDropdownOpen((prevState) => !prevState);
-  };
 
   const rechargeConvertTransactions = (transactions) => {
     return transactions.map((txn) => {
@@ -229,7 +246,7 @@ export const PlayerList = () => {
     setLoading(true);
     try {
       const response = await walletService.getCashoutTransactions({
-        page :1,
+        page: 1,
         limit: 5,
         userId: userId,
       });
@@ -240,6 +257,39 @@ export const PlayerList = () => {
       setTotalCashoutData(response.pagination?.totalRecords || 0);
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const giftCardData = async (id, currentPage, pageSize) => {
+    setLoading(true);
+    try {
+      const query = new Parse.Query("GiftCardHistory");
+      query.equalTo("userId", id);
+      query.descending("createdAt");
+      query.skip(currentPage * pageSize);
+      query.limit(pageSize);
+      const results = await query.find({ useMasterKey: true });
+
+      const countQuery = new Parse.Query("GiftCardHistory");
+      countQuery.equalTo("userId", id);
+      const total = await countQuery.count({ useMasterKey: true });
+      const countAvailableQuery = new Parse.Query("GiftCardHistory");
+      countAvailableQuery.equalTo("userId", id);
+      countAvailableQuery.equalTo("status", "Issued");
+      const totalAvailable = await countAvailableQuery.count({ useMasterKey: true });
+      const countExpiredQuery = new Parse.Query("GiftCardHistory");
+      countExpiredQuery.equalTo("userId", id);
+      countExpiredQuery.equalTo("status", "Expired");
+      const totalExpired = await countExpiredQuery.count({ useMasterKey: true });
+
+      setGiftCards(results.map((record) => record.toJSON()));
+      setTotalGiftCard(total);
+      setTotalAvailableGiftCard(totalAvailable);
+      setTotalExpiredGiftCard(totalExpired);
+    } catch (error) {
+      console.error("Error fetching gift card history:", error);
     } finally {
       setLoading(false);
     }
@@ -272,7 +322,6 @@ export const PlayerList = () => {
           }}
         >
           <Box
-            onClick={handleToggleDropdown}
             sx={{
               display: "flex",
               justifyContent: "flex-end",
@@ -442,6 +491,7 @@ export const PlayerList = () => {
             <Recharge
               data={rechargeTransactionData}
               totalData={totalRechargeData}
+              handleRechargeRefresh={handleRechargeRefresh}
             />
           </Box>
         )}
@@ -451,6 +501,7 @@ export const PlayerList = () => {
               data={redeemTransactionData}
               totalData={totalRedeemData}
               wallet={walletData}
+              handleRedeemRefresh={handleRedeemRefresh}
             />
           </Box>
         )}
@@ -462,6 +513,16 @@ export const PlayerList = () => {
               handleCashoutRefresh={handleCashoutRefresh}
               wallet={walletData}
               balance={balance}
+            />
+          </Box>
+        )}
+        {selectedTab === "giftcard" && (
+          <Box sx={{ width: "100%" }}>
+            <GiftCardsDisplay 
+              giftCards={giftCards} 
+              totalGiftCard={totalGiftCard}
+              totalAvailableGiftCard={totalAvailableGiftCard}
+              totalExpiredGiftCard={totalExpiredGiftCard}
             />
           </Box>
         )}

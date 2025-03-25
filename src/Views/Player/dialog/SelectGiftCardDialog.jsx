@@ -196,6 +196,7 @@ const SelectGiftCardDialog = ({
         ) : (
           <Box
             sx={{
+              padding: "8px",
               borderRadius: "8px",
               border: "1px solid #E7E7E7",
               backgroundColor: "#FFFFFF",
@@ -203,7 +204,11 @@ const SelectGiftCardDialog = ({
                 "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
             }}
           >
-            <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
+            <ModalHeader
+              toggle={onClose}
+              className="border-bottom-0 pb-0"
+              style={{ fontWeight: "500", fontSize: "24px" }}
+            >
               Cash out
             </ModalHeader>
             <ModalBody>
@@ -320,7 +325,15 @@ const SelectGiftCardDialog = ({
                     style={{ border: "1px solid #E7E7E7", borderRadius: "8px" }}
                     onClick={onBack}
                   >
-                    Back
+                    <Typography
+                      sx={{
+                        fontWeight: "500",
+                        fontSize: "18px",
+                        textTransform: "none",
+                      }}
+                    >
+                      Back
+                    </Typography>
                   </Button>
                   <Button
                     className="custom-button"
@@ -332,7 +345,15 @@ const SelectGiftCardDialog = ({
                     disabled={loading}
                     onClick={handleConfirm}
                   >
-                    {loading ? "Processing..." : "Confirm"}
+                    <Typography
+                      sx={{
+                        fontWeight: "500",
+                        fontSize: "18px",
+                        textTransform: "none",
+                      }}
+                    >
+                      {loading ? "Processing..." : "Confirm"}
+                    </Typography>
                   </Button>
                 </Box>
               </Col>
