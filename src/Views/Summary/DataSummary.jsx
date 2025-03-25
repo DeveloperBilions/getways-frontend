@@ -139,7 +139,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       : (data[0].totalRechargeByType?.wallet || 0) +
         (data[0].totalRechargeByType?.others || 0);
   const recharge = [
-    ...(role === "Super-User" || role === "Agent"
+    ...(role === "Super-User"
       ? [
           {
             id: 3,
