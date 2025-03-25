@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, TextField } from "@mui/material";
+import { Box, Typography, Button, TextField } from "@mui/material";
 import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
-import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import Docs from "../../Assets/icons/Docs.svg";
-import iIcon from "../../Assets/icons/Iicon.svg";
 import { useGetIdentity, useNotify, useRefresh } from "react-admin";
 import RedeemDialog from "./dialog/PlayerRedeemDialog";
 import { Parse } from "parse";
 import TransactionRecords from "./TransactionRecords";
-import { walletService } from "../../Provider/WalletManagement";
 import { Loader } from "../Loader";
 import { validatePositiveNumber } from "../../Validators/number.validator";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -16,8 +13,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Redeem = ({ data, totalData, wallet }) => {
-  const { isMobile } = useDeviceType();
+const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [redeemFees, setRedeemFees] = useState(0);
@@ -56,6 +52,7 @@ const Redeem = ({ data, totalData, wallet }) => {
 
   const handleRefresh = async () => {
     refresh();
+    handleRedeemRefresh();
   };
 
   const parentServiceFee = async () => {

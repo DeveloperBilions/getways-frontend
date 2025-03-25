@@ -31,7 +31,6 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 export const PlayerList = () => {
   const { identity } = useGetIdentity();
   const [balance, setBalance] = useState();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("recharge");
   const role = localStorage.getItem("role");
@@ -79,10 +78,6 @@ export const PlayerList = () => {
       setLoading(false);
     }
   }
-
-  const handleToggleDropdown = () => {
-    setDropdownOpen((prevState) => !prevState);
-  };
 
   const rechargeConvertTransactions = (transactions) => {
     return transactions.map((txn) => {
@@ -327,7 +322,6 @@ export const PlayerList = () => {
           }}
         >
           <Box
-            onClick={handleToggleDropdown}
             sx={{
               display: "flex",
               justifyContent: "flex-end",
@@ -497,6 +491,7 @@ export const PlayerList = () => {
             <Recharge
               data={rechargeTransactionData}
               totalData={totalRechargeData}
+              handleRechargeRefresh={handleRechargeRefresh}
             />
           </Box>
         )}
@@ -506,6 +501,7 @@ export const PlayerList = () => {
               data={redeemTransactionData}
               totalData={totalRedeemData}
               wallet={walletData}
+              handleRedeemRefresh={handleRedeemRefresh}
             />
           </Box>
         )}

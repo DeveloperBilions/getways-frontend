@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -14,12 +14,8 @@ import WalletIcon from "../../Assets/icons/WalletIcon.svg";
 import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import Docs from "../../Assets/icons/Docs.svg";
 import TransactionRecords from "./TransactionRecords";
-import { dataProvider } from "../../Provider/parseDataProvider";
-import { useGetIdentity, useNotify, useRefresh } from "react-admin";
-import { checkActiveRechargeLimit } from "../../Utils/utils";
+import { useGetIdentity, useRefresh } from "react-admin";
 import { Parse } from "parse";
-import { Loader } from "../Loader";
-import { validatePositiveNumber } from "../../Validators/number.validator";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
@@ -27,7 +23,7 @@ import RechargeDialog from "./dialog/RechargeDialog";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = ({ data, totalData }) => {
+const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -55,6 +51,7 @@ const Recharge = ({ data, totalData }) => {
   };
 
   const handleRefresh = async () => {
+    handleRechargeRefresh();
     refresh();
     resetFields();
   };
