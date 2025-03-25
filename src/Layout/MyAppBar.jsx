@@ -22,7 +22,7 @@ import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMetho
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
-import { useMediaQuery } from "@mui/system";
+import { padding, useMediaQuery } from "@mui/system";
 import { useState } from "react";
 import { walletService } from "../Provider/WalletManagement";
 import { useEffect } from "react";
@@ -287,67 +287,96 @@ export default function MyAppBar(props) {
             />
           )}
           <UserMenu sx={{ ml: 1 }}>
-            {(role === "Agent" ||
-              role === "Player" ||
-              role === "Master-Agent") && (
+            <Box sx={{ width: "248px" }}>
+              {(role === "Agent" ||
+                role === "Player" ||
+                role === "Master-Agent") && (
+                <MenuItem
+                  onClick={handleOpenModal}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Change Password
+                </MenuItem>
+              )}
+              {(role === "Agent" || role === "Master-Agent") && (
+                <MenuItem
+                  onClick={handleOpenRechargeLimit}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Recharge Limit
+                </MenuItem>
+              )}
+              {role === "Super-User" && (
+                <MenuItem
+                  onClick={() => setDisableDialogOpen(true)}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Payment Methods
+                </MenuItem>
+              )}
+              {role === "Super-User" && (
+                <MenuItem
+                  onClick={() => {
+                    navigate("/transactionData");
+                  }}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Transaction Export
+                </MenuItem>
+              )}
+              {role === "Super-User" && (
+                <MenuItem
+                  onClick={() => setOpenEmergencyModal(true)}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Emergency Message
+                </MenuItem>
+              )}
+              {identity?.redeemServiceEnabled && role === "Master-Agent" && (
+                <MenuItem
+                  onClick={() => setOpenRedeemService(true)}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Agent Redeem Fees
+                </MenuItem>
+              )}
               <MenuItem
-                onClick={handleOpenModal}
-                style={{ color: "#0000008a" }}
+                onClick={() => setOpenHelpVideo(true)}
+                style={{ color: "#000000", fontWeight: 400, fontSize: "16px" }}
               >
-                Change Password
+                Help Videos
               </MenuItem>
-            )}
-            {(role === "Agent" || role === "Master-Agent") && (
               <MenuItem
-                onClick={handleOpenRechargeLimit}
-                style={{ color: "#0000008a" }}
+                onClick={() => logout()}
+                style={{ color: "#000000", fontWeight: 400, fontSize: "16px" }}
               >
-                Recharge Limit
-              </MenuItem>
-            )}
-            {role === "Super-User" && (
-              <MenuItem
-                onClick={() => setDisableDialogOpen(true)}
-                style={{ color: "#0000008a" }}
-              >
-                Payment Methods
-              </MenuItem>
-            )}
-            {role === "Super-User" && (
-              <MenuItem
-                onClick={() => {
-                  navigate("/transactionData");
-                }}
-                style={{ color: "#0000008a" }}
-              >
-                Transaction Export
-              </MenuItem>
-            )}
-            {role === "Super-User" && (
-              <MenuItem
-                onClick={() => setOpenEmergencyModal(true)}
-                style={{ color: "#0000008a" }}
-              >
-                Emergency Message
-              </MenuItem>
-            )}
-            {identity?.redeemServiceEnabled && role === "Master-Agent" && (
-              <MenuItem
-                onClick={() => setOpenRedeemService(true)}
-                style={{ color: "#0000008a" }}
-              >
-                Agent Redeem Fees
-              </MenuItem>
-            )}
-            <MenuItem
-              onClick={() => setOpenHelpVideo(true)}
-              style={{ color: "#0000008a" }}
-            >
-              Help Videos
-            </MenuItem>
-            <MenuItem onClick={() => logout()} style={{ color: "#0000008a" }}>
-              Logout
-            </MenuItem>{" "}
+                Logout
+              </MenuItem>{" "}
+            </Box>
           </UserMenu>
           {isMobile && role !== "Player" && (
             <IconButton
