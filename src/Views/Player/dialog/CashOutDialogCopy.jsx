@@ -6,22 +6,55 @@ import {
   Button,
   ModalFooter,
   Col,
+  Input,
 } from "reactstrap";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
-import { Box, Typography } from "@mui/material";
+import { Box, TextField, Typography } from "@mui/material";
 import SelectGiftCardDialog from "./SelectGiftCardDialog";
-import { set } from "react-hook-form";
 
-const CashOutModal = ({ setOpen, open, onClose, balance }) => {
+const CashOutModal = ({
+  setOpen,
+  open,
+  onClose,
+  balance: initialBalance,
+  record,
+}) => {
   const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
-  console.log(isGiftCardOpen);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [balance, setBalance] = useState(initialBalance);
   const handalOpenGiftCard = () => {
+    if (!balance) {
+      setErrorMessage(
+        "Cashout amount cannot be empty. Please enter a valid amount."
+      );
+      return;
+    }
+    if (balance <= 0) {
+      setErrorMessage(
+        "Cashout amount cannot be negative or 0. Please enter a valid amount."
+      );
+      return;
+    }
+    if (balance < 15) {
+      setErrorMessage("Cashout request should not be less than $15.");
+      return;
+    }
+    if (balance > initialBalance) {
+      setErrorMessage(
+        "Cashout amount cannot be greater than your current balance."
+      );
+      return;
+    }
     setIsGiftCardOpen(true);
     onClose();
   };
   const handleGiftCardSuccess = (data) => {
     setIsGiftCardOpen(false);
     onClose();
+  };
+  const handleBalanceChange = (e) => {
+    setBalance(e.target.value);
+    setErrorMessage(""); // Clear error message when user starts typing
   };
 
   return (
@@ -53,6 +86,7 @@ const CashOutModal = ({ setOpen, open, onClose, balance }) => {
               >
                 Available Balance
               </Typography>
+
               <Box className="d-flex align-items-center">
                 <img
                   src={AOG_Symbol} // Replace with the actual path to your coin icon
@@ -60,10 +94,13 @@ const CashOutModal = ({ setOpen, open, onClose, balance }) => {
                   style={{ width: "24px", height: "24px", marginRight: "5px" }}
                 />
                 <Typography style={{ fontSize: "24px", fontWeight: 600 }}>
-                  {balance}
+                  {initialBalance}
                 </Typography>
               </Box>
             </Box>
+            {errorMessage && (
+              <Box className="alert alert-danger mt-2">{errorMessage}</Box>
+            )}
 
             <Box className="text-center mb-4">
               <Typography
@@ -87,9 +124,36 @@ const CashOutModal = ({ setOpen, open, onClose, balance }) => {
                   alt="Coin"
                   style={{ width: "40px", height: "40px", marginRight: "10px" }}
                 />
-                <Typography style={{ fontSize: "40px", fontWeight: 600 }}>
-                  {balance}
-                </Typography>
+                <TextField
+                  type="number"
+                  value={balance}
+                  onChange={handleBalanceChange}
+                  variant="standard" // Removes the default border
+                  InputProps={{
+                    disableUnderline: true, // Removes the underline
+                    style: {
+                      fontSize: "40px",
+                      fontWeight: 600,
+                    },
+                    // Remove the up/down arrows
+                    sx: {
+                      "& input[type=number]": {
+                        MozAppearance: "textfield", // For Firefox
+                      },
+                      "& input[type=number]::-webkit-outer-spin-button": {
+                        WebkitAppearance: "none", // For Chrome, Safari, Edge
+                        margin: 0,
+                      },
+                      "& input[type=number]::-webkit-inner-spin-button": {
+                        WebkitAppearance: "none", // For Chrome, Safari, Edge
+                        margin: 0,
+                      },
+                    },
+                  }}
+                  sx={{
+                    width: "100%",
+                  }}
+                />
               </Box>
             </Box>
           </ModalBody>
@@ -107,14 +171,14 @@ const CashOutModal = ({ setOpen, open, onClose, balance }) => {
               >
                 <Button
                   className="custom-button cancel"
-                  sx={{ border: "#E7E7E7 !important" }}
+                  style={{ border: "#E7E7E7 !important" }}
                   onClick={onClose}
                 >
                   Cancel
                 </Button>
                 <Button
                   className="custom-button"
-                  color="primary"
+                  style={{ backgroundColor: "#2E5BFF" }}
                   onClick={handalOpenGiftCard}
                 >
                   Next
@@ -133,7 +197,9 @@ const CashOutModal = ({ setOpen, open, onClose, balance }) => {
           setIsGiftCardOpen(false);
           setOpen();
         }}
-        balance={balance}
+        balance={initialBalance}
+        redeemAmount={balance}
+        record={record}
         onSuccess={handleGiftCardSuccess}
       />
     </>

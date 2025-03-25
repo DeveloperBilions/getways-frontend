@@ -18,23 +18,32 @@ import {
 } from "reactstrap";
 import { Parse } from "parse";
 import { Box, Button, Typography } from "@mui/material";
-import "../../../Assets/css/cashoutDialog.css"; // Assuming the same CSS file for styling
+import "../../../Assets/css/cashoutDialog.css";
+import { useNotify } from "react-admin";
 
-// Parse initialization (same as in your original code)
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const SelectGiftCardDialog = ({ open, onClose, onConfirm, record,onBack }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage] = useState(50); // Number of cards per page
+const SelectGiftCardDialog = ({
+  open,
+  onClose,
+  onBack,
+  redeemAmount,
+  record,
+}) => {
+  const [perPage] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [giftCards, setGiftCards] = useState([]);
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
   const [loadingGiftCards, setLoadingGiftCards] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const userName = localStorage.getItem("username");
+  const userId = localStorage.getItem("id");
+  const [loading, setLoading] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const notify = useNotify();
 
-  // Fetch gift cards when the dialog opens or search term changes
   useEffect(() => {
     if (open) {
       fetchGiftCards(searchTerm);
@@ -94,149 +103,244 @@ const SelectGiftCardDialog = ({ open, onClose, onConfirm, record,onBack }) => {
     if (!selectedGiftCard) {
       setErrorMessage("Please select a gift card to proceed.");
       return;
+    } else {
+      handleSubmit();
     }
-    onConfirm(selectedGiftCard); // Pass the selected gift card to the parent component
-    onClose();
+  };
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const purchasePayload = {
+        orderId: orderId,
+        price: parseFloat(redeemAmount),
+        productId: selectedGiftCard.productId,
+        externalUserId: userId,
+        externalUserFirstName: userName,
+        externalUserLastName: "User",
+        externalUserEmail: record?.email,
+      };
+
+      const response = await Parse.Cloud.run(
+        "purchaseGiftCard",
+        purchasePayload
+      );
+
+      if (response && response.status === "success") {
+        onClose();
+        notify(`Gift card successfully added`, {
+          type: "success",
+          anchorOrigin: { vertical: "top", horizontal: "right" },
+        });
+        setSuccessModalOpen(true);
+        setTimeout(() => {
+          onClose();
+          setSuccessModalOpen(false);
+        }, 2000);
+      } else {
+        setErrorMessage(response.message || "Purchase failed");
+      }
+    } catch (error) {
+      console.error("Gift card purchase error:", error);
+      setErrorMessage("Gift card purchase failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Modal isOpen={open} toggle={onClose} size="lg" centered>
-      <Box
-        sx={{
-          borderRadius: "8px",
-          border: "1px solid #E7E7E7",
-          backgroundColor: "#FFFFFF",
-          boxShadow:
-            "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
-          // outline: "none",
-        }}
+    <>
+      <Modal
+        isOpen={open}
+        toggle={onClose}
+        size={successModalOpen ? "md" : "lg"}
+        centered
       >
-        <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
-          Cash out
-        </ModalHeader>
-        <ModalBody>
+        {successModalOpen ? (
           <Box
-            className="d-flex align-items-start rounded mb-4 justify-content-between flex-column"
-            sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}
+            sx={{
+              display: "flex",
+              height: "191px",
+              justifyContent: "center",
+              alignItems: "center",
+              flexDirection: "column",
+              padding: "24px",
+              backgroundColor: "#FFFFFF",
+              borderRadius: "8px",
+              border: "1px solid #E7E7E7",
+              boxShadow:
+                "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
+              // outline: "none",
+            }}
           >
-            <Typography sx={{ fontWeight: "600", fontSize: "14px" }}>
-              Terms & Conditions
-            </Typography>
-            <Typography sx={{ fontWeight: "400", fontSize: "14px" }}>
-              Valid for 6 months from the date of issue. Cannot be combined with
-              other offers.
-            </Typography>
-          </Box>
-
-          <FormGroup>
-            <Label style={{ fontWeight: "600", fontSize: "14px" }}>
-              Find your Gift card
-            </Label>
-            <Input
-              type="text"
-              placeholder="Search gift cards..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="rounded"
-            />
-          </FormGroup>
-
-          {errorMessage && (
-            <Box className="alert alert-danger mt-2">{errorMessage}</Box>
-          )}
-
-          {loadingGiftCards ? (
-            <Box style={{ textAlign: "center", marginTop: "20px" }}>
-              <Spinner size="sm" color="primary" /> Loading gift cards...
-            </Box>
-          ) : (
-            <Box style={{ maxHeight: "300px", overflowY: "auto" }}>
-              <Row>
-                {giftCards.map((card) => (
-                  <Col md={4} key={card.productId} className="mb-3">
-                    <Card
-                      onClick={() => setSelectedGiftCard(card)}
-                      style={{
-                        cursor: "pointer",
-                        border:
-                          selectedGiftCard?.productId === card.productId
-                            ? "2px solid #007bff"
-                            : "1px solid #ddd",
-                        transition: "all 0.3s ease-in-out",
-                        borderRadius: "10px",
-                      }}
-                    >
-                      <CardImg
-                        top
-                        width="100%"
-                        src={card.productImage}
-                        alt={card.brandName}
-                        style={{
-                          height: "120px",
-                          objectFit: "contain",
-                          padding: "10px",
-                        }}
-                      />
-                      <CardBody>
-                        <CardTitle
-                          tag="h6"
-                          style={{
-                            fontWeight: "600",
-                            color: "#222",
-                            fontSize: "16px",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          {card.brandName}
-                        </CardTitle>
-                        <CardText>
-                          <small>
-                            Value Range: ${card.valueRestrictions.minVal} - $
-                            {card.valueRestrictions.maxVal}
-                          </small>
-                        </CardText>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Box>
-          )}
-        </ModalBody>
-        <ModalFooter className="custom-modal-footer">
-          <Col md={12}>
-            <Box
-              className="d-flex w-100 justify-content-between"
-              sx={{
-                flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
-                alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
-                gap: { xs: 2, sm: 2 }, // Add spacing between buttons
-                marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
-                width: "100% !important", // Ensure the container takes full width
+            <Typography
+              variant="h6"
+              style={{
+                color: "#4CAF50",
+                fontWeight: 600,
+                marginBottom: "16px",
               }}
             >
-              <Button
-                className="custom-button cancel"
-                style={{ border: "1px solid #E7E7E7", borderRadius: "8px" }}
-                onClick={onBack}
+              Cash-out Successful!
+            </Typography>
+            <Typography
+              variant="body2"
+              style={{
+                color: "#4D4D4D",
+                textAlign: "center",
+              }}
+            >
+              Your gift card has been added to your account.
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              borderRadius: "8px",
+              border: "1px solid #E7E7E7",
+              backgroundColor: "#FFFFFF",
+              boxShadow:
+                "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
+            }}
+          >
+            <ModalHeader toggle={onClose} className="border-bottom-0 pb-0">
+              Cash out
+            </ModalHeader>
+            <ModalBody>
+              <Box
+                className="d-flex align-items-start rounded mb-4 justify-content-between flex-column"
+                sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}
               >
-                Back
-              </Button>
-              <Button
-                className="custom-button"
-                style={{
-                  backgroundColor: "#2E5BFF",
-                  color: "#fff",
-                  borderRadius: "8px",
-                }}
-              >
-                Confirm
-              </Button>
-            </Box>
-          </Col>
-        </ModalFooter>
-      </Box>
-    </Modal>
+                <Typography sx={{ fontWeight: "600", fontSize: "14px" }}>
+                  Terms & Conditions
+                </Typography>
+                <Typography sx={{ fontWeight: "400", fontSize: "14px" }}>
+                  Valid for 6 months from the date of issue. Cannot be combined
+                  with other offers.
+                </Typography>
+              </Box>
+
+              <FormGroup>
+                <Label style={{ fontWeight: "600", fontSize: "14px" }}>
+                  Find your Gift card
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Search gift cards..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="rounded"
+                />
+              </FormGroup>
+
+              {errorMessage && (
+                <Box className="alert alert-danger mt-2">{errorMessage}</Box>
+              )}
+
+              {loadingGiftCards ? (
+                <Box style={{ textAlign: "center", marginTop: "20px" }}>
+                  <Spinner size="sm" color="primary" /> Loading gift cards...
+                </Box>
+              ) : (
+                <Box
+                  style={{
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    width: "100%",
+                  }}
+                >
+                  <Row>
+                    {giftCards.map((card) => (
+                      <Col md={4} key={card.productId} className="mb-3">
+                        <Card
+                          onClick={() => setSelectedGiftCard(card)}
+                          style={{
+                            cursor: "pointer",
+                            border:
+                              selectedGiftCard?.productId === card.productId
+                                ? "2px solid #007bff"
+                                : "1px solid #ddd",
+                            transition: "all 0.3s ease-in-out",
+                            borderRadius: "10px",
+                          }}
+                        >
+                          <CardImg
+                            top
+                            width="100%"
+                            src={card.productImage}
+                            alt={card.brandName}
+                            style={{
+                              // height: "120px",
+                              objectFit: "contain",
+                              padding: "10px 10px 0px 10px",
+                              borderRadius: "15px",
+                            }}
+                          />
+                          <CardBody>
+                            <CardTitle
+                              tag="h6"
+                              style={{
+                                fontWeight: "600",
+                                color: "#222",
+                                fontSize: "16px",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              {card.brandName}
+                            </CardTitle>
+                            <CardText>
+                              <small>
+                                Value Range: ${card.valueRestrictions.minVal} -
+                                ${card.valueRestrictions.maxVal}
+                              </small>
+                            </CardText>
+                          </CardBody>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                </Box>
+              )}
+            </ModalBody>
+            <ModalFooter className="custom-modal-footer">
+              <Col md={12}>
+                <Box
+                  className="d-flex w-100 justify-content-between"
+                  sx={{
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "stretch" },
+                    gap: { xs: 2, sm: 2 },
+                    marginBottom: { xs: 2, sm: 2 },
+                    width: "100% !important",
+                  }}
+                >
+                  <Button
+                    className="custom-button cancel"
+                    style={{ border: "1px solid #E7E7E7", borderRadius: "8px" }}
+                    onClick={onBack}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    className="custom-button"
+                    style={{
+                      backgroundColor: "#2E5BFF",
+                      color: "#fff",
+                      borderRadius: "8px",
+                    }}
+                    disabled={loading}
+                    onClick={handleConfirm}
+                  >
+                    {loading ? "Processing..." : "Confirm"}
+                  </Button>
+                </Box>
+              </Col>
+            </ModalFooter>
+          </Box>
+        )}
+      </Modal>
+    </>
   );
 };
 

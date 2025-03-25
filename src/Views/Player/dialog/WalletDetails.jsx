@@ -52,22 +52,20 @@ export const WalletDetails = ({
       <Paper
         sx={{
           margin: 0,
-          borderRadius: "8px", // Rounded corners like the image
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-          border: "1px solid #E0E0E0", // Light border
+          borderRadius: "8px",
+          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
+          border: "1px solid #E0E0E0",
         }}
       >
-        {/* Top Section: Balance and Coin */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             padding: 2,
-            bgcolor: "#FFFFFF", // White background
+            bgcolor: "#FFFFFF",
           }}
         >
-          {/* Left: Wallet Icon and Available Balance */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
               sx={{
@@ -93,7 +91,7 @@ export const WalletDetails = ({
             <Typography
               variant="body2"
               sx={{
-                color: "#6B7280", // Gray color for "Available balance"
+                color: "#6B7280",
                 fontSize: "18px",
                 fontWeight: 400,
               }}
@@ -102,7 +100,6 @@ export const WalletDetails = ({
             </Typography>
           </Box>
 
-          {/* Right: Balance with Coin Icon */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <img
               src={AOG_Symbol}
@@ -111,7 +108,7 @@ export const WalletDetails = ({
             />
             <Typography
               sx={{
-                color: "#000000", // Black for the balance
+                color: "#000000",
                 fontWeight: "600",
                 fontFamily: "Inter",
                 fontSize: "32px",
@@ -130,7 +127,7 @@ export const WalletDetails = ({
         >
           <Button
             sx={{
-              bgcolor: "#0d6efd",
+              bgcolor: "#2E5BFF",
               color: "white",
               padding: "12px 16px",
               borderRadius: "8px",
@@ -178,6 +175,7 @@ export const WalletDetails = ({
       </Paper>
       <Box sx={{ padding: 0, bgcolor: "#F7FDF8", marginTop: "16px" }}>
         <TransactionRecords
+          message={"Recent Cash out history"}
           totalTransactions={totalTransactions}
           transactionData={transactionData}
           redirectUrl={"wallet"}
@@ -188,6 +186,7 @@ export const WalletDetails = ({
         open={isOpen}
         onClose={() => setIsOpen(false)}
         balance={balance}
+        record={transformedIdentity}
       />
       <CashOutDialog
         open={cashOutDialogOpen}
@@ -195,7 +194,6 @@ export const WalletDetails = ({
         record={transformedIdentity}
         handleRefresh={() => {
           handleCashoutRefresh();
-          // WalletService();
         }}
         wallet={wallet}
       />
