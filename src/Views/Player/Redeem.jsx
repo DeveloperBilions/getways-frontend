@@ -151,100 +151,105 @@ const Redeem = ({ data, totalData, wallet }) => {
   return (
     <>
       <Box
+        sx={{
+          padding: isMobile ? "16px" : "24px",
+          backgroundColor: "#FFFFFF",
+          borderRadius: "8px",
+          border: "1px solid #E7E7E7",
+          boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.05)",
+          mb: 2,
+        }}
+      >
+        <Typography
           sx={{
-            padding: isMobile ? "16px" : "24px",
-            backgroundColor: "#FFFFFF",
-            borderRadius: "8px",
-            border: "1px solid #E7E7E7",
-            boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.05)",
-            mb:2
+            fontFamily: "Inter",
+            fontWeight: 500,
+            fontSize: isMobile ? "20px" : "24px",
+            marginBottom: "16px",
+            color: "#000000",
           }}
         >
-          <Typography
-            sx={{
-              fontFamily: "Inter",
-              fontWeight: 500,
-              fontSize: isMobile ? "20px" : "24px",
-              marginBottom: "16px",
-              color: "#000000",
-            }}
-          >
-            Redeem
-          </Typography>
+          Redeem
+        </Typography>
 
+        <Box
+          sx={{
+            width: "100%",
+            height: isMobile ? "60px" : "72px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderRadius: "8px",
+            padding: isMobile ? "8px" : "12px",
+            background: "#FFFFFF",
+            border: "1px solid #E7E7E7",
+            marginBottom: "16px",
+          }}
+        >
           <Box
             sx={{
-              width: "100%",
-              height: isMobile ? "60px" : "72px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              borderRadius: "8px",
-              padding: isMobile ? "8px" : "12px",
-              background: "#FFFFFF",
-              border: "1px solid #E7E7E7",
-              marginBottom: "16px",
+              gap: "8px",
             }}
           >
-            <Box
+            <img
+              src={AOG_Symbol}
+              alt="AOG Symbol"
+              style={{
+                width: isMobile ? "32px" : "40px",
+                height: isMobile ? "32px" : "40px",
+              }}
+            />
+            <Typography
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                fontFamily: "Inter",
+                fontWeight: 600,
+                fontSize: isMobile ? "32px" : "40px",
+                lineHeight: "100%",
+                color: "#000000",
               }}
             >
-              <img
-                src={AOG_Symbol}
-                alt="AOG Symbol"
-                style={{ width: isMobile ? "32px" : "40px", height: isMobile ? "32px" : "40px" }}
-              />
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "32px" : "40px",
-                  lineHeight: "100%",
-                  color: "#000000",
-                }}
-              >
-                {redeemAmount}
-              </Typography>
-            </Box>
-            <img
-              src={Docs}
-              alt="Docs Icon"
-              style={{
-                width: isMobile ? "20px" : "24px",
-                height: isMobile ? "20px" : "24px",
-                cursor: "pointer", // Added cursor pointer for better UX
+              {redeemAmount}
+            </Typography>
+          </Box>
+          <img
+            src={Docs}
+            alt="Docs Icon"
+            style={{
+              width: isMobile ? "20px" : "24px",
+              height: isMobile ? "20px" : "24px",
+              cursor: "pointer", // Added cursor pointer for better UX
+            }}
+            onClick={() =>
+              setIsTransactionNoteVisible(!isTransactionNoteVisible)
+            } // Added onClick handler
+          />
+        </Box>
+
+        {isTransactionNoteVisible && (
+          <Box sx={{ mb: "16px" }}>
+            <TextField
+              fullWidth
+              label="Add Transaction Note"
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                  },
+                  "&:hover fieldset": {
+                    border: "none",
+                  },
+                },
               }}
-              onClick={() => setIsTransactionNoteVisible(!isTransactionNoteVisible)} // Added onClick handler
             />
           </Box>
+        )}
 
-          {isTransactionNoteVisible && (
-            <Box sx={{ mb: "16px" }}>
-              <TextField
-                fullWidth
-                label="Add Transaction Note"
-                value={remark}
-                onChange={(e) => setRemark(e.target.value)}
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      border: "none",
-                    },
-                    "&:hover fieldset": {
-                      border: "none",
-                    },
-                  },
-                }}
-              />
-            </Box>
-          )}
-
-          <Box
+        {/* <Box
             sx={{
               width: "100%",
               display: "flex",
@@ -256,7 +261,7 @@ const Redeem = ({ data, totalData, wallet }) => {
             }}
           >
             {[10, 20, 50, 100, 200, 500].map((value, index) => (
-              <Box
+              <Button
                 key={index}
                 onClick={() => setRedeemAmount(value)}
                 sx={{
@@ -290,77 +295,118 @@ const Redeem = ({ data, totalData, wallet }) => {
                 >
                   {value}
                 </Typography>
-              </Box>
+              </Button>
             ))}
-          </Box>
+          </Box> */}
 
+        <Box
+          sx={{
+            display: "flex",
+            gap: "6px",
+            justifyContent: "center",
+            alignItems: "center",
+            m: 2,
+          }}
+        >
+          {[10, 20, 50, 100, 200, 500].map((amount) => (
+            <Button
+              key={amount}
+              variant="outlined"
+              sx={{
+                borderRadius: "20px",
+                width: "100%",
+                padding: "8px 16px",
+                border: amount !== redeemAmount ? "1px dashed #2E5BFF" : "none",
+                bgcolor: amount === redeemAmount ? "#2E5BFF" : "transparent",
+                color: amount === redeemAmount ? "white" : "black",
+                ":hover": {
+                  border: "none",
+                  bgcolor: "#2E5BFF",
+                  color: "white",
+                },
+                gap: "8px",
+              }}
+              onClick={() => setRedeemAmount(amount)}
+            >
+              <img
+                src={AOG_Symbol}
+                alt="AOG Symbol"
+                style={{ width: "24px", height: "24px" }}
+              />
+              <Typography sx={{ fontWeight: 400, fontSize: "18px" }}>
+                {amount}
+              </Typography>
+            </Button>
+          ))}
+        </Box>
+
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
           <Box
             sx={{
               width: "100%",
               display: "flex",
-              flexDirection: "column",
-              gap: "8px",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <Box
+            <Typography
               sx={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontWeight: 400,
-                  fontSize: isMobile ? "10px" : "12px",
-                  lineHeight: "100%",
-                  color: "#000",
-                }}
-              >
-                Redeem Service Fee @ {redeemFees}%
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "Inter",
-                  fontWeight: 400,
-                  fontSize: isMobile ? "10px" : "12px",
-                  lineHeight: "100%",
-                  color: "#000",
-                }}
-              >
-                Redeems may take up to 2 hours
-              </Typography>
-            </Box>
-
-            <Button
-              onClick={() => setRedeemDialogOpen(true)}
-              sx={{
-                width: "100%",
-                height: isMobile ? "48px" : "52px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                borderRadius: "8px",
-                padding: isMobile ? "12px 24px" : "16px 32px",
-                backgroundColor: "#2E5BFF",
-                color: "#FFFFFF",
                 fontFamily: "Inter",
-                fontWeight: 500,
-                fontSize: isMobile ? "16px" : "18px",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: "#1A46E0",
-                },
+                fontWeight: 400,
+                fontSize: isMobile ? "10px" : "12px",
+                lineHeight: "100%",
+                color: "#000",
               }}
             >
-              Redeem Request
-              <ArrowForwardIcon />
-            </Button>
+              Redeem Service Fee @ {redeemFees}%
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "Inter",
+                fontWeight: 400,
+                fontSize: isMobile ? "10px" : "12px",
+                lineHeight: "100%",
+                color: "#000",
+              }}
+            >
+              Redeems may take up to 2 hours
+            </Typography>
           </Box>
+
+          <Button
+            onClick={() => setRedeemDialogOpen(true)}
+            sx={{
+              width: "100%",
+              height: isMobile ? "48px" : "52px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              borderRadius: "8px",
+              padding: isMobile ? "12px 24px" : "16px 32px",
+              backgroundColor: "#2E5BFF",
+              color: "#FFFFFF",
+              fontFamily: "Inter",
+              fontWeight: 500,
+              fontSize: isMobile ? "16px" : "18px",
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#1A46E0",
+              },
+            }}
+          >
+            Redeem Request
+            <ArrowForwardIcon />
+          </Button>
         </Box>
+      </Box>
       <TransactionRecords
         message={"Recent Redeem"}
         totalTransactions={totalData}
@@ -372,7 +418,7 @@ const Redeem = ({ data, totalData, wallet }) => {
         onClose={() => setRedeemDialogOpen(false)}
         onConfirm={handleConfirm}
         redeemAmount={redeemAmount}
-        remark={remark}  // Newly added prop
+        remark={remark} // Newly added prop
         record={transformedIdentity}
         handleRefresh={handleRefresh}
       />
