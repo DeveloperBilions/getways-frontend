@@ -62,8 +62,8 @@ export const Reports = () => {
         filter,
       });
 
-      setData(result[0]);
-
+      setData(result);
+      console.log(result,"ertyuioujhbnhgytghbgyt")
       // Fetch agent recharge report
       const transactionResult = await fetchTransactionsofAgent({
         sortOrder: "desc", 
@@ -170,6 +170,32 @@ export const Reports = () => {
           </Button>
         </Grid>
       </Grid>
+
+      <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
+  Agent Transaction Summary
+</Typography>
+<TableContainer component={Paper}>
+  <Table>
+    <TableHead>
+      <TableRow>
+        <TableCell>Agent Name</TableCell>
+        <TableCell>Total Transaction Amount</TableCell>
+        <TableCell>Total Fees Collected</TableCell>
+        <TableCell>Total Ticket Amount</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {data?.map((row, index) => (
+        <TableRow key={index}>
+          <TableCell>{row.userParentName || "N/A"}</TableCell>
+          <TableCell>{row.totalTransactionAmount.toFixed(2)}</TableCell>
+          <TableCell>{row.totalFees.toFixed(2)}</TableCell>
+          <TableCell>{row.totalTicketAmount.toFixed(2)}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TableContainer>
 
       {loading ? (
         <Grid container justifyContent="center">

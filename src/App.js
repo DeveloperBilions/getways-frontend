@@ -47,6 +47,7 @@ import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff"; // MUI Icon
 import { Box, Typography, Button } from "@mui/material";
 import { Cancel } from "./Views/Stripe/Cancel";
+import WertPaymentButton from "./Views/Player/WertPaymentButton";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -253,6 +254,7 @@ function App() {
                     </Authenticated>
                   }
                 />
+        <Route path="/wert-checkout" element={<WertPaymentButton />} />
               </CustomRoutes>
               <CustomRoutes>
                   <Route path="/success" element={<Success />} />

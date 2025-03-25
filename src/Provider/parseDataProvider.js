@@ -988,64 +988,69 @@ if (role === "Super-User" && !filter?.username) {
         };
         return res;
       } else if (resource === "Report") {
-        const { fromDate, toDate } = params.filter || {}; // Extract filter params
+        const { fromDate, toDate } = params.filter || {};
     
-        // Define date filtering condition
         const dateFilter = {};
         if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
-        if (toDate) dateFilter.transactionDate = { 
-            ...dateFilter.transactionDate, 
-            $lte: new Date(toDate) 
+        if (toDate) dateFilter.transactionDate = {
+            ...dateFilter.transactionDate,
+            $lte: new Date(toDate)
         };
     
         const queryPipeline = [
-          {
-            $match: dateFilter, // Apply date filter
-          },
-          {
-            $facet: {
-              // New Calculation for Fees (11% of Transaction Amount)
-              totalFeesAmount: [
-                {
-                  $match: {
-                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } },
-                  },
-                },
-              ],
-              // Calculation for Ticket Amount (Transaction Amount - Fees)
-              totalTicketAmount: [
-                {
-                  $match: {
-                    transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                  },
-                },
-                {
-                  $group: {
-                    _id: null,
-                    totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
-                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } }, // Sum of all fees
-                  },
-                },
-                {
-                  $project: {
-                    _id: 0,
-                    totalTicketAmount: { $subtract: ["$totalTransaction", "$totalFees"] }, // Ticket Amount Calculation
-                  },
-                },
-              ],
+            { $match: dateFilter },
+            {
+                $match: {
+                    transactionAmount: { $gt: 0, $type: "number" }, // Only valid amounts
+                    userParentId: { $exists: true, $ne: null }
+                }
             },
-          },
+            {
+                $group: {
+                    _id: "$userParentId",
+                    totalTransactionAmount: { $sum: "$transactionAmount" },
+                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } },
+                }
+            },
+            {
+                $project: {
+                    userParentId: "$_id",
+                    totalTransactionAmount: 1,
+                    totalFees: 1,
+                    totalTicketAmount: { $subtract: ["$totalTransactionAmount", "$totalFees"] },
+                    _id: 0
+                }
+            },
+            {
+                $lookup: {
+                    from: "_User",
+                    localField: "userParentId",
+                    foreignField: "_id",
+                    as: "parentUserData"
+                }
+            },
+            {
+                $unwind: { path: "$parentUserData", preserveNullAndEmptyArrays: true }
+            },
+            {
+                $project: {
+                    userParentId: 1,
+                    totalTransactionAmount: 1,
+                    totalFees: 1,
+                    totalTicketAmount: 1,
+                    userParentName: "$parentUserData.username"
+                }
+            },
+            {
+                $sort: { totalTransactionAmount: -1 } // optional sorting by highest amount
+            }
         ];
-        
+    
         const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline);
+        console.log(newResults,"newResultsnewResultsnewResultsnewResultsnewResults")
         return newResults;
     }
+    
     
       else {
         const Resource = Parse.Object.extend(resource);
