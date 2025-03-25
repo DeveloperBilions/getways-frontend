@@ -31,6 +31,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [redeemFees, setRedeemFees] = useState();
   const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState("");
+  const [successRecharge, setSuccessRecharge] = useState(false);
 
   const resetFields = () => {
     setErrorMessage(""); // Reset error message
@@ -105,11 +106,20 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
           // Display success message using useNotify
           notify(
             `₹${rechargeAmount} has been added to your game balance. Start playing now and enjoy the thrill!`,
-            { type: "success" }
+            {
+              type: "success",
+              anchorOrigin: { vertical: "top", horizontal: "right" },
+            }
           );
-          onClose();
+          setSuccessRecharge(true);
           handleRefresh();
-          resetFields();
+
+          // Automatically close success modal after 2 seconds
+          setTimeout(() => {
+            onClose();
+            setSuccessRecharge(false);
+            resetFields();
+          }, 2000);
         } else {
           setErrorMessage(
             response?.message || "Recharge failed. Please try again."
@@ -186,79 +196,127 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal
-          isOpen={open}
-          toggle={onClose}
-        //   size="md"
-          centered
-          className="overflow-visible"
-        >
-          <Box sx={{
-            borderRadius: "8px",
-            border: "1px solid #E7E7E7",
-            backgroundColor: "#FFFFFF",
-            boxShadow: "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
-            // outline: "none",
-          }}>
-            <ModalHeader toggle={onClose} className="border-bottom-0">
-              Confirm Recharge
-            </ModalHeader>
-            {errorMessage && (
-              <Box className="text-center text-danger mt-2">{errorMessage}</Box>
-            )}
-            <ModalBody>
-              <Box className="text-center mb-4">
+        <>
+          <Modal
+            isOpen={open}
+            toggle={onClose}
+            //   size="md"
+            centered
+            className="overflow-visible"
+          >
+            {!successRecharge ? (
+              <Box
+                sx={{
+                  borderRadius: "8px",
+                  border: "1px solid #E7E7E7",
+                  backgroundColor: "#FFFFFF",
+                  boxShadow:
+                    "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
+                  // outline: "none",
+                }}
+              >
+                <ModalHeader toggle={onClose} className="border-bottom-0">
+                  Confirm Recharge
+                </ModalHeader>
+                {errorMessage && (
+                  <Box className="text-center text-danger mt-2">
+                    {errorMessage}
+                  </Box>
+                )}
+                <ModalBody>
+                  <Box className="text-center mb-4">
+                    <Typography
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 400,
+                        display: "block",
+                        textAlign: "start",
+                        color: "#4D4D4D",
+                      }}
+                    >
+                      Are you sure you want to proceed with the recharge of $
+                      {data.rechargeAmount}?
+                    </Typography>
+                  </Box>
+                </ModalBody>
+                <ModalFooter className="custom-modal-footer">
+                  <Col md={12}>
+                    <Box
+                      className="d-flex w-100 justify-content-between"
+                      sx={{
+                        flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                        alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                        gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                        marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                        width: "100% !important", // Ensure the container takes full width
+                      }}
+                    >
+                      <Button
+                        className="custom-button cancel"
+                        style={{
+                          border: "1px solid #E7E7E7",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="custom-button"
+                        style={{
+                          backgroundColor: "#2E5BFF",
+                          color: "white",
+                          borderRadius: "8px",
+                        }}
+                        onClick={handleSubmit}
+                      >
+                        Confirm
+                      </Button>
+                    </Box>
+                  </Col>
+                </ModalFooter>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "191px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexDirection: "column",
+                  padding: "24px",
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: "8px",
+                  border: "1px solid #E7E7E7",
+                  boxShadow:
+                    "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
+                  // outline: "none",
+                }}
+              >
                 <Typography
+                  variant="h6"
                   style={{
-                    fontSize: "14px",
-                    fontWeight: 400,
-                    display: "block",
-                    textAlign: "start",
-                    color: "#4D4D4D",
+                    color: "#4CAF50",
+                    fontWeight: 600,
+                    marginBottom: "16px",
                   }}
                 >
-                  Are you sure you want to proceed with the recharge of $
-                  {data.rechargeAmount}?
+                  Recharge Successful!
+                </Typography>
+                <Typography
+                  variant="body2"
+                  style={{
+                    color: "#4D4D4D",
+                    textAlign: "center",
+                  }}
+                >
+                  Amount: {rechargeAmount}
                 </Typography>
               </Box>
-            </ModalBody>
-            <ModalFooter className="custom-modal-footer">
-              <Col md={12}>
-                <Box
-                  className="d-flex w-100 justify-content-between"
-                  sx={{
-                    flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
-                    alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
-                    gap: { xs: 2, sm: 2 }, // Add spacing between buttons
-                    marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
-                    width: "100% !important", // Ensure the container takes full width
-                  }}
-                >
-                  <Button
-                    className="custom-button cancel"
-                    style={{
-                      border: "1px solid #E7E7E7",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    className="custom-button"
-                    style={{
-                        backgroundColor: "#2E5BFF",
-                        color: "white",
-                        borderRadius: "8px",
-                    }}
-                    onClick={handleSubmit}
-                  >
-                    Confirm
-                  </Button>
-                </Box>
-              </Col>
-            </ModalFooter>
-          </Box>
-        </Modal>
+            )}
+          </Modal>
+
+          {/* <SuccessModal /> */}
+        </>
       )}
     </React.Fragment>
   );
