@@ -37,6 +37,7 @@ import BackupTableIcon from "@mui/icons-material/BackupTable";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import InfoIcon from "@mui/icons-material/Info";
+import FilterListIcon from "@mui/icons-material/FilterList";
 // dialog
 import RejectRedeemDialog from "./dialog/RejectRedeemDialog";
 import ApproveRedeemDialog from "./dialog/ApproveRedeemDialog";
@@ -57,6 +58,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
+import { ReedemFilterDialog } from "./dialog/RedeemFilterDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -94,6 +96,11 @@ export const RedeemRecordsList = (props) => {
   const [searchBy, setSearchBy] = useState("username");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  const handleOpenFilterModal = () => {
+    setFilterModalOpen(true);
+  };
 
   if (!role) {
     navigate("/login");
@@ -296,61 +303,42 @@ export const RedeemRecordsList = (props) => {
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput
-      source={searchBy}
+    <Box
+      key="search-filter"
+      sx={{ display: "flex", alignItems: "center", gap: 1 }}
       alwaysOn
-      resettable
-      sx={{ width: { xs: "100%", sm: "auto" }, minWidth: "200px" }}
-    />,
-    <SelectInput
-      source="searchBy"
-      label="Search By"
-      validate={required()}
-      alwaysOn
-      value={searchBy}
-      onChange={(e) => {
-        const newSearchBy = e.target.value || "username";
-        handleSearchByChange(newSearchBy);
-      }}
-      choices={
-        role === "Super-User"
-          ? [
-              { id: "username", name: "Account" },
-              { id: "transactionAmount", name: "Redeem" },
-              { id: "remark", name: "Remark" },
-              { id: "userParentName", name: "Parent Name" },
-            ]
-          : [
-              { id: "username", name: "Account" },
-              { id: "transactionAmount", name: "Redeem" },
-              { id: "remark", name: "Remark" },
-            ]
-      }
-    />,
-    permissions !== "Player" && (
-      <SelectInput
-        label="Status"
-        source="status"
-        emptyText={"All"}
+    >
+      <SearchInput
+        source={searchBy}
         alwaysOn
         resettable
-        // value={filterValues?.status ?? null} // Explicitly handle undefined case
-        choices={[
-          { id: 5, name: "Failed" },
-          { id: 6, name: "Pending Approval" },
-          { id: 7, name: "Rejected" },
-          { id: 8, name: "Redeem Successfully" },
-          { id: 9, name: "Expired" },
-          ...(permissions === "Super-User"
-            ? [
-                { id: 11, name: "Cashouts" },
-                { id: 12, name: "Cashout Successfully" },
-                { id: 13, name: "Cashout Reject" },
-              ]
-            : []),
-        ]}
+        placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          minWidth: "200px",
+          marginBottom: 1,
+          borderRadius: "5px",
+          borderColor: "#CFD4DB",
+        }}
       />
-    ),
+      <Button
+        variant="outlined"
+        onClick={handleOpenFilterModal}
+        sx={{
+          height: "40px",
+          borderRadius: "5px",
+          border: "1px solid #CFD4DB",
+          fontWeight: 400,
+          fontSize: "body-s",
+          textTransform: "capitalize",
+        }}
+      >
+        <FilterListIcon
+          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+        />{" "}
+        Filter
+      </Button>
+    </Box>,
   ].filter(Boolean);
   const postListActions = (
     <TopToolbar
@@ -817,7 +805,7 @@ export const RedeemRecordsList = (props) => {
                 display: "flex",
                 justifyContent: "center",
                 width: "100% !important",
-                margin:"16px 0px"
+                margin: "16px 0px",
               }}
             >
               <CustomPagination
@@ -847,6 +835,16 @@ export const RedeemRecordsList = (props) => {
           />
         </>
       )}
+      <ReedemFilterDialog
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        searchBy={searchBy}
+        setSearchBy={setSearchBy}
+        role={role}
+        filterValues={filterValues}
+        setFilters={setFilters}
+        handleSearchByChange={handleSearchByChange}
+      />
       {permissions === "Super-User" && (
         <>
           <FinalRejectRedeemDialog
