@@ -32,6 +32,7 @@ import ReferralDialog from "./dialog/ReferralDialog";
 import RedeemServiceDialog from "./dialog/RedeemService";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
+import FilterListIcon from "@mui/icons-material/FilterList";
 // mui
 import { Menu, MenuItem, Button, Box } from "@mui/material";
 // loader
@@ -47,6 +48,7 @@ import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import CustomPagination from "../Common/CustomPagination";
+import { UserFilterDialog } from "./dialog/UserFilterDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -318,6 +320,11 @@ export const UserList = (props) => {
   const [searchBy, setSearchBy] = useState("username");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  const handleOpenFilterModal = () => {
+    setFilterModalOpen(true);
+  };
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
@@ -431,56 +438,40 @@ export const UserList = (props) => {
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
-    <SearchInput
-      source={searchBy}
+    <Box
+      key="search-filter"
+      sx={{ display: "flex", alignItems: "center", gap: 1 }}
       alwaysOn
-      resettable
-      sx={{ width: { xs: "100%", sm: "auto" }, minWidth: "200px" }}
-    />,
-    <SelectInput
-      source="searchBy"
-      label="Search By"
-      validate={required()}
-      alwaysOn
-      value={searchBy}
-      onChange={(e) => {
-        const newSearchBy = e.target.value || "username";
-        handleSearchByChange(newSearchBy);
-      }}
-      sx={{ width: { xs: "100%", sm: "auto" } }}
-      choices={
-        role === "Super-User"
-          ? [
-              { id: "username", name: "Username" },
-              { id: "email", name: "Email" },
-              { id: "userParentName", name: "Parent Name" },
-            ]
-          : [
-              { id: "username", name: "Username" },
-              { id: "email", name: "Email" },
-            ]
-      }
-    />,
-  ];
-  // Conditionally add SelectInput if role is "Super-User"
-  if (role === "Super-User") {
-    dataFilters.push(
-      <SelectInput
-        source="role"
-        label="Role"
-        emptyText={"All"}
+    >
+      <SearchInput
+        source={searchBy}
         alwaysOn
-        sx={{ width: { xs: "100%", sm: "auto" } }}
         resettable
-        choices={[
-          { id: "Super-User", name: "Super-User" },
-          { id: "Player", name: "Player" },
-          { id: "Agent", name: "Agent" },
-          { id: "Master-Agent", name: "Master-Agent" },
-        ]}
+        placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          minWidth: "200px",
+          marginBottom: 1,
+          borderRadius: "5px",
+          borderColor: "#CFD4DB",
+        }}
       />
-    );
-  }
+      <Button
+        variant="outlined"
+        onClick={handleOpenFilterModal}
+        sx={{
+          height: "40px",
+          borderRadius: "5px",
+          border: "1px solid #CFD4DB",
+          fontWeight: 400,
+          fontSize: "body-s",
+          textTransform: "capitalize",
+        }}
+      >
+        <FilterListIcon sx={{ marginRight: "6px", width:"16px", height:"16px" }} /> Filter
+      </Button>
+    </Box>,
+  ];
 
   const PostListActions = () => (
     <TopToolbar
@@ -672,6 +663,16 @@ export const UserList = (props) => {
           referralCode={referralCode}
         />
       </List>
+      <UserFilterDialog
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        searchBy={searchBy}
+        setSearchBy={setSearchBy}
+        role={role}
+        filterValues={filterValues}
+        setFilters={setFilters}
+        handleSearchByChange={handleSearchByChange}
+      />
     </>
   );
 };
