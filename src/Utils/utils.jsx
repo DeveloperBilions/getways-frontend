@@ -330,8 +330,8 @@ export const fetchTransactionsofAgent = async ({
     const pipeline = [
       { 
         $match: { 
-          userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
-          status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+          // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
+          status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
           createdAt: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
         } 
@@ -343,7 +343,7 @@ export const fetchTransactionsofAgent = async ({
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
           }, // Sum only recharge transactions
           totalRedeem: { 
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
           }, // Sum only redeem transactions
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
@@ -402,8 +402,8 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
     const pipeline = [
       {
         $match: {
-          userParentId: { $exists: true, $ne: null },
-          status: { $in: [2, 3, 8, 12] },
+          // userParentId: { $exists: true, $ne: null },
+          status: { $in: [2, 3, 4, 8, 12] },
           transactionAmount: { $gt: 0 },
         },
       },
@@ -411,13 +411,19 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
         $group: {
           _id: {
             agent: "$userParentId",
-            date: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+            date: { 
+              $dateToString: { 
+                format: dateFormat, 
+                date: "$createdAt",
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Add local timezone
+              }
+            },
           },
           totalRecharge: {
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] },
           },
           totalRedeem: {
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] },
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] },
           },
           totalCashout: {
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] },
@@ -495,8 +501,8 @@ export const fetchTransactionsofPlayer = async ({
     const pipeline = [
       { 
         $match: {
-          username: { $exists: true, $ne: null }, // Ensure valid username
-          status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+          // username: { $exists: true, $ne: null }, // Ensure valid username
+          status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
           createdAt: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
         } 
@@ -508,7 +514,7 @@ export const fetchTransactionsofPlayer = async ({
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
           }, // Sum only recharge transactions
           totalRedeem: { 
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
           }, // Sum only redeem transactions
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
@@ -558,8 +564,8 @@ export const fetchTransactionsofAgentByDate = async ({
 
     // Step 2: Fetch transactions grouped by userParentId
     const matchConditions = {
-      userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
-      status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+      // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
+      status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
       createdAt: { $gte: start, $lte: end },
       transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
     };
@@ -572,12 +578,21 @@ export const fetchTransactionsofAgentByDate = async ({
       { $match: matchConditions },
       { 
         $group: {
-          _id: { agent: "$userParentId", date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } },
+          _id: { 
+            agent: "$userParentId", 
+            date: { 
+              $dateToString: { 
+                format: "%Y-%m-%d", 
+                date: "$createdAt",
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Add local timezone
+              } 
+            }
+          },
           totalRecharge: { 
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
           }, // Sum only recharge transactions
           totalRedeem: { 
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
           }, // Sum only redeem transactions
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
@@ -733,8 +748,8 @@ export const fetchPlayerTransactionComparison = async ({ sortOrder = "desc", sel
     const pipeline = [
       {
         $match: {
-          username: { $exists: true, $ne: null }, // Ensure valid username
-          status: { $in: [2, 3, 8, 12] },
+          // username: { $exists: true, $ne: null }, // Ensure valid username
+          status: { $in: [2, 3, 4, 8, 12] },
           transactionAmount: { $gt: 0 },
         },
       },
@@ -742,13 +757,19 @@ export const fetchPlayerTransactionComparison = async ({ sortOrder = "desc", sel
         $group: {
           _id: {
             username: "$username",
-            date: { $dateToString: { format: dateFormat, date: "$createdAt" } },
+            date: { 
+              $dateToString: { 
+                format: dateFormat, 
+                date: "$createdAt",
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              }
+            },
           },
           totalRecharge: {
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] },
           },
           totalRedeem: {
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] },
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] },
           },
           totalCashout: {
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] },
@@ -817,8 +838,8 @@ export const fetchTransactionsofPlayerByDate = async ({
 
     // Step 2: Fetch transactions grouped by playerId and date
     const matchConditions = {
-      userId: { $exists: true, $ne: null }, // Ensure valid userId
-      status: { $in: [2, 3, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
+      // userId: { $exists: true, $ne: null }, // Ensure valid userId
+      status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
       createdAt: { $gte: start, $lte: end },
       transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
     };
@@ -831,12 +852,21 @@ export const fetchTransactionsofPlayerByDate = async ({
       { $match: matchConditions },
       { 
         $group: {
-          _id: { player: "$userId", date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } } },
+          _id: { 
+            player: "$userId", 
+            date: { 
+              $dateToString: { 
+                format: "%Y-%m-%d", 
+                date: "$createdAt",
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              } 
+            } 
+          },
           totalRecharge: { 
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
           }, // Sum only recharge transactions
           totalRedeem: { 
-            $sum: { $cond: [{ $eq: ["$status", 8] }, "$transactionAmount", 0] }
+            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
           }, // Sum only redeem transactions
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }

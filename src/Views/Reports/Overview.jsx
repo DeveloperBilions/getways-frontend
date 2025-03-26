@@ -43,8 +43,8 @@ export const Overview = () => {
       console.log(fromDate, toDate, "date");
       setLoading(true);
       const filter = {};
-      if (fromDate) filter.startDate = fromDate;
-      if (toDate) filter.endDate = toDate;
+      if (fromDate) filter.fromDate = fromDate;
+      if (toDate) filter.toDate = toDate;
 
       const result = await dataProvider.getList("Report", {
         pagination: { page: 1, perPage: 1000 },

@@ -410,7 +410,9 @@ export const dataProvider = {
         matchConditions.push({
           $or: [
             { userParentId: { $in: userIds } },
-            { userId: { $in: userIds } },
+            ...(selectedUser.get("roleName") === "Player" 
+              ? [{ userId: { $in: userIds } }] 
+              : [])
           ],
         });
       }
