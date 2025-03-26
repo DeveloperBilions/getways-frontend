@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { sendMoneyToPayPal } from "../Utils/sendMoney";
 import { getParentUserId, updatePotBalance } from "../Utils/utils";
 import axios from "axios";
+import { processTransfiDeposit } from "../Utils/transfi";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1620,32 +1621,36 @@ if (role === "Super-User" && !filter?.username) {
 
       if (!useWallet) {
         // Process Stripe transaction
-        session = await axios.post(
-          "https://api.nowpayments.io/v1/invoice",
-          {
-            price_amount: parseFloat(transactionAmount) / 100,
-            price_currency: "usd", // Change if required
-            pay_currency: "btc",   // You can change this to any crypto they support
-            ipn_callback_url: `${process.env.REACT_APP_REDIRECT_URL}`, // callback if needed
-            order_id: `ORDER-${id}-${Date.now()}`, // dynamic order ID
-            order_description: `Payment by ${username}`,
-            is_fixed_rate:true,
-            success_url: process.env.REACT_APP_REDIRECT_URL,
-            cancel_url: process.env.REACT_APP_REDIRECT_URL_CANCEL
-          },
-          {
-            headers: {
-              "x-api-key": process.env.REACT_APP_NOWPAYMENTS_API_KEY, // Store API key in env
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const { invoice_url } = session.data;
+        // session = await axios.post(
+        //   "https://api.nowpayments.io/v1/invoice",
+        //   {
+        //     price_amount: parseFloat(transactionAmount) / 100,
+        //     price_currency: "usd", // Change if required
+        //     pay_currency: "btc",   // You can change this to any crypto they support
+        //     ipn_callback_url: `${process.env.REACT_APP_REDIRECT_URL}`, // callback if needed
+        //     order_id: `ORDER-${id}-${Date.now()}`, // dynamic order ID
+        //     order_description: `Payment by ${username}`,
+        //     is_fixed_rate:true,
+        //     success_url: process.env.REACT_APP_REDIRECT_URL,
+        //     cancel_url: process.env.REACT_APP_REDIRECT_URL_CANCEL
+        //   },
+        //   {
+        //     headers: {
+        //       "x-api-key": process.env.REACT_APP_NOWPAYMENTS_API_KEY, // Store API key in env
+        //       "Content-Type": "application/json",
+        //     },
+        //   }
+        // );
+        // const { invoice_url } = session.data;
     
-        transactionDetails.set("status", 1); // Pending
-        transactionDetails.set("referralLink", `https://nowpayments.io/payment/?iid=${session?.data?.id}`); // Payment link from NOWPayments
-        transactionDetails.set("transactionIdFromStripe",session.data.id);
-        session = session?.data
+        // transactionDetails.set("status", 1); // Pending
+        // transactionDetails.set("referralLink", `https://nowpayments.io/payment/?iid=${session?.data?.id}`); // Payment link from NOWPayments
+        // transactionDetails.set("transactionIdFromStripe",session.data.id);
+        session = await processTransfiDeposit(transactionAmount,user.get("email"),user.get("name"),user.get("username"))
+         transactionDetails.set("status", 1); // Pending
+        transactionDetails.set("referralLink", session?.paymentUrl); // Payment link from NOWPayments
+        transactionDetails.set("transactionIdFromStripe",session.orderId);
+        session = session
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
         const parentUserId = await getParentUserId(id);
