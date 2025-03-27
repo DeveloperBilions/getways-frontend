@@ -8,7 +8,7 @@ import {
   FilterForm,
 } from "react-admin";
 import debounce from "lodash/debounce"; // Import Lodash debounce
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, TextField, useMediaQuery } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
 // mui
 import {
@@ -642,6 +642,7 @@ export const DataSummary = () => {
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
   const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleUserChange = (selectedId) => {
     setSelectedUsertemp(selectedId);
@@ -1143,7 +1144,7 @@ export const DataSummary = () => {
     setSelectedUser(selectedUsertemp);
   };
   return (
-    <React.Fragment>
+    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
         <Box sx={{ px: { xs: 1, sm: 2 } }}>
@@ -1295,6 +1296,6 @@ export const DataSummary = () => {
           endDate={endDate}
         />
       </ListBase>
-    </React.Fragment>
+    </Box>
   );
 };
