@@ -989,13 +989,12 @@ if (role === "Super-User" && !filter?.username) {
         };
         return res;
       }else if (resource === "Report") {
-        const { fromDate, toDate } = params.filter || {};
-    
+        const { startDate, endDate } = params.filter || {};
         const dateFilter = {};
-        if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
-        if (toDate) dateFilter.transactionDate = {
+        if (startDate) dateFilter.transactionDate = { $gte: new Date(startDate) };
+        if (endDate) dateFilter.transactionDate = {
             ...dateFilter.transactionDate,
-            $lte: new Date(toDate)
+            $lte: new Date(endDate)
         };
     
         const queryPipeline = [
