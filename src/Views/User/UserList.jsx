@@ -294,7 +294,7 @@ export const UserList = (props) => {
     filterValues,
     setFilters,
     setSort,
-  } = listContext;  
+  } = listContext;
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -401,42 +401,36 @@ export const UserList = (props) => {
   };
 
   useEffect(() => {
-    // Compare current filterValues with previous filterValues
     const prevFilterValues = prevFilterValuesRef.current;
     const filterValuesChanged =
       JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
 
-    // Update the ref with current filterValues for the next run
     prevFilterValuesRef.current = filterValues;
 
-    // Skip if no meaningful change
-    if (!filterValuesChanged) {
-      return;
-    }
-    const currentSearchValue = filterValues[searchBy] || "";
+    if (!filterValuesChanged) return;
+
     const newFilters = {
       searchBy,
+      ...(filterValues[searchBy] && { [searchBy]: filterValues[searchBy] }),
+      ...(filterValues.role && { role: filterValues.role }),
     };
 
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[searchBy] = currentSearchValue;
-    }
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    const cleanedFilters = Object.keys(filterValues)
-      .filter(
-        (key) =>
-          !searchFields.includes(key) || key === searchBy || key === "role"
-      )
-      .reduce((obj, key) => {
-        obj[key] = filterValues[key];
-        return obj;
-      }, {});
-
-    setFilters({ ...cleanedFilters, ...newFilters }, false);
+    // Apply comprehensive filters
+    setFilters(
+      {
+        ...Object.fromEntries(
+          Object.entries(filterValues).filter(
+            ([key]) => !searchFields.includes(key) || key === "role"
+          )
+        ),
+        ...newFilters,
+        $or: [
+          { userReferralCode: "" },
+          { userReferralCode: null }
+        ],
+      },
+      false
+    );
   }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [

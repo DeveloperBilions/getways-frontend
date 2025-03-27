@@ -33,6 +33,11 @@ export const RechargeFilterDialog = ({
           { id: "remark", name: "Remark" },
           { id: "userParentName", name: "Parent Name" },
         ]
+      : role === "Player"
+      ? [
+          { id: "transactionAmount", name: "Recharge" },
+          { id: "remark", name: "Remark" },
+        ]
       : [
           { id: "username", name: "Account" },
           { id: "transactionAmount", name: "Recharge" },
@@ -52,7 +57,7 @@ export const RechargeFilterDialog = ({
       searchBy: searchBy,
     };
 
-    if (localStatus) {
+    if (localStatus !== "") {
       newFilters.status = localStatus;
     }
 
@@ -70,7 +75,7 @@ export const RechargeFilterDialog = ({
             value={searchBy}
             label="Search By"
             onChange={(e) => {
-              const newSearchBy = e.target.value || "username";
+              const newSearchBy = e.target.value;
               handleSearchByChange(newSearchBy);
             }}
           >

@@ -96,7 +96,7 @@ export const RedeemRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
-  const [searchBy, setSearchBy] = useState("username");
+  const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -170,11 +170,23 @@ export const RedeemRecordsList = (props) => {
   };
 
   useEffect(() => {
+    if (role === "Player") {
+      setSearchBy("");
+       setFilters(
+         {
+           type: "recharge",
+           status: 6,
+         },
+         false
+       );
+    } else {
+      setSearchBy("username");
+    }
     const interval = setInterval(() => {
       handleRefresh();
-    }, 60000); // 60,000 ms = 1 minute
+    }, 60000);
 
-    return () => clearInterval(interval); // Cleanup when unmounted
+    return () => clearInterval(interval);
   }, []);
   const handleExportPDF = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
@@ -283,6 +295,7 @@ export const RedeemRecordsList = (props) => {
     const currentSearchValue = filterValues[searchBy] || "";
     const newFilters = {
       searchBy,
+      ...(role === "Player" ? { status: 6 } : {}),
     };
 
     if (currentSearchValue && currentSearchValue.trim() !== "") {
@@ -296,7 +309,7 @@ export const RedeemRecordsList = (props) => {
     const cleanedFilters = Object.keys(filterValues)
       .filter(
         (key) =>
-          !searchFields.includes(key) || key === searchBy || key === "role"
+          !searchFields.includes(key) || key === searchBy
       )
       .reduce((obj, key) => {
         obj[key] = filterValues[key];
