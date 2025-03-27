@@ -264,6 +264,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                           border: "1px solid #E7E7E7",
                           borderRadius: "8px",
                         }}
+                        onClick={onClose}
                       >
                         Cancel
                       </Button>

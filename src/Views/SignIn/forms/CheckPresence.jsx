@@ -24,6 +24,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../Assets/icons/Logo.svg";
 import { Label } from "reactstrap";
+import "../../../Assets/css/style.css"
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -171,7 +172,7 @@ const LoginPage = () => {
             <Form component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
               <Label className="custom-label">Email / Phone</Label>
 
-              <OutlinedInput
+              {/* <OutlinedInput
                 required
                 fullWidth
                 id="emailPhone"
@@ -188,7 +189,47 @@ const LoginPage = () => {
                 }}
                 autoFocus
                 {...register("emailPhone")}
+              /> */}
+              <Box sx={{ position: 'relative', width: '100%' }}>
+              {/* <Label className="custom-label">Email / Phone</Label> */}
+              <OutlinedInput
+                required
+                fullWidth
+                id="emailPhone"
+                type="text"
+                name="emailPhone"
+                autoComplete="tel"
+                sx={{
+                  mb: 2,
+                  height: "40px",
+                  // Complete border override
+                  '& fieldset': {
+                    border: '1px solid black !important',
+                    borderWidth: '1px !important',
+                  },
+                  '&:hover fieldset': {
+                    border: '1px solid black !important',
+                  },
+                  '&.Mui-focused fieldset': {
+                    border: '1px solid black !important',
+                    borderWidth: '1px !important',
+                  },
+                  // Remove all animations
+                  transition: 'none !important',
+                  // Fix for text color
+                  '& input': {
+                    color: 'black !important',
+                  },
+                  // Fix for autofill
+                  '& input:-webkit-autofill': {
+                    '-webkit-text-fill-color': 'black !important',
+                    '-webkit-box-shadow': '0 0 0 1000px white inset !important',
+                  },
+                }}
+                autoFocus
+                {...register("emailPhone")}
               />
+            </Box>
 
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>

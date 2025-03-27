@@ -270,7 +270,7 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
             flexWrap: { xs: "wrap", md: "nowrap" }, 
           }}
         >
-          {[10, 20, 50, 100, 200, 500].map((amount) => (
+          {[20, 50, 100, 200, 500].map((amount) => (
             <Button
               key={amount}
               variant="outlined"

@@ -5,7 +5,6 @@ import { Loader } from "../Loader";
 import { useNavigate } from "react-router-dom";
 import Recharge from "./Recharge";
 import Redeem from "./Redeem";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import RechargeDark from "../../Assets/icons/recharge-dark.svg";
 import RechargeLight from "../../Assets/icons/recharge-light.svg";
@@ -311,48 +310,6 @@ export const PlayerList = () => {
   }
   return (
     <Box>
-      <Box sx={{ width: "100%", padding: 0, margin: 0 }}>
-        <Box
-          sx={{
-            width: "100%",
-            padding: 0,
-            margin: 0,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              width: "fit-content",
-            }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<CardGiftcardIcon style={{ fontSize: "15px" }} />}
-              sx={{
-                mt: 2,
-                fontSize: "13px",
-                textTransform: "capitalize",
-                background: "linear-gradient(135deg, #6D5BBA, #8D58BF)",
-                boxShadow: "0 4px 14px rgba(109, 91, 186, 0.4)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #8D58BF, #A26DD4)",
-                  boxShadow: "0 6px 20px rgba(109, 91, 186, 0.5)",
-                },
-              }}
-              onClick={() => {
-                navigate("/gift-card-history");
-              }}
-            >
-              Gift Card History
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-
       <Box sx={{ mt: 2, mb: 2 }}>
         <Stack
           direction="row"

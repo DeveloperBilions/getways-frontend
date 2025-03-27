@@ -3,6 +3,7 @@ import { Modal, ModalHeader, ModalBody, Button, ListGroup, ListGroupItem, Alert 
 import { TextField, CircularProgress, IconButton } from "@mui/material";
 import { Parse } from "parse";
 import { MdDelete } from "react-icons/md";
+import "../../../Assets/css/EmergencyDialog.css";
 
 const EmergencyMessageDialog = ({ open, onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -88,15 +89,31 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={onClose} centered>
-      <ModalHeader toggle={onClose}>Manage Emergency Messages</ModalHeader>
-      <ModalBody>
-        {error && <Alert color="danger">{error}</Alert>}
+    <Modal isOpen={open} toggle={onClose} centered className="emergency-modal">
+      <ModalHeader toggle={onClose} className="emergency-modal-header">
+        Manage Emergency Messages
+      </ModalHeader>
+      <ModalBody className="emergency-modal-body">
+        {error && (
+          <Alert color="danger" className="emergency-alert">
+            {error}
+          </Alert>
+        )}
         {success && (
-          <Alert color="success">
+          <Alert color="success" className="emergency-alert">
             Emergency messages updated successfully!
           </Alert>
         )}
+
+        {/* <TextField fullWidth
+          label="Enter Emergency Message"
+          variant="outlined"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          error={Boolean(newMessageError)}
+          helperText={newMessageError}
+          className="emergency-text-field"
+        /> */}
 
         <TextField
           fullWidth
@@ -106,21 +123,66 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
           onChange={(e) => setNewMessage(e.target.value)}
           error={Boolean(newMessageError)}
           helperText={newMessageError}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              height: "48px",
+              backgroundColor: "var(--secondary-color)",
+              "& fieldset": {
+                borderColor: "#CFD4DB", // Default border
+              },
+              "&:hover fieldset": {
+                borderColor: "black", // Hover state
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "black", // Focus state
+                borderWidth: "1px !important",
+              },
+            },
+            "& .MuiInputLabel-root": {
+              color: "black", // Label color
+              "&.Mui-focused": {
+                color: "black", // Focused label color
+              },
+            },
+            //  mb: 2, // Margin bottom
+          }}
         />
-        <Button color="primary" className="mt-2" onClick={handleAddMessage}>
-          Add Message
-        </Button>
 
-        <ListGroup className="mt-3">
+        <div className="emergency-add-button-container">
+          <Button
+            className="emergency-button primary add-message"
+            onClick={handleAddMessage}
+          >
+            Add Message
+          </Button>
+        </div>
+
+        {/* <ListGroup className="emergency-list-group">
           {messages.map((msg, index) => (
             <ListGroupItem
               key={index}
-              className="d-flex justify-content-between align-items-center"
+              className="emergency-list-item"
             >
               {msg}
               <IconButton
                 color="error"
                 onClick={() => handleDeleteMessage(index)}
+                className="emergency-icon-button"
+              >
+                <MdDelete />
+              </IconButton>
+            </ListGroupItem>
+          ))}
+        </ListGroup> */}
+
+        <ListGroup className="emergency-list-group">
+          {messages.map((msg, index) => (
+            <ListGroupItem key={index} className="emergency-list-item">
+              <div className="emergency-list-content">{msg}</div>
+              <IconButton
+                color="error"
+                onClick={() => handleDeleteMessage(index)}
+                className="emergency-icon-button"
               >
                 <MdDelete />
               </IconButton>
@@ -128,16 +190,25 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
           ))}
         </ListGroup>
 
-        <div className="text-end mt-4">
+        <div className="emergency-footer">
           <Button
-            color="primary"
+            className="emergency-button primary"
             onClick={handleSave}
             disabled={loading}
-            className="me-2"
+            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
           >
-            {loading ? <CircularProgress size={20} color="inherit" /> : "Save"}
+            {loading ? (
+              <CircularProgress size={20} className="emergency-loader" />
+            ) : (
+              "Save"
+            )}
           </Button>
-          <Button color="secondary" onClick={onClose} disabled={loading}>
+          <Button
+            className="emergency-button secondary"
+            onClick={onClose}
+            disabled={loading}
+            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
+          >
             Cancel
           </Button>
         </div>

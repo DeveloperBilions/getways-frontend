@@ -216,7 +216,7 @@ const LoginPage = () => {
                 value={emailPhoneParams}
               />
 
-              <Label className="custom-label">Password</Label>
+              {/* <Label className="custom-label">Password</Label>
               <OutlinedInput
                 margin="normal"
                 required
@@ -247,7 +247,50 @@ const LoginPage = () => {
                   </InputAdornment>
                 }
                 {...register("password", inputValidations["password"])}
-              />
+              /> */}
+              <Box sx={{ position: "relative", width: "100%" }}>
+                <Label className="custom-label">Password</Label>
+                <OutlinedInput
+                  fullWidth
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  sx={{
+                    mb: 2,
+                    height: "40px",
+                    backgroundColor: "var(--secondary-color)",
+                    // Border styling
+                    "& fieldset": {
+                      border: "1px solid black",
+                    },
+                    "&:hover fieldset": {
+                      border: "1px solid black",
+                    },
+                    "&.Mui-focused fieldset": {
+                      border: "1px solid black",
+                    },
+                    // Remove default Material-UI label space
+                    "& .MuiInputLabel-root": {
+                      display: "none",
+                    },
+                  }}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                        sx={{ color: "black" }} // Optional: style the eye icon
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                  {...register("password", inputValidations["password"])}
+                />
+              </Box>
               {errors.password && (
                 <FormHelperText>{errors.password.message}</FormHelperText>
               )}

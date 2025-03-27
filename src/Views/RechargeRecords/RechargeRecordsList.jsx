@@ -31,6 +31,7 @@ import {
   ListItemIcon,
   Typography,
   Box,
+  useMediaQuery,
 } from "@mui/material";
 // mui icon
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -45,6 +46,11 @@ import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircularProgress from "@mui/material/CircularProgress";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import Reload from "../../Assets/icons/reload.svg";
+import Download from "../../Assets/icons/download.svg";
+import CopyLink from "../../Assets/icons/copy-link.svg";
+import Dollar from "../../Assets/icons/dollar.svg";
+import Success from "../../Assets/icons/success.svg";
 // pdf xls
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
@@ -94,10 +100,11 @@ export const RechargeRecordsList = (props) => {
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-  
-    const handleOpenFilterModal = () => {
-      setFilterModalOpen(true);
-    };
+  const isMobile = useMediaQuery("(max-width:600px)");
+
+  const handleOpenFilterModal = () => {
+    setFilterModalOpen(true);
+  };
 
   const role = localStorage.getItem("role");
 
@@ -354,14 +361,27 @@ export const RechargeRecordsList = (props) => {
     <TopToolbar
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
-        alignItems: "center",
-        justifyContent: "flex-end", // Align buttons to the right
+        // flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        alignItems: "space-between",
+        justifyContent: isMobile ? "space-between" : "flex-end",
         gap: 2, // Add space between buttons
-        p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
-        width: "100%", // Ensure full width for the toolbar
+        // p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+        width: "100%",
       }}
     >
+      {isMobile && (
+        <Box>
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            Recharge records
+          </Typography>
+        </Box>
+      )}
       {permissions === "Player" && (
         <Button
           variant="contained"
@@ -373,28 +393,82 @@ export const RechargeRecordsList = (props) => {
           Recharge
         </Button>
       )}
-
-      <Button
-        variant="contained"
-        color="secondary"
-        size="small"
-        startIcon={<AutorenewIcon />}
-        onClick={handleRefresh}
-        sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
-      >
-        Refresh
-      </Button>
-
-      {permissions !== "Player" && (
+      {!isMobile && (
         <Button
           variant="contained"
+          color="secondary"
           size="small"
-          startIcon={<GetAppIcon />}
-          onClick={handleMenuOpen}
-          sx={{ width: { xs: "100%", sm: "auto" } }} // Full width on small screens
+          startIcon={<img src={Reload} alt="reload" />}
+          onClick={handleRefresh}
+          sx={{
+            width: { xs: "100%", sm: "119px" },
+            height: { xs: "100%", sm: "40px" },
+            backgroundColor: "var(--secondary-color)",
+            color: "var(--primary-color)",
+            mb: 1,
+          }} 
         >
-          Export
+          <Typography
+            sx={{
+              fontSize: "16px",
+              fontWeight: 500,
+              color: "var(--primary-color)",
+              textTransform: "none",
+            }}
+          >
+            Refresh
+          </Typography>
         </Button>
+      )}
+
+      {permissions !== "Player" && (
+        <>
+          {isMobile ? (
+            <Box
+              onClick={handleMenuOpen}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                width: "60px",
+                height: "40px",
+                borderRadius: "4px",
+              }}
+            >
+              <img src={Download} alt="Add User" width="20px" height="20px" />
+            </Box>
+          ) : (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={
+                <img src={Download} alt="Add User" width="20px" height="20px" />
+              }
+              onClick={handleMenuOpen}
+              sx={{
+                width: { xs: "100%", sm: "119px" },
+                height: { xs: "100%", sm: "40px" },
+                backgroundColor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                mb: 1,
+              }} // Full width on small screens
+            >
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  color: "var(--secondary-color)",
+                  textTransform: "none",
+                }}
+              >
+                Export
+              </Typography>
+            </Button>
+          )}
+        </>
       )}
       <Menu
         anchorEl={menuAnchor}
@@ -450,10 +524,29 @@ export const RechargeRecordsList = (props) => {
     );
   }
   return (
-    <>
+    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
-
+      {!isMobile && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: "8px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            Recharge records
+          </Typography>
+        </Box>
+      )}
       <Box
         sx={{
           display: "flex",
@@ -531,6 +624,9 @@ export const RechargeRecordsList = (props) => {
                   maxWidth: "150px",
                   whiteSpace: "nowrap",
                 },
+                "& .MuiTableCell-head": {
+                  fontWeight: 600,
+                },
               }}
             >
               <FunctionField
@@ -540,7 +636,7 @@ export const RechargeRecordsList = (props) => {
                     <Button
                       variant="outlined"
                       size="small"
-                      startIcon={<MonetizationOnIcon />}
+                      startIcon={<img src={Dollar} alt="Dollar" />}
                       onClick={() => handleCoinCredit(record)}
                       sx={{
                         mr: 1,
@@ -568,7 +664,7 @@ export const RechargeRecordsList = (props) => {
                           backgroundColor: "#EBEEFF",
                           border: "1px solid #607BFF",
                         }}
-                        startIcon={<ContentCopyIcon />}
+                        startIcon={<img src={CopyLink} alt="Copy Link" />}
                         onClick={() => handleUrlClick(record)}
                       >
                         Copy
@@ -603,6 +699,7 @@ export const RechargeRecordsList = (props) => {
                     <Button
                       variant="outlined"
                       size="small"
+                      startIcon={<img src={Success} alt="Success" />}
                       sx={{
                         mr: 1,
                         color: "black",
@@ -642,19 +739,17 @@ export const RechargeRecordsList = (props) => {
                   const getColor = (status) => {
                     switch (status) {
                       case 3:
-                        return "#EBFFEC";
+                        return { color: "#EBFFEC", borderColor: "#60FF6D" };
                       case 2:
-                        return "#EBEEFF";
+                        return { color: "#EBEEFF", borderColor: "#607BFF" };
                       case 1:
-                        return "#FFFCEB";
+                        return { color: "#FFFCEB", borderColor: "#FFDC60" };
                       case 0:
-                        return "#FFEBEB";
                       case 9:
-                        return "#FFEBEB";
                       case 10:
-                        return "#FFEBEB";
+                        return { color: "#FFEBEB", borderColor: "#FF6060" };
                       default:
-                        return "default";
+                        return { color: "default", borderColor: "default" };
                     }
                   };
                   const statusMessage = {
@@ -670,8 +765,13 @@ export const RechargeRecordsList = (props) => {
                       label={statusMessage}
                       sx={{
                         color: "black",
-                        backgroundColor: getColor(record.status),
+                        backgroundColor: getColor(record.status).color,
+                        border: `1px solid ${
+                          getColor(record.status).borderColor
+                        }`,
                         borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: 400,
                       }}
                       size="small"
                       variant="outlined"
@@ -753,6 +853,6 @@ export const RechargeRecordsList = (props) => {
           handleRefresh={handleRefresh}
         />
       )}
-    </>
+    </Box>
   );
 };

@@ -43,7 +43,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
               fontWeight: "bold",
               mb: 3,
               color: "white",
-              backgroundColor: "#1976d2",
+              backgroundColor: "#000",
               p: 1.5,
               borderRadius: "8px",
               letterSpacing: 1,
@@ -61,7 +61,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
                 sx={{
                   fontWeight: "bold",
                   mb: 1,
-                  color: "#1976d2",
+                  color: "#000",
                   textTransform: "uppercase",
                 }}
               >
@@ -71,8 +71,9 @@ const HelpVideoModal = ({ open, handleClose }) => {
                 sx={{
                   p: 1,
                   borderRadius: 2,
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                  backgroundColor: "rgba(0, 0, 0, 0.05)",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  border: "1px solid #ddd",
                 }}
               >
                 <video
@@ -81,7 +82,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   controls
                   style={{
                     borderRadius: "8px",
-                    boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.3)",
+                    boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
                   }}
                 >
                   <source src={video1} type="video/mp4" />
@@ -97,7 +98,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
                 sx={{
                   fontWeight: "bold",
                   mb: 1,
-                  color: "#388e3c",
+                  color: "#000",
                   textTransform: "uppercase",
                 }}
               >
@@ -107,8 +108,9 @@ const HelpVideoModal = ({ open, handleClose }) => {
                 sx={{
                   p: 1,
                   borderRadius: 2,
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+                  backgroundColor: "rgba(0, 0, 0, 0.05)",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  border: "1px solid #ddd",
                 }}
               >
                 <video
@@ -117,7 +119,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   controls
                   style={{
                     borderRadius: "8px",
-                    boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.3)",
+                    boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
                   }}
                 >
                   <source src={video2} type="video/mp4" />
@@ -130,7 +132,6 @@ const HelpVideoModal = ({ open, handleClose }) => {
           {/* Close Button */}
           <Button
             variant="contained"
-            color="error"
             onClick={handleClose}
             sx={{
               mt: 3,
@@ -138,9 +139,9 @@ const HelpVideoModal = ({ open, handleClose }) => {
               py: 1.2,
               fontSize: "1rem",
               fontWeight: "bold",
-              backgroundColor: "#d32f2f",
+              backgroundColor: "#000",
               "&:hover": {
-                backgroundColor: "#b71c1c",
+                backgroundColor: "#333",
                 transform: "scale(1.05)",
                 transition: "0.3s ease-in-out",
               },

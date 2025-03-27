@@ -13,6 +13,7 @@ import { BiLogoVenmo } from "react-icons/bi";
 import { SiZelle } from "react-icons/si";
 import { Switch, CircularProgress } from "@mui/material";
 import { Snackbar, Alert as MuiAlert } from "@mui/material";
+import '../../../Assets/css/DisablePaymentMethodDialog.css';
 import { Parse } from "parse";
 
 const DisablePaymentMethodDialog = ({ open, onClose }) => {
@@ -105,50 +106,44 @@ const DisablePaymentMethodDialog = ({ open, onClose }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={onClose} centered>
-      <ModalHeader toggle={onClose}>Manage Payment Methods</ModalHeader>
-      <ModalBody>
+    <Modal isOpen={open} toggle={onClose} centered className="payment-modal">
+      <ModalHeader toggle={onClose} className="payment-modal-header">Manage Payment Methods</ModalHeader>
+      <ModalBody className="payment-modal-body">
         {error && (
-          <Alert color="danger" className="mb-3">
+          <Alert color="danger" className="payment-alert">
             {error}
           </Alert>
         )}
          {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert color="success" className="payment-alert">
             Payment methods changed successfully
           </Alert>
         )}
-        <ListGroup flush>
+        <ListGroup flush className="payment-list-group">
           {Object.keys(disableMethods).map((method) => (
             <ListGroupItem
               key={method}
-              style={{
-                background: "transparent",
-                border: "none",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+              className="payment-list-item"
             >
-              <div className="d-flex align-items-center">
+              <div className="payment-list-content">
                 {method === "cashAppId" && (
                   <FaCashRegister
-                    style={{ marginRight: "10px", color: "#FFD700" }}
+                    style={{ marginRight: "8px", color: "#FFD700" }}
                   />
                 )}
                 {method === "paypalId" && (
                   <FaPaypal
-                    style={{ marginRight: "10px", color: "#0070BA" }}
+                    style={{ marginRight: "8px", color: "#0070BA" }}
                   />
                 )}
                 {method === "venmoId" && (
                   <BiLogoVenmo
-                    style={{ marginRight: "10px", color: "#3D95CE" }}
+                    style={{ marginRight: "8px", color: "#3D95CE" }}
                   />
                 )}
                 {method === "zelleId" && (
                   <SiZelle
-                    style={{ marginRight: "10px", color: "#6C757D" }}
+                    style={{ marginRight: "8px", color: "#6C757D" }}
                   />
                 )}
                 <strong>{method.replace("Id", "").toUpperCase()}:</strong>
@@ -161,20 +156,20 @@ const DisablePaymentMethodDialog = ({ open, onClose }) => {
             </ListGroupItem>
           ))}
         </ListGroup>
-        <div className="text-end mt-4">
+        <div className="payment-footer">
           <Button
-            color="primary"
+            className="payment-button primary"
             onClick={handleSave}
             disabled={loading}
-            className="me-2"
+            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
           >
             {loading ? (
-              <CircularProgress size={20} color="inherit" />
+              <CircularProgress size={20} className="payment-loader" />
             ) : (
               "Save"
             )}
           </Button>
-          <Button color="secondary" onClick={onClose} disabled={loading}>
+          <Button className="payment-button secondary" style={{display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose} disabled={loading}>
             Cancel
           </Button>
         </div>

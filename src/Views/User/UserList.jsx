@@ -34,7 +34,7 @@ import RedeemServiceDialog from "./dialog/RedeemService";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
 // mui
-import { Menu, MenuItem, Button, Box } from "@mui/material";
+import { Menu, MenuItem, Button, Box, useMediaQuery, Typography } from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
@@ -49,6 +49,7 @@ import PersistentMessage from "../../Utils/View/PersistentMessage";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import CustomPagination from "../Common/CustomPagination";
 import { UserFilterDialog } from "./dialog/UserFilterDialog";
+import AddUser from "../../Assets/icons/AddUser.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -300,6 +301,7 @@ export const UserList = (props) => {
   const { identity } = useGetIdentity();
   // const [create, { isPending, error }] = useCreate();
   const role = localStorage.getItem("role");
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   if (!role) {
     navigate("/login");
@@ -477,14 +479,28 @@ export const UserList = (props) => {
     <TopToolbar
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
-        alignItems: "center",
-        justifyContent: "flex-end", // Align buttons to the right
+        // flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        alignItems: "space-between",
+        justifyContent: isMobile ? "space-between" : "flex-end",
         gap: 2, // Add space between buttons
-        p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+        // p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
         width: "100%", // Ensure full width for the toolbar
       }}
     >
+      {isMobile && (
+        <Box>
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            User management
+          </Typography>
+        </Box>
+      )}
+      <Box>
       {role != "Super-User" && role != "Master-Agent" && (
         <Button
           variant="contained"
@@ -500,20 +516,30 @@ export const UserList = (props) => {
           Referral Link
         </Button>
       )}
-
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<PersonAddAlt1Icon />}
-        onClick={handleCreateUser}
-        sx={{
-          width: { xs: "100%", sm: "auto" },
-          backgroundColor: "var(--primary-color)",
-          color: "var(--secondary-color)",
-        }} // Full width on small screens
-      >
-        Add New User
-      </Button>
+      {isMobile ?(
+        <Box onClick={handleCreateUser} sx={{cursor: "pointer", display: "flex", alignItems: "center",justifyContent:"center",bgcolor: "var(--primary-color)",color:"var(--secondary-color)",width:"60px",height:"40px",borderRadius:"4px"}}>
+          <img src={AddUser} alt="Add User" width="20px" height="20px" />
+        </Box>
+      ):(
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<img src={AddUser} alt="Add User" width="20px" height="20px" />}
+          onClick={handleCreateUser}
+          sx={{
+            width: { xs: "100%", sm: "191px" },
+            height:{xs:"100%", sm:"48px"},
+            backgroundColor: "var(--primary-color)",
+            color: "var(--secondary-color)",
+            mb:1
+          }} // Full width on small screens
+        >
+          <Typography sx={{fontSize:"16px", fontWeight: 500, color: "var(--secondary-color)"}}>
+          Add New User
+          </Typography>
+        </Button>
+      )}
+      </Box>
     </TopToolbar>
   );
 
@@ -546,9 +572,16 @@ export const UserList = (props) => {
   }
 
   return (
-    <>
+    <Box sx={{ml: isMobile? 2:0, mr:  isMobile? 2:0}}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
+      {!isMobile && (
+        <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mt: "8px"}}>
+          <Typography sx={{fontSize:"24px", fontWeight: 400, color: "var(--primary-color)"}}>
+            User management
+          </Typography>
+        </Box>
+      )}
       <List
         title="User Management"
         filters={dataFilters}
@@ -612,6 +645,9 @@ export const UserList = (props) => {
                     height: "620px",
                   },
                 },
+                "& .MuiTableCell-head": {
+                  fontWeight: 600
+                },
               }}
             >
               <WrapperField label="Actions">
@@ -673,6 +709,6 @@ export const UserList = (props) => {
         setFilters={setFilters}
         handleSearchByChange={handleSearchByChange}
       />
-    </>
+    </Box>
   );
 };

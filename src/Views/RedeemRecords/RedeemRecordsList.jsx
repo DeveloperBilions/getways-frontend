@@ -29,6 +29,7 @@ import {
   ListItemIcon,
   Typography,
   Box,
+  useMediaQuery,
 } from "@mui/material";
 // mui icon
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -59,6 +60,8 @@ import EmergencyNotices from "../../Layout/EmergencyNotices";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
 import { ReedemFilterDialog } from "./dialog/RedeemFilterDialog";
+import Reload from "../../Assets/icons/reload.svg";
+import Download from "../../Assets/icons/download.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -97,6 +100,7 @@ export const RedeemRecordsList = (props) => {
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleOpenFilterModal = () => {
     setFilterModalOpen(true);
@@ -372,7 +376,7 @@ export const RedeemRecordsList = (props) => {
             fontSize: "12px",
             lineHeight: "150%",
             letterSpacing: "1.2%",
-            verticalAlign: "middle",            
+            verticalAlign: "middle",
             color: "var(--semantic-warning, #F59E0B)",
             padding: "0 4px",
           }}
@@ -384,35 +388,107 @@ export const RedeemRecordsList = (props) => {
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          alignItems: "center",
-          justifyContent: "flex-end",
-          p: { xs: 1, sm: 0 },
-          width: { xs: "100%", sm: "auto" },
-          gap: { xs: 1, sm: 2 },
-          
+          // flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+          alignItems: "space-between",
+          justifyContent: isMobile ? "space-between" : "flex-end",
+          gap: 2, // Add space between buttons
+          // p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+          width: "100%",
         }}
       >
-        <Button
-          variant="contained"
-          size="small"
-          color="secondary"
-          startIcon={<AutorenewIcon />}
-          onClick={handleRefresh}
-          sx={{ width: { xs: "100%", sm: "auto" } }}
-        >
-          Refresh
-        </Button>
-        {permissions !== "Player" && (
+        {isMobile && (
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "24px",
+                fontWeight: 400,
+                color: "var(--primary-color)",
+              }}
+            >
+              Redeem records
+            </Typography>
+          </Box>
+        )}
+        {!isMobile && (
           <Button
             variant="contained"
+            color="secondary"
             size="small"
-            startIcon={<GetAppIcon />}
-            onClick={handleMenuOpen}
-            sx={{ width: { xs: "100%", sm: "auto" } }}
+            startIcon={<img src={Reload} alt="reload" />}
+            onClick={handleRefresh}
+            sx={{
+              width: { xs: "100%", sm: "119px" },
+              height: { xs: "100%", sm: "40px" },
+              backgroundColor: "var(--secondary-color)",
+              color: "var(--primary-color)",
+              mb: 1,
+            }}
           >
-            Export
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 500,
+                color: "var(--primary-color)",
+                textTransform: "none",
+              }}
+            >
+              Refresh
+            </Typography>
           </Button>
+        )}
+        {permissions !== "Player" && (
+          <>
+            {isMobile ? (
+              <Box
+                onClick={handleMenuOpen}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  width: "60px",
+                  height: "40px",
+                  borderRadius: "4px",
+                }}
+              >
+                <img src={Download} alt="Add User" width="20px" height="20px" />
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={
+                  <img
+                    src={Download}
+                    alt="Add User"
+                    width="20px"
+                    height="20px"
+                  />
+                }
+                onClick={handleMenuOpen}
+                sx={{
+                  width: { xs: "100%", sm: "119px" },
+                  height: { xs: "100%", sm: "40px" },
+                  backgroundColor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  mb: 1,
+                }} // Full width on small screens
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 500,
+                    color: "var(--secondary-color)",
+                    textTransform: "none",
+                  }}
+                >
+                  Export
+                </Typography>
+              </Button>
+            )}
+          </>
         )}
 
         <Menu
@@ -471,10 +547,29 @@ export const RedeemRecordsList = (props) => {
     );
   }
   return (
-    <>
+    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
-
+      {!isMobile && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: "8px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            Redeem records
+          </Typography>
+        </Box>
+      )}
       {identity?.role === "Agent" && identity?.balance < 500 && (
         <Alert severity="error" sx={{ mb: 2 }}>
           Your balance is too low to approve transactions.
@@ -568,6 +663,9 @@ export const RedeemRecordsList = (props) => {
                   maxWidth: "150px",
                   whiteSpace: "nowrap",
                 },
+                "& .MuiTableCell-head": {
+                  fontWeight: 600,
+                },
               }}
               rowStyle={(record) => {
                 if (identity?.role === "Super-User" && record?.status === 11) {
@@ -612,16 +710,16 @@ export const RedeemRecordsList = (props) => {
                               <Button
                                 size="small"
                                 sx={{
-                                  minWidth: "30px",
-                                  minHeight: "30px",
+                                  minWidth: "36px",
+                                  minHeight: "36px",
                                   backgroundColor: isBalanceLow
                                     ? "#E0E0E0"
-                                    : "#CCFFD6",
+                                    : "#EBFFEC",
                                   border: `1px solid ${
-                                    isBalanceLow ? "#BDBDBD" : "#4CAF50"
+                                    isBalanceLow ? "#BDBDBD" : "#60FF6D"
                                   }`,
-                                  color: isBalanceLow ? "#9E9E9E" : "#4CAF50",
-                                  borderRadius: "8px",
+                                  color: isBalanceLow ? "#9E9E9E" : "black",
+                                  borderRadius: "6px",
                                   "&:hover": {
                                     backgroundColor: isBalanceLow
                                       ? "#E0E0E0"
@@ -644,12 +742,12 @@ export const RedeemRecordsList = (props) => {
                             <Button
                               size="small"
                               sx={{
-                                minWidth: "30px",
-                                minHeight: "30px",
-                                backgroundColor: "#FFD6D6",
-                                border: "1px solid #FF5252",
-                                color: "#FF5252",
-                                borderRadius: "8px",
+                                minWidth: "36px",
+                                minHeight: "36px",
+                                backgroundColor: "#FFEBEB",
+                                border: "1px solid #FF6060",
+                                color: "black",
+                                borderRadius: "6px",
                                 "&:hover": { backgroundColor: "#FFBFBF" },
                               }}
                               onClick={() => {
@@ -670,12 +768,12 @@ export const RedeemRecordsList = (props) => {
                             <Button
                               size="small"
                               sx={{
-                                minWidth: "30px",
-                                minHeight: "30px",
-                                backgroundColor: "#CCFFD6",
-                                border: "1px solid #4CAF50",
-                                color: "#4CAF50",
-                                borderRadius: "8px",
+                                minWidth: "36px",
+                                minHeight: "36px",
+                                backgroundColor: "#EBFFEC",
+                                border: "1px solid #60FF6D",
+                                color: "black",
+                                borderRadius: "6px",
                                 "&:hover": { backgroundColor: "#B2FFC4" },
                               }}
                               onClick={() => {
@@ -693,12 +791,12 @@ export const RedeemRecordsList = (props) => {
                           <Button
                             size="small"
                             sx={{
-                              minWidth: "30px",
-                              minHeight: "30px",
-                              backgroundColor: "#FFD6D6",
-                              border: "1px solid #FF5252",
-                              color: "#FF5252",
-                              borderRadius: "8px",
+                              minWidth: "36px",
+                              minHeight: "36px",
+                              backgroundColor: "#FFEBEB",
+                              border: "1px solid #FF6060",
+                              color: "black",
+                              borderRadius: "6px",
                               "&:hover": { backgroundColor: "#FFBFBF" },
                             }}
                             onClick={() => {
@@ -743,23 +841,18 @@ export const RedeemRecordsList = (props) => {
                   const getColor = (status) => {
                     switch (status) {
                       case 4:
-                        return "#EBFFEC";
                       case 12:
-                        return "#EBFFEC";
-                      case 5:
-                        return "#FFEBEB";
-                      case 13:
-                        return "#FFEBEB";
-                      case 6:
-                        return "#FFFCEB";
-                      case 7:
-                        return "#FFEBEB";
                       case 8:
-                        return "#EBFFEC";
+                        return { color: "#EBFFEC", borderColor: "#60FF6D" };
+                      case 5:
+                      case 13:
+                      case 7:
                       case 9:
-                        return "#FFEBEB";
+                        return { color: "#FFEBEB", borderColor: "#FF6060" };
+                      case 6:
+                        return { color: "#FFFCEB", borderColor: "#FFDC60" };
                       default:
-                        return "default";
+                        return { color: "default", borderColor: "default" };
                     }
                   };
                   const statusMessage = {
@@ -778,7 +871,10 @@ export const RedeemRecordsList = (props) => {
                       label={statusMessage}
                       sx={{
                         color: "black",
-                        backgroundColor: getColor(record.status),
+                        backgroundColor: getColor(record.status).color,
+                        border: `1px solid ${
+                          getColor(record.status).borderColor
+                        }`,
                         borderRadius: "8px",
                       }}
                       size="small"
@@ -862,6 +958,6 @@ export const RedeemRecordsList = (props) => {
           />
         </>
       )}
-    </>
+    </Box>
   );
 };
