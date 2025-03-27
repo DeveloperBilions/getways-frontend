@@ -1,27 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   useGetIdentity,
   useGetList,
   Loading,
-  SearchInput,
-  List,
-  TextInput,
-  SelectInput,
-  AutocompleteInput,
   DateInput,
-  SimpleForm,
-  SimpleShowLayout,
-  useListContext,
   ListBase,
   FilterForm,
-  minValue,
-  maxValue,
 } from "react-admin";
-import { Loader, KPILoader } from "../Loader";
 import debounce from "lodash/debounce"; // Import Lodash debounce
 import { Autocomplete, TextField } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
-import GroupsIcon from "@mui/icons-material/Groups";
 // mui
 import {
   Typography,
@@ -30,33 +18,31 @@ import {
   Grid,
   Box,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Button,
   Menu,
   ListItemIcon,
 } from "@mui/material";
-// mui icons
-import PersonIcon from "@mui/icons-material/Person";
-import PaidIcon from "@mui/icons-material/Paid";
-import ErrorIcon from "@mui/icons-material/Error";
-import WarningIcon from "@mui/icons-material/Warning";
-import { Label } from "reactstrap";
-import AOGSymbol from "../../Assets/icons/AOGsymbol.png";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import TaskAltIcon from "@mui/icons-material/TaskAlt";
-import ReportGmailerrorredIcon from "@mui/icons-material/ReportGmailerrorred";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
+import TotalUser from "../../Assets/icons/TotalUser.svg"
+import TotalRecharge from "../../Assets/icons/TotalRecharge.svg"
+import PendingRecharge from "../../Assets/icons/PendingRecharge.svg"
+import FailedRedeem from "../../Assets/icons/FailedRedeem.svg"
+import TotalCashoutRedeemSuccessfull from "../../Assets/icons/TotalCashoutRedeemSuccessfull.svg"
+import TotalCashoutRedeemPending from "../../Assets/icons/TotalCashoutRedeemPending.svg"
+import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg"
+import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg"
+import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg"
 
 const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
@@ -160,7 +146,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#FFEBEB",
             borderColor: "#FF9C9C",
-            icon: <WarningIcon color="warning" sx={{ mr: 1 }} />,
+            icon: (
+              <img
+                src={TotalRecharge_Filtered}
+                alt="Total Recharge Filtered"
+                style={{ marginRight: "4px" }}
+              />
+            ),
             filter:
               role === "Super-User" ? (
                 <FormControl fullWidth>
@@ -190,7 +182,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       value: data[0].totalRegisteredUsers,
       bgColor: "#EBF4FF",
       borderColor: "#7EB9FB",
-      icon: <GroupsIcon color="primary" sx={{ mr: 1 }} />,
+      icon: (
+        <img src={TotalUser} alt="Total User" style={{ marginRight: "4px" }} />
+      ),
     },
     {
       id: 2,
@@ -198,7 +192,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       value: data[0].totalAgents,
       bgColor: "#EEEBFF",
       borderColor: "#937EFB",
-      icon: <GroupsIcon color="info" sx={{ mr: 1 }} />,
+      icon: (
+        <img
+          src={TotalUser}
+          alt="Total Agent"
+          style={{ marginRight: "4px" }}
+        />
+      ),
     },
     {
       id: 3,
@@ -221,7 +221,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
-      icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
+      icon: (
+        <img
+          src={TotalRecharge}
+          alt="Total Recharge"
+          style={{ marginRight: "4px" }}
+        />
+      ),
     },
     {
       id: 4,
@@ -244,7 +250,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       ),
       bgColor: "#F4F0F9",
       borderColor: "#C4B0DF",
-      icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
+      icon: (
+        <img
+          src={TotalRecharge}
+          alt="Total Redeem"
+          style={{ marginRight: "4px" }}
+        />
+      ),
     },
     {
       id: 5,
@@ -267,7 +279,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       ),
       bgColor: "#FFFCEB",
       borderColor: "#FFE787",
-      icon: <WarningIcon color="warning" sx={{ mr: 1 }} />,
+      icon: (
+        <img
+          src={PendingRecharge}
+          alt="Total Recharge"
+          style={{ marginRight: "4px" }}
+        />
+      ),
     },
     {
       id: 6,
@@ -290,7 +308,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       ),
       bgColor: "#FFEBEB",
       borderColor: "#FF9C9C",
-      icon: <ErrorIcon color="error" sx={{ mr: 1 }} />,
+      icon: (
+        <img
+          src={FailedRedeem}
+          alt="Fail Redeem"
+          style={{ marginRight: "4px" }}
+        />
+      ),
     },
     ...(role === "Super-User"
       ? [
@@ -315,7 +339,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#EBFFF1",
             borderColor: "#9CFFBD",
-            icon: <TaskAltIcon color="info" sx={{ mr: 1 }} />,
+            icon: (
+              <img
+                src={TotalCashoutRedeemSuccessfull}
+                alt="Total Cashout Redeem Successfull"
+                style={{ marginRight: "4px" }}
+              />
+            ),
           },
           {
             id: 8,
@@ -338,7 +368,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#FCFFEB",
             borderColor: "#EEFF9C",
-            icon: <ReportGmailerrorredIcon color="info" sx={{ mr: 1 }} />,
+            icon: (
+              <img
+                src={TotalCashoutRedeemPending}
+                alt="Total Cashout Redeem Pending"
+                style={{ marginRight: "4px" }}
+              />
+            ),
           },
           // {
           //   id: 10,
@@ -369,7 +405,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#FDEBFF",
             borderColor: "#F79CFF",
-            icon: <PaidIcon color="info" sx={{ mr: 1 }} />,
+            icon: (
+              <img
+                src={TotalFeesCharged}
+                alt="Total Fees Charged"
+                style={{ marginRight: "4px" }}
+              />
+            ),
           },
           {
             id: 9,
@@ -377,7 +419,13 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             value: data[0].totalRechargeByType?.wallet,
             bgColor: "#FFF3EB",
             borderColor: "#FFC79C",
-            icon: <AccountBalanceWalletIcon color="info" sx={{ mr: 1 }} />,
+            icon: (
+              <img
+                src={TotalWalletBalance}
+                alt="Total Wallet Balance"
+                style={{ marginRight: "4px" }}
+              />
+            ),
           },
         ]
       : []),

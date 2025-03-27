@@ -4,10 +4,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AppBar from "@mui/material/AppBar";
 import {
   RefreshButton,
@@ -22,11 +19,12 @@ import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMetho
 import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
 import AllRedeemService from "../Views/User/dialog/AllRedeemService";
 import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
-import { padding, useMediaQuery } from "@mui/system";
+import { useMediaQuery } from "@mui/system";
 import { useState } from "react";
 import { walletService } from "../Provider/WalletManagement";
 import { useEffect } from "react";
 import AOG_Symbol from "../Assets/icons/AOGsymbol.png";
+import Account from "../Assets/icons/Account.svg";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -61,6 +59,9 @@ export default function MyAppBar(props) {
   };
 
   useEffect(() => {
+    const hash = window.location.hash.replace(/^#\//, "");
+    const pathSegments = hash.split("?");
+    setActiveTab(pathSegments[0] || "users");
     getBalance();
   }, []);
 
@@ -250,24 +251,6 @@ export default function MyAppBar(props) {
             </Box>
           )}
           {role !== "Player" && !isMobile && (
-            <Box sx={{ ml: 1, minWidth: 0 }}>
-              <Typography
-                noWrap
-                variant="subtitle2"
-                sx={{
-                  color: "white",
-                  fontWeight: 500,
-                  fontSize: { xs: "0.8rem", md: "1rem" },
-                  maxWidth: { xs: "100px", md: "200px" },
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {identity?.name}
-              </Typography>
-            </Box>
-          )}
-          {role !== "Player" && !isMobile && (
             <RefreshButton
               label=""
               icon={
@@ -286,7 +269,16 @@ export default function MyAppBar(props) {
               }}
             />
           )}
-          <UserMenu sx={{ ml: 1 }}>
+          <UserMenu
+            icon={
+              <img
+                src={Account}
+                alt="Account"
+                style={{ width: 19, height: 19 }}
+              />
+            }
+            sx={{ ml: 1 }}
+          >
             <Box sx={{ width: "248px" }}>
               {(role === "Agent" ||
                 role === "Player" ||
@@ -378,6 +370,23 @@ export default function MyAppBar(props) {
               </MenuItem>{" "}
             </Box>
           </UserMenu>
+          {role !== "Player" && !isMobile && (
+            <Box sx={{ mr: 2, minWidth: 0 }}>
+              <Typography
+                noWrap
+                variant="subtitle2"
+                sx={{
+                  color: "white",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {identity?.name}
+              </Typography>
+            </Box>
+          )}
           {isMobile && role !== "Player" && (
             <IconButton
               edge="start"

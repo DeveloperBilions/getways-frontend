@@ -65,7 +65,13 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
-  const listContext = useListController(props); // ✅ Use useListController
+  const listContext = useListController({
+    ...props,
+    filter:
+      props.identity?.role === "Player"
+        ? { type: "recharge", status: 1 }
+        : { type: "recharge" },
+  });
   const {
     data,
     isLoading,
@@ -90,14 +96,14 @@ export const RechargeRecordsList = (props) => {
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [exportError, setExportError] = useState(null); // Store any export errors
-  const [searchBy, setSearchBy] = useState("username");
+  const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-  
-    const handleOpenFilterModal = () => {
-      setFilterModalOpen(true);
-    };
+
+  const handleOpenFilterModal = () => {
+    setFilterModalOpen(true);
+  };
 
   const role = localStorage.getItem("role");
 
@@ -164,12 +170,25 @@ export const RechargeRecordsList = (props) => {
     refresh();
   };
   useEffect(() => {
+    if (role === "Player") {
+      setSearchBy("");
+      setFilters(
+        {
+          type: "recharge",
+          status: 1,
+        },
+        false
+      );
+    } else {
+      setSearchBy("username"); // Optional reset
+    }
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
 
     return () => clearInterval(interval); // Cleanup when unmounted
   }, []);
+  
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
     setCreditCoinDialogOpen(true);
@@ -288,6 +307,7 @@ export const RechargeRecordsList = (props) => {
     const currentSearchValue = filterValues[searchBy] || "";
     const newFilters = {
       searchBy,
+      ...(role === "Player" ? { status: 1 } : {}),
     };
 
     if (currentSearchValue && currentSearchValue.trim() !== "") {
@@ -301,7 +321,7 @@ export const RechargeRecordsList = (props) => {
     const cleanedFilters = Object.keys(filterValues)
       .filter(
         (key) =>
-          !searchFields.includes(key) || key === searchBy || key === "role"
+          !searchFields.includes(key) || key === searchBy
       )
       .reduce((obj, key) => {
         obj[key] = filterValues[key];

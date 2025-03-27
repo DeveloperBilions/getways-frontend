@@ -33,6 +33,11 @@ export const ReedemFilterDialog = ({
           { id: "remark", name: "Remark" },
           { id: "userParentName", name: "Parent Name" },
         ]
+      : role === "Player"
+      ? [
+          { id: "transactionAmount", name: "Redeem" },
+          { id: "remark", name: "Remark" },
+        ]
       : [
           { id: "username", name: "Account" },
           { id: "transactionAmount", name: "Redeem" },
@@ -77,7 +82,7 @@ export const ReedemFilterDialog = ({
             value={searchBy}
             label="Search By"
             onChange={(e) => {
-              const newSearchBy = e.target.value || "username";
+              const newSearchBy = e.target.value;
               handleSearchByChange(newSearchBy);
             }}
           >

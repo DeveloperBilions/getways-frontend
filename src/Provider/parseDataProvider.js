@@ -218,6 +218,7 @@ export const dataProvider = {
        }
 
        count = await query.count({ useMasterKey: true });
+       console.log(count,"wdw");
      } else if (resource === "redeemRecords") {
        const Resource = Parse.Object.extend("TransactionRecords");
        query = new Parse.Query(Resource);
