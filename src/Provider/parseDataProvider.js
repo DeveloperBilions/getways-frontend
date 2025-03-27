@@ -583,32 +583,47 @@ export const dataProvider = {
       }
 
       const summary = {
-        totalRechargeAmount:
-          newResults[0]?.totalRechargeAmount?.[0]?.total || 0,
-        totalRedeemAmount: newResults[0]?.totalRedeemAmount?.[0]?.total || 0,
-        totalPendingRechargeAmount:
-          newResults[0]?.totalPendingRechargeAmount?.[0]?.total || 0,
-        totalCashoutRedeemsSuccess:
-          newResults[0]?.totalCashoutRedeemsSuccess?.[0]?.total || 0,
-        totalCashoutRedeemsInProgress:
-          newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0,
-        totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0,
-        totalAmt: newResults[0]?.totalAmt?.[0]?.total || 0,
-        totalFeesCharged: newResults[0]?.totalFeesCharged?.[0]?.total || 0,
-        totalRedeemSuccessful:
-          newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0,
-        totalFailRedeemAmount:
-          newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0,
-        totalRegisteredUsers,
-        totalAgents,
+        totalRechargeAmount: Number(
+          (newResults[0]?.totalRechargeAmount?.[0]?.total || 0).toFixed(2)
+        ),
+        totalRedeemAmount: Number(
+          (newResults[0]?.totalRedeemAmount?.[0]?.total || 0).toFixed(2)
+        ),
+        totalPendingRechargeAmount: Number(
+          (newResults[0]?.totalPendingRechargeAmount?.[0]?.total || 0).toFixed(2)
+        ),
+        totalCashoutRedeemsSuccess: Number(
+          (newResults[0]?.totalCashoutRedeemsSuccess?.[0]?.total || 0).toFixed(2)
+        ),
+        totalCashoutRedeemsInProgress: Number(
+          (newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0).toFixed(2)
+        ),
+        totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0, // Keep as integer
+        totalAmt: Number(
+          (newResults[0]?.totalAmt?.[0]?.total || 0).toFixed(2)
+        ),
+        totalFeesCharged: Number(
+          (newResults[0]?.totalFeesCharged?.[0]?.total || 0).toFixed(2)
+        ),
+        totalRedeemSuccessful: newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0, // Count stays as integer
+        totalFailRedeemAmount: Number(
+          (newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0).toFixed(2)
+        ),
+        totalRegisteredUsers: Number((totalRegisteredUsers || 0) || 0),
+        totalAgents: Number((totalAgents || 0) || 0),
         totalRechargeByType: {
-          wallet: newResults[0]?.totalRechargeByType?.[0]?.wallet || 0,
-          others:
-            newResults[0]?.totalRechargeAmount?.[0]?.total -
-            newResults[0]?.totalRechargeByType?.[0]?.wallet,
+          wallet: Number(
+            (newResults[0]?.totalRechargeByType?.[0]?.wallet || 0).toFixed(2)
+          ),
+          others: Number(
+            (
+              (newResults[0]?.totalRechargeAmount?.[0]?.total || 0) -
+              (newResults[0]?.totalRechargeByType?.[0]?.wallet || 0)
+            ).toFixed(2)
+          ),
         },
       };
-
+      
       result = calculateDataSummariesForSummary({
         id: role === "Super-User" ? 0 : 1,
         users: data,
