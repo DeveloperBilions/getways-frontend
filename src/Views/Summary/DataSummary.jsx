@@ -43,6 +43,7 @@ import TotalCashoutRedeemPending from "../../Assets/icons/TotalCashoutRedeemPend
 import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg"
 import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg"
 import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg"
+import Download from "../../Assets/icons/download.svg";
 
 const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
@@ -1187,7 +1188,7 @@ export const DataSummary = () => {
             >
               <Button
                 variant="contained"
-                startIcon={<GetAppIcon />}
+                startIcon={<img src={Download} alt="Export" />}
                 onClick={handleMenuRedeemOpen}
                 sx={{
                   width: { xs: "100%", md: "auto" },
@@ -1198,7 +1199,7 @@ export const DataSummary = () => {
               </Button>
               <Button
                 variant="contained"
-                startIcon={<GetAppIcon />}
+                startIcon={<img src={Download} alt="Export" />}
                 onClick={handleMenuOpen}
                 sx={{
                   width: { xs: "100%", md: "auto" },
