@@ -179,23 +179,38 @@ export const Reports = () => {
     <TableHead>
       <TableRow>
         <TableCell>Agent Name</TableCell>
-        <TableCell>Total Transaction Amount</TableCell>
-        <TableCell>Total Fees Collected</TableCell>
-        <TableCell>Total Ticket Amount</TableCell>
+        <TableCell>Wallet Recharge</TableCell>
+        <TableCell>Payment Portal</TableCell>
+        <TableCell>Total Redeem</TableCell>
+        <TableCell>Total Transaction</TableCell>
+        <TableCell>Total Fees</TableCell>
+        <TableCell>Total Ticket</TableCell>
+        <TableCell>Ticket Paid to Agent</TableCell> {/* ✅ New column */}
+        <TableCell>Last Ticket Paid Date</TableCell> {/* ✅ New column */}
       </TableRow>
     </TableHead>
     <TableBody>
       {data?.map((row, index) => (
         <TableRow key={index}>
           <TableCell>{row.userParentName || "N/A"}</TableCell>
-          <TableCell>{row.totalTransactionAmount.toFixed(2)}</TableCell>
-          <TableCell>{row.totalFees.toFixed(2)}</TableCell>
-          <TableCell>{row.totalTicketAmount.toFixed(2)}</TableCell>
+          <TableCell>{row.walletRechargeAmount?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.paymentPortalAmount?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.redeemCount?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.totalTransactionAmount?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.totalFees?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.totalTicketAmount?.toFixed(2) || "0.00"}</TableCell>
+          <TableCell>{row.ticketPaidToAgent?.toFixed(2) || "0.00"}</TableCell> {/* ✅ Value */}
+          <TableCell>
+            {row.lastTicketPaidDate
+              ? new Date(row.lastTicketPaidDate?.iso).toLocaleString()
+              : "N/A"}
+          </TableCell>
         </TableRow>
       ))}
     </TableBody>
   </Table>
 </TableContainer>
+
 
       {loading ? (
         <Grid container justifyContent="center">

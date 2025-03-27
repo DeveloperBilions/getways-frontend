@@ -988,7 +988,7 @@ if (role === "Super-User" && !filter?.username) {
           total: count,
         };
         return res;
-      } else if (resource === "Report") {
+      }else if (resource === "Report") {
         const { fromDate, toDate } = params.filter || {};
     
         const dateFilter = {};
@@ -999,58 +999,144 @@ if (role === "Super-User" && !filter?.username) {
         };
     
         const queryPipeline = [
-            { $match: dateFilter },
-            {
-                $match: {
-                    transactionAmount: { $gt: 0, $type: "number" }, // Only valid amounts
-                    userParentId: { $exists: true, $ne: null }
+          {
+              $match: {
+                  ...dateFilter,
+                  transactionAmount: { $gt: 0, $type: "number" },
+                  userParentId: { $exists: true, $ne: null }
+              }
+          },
+          {
+              $group: {
+                  _id: "$userParentId",
+                  walletRechargeAmount: {
+                      $sum: {
+                          $cond: [
+                              { $and: [{ $eq: ["$useWallet", true] }, { $in: ["$status", [2, 3]] }] },
+                              "$transactionAmount",
+                              0
+                          ]
+                      }
+                  },
+                  paymentPortalAmount: {
+                      $sum: {
+                          $cond: [
+                              {
+                                  $and: [
+                                      { $or: [{ $eq: ["$useWallet", false] }, { $not: ["$useWallet"] }] },
+                                      { $in: ["$status", [2, 3]] }
+                                  ]
+                              },
+                              "$transactionAmount",
+                              0
+                          ]
+                      }
+                  },
+                  redeemCount: {
+                      $sum: {
+                          $cond: [
+                              { $in: ["$status", [4, 8]] },
+                              "$transactionAmount",
+                              0
+                          ]
+                      }
+                  }
+              }
+          },
+          {
+              $project: {
+                  userParentId: "$_id",
+                  walletRechargeAmount: 1,
+                  paymentPortalAmount: 1,
+                  redeemCount: 1,
+                  totalTransactionAmount: {
+                      $add: ["$walletRechargeAmount", "$paymentPortalAmount"]
+                  },
+                  totalFees: {
+                      $multiply: [
+                          { $add: ["$walletRechargeAmount", "$paymentPortalAmount"] },
+                          0.11
+                      ]
+                  },
+                  _id: 0
+              }
+          },
+          {
+              $project: {
+                  userParentId: 1,
+                  walletRechargeAmount: 1,
+                  paymentPortalAmount: 1,
+                  redeemCount: 1,
+                  totalTransactionAmount: 1,
+                  totalFees: 1,
+                  totalTicketAmount: {
+                      $subtract: ["$totalTransactionAmount", "$totalFees"]
+                  }
+              }
+          },
+          {
+              $lookup: {
+                  from: "_User",
+                  localField: "userParentId",
+                  foreignField: "_id",
+                  as: "parentUserData"
+              }
+          },
+          {
+              $unwind: { path: "$parentUserData", preserveNullAndEmptyArrays: true }
+          },
+          {
+            $lookup: {
+              from: "DrawerAgent",
+              let: { userId: "$userParentId" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ["$userId", "$$userId"] }
+                  }
+                },
+                {
+                  $sort: { createdAt: -1 } // Sort by latest
+                },
+                {
+                  $limit: 1 // Take the latest one
+                },
+                {
+                  $project: {
+                    totalTicketPaid: "$amount",
+                    lastPaidDate: "$_created_at"
+                  }
                 }
-            },
-            {
-                $group: {
-                    _id: "$userParentId",
-                    totalTransactionAmount: { $sum: "$transactionAmount" },
-                    totalFees: { $sum: { $multiply: ["$transactionAmount", 0.11] } },
-                }
-            },
-            {
-                $project: {
-                    userParentId: "$_id",
-                    totalTransactionAmount: 1,
-                    totalFees: 1,
-                    totalTicketAmount: { $subtract: ["$totalTransactionAmount", "$totalFees"] },
-                    _id: 0
-                }
-            },
-            {
-                $lookup: {
-                    from: "_User",
-                    localField: "userParentId",
-                    foreignField: "_id",
-                    as: "parentUserData"
-                }
-            },
-            {
-                $unwind: { path: "$parentUserData", preserveNullAndEmptyArrays: true }
-            },
-            {
-                $project: {
-                    userParentId: 1,
-                    totalTransactionAmount: 1,
-                    totalFees: 1,
-                    totalTicketAmount: 1,
-                    userParentName: "$parentUserData.username"
-                }
-            },
-            {
-                $sort: { totalTransactionAmount: -1 } // optional sorting by highest amount
+              ],
+              as: "agentTicketInfo"
             }
-        ];
-    
+          },          
+          {
+              $unwind: { path: "$agentTicketInfo", preserveNullAndEmptyArrays: true }
+          },
+          {
+              $project: {
+                  userParentId: 1,
+                  userParentName: "$parentUserData.username",
+                  walletRechargeAmount: 1,
+                  paymentPortalAmount: 1,
+                  redeemCount: 1,
+                  totalTransactionAmount: 1,
+                  totalFees: 1,
+                  totalTicketAmount: 1,
+                  ticketPaidToAgent: "$agentTicketInfo.totalTicketPaid",
+                  lastTicketPaidDate: "$agentTicketInfo.lastPaidDate"
+              }
+          },
+          {
+              $sort: { totalTransactionAmount: -1 }
+          }
+      ];
         const newResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline);
-        console.log(newResults,"newResultsnewResultsnewResultsnewResultsnewResults")
+        console.log(newResults, "Report: wallet vs payment vs redeem breakdown");
         return newResults;
     }
+    
     
     
       else {
