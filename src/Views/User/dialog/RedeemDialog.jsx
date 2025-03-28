@@ -237,6 +237,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="userName"
                       type="text"
                       className="custom-input"
+                      style={{ backgroundColor: "#DEDEDE", border: "1px solid #A5AFBC" }}
                       value={userName}
                       required
                       disabled
@@ -454,7 +455,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   {loading ? "Processing..." : "Confirm"}
                 </Button>
                 <Button
-                  className="custom-button cancel"
+                  className="custom-button cancel mx-2"
                   onClick={handleClose}
                   // Check and open confirmation modal if needed
                 >

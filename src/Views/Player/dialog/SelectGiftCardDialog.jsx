@@ -327,7 +327,6 @@ const SelectGiftCardDialog = ({
                   >
                     <Typography
                       sx={{
-                        fontWeight: "500",
                         fontSize: "18px",
                         textTransform: "none",
                       }}
@@ -347,7 +346,6 @@ const SelectGiftCardDialog = ({
                   >
                     <Typography
                       sx={{
-                        fontWeight: "500",
                         fontSize: "18px",
                         textTransform: "none",
                       }}

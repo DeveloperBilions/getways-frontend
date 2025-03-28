@@ -619,7 +619,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                 >
                   Confirm
                 </Button>
-                <Button className="custom-button cancel" onClick={handleCancel}>
+                <Button className="custom-button cancel mx-2" onClick={handleCancel}>
                   Cancel
                 </Button>
               </Box>
