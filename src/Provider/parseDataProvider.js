@@ -112,7 +112,7 @@ export const dataProvider = {
 
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
-      usrQuery.limit(10000);
+      usrQuery.limit(100000);
       usrQuery.select(
         "objectId",
         "userParentId",
@@ -134,7 +134,7 @@ export const dataProvider = {
         if (agentIds.length > 0) {
           const playersQuery = new Parse.Query(Parse.User);
           playersQuery.containedIn("userParentId", agentIds);
-          playersQuery.limit(10000);
+          playersQuery.limit(100000);
           playersQuery.select(
             "objectId",
             "userParentId",
@@ -153,7 +153,7 @@ export const dataProvider = {
         }
       }
 
-      results.push(user);
+      // results.push(user);
       // console.log(results);
       var ids = results.map((r) => r.id);
       ids.push(user.id);
@@ -638,15 +638,18 @@ export const dataProvider = {
          //users
          console.log("SU", filter);
 
+         let userIds,data;
          if (filter?.username) {
            // console.log("IN IF");
            var userQuery = new Parse.Query(Parse.User);
-           var selectedUser = await userQuery.get(filter.username, {
-             useMasterKey: true,
-           });
-           var { ids, data } = await fetchUsers(selectedUser);
+           userQuery.equalTo("username", filter.username);
+           var selectedUser = await userQuery.first({useMasterKey: true});
+           const { ids: fetchedIds, data: fetchedData } = await fetchUsers(selectedUser);
+           userIds = fetchedIds;
+           data = fetchedData;
 
            const transactionQuery = new Parse.Query("TransactionRecords");
+           transactionQuery.limit(150000);
            transactionQuery.select(
              "userId",
              "status",
@@ -659,24 +662,23 @@ export const dataProvider = {
              "transactionDate",
              "username"
            );
-           transactionQuery.containedIn("userId", ids);
+           transactionQuery.containedIn("userId", userIds);
            filter.startDate &&
              transactionQuery.greaterThanOrEqualTo(
                "transactionDate",
-               new Date(filter.startDate).setHours(0, 0, 0, 0)
+               new Date(new Date(filter.startDate).setHours(0, 0, 0, 0))
              );
            filter.endDate &&
              transactionQuery.lessThanOrEqualTo(
                "transactionDate",
-               new Date(filter.endDate).setHours(23, 59, 59, 999)
+               new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
              );
-           transactionQuery.limit(100000);
            var results = await transactionQuery.find();
          } else {
            var userQuery = new Parse.Query(Parse.User);
-           userQuery.limit(100000);
+           userQuery.limit(150000);
            var results = await userQuery.find({ useMasterKey: true });
-           var data = results.map((o) => ({ id: o.id, ...o.attributes }));
+           data = results.map((o) => ({ id: o.id, ...o.attributes }));
            const currentUser = await Parse.User.current();
            data.push({ id: userid, ...currentUser.attributes });
 
@@ -705,13 +707,13 @@ export const dataProvider = {
                new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
              );
            console.log(transactionQuery, "transactionQuery");
-           transactionQuery.limit(100000);
+           transactionQuery.limit(150000);
            var results = await transactionQuery.find();
            console.log(results, "results");
          }
          // Fetch wallet balances for the users
          const walletQuery = new Parse.Query("Wallet");
-         const userIds = data.map((user) => user.id);
+         userIds = data.map((user) => user.id);
          walletQuery.containedIn("userID", userIds);
 
          const walletResults = await walletQuery.find({ useMasterKey: true });
