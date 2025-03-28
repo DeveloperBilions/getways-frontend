@@ -402,7 +402,7 @@ export const RechargeRecordsList = (props) => {
           </Typography>
         </Box>
       )}
-      {permissions === "Player" && (
+      {/* {permissions === "Player" && (
         <Button
           variant="contained"
           size="small"
@@ -412,7 +412,7 @@ export const RechargeRecordsList = (props) => {
         >
           Recharge
         </Button>
-      )}
+      )} */}
       {!isMobile && (
         <Button
           variant="contained"
@@ -604,7 +604,7 @@ export const RechargeRecordsList = (props) => {
         }
         filters={dataFilters}
         actions={postListActions}
-        sx={{ pt: 1 }}
+        // sx={{ pt: 1 }}
         empty={false}
         {...props}
         filter={

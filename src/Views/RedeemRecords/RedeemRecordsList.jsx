@@ -172,13 +172,13 @@ export const RedeemRecordsList = (props) => {
   useEffect(() => {
     if (role === "Player") {
       setSearchBy("");
-       setFilters(
-         {
-           type: "recharge",
-           status: 6,
-         },
-         false
-       );
+      setFilters(
+        {
+          type: "recharge",
+          status: 6,
+        },
+        false
+      );
     } else {
       setSearchBy("username");
     }
@@ -307,10 +307,7 @@ export const RedeemRecordsList = (props) => {
     }
 
     const cleanedFilters = Object.keys(filterValues)
-      .filter(
-        (key) =>
-          !searchFields.includes(key) || key === searchBy
-      )
+      .filter((key) => !searchFields.includes(key) || key === searchBy)
       .reduce((obj, key) => {
         obj[key] = filterValues[key];
         return obj;
@@ -367,37 +364,39 @@ export const RedeemRecordsList = (props) => {
         width: { xs: "100%", sm: "auto" },
       }}
     >
-      <Box
-        sx={{
-          width: { xs: "100%", sm: "auto" },
-          height: "26px",
-          borderRadius: "4px",
-          gap: "8px",
-          padding: "0 12px",
-          marginLeft: "10px",
-          background: "var(--semantic-warning-light, #FEF3C7)",
-          border: "1px solid var(--semantic-warning, #F59E0B)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontWeight: 400,
-            fontSize: "12px",
-            lineHeight: "150%",
-            letterSpacing: "1.2%",
-            verticalAlign: "middle",
-            color: "var(--semantic-warning, #F59E0B)",
-            padding: "0 4px",
+      {isMobile && (
+        <Box
+          sx={{
+            width: { xs: "100%", sm: "auto" },
+            height: "26px",
+            borderRadius: "4px",
+            gap: "8px",
+            padding: "0 12px",
+            marginLeft: "10px",
+            background: "var(--semantic-warning-light, #FEF3C7)",
+            border: "1px solid var(--semantic-warning, #F59E0B)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <InfoIcon style={{ marginRight: "4px" }} />
-          Redeems may take up to 2 hours
-        </Typography>
-      </Box>
+          <Typography
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 400,
+              fontSize: "12px",
+              lineHeight: "150%",
+              letterSpacing: "1.2%",
+              verticalAlign: "middle",
+              color: "var(--semantic-warning, #F59E0B)",
+              padding: "0 4px",
+            }}
+          >
+            <InfoIcon style={{ marginRight: "4px" }} />
+            Redeems may take up to 2 hours
+          </Typography>
+        </Box>
+      )}
       <Box
         sx={{
           display: "flex",
@@ -581,6 +580,37 @@ export const RedeemRecordsList = (props) => {
           >
             Redeem records
           </Typography>
+          <Box
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              height: "26px",
+              borderRadius: "4px",
+              gap: "8px",
+              padding: "0 12px",
+              marginLeft: "10px",
+              background: "var(--semantic-warning-light, #FEF3C7)",
+              border: "1px solid var(--semantic-warning, #F59E0B)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography
+              style={{
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 400,
+                fontSize: "12px",
+                lineHeight: "150%",
+                letterSpacing: "1.2%",
+                verticalAlign: "middle",
+                color: "var(--semantic-warning, #F59E0B)",
+                padding: "0 4px",
+              }}
+            >
+              <InfoIcon style={{ marginRight: "4px" }} />
+              Redeems may take up to 2 hours
+            </Typography>
+          </Box>
         </Box>
       )}
       {identity?.role === "Agent" && identity?.balance < 500 && (
@@ -640,7 +670,7 @@ export const RedeemRecordsList = (props) => {
         emptyWhileLoading={true}
         pagination={false}
         sx={{
-          pt: 1,
+          // pt: 1,
           "& .RaList-actions": {
             flexWrap: "nowrap", // Ensures table fills the available space
           },

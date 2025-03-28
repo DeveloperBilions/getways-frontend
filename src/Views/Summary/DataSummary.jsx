@@ -690,6 +690,7 @@ export const DataSummary = () => {
       startDate:
         document.querySelector('input[name="startdate"]')?.value || null,
       endDate: document.querySelector('input[name="enddate"]')?.value || null,
+      username: selectedUser?.username
     };
     setIsExporting(true); // Set exporting state
     setLoadingData(true); // Set loading data state

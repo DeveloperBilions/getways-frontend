@@ -522,7 +522,7 @@ export const UserList = (props) => {
           onClick={handleCreateUser}
           sx={{
             width: { xs: "100%", sm: "191px" },
-            height:{xs:"100%", sm:"48px"},
+            height:{xs:"100%", sm:"40px"},
             backgroundColor: "var(--primary-color)",
             color: "var(--secondary-color)",
             mb:1
