@@ -112,12 +112,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             }
           );
           setSuccessRecharge(true);
-          handleRefresh();
-
           // Automatically close success modal after 2 seconds
           setTimeout(() => {
             onClose();
             setSuccessRecharge(false);
+            handleRefresh();
             resetFields();
           }, 2000);
         } else {
