@@ -121,6 +121,10 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                       name="userName"
                       type="text"
                       className="custom-input"
+                      style={{
+                        backgroundColor: "#DEDEDE",
+                        border: "1px solid #A5AFBC",
+                      }}
                       value={userName}
                       required
                       disabled
@@ -198,20 +202,20 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                 }}
               >
                 <Button
-                  onClick={() => {
-                    onClose();
-                    setErrorMessage("");
-                  }}
-                  className="custom-button cancel"
-                >
-                  Cancel
-                </Button>
-                <Button
                   className="custom-button confirm"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
                   {loading ? "Processing..." : "Confirm"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClose();
+                    setErrorMessage("");
+                  }}
+                  className="mx-2 custom-button cancel"
+                >
+                  Cancel
                 </Button>
               </Box>
             </Col>

@@ -740,7 +740,8 @@ const PlayerRedeemDialog = ({
             border: "1px solid #E7E7E7",
             padding: "24px",
             backgroundColor: "#FFFFFF",
-            boxShadow: "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
+            boxShadow:
+              "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
             outline: "none",
           }}
         >
@@ -835,7 +836,8 @@ const PlayerRedeemDialog = ({
                     wordBreak: "break-word",
                   }}
                 >
-                  Are you sure you want to proceed with the redeem of ${redeemAmount}?
+                  Are you sure you want to proceed with the redeem of $
+                  {redeemAmount}?
                 </Typography>
               </Box>
 
@@ -853,16 +855,15 @@ const PlayerRedeemDialog = ({
                     width: "48%",
                     height: isMobile ? "44px" : "48px",
                     borderRadius: "8px",
-                    border: "1px solid #D0D5DD",
+                    border: "1px solid var(--primary-color)",
                     backgroundColor: "#FFFFFF",
-                    color: "#6B7280",
+                    color: "var(--primary-color)",
                     fontFamily: "Inter",
                     fontWeight: 500,
                     fontSize: isMobile ? "14px" : "16px",
                     textTransform: "none",
                     "&:hover": {
                       backgroundColor: "#F9FAFB",
-                      borderColor: "#D0D5DD",
                     },
                   }}
                 >
@@ -897,10 +898,16 @@ const PlayerRedeemDialog = ({
       <ReactstrapModal
         isOpen={showWarningModal}
         toggle={() => {
-          if (paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId) {
+          if (
+            paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId
+          ) {
             setShowWarningModal(false);
           } else {
-            setErrorMessage("Refund cannot be processed without a payment mode.");
+            setErrorMessage(
+              "Refund cannot be processed without a payment mode."
+            );
             setShowWarningModal(false);
           }
         }}
@@ -913,7 +920,9 @@ const PlayerRedeemDialog = ({
         <ModalBody>
           <p>{warningMessage}</p>
           <div className="d-flex justify-content-end">
-            {paymentMethods.cashAppId || paymentMethods.paypalId || paymentMethods.venmoId ? (
+            {paymentMethods.cashAppId ||
+            paymentMethods.paypalId ||
+            paymentMethods.venmoId ? (
               <Button
                 color="primary"
                 onClick={() => {

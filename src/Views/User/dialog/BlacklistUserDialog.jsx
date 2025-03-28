@@ -91,7 +91,7 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
               color="error"
               variant="contained"
               disabled={loading}
-              className="mx-2 custom-button"
+              className="custom-button"
             >
               {loading ? <CircularProgress size={24} /> : "Confirm"}
             </Button>
@@ -100,7 +100,7 @@ const BlacklistUserDialog = ({ open, onClose, handleRefresh, record }) => {
               color="secondary"
               variant="outlined"
               disabled={loading}
-              className="custom-button cancel"
+              className="custom-button cancel mx-2"
             >
               Cancel
             </Button>

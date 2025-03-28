@@ -94,6 +94,10 @@ const DeleteUserDialog = ({
                       type="text"
                       autoComplete="off"
                       className="custom-input"
+                      style={{
+                        backgroundColor: "#DEDEDE",
+                        border: "1px solid #A5AFBC",
+                      }}
                       value={record.name}
                       disabled
                     />
@@ -110,6 +114,10 @@ const DeleteUserDialog = ({
                       name="email"
                       type="email"
                       className="custom-input"
+                      style={{
+                        backgroundColor: "#DEDEDE",
+                        border: "1px solid #A5AFBC",
+                      }}
                       autoComplete="off"
                       value={record.email}
                       disabled
@@ -158,10 +166,14 @@ const DeleteUserDialog = ({
                   type="submit"
                   onClick={handleSubmit}
                   disabled={deleteInput !== "DELETE"}
+                  style={{border: "none"}}
                 >
                   Delete
                 </Button>
-                <Button className="custom-button cancel" onClick={handleCancel}>
+                <Button
+                  className="custom-button cancel mx-2"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </Button>
               </Box>

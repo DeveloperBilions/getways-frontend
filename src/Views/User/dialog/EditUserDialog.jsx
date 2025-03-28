@@ -264,7 +264,7 @@ const EditUserDialog = ({
                 >
                   Update
                 </Button>
-                <Button className="custom-button cancel" onClick={onClose}>
+                <Button className="custom-button cancel mx-2" onClick={onClose}>
                   Cancel
                 </Button>
               </Box>

@@ -124,13 +124,6 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
             }}
           >
             <Button
-              className="custom-button cancel"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
               className="custom-button confirm"
               onClick={handleSave}
               disabled={loading}
@@ -140,6 +133,13 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
               ) : (
                 "Save Changes"
               )}
+            </Button>
+            <Button
+              className="custom-button cancel mx-2"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
             </Button>
           </Box>
         </Col>
