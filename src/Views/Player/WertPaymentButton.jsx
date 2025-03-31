@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import WertWidget from "@wert-io/widget-initializer";
-
+import Parse from "parse";
+Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+Parse.serverURL = process.env.REACT_APP_URL;
 const WertPaymentButton = () => {
   const [amount, setAmount] = useState("");
 
@@ -32,23 +34,34 @@ const WertPaymentButton = () => {
       click_id: clickId,
       redirect_url: "https://yourdomain.com/payment-success",
       listeners: {
-        paymentStatus: (status) => {
+        paymentStatus: async (status) => {
           console.log("Wert Payment Status:", status);
 
-          // ✅ Store click_id and status in your DB or cloud
-          fetch("https://your-backend.com/store-wert-transaction", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              click_id: clickId,
-              amount,
-              currency: "BTC",
-              status,
-              createdAt: new Date().toISOString(),
-            }),
-          });
+          if (status === "success") {
+            try {
+              const currentUser = Parse.User.current();
+              if (!currentUser) {
+                alert("User not logged in.");
+                return;
+              }
+
+              const Transaction = Parse.Object.extend("TransactionRecords");
+              const txn = new Transaction();
+
+              txn.set("transactionIdFromStripe", clickId);
+              txn.set("status", 2); // 2 = success
+              txn.set("userId", currentUser.id);
+              txn.set("transactionAmount", parseFloat(amount));
+
+              await txn.save(null, { useMasterKey: true });
+
+              console.log("✅ Transaction saved in Parse.");
+            } catch (error) {
+              console.error("❌ Error saving transaction:", error.message);
+            }
+          }
+        }
         },
-      },
     });
 
     wertWidget.open();
