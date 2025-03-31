@@ -256,6 +256,7 @@ const EditUserDialog = ({
                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
                   width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
                 }}
               >
                 <Button
@@ -264,7 +265,7 @@ const EditUserDialog = ({
                 >
                   Update
                 </Button>
-                <Button className="custom-button cancel mx-2" onClick={onClose}>
+                <Button className="custom-button cancel" onClick={onClose}>
                   Cancel
                 </Button>
               </Box>

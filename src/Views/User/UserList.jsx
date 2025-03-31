@@ -50,6 +50,7 @@ import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import CustomPagination from "../Common/CustomPagination";
 import { UserFilterDialog } from "./dialog/UserFilterDialog";
 import AddUser from "../../Assets/icons/AddUser.svg";
+import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -69,7 +70,8 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
   const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
   const [rechargeLimitDialogOpen, setRechargeLimitDialogOpen] = useState(false); // State for Recharge Limit Dialog
-
+  const [disableRechargeDialogOpen, setDisableRechargeDialogOpen] =
+  useState(false);
   const role = localStorage.getItem("role");
   const record = useRecordContext();
   const resource = useResourceContext();
@@ -154,6 +156,17 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           },
         }}
       >
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setDisableRechargeDialogOpen(true);
+            }}
+          >
+            Disable Recharge
+          </MenuItem>
+        )}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleRedeem} sx={{ width: "100%" }}>
             Redeem
@@ -185,7 +198,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           </MenuItem>
         )}
         {record?.roleName === "Player" && (
-          <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+          <MenuItem onClick={handleRecharge} disabled={identity?.rechargeDisabled}>Recharge</MenuItem>
         )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
@@ -276,6 +289,12 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         open={drawerDialogOpen}
         onClose={() => setDrawerDialogOpen(false)}
         record={record}
+      />
+       <DisableRechargeDialog
+        open={disableRechargeDialogOpen}
+        onClose={() => setDisableRechargeDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
       />
     </React.Fragment>
   );

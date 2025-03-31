@@ -159,12 +159,55 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                     )}
                   </FormGroup>
                 </Col>
-
-                {identity?.role === "Master-Agent" &&
-                  identity?.redeemServiceEnabled === true && (
+                <Box className="d-flex flex-column">
+                  {identity?.role === "Master-Agent" &&
+                    identity?.redeemServiceEnabled === true && (
+                      <Col
+                        md={12}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        <Label
+                          for="redeemSwitch"
+                          check
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            fontFamily: "var(--font-family)",
+                            marginLeft: "5px",
+                          }}
+                        >
+                          Allow Agent to change Redeem Service ?
+                        </Label>
+                        <FormGroup check className="form-switch">
+                          <Input
+                            type="switch"
+                            id="redeemSwitch"
+                            checked={redeemServiceEnabled}
+                            className="green-switch"
+                            onChange={() =>
+                              setRedeemServiceEnabled(!redeemServiceEnabled)
+                            }
+                          />
+                        </FormGroup>
+                      </Col>
+                    )}
+                  {identity?.role === "Super-User" && (
                     <Col
                       md={12}
-                      className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px",
+                        backgroundColor: "#F6F4F4",
+                        borderRadius: "5px",
+                      }}
                     >
                       <Label
                         for="redeemSwitch"
@@ -191,41 +234,59 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                       </FormGroup>
                     </Col>
                   )}
-                {identity?.role === "Super-User" && (
-                  <Col
-                    md={12}
-                    className="mt-3 bg-light d-flex align-items-center justify-content-between"
-                  >
-                    <Label
-                      for="redeemSwitch"
-                      check
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 400,
-                        fontFamily: "var(--font-family)",
-                        marginLeft: "5px",
-                      }}
-                    >
-                      Allow Agent to change Redeem Service ?
-                    </Label>
-                    <FormGroup check className="form-switch">
-                      <Input
-                        type="switch"
-                        id="redeemSwitch"
-                        checked={redeemServiceEnabled}
-                        className="green-switch"
-                        onChange={() =>
-                          setRedeemServiceEnabled(!redeemServiceEnabled)
-                        }
-                      />
-                    </FormGroup>
-                  </Col>
-                )}
-                {identity?.role === "Master-Agent" &&
-                  identity?.isReedeemZeroAllowed === true && (
+                  {identity?.role === "Master-Agent" &&
+                    identity?.isReedeemZeroAllowed === true && (
+                      <Col
+                        md={12}
+                        style={{
+                          marginTop: "10px",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px",
+                          backgroundColor: "#F6F4F4",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        <Label
+                          for="redeemSwitch1"
+                          check
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 400,
+                            fontFamily: "var(--font-family)",
+                            marginLeft: "5px",
+                          }}
+                        >
+                          Allow Agent to Add 0 Redeem Service ?
+                        </Label>
+                        <FormGroup check className="form-switch">
+                          <Input
+                            type="switch"
+                            id="redeemSwitch1"
+                            className="green-switch"
+                            checked={redeemServiceZeroAllowed}
+                            onChange={() =>
+                              setRedeemServiceZeroAllowed(
+                                !redeemServiceZeroAllowed
+                              )
+                            }
+                          />
+                        </FormGroup>
+                      </Col>
+                    )}
+                  {identity?.role === "Super-User" && (
                     <Col
                       md={12}
-                      className="mt-3 bg-light d-flex align-items-center justify-content-between"
+                      style={{
+                        marginTop: "10px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px",
+                        backgroundColor: "#F6F4F4",
+                        borderRadius: "5px",
+                      }}
                     >
                       <Label
                         for="redeemSwitch1"
@@ -254,36 +315,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                       </FormGroup>
                     </Col>
                   )}
-                {identity?.role === "Super-User" && (
-                  <Col
-                    md={12}
-                    className="mt-3 bg-light d-flex align-items-center justify-content-between"
-                  >
-                    <Label
-                      for="redeemSwitch1"
-                      check
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 400,
-                        fontFamily: "var(--font-family)",
-                        marginLeft: "5px",
-                      }}
-                    >
-                      Allow Agent to Add 0 Redeem Service ?
-                    </Label>
-                    <FormGroup check className="form-switch">
-                      <Input
-                        type="switch"
-                        id="redeemSwitch1"
-                        className="green-switch"
-                        checked={redeemServiceZeroAllowed}
-                        onChange={() =>
-                          setRedeemServiceZeroAllowed(!redeemServiceZeroAllowed)
-                        }
-                      />
-                    </FormGroup>
-                  </Col>
-                )}
+                </Box>
               </Row>
             </Form>
           </ModalBody>
@@ -297,6 +329,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
                   width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
                 }}
               >
                 {identity?.redeemServiceEnabled &&
@@ -311,7 +344,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
                   </Button>
                 )}
 
-                <Button className="custom-button cancel mx-2" onClick={handleCancel}>
+                <Button className="custom-button cancel" onClick={handleCancel}>
                   Cancel
                 </Button>
               </Box>

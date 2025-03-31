@@ -33,6 +33,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState("");
   const [successRecharge, setSuccessRecharge] = useState(false);
+  const [ RechargeEnabled, setRechargeEnabled]=  useState(false);
 
   const resetFields = () => {
     setErrorMessage(""); // Reset error message
@@ -113,12 +114,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             }
           );
           setSuccessRecharge(true);
-          handleRefresh();
-
           // Automatically close success modal after 2 seconds
           setTimeout(() => {
             onClose();
             setSuccessRecharge(false);
+            handleRefresh();
             resetFields();
           }, 2000);
         } else {
@@ -181,6 +181,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         userId: identity?.userParentId,
       });
       setRedeemFees(response?.rechargeLimit || 0);
+      setRechargeEnabled(response?.rechargeDisabled || false)
+
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     } finally {
@@ -287,6 +289,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                           color:"#4D4D4D"
                         }}
                         onClick={onClose}
+                        disabled={identity?.rechargeDisabled}
                       >
                         Cancel
                       </Button>
@@ -299,6 +302,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                           fontFamily: "Inter",
                         }}
                         onClick={handleSubmit}
+                        disabled={RechargeEnabled}
                       >
                         Confirm
                       </Button>

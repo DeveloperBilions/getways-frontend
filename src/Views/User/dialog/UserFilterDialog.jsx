@@ -65,6 +65,7 @@ export const UserFilterDialog = ({
             value={searchBy}
             label="Search By"
             onChange={(e) => {
+              setLocalRole("");
               const newSearchBy = e.target.value || "username";
               handleSearchByChange(newSearchBy);
             }}
@@ -129,13 +130,11 @@ export const UserFilterDialog = ({
               height: "48px",
               gap: "8px",
               padding: "14px 20px",
-              border: "1px solid #E7E7E7",
+              border: "1px solid var(--primary-color)", 
               borderRadius: "4px",
               fontSize: "16px",
               fontWeight: "500",
-              "&:hover": {
-                border: "1px solid #E7E7E7",
-              },
+              marginRight: {xs: 1, sm: 0},
             }}
         >
           Cancel

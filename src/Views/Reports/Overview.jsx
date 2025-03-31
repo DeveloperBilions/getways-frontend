@@ -200,7 +200,40 @@ export const Overview = ({description}) => {
               {loading ? "Loading..." : "Apply Filter"}
             </Button>
           </Box>
-
+            {!loading &&
+              <Grid container spacing={2}>
+              {finalData?.map((item) => (
+                <Grid item xs={12} md={4} key={item?.id}>
+                  <Card
+                    sx={{
+                      backgroundColor: item?.bgColor,
+                      border: 2,
+                      borderColor: item?.borderColor,
+                      borderRadius: 0,
+                      boxShadow: 0,
+                    }}
+                  >
+                    <CardContent>
+                      <Typography
+                        variant="subtitle1"
+                        display="flex"
+                        alignItems="center"
+                      >
+                        {item?.icon}
+                        &nbsp;{item?.name}
+                      </Typography>
+                      <Typography
+                        variant="h4"
+                        sx={{ mt: 1, fontWeight: "bold" }}
+                      >
+                        {item?.value}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            }
           {loading ? (
             <Grid container justifyContent="center">
               <CircularProgress />
@@ -209,7 +242,7 @@ export const Overview = ({description}) => {
             !noDataFound ? (
               <>
                 {/* Summary Cards */}
-                <Grid container spacing={2}>
+                {/* <Grid container spacing={2}>
                   {finalData?.map((item) => (
                     <Grid item xs={12} md={4} key={item?.id}>
                       <Card
@@ -240,7 +273,7 @@ export const Overview = ({description}) => {
                       </Card>
                     </Grid>
                   ))}
-                </Grid>
+                </Grid> */}
 
                 {/* PieChart for Totals */}
                 <Grid container spacing={2} sx={{ mt: 4 }}>

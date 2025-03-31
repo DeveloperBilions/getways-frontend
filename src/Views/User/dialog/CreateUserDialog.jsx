@@ -538,7 +538,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                       />
                       <InputGroupText
                         onClick={() => setShowPassword(!showPassword)}
-                        style={{ cursor: "pointer" }}
+                        style={{ cursor: "pointer", height:"35px" }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </InputGroupText>
@@ -575,7 +575,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        style={{ cursor: "pointer" }}
+                        style={{ cursor: "pointer", height:"35px" }}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff />
@@ -611,6 +611,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
                   width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
                 }}
               >
                 <Button
@@ -619,7 +620,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                 >
                   Confirm
                 </Button>
-                <Button className="custom-button cancel mx-2" onClick={handleCancel}>
+                <Button className="custom-button cancel" onClick={handleCancel}>
                   Cancel
                 </Button>
               </Box>

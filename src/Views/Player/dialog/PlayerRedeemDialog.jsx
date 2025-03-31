@@ -102,6 +102,7 @@ const PlayerRedeemDialog = ({
         "No payment methods are added. Please add a payment method to proceed."
       );
       setShowWarningModal(true);
+      onClose();
     } else {
       handleSubmit();
     }
