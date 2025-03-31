@@ -1312,73 +1312,92 @@ export const dataProvider = {
        };
        return res;
      } else if (resource === "Report") {
-       const { fromDate, toDate } = params.filter || {}; // Extract filter params
-
-       // Define date filtering condition
-       const dateFilter = {};
-       if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
-       if (toDate)
-         dateFilter.transactionDate = {
-           ...dateFilter.transactionDate,
-           $lte: new Date(toDate),
-         };
-
-       const queryPipeline = [
-         {
-           $match: dateFilter, // Apply date filter
-         },
-         {
-           $facet: {
-             // New Calculation for Fees (11% of Transaction Amount)
-             totalFeesAmount: [
-               {
-                 $match: {
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   totalFees: {
-                     $sum: { $multiply: ["$transactionAmount", 0.11] },
-                   },
-                 },
-               },
-             ],
-             // Calculation for Ticket Amount (Transaction Amount - Fees)
-             totalTicketAmount: [
-               {
-                 $match: {
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
-                   totalFees: {
-                     $sum: { $multiply: ["$transactionAmount", 0.11] },
-                   }, // Sum of all fees
-                 },
-               },
-               {
-                 $project: {
-                   _id: 0,
-                   totalTicketAmount: {
-                     $subtract: ["$totalTransaction", "$totalFees"],
-                   }, // Ticket Amount Calculation
-                 },
-               },
-             ],
-           },
-         },
-       ];
-
-       const newResults = await new Parse.Query("TransactionRecords").aggregate(
-         queryPipeline
-       );
-       return newResults;
-     } else {
+      const { fromDate, toDate } = params.filter || {};
+    
+      // Define date filter
+      const dateFilter = {};
+      if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
+      if (toDate)
+        dateFilter.transactionDate = {
+          ...dateFilter.transactionDate,
+          $lte: new Date(toDate),
+        };
+    
+      // Define the aggregation pipeline
+      const queryPipeline = [
+        {
+          $match: dateFilter,
+        },
+        {
+          $facet: {
+            totalFeesAmount: [
+              {
+                $match: {
+                  transactionAmount: { $gt: 0, $type: "number" },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalFees: {
+                    $sum: { $multiply: ["$transactionAmount", 0.11] },
+                  },
+                },
+              },
+            ],
+            totalTicketAmount: [
+              {
+                $match: {
+                  transactionAmount: { $gt: 0, $type: "number" },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalTransaction: { $sum: "$transactionAmount" },
+                  totalFees: {
+                    $sum: { $multiply: ["$transactionAmount", 0.11] },
+                  },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  totalTicketAmount: {
+                    $subtract: ["$totalTransaction", "$totalFees"],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ];
+    
+      // Run aggregation on both collections
+      const activeResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline, { useMasterKey: true });
+      const archiveResults = await new Parse.Query("Transactionrecords_archive").aggregate(queryPipeline, { useMasterKey: true });
+    
+      // Merge results
+      const mergedResults = {
+        totalFeesAmount: [
+          {
+            totalFees:
+              (activeResults[0]?.totalFeesAmount?.[0]?.totalFees || 0) +
+              (archiveResults[0]?.totalFeesAmount?.[0]?.totalFees || 0),
+          },
+        ],
+        totalTicketAmount: [
+          {
+            totalTicketAmount:
+              (activeResults[0]?.totalTicketAmount?.[0]?.totalTicketAmount || 0) +
+              (archiveResults[0]?.totalTicketAmount?.[0]?.totalTicketAmount || 0),
+          },
+        ],
+      };
+    
+      return [mergedResults];
+    }
+     else {
        const Resource = Parse.Object.extend(resource);
        query = new Parse.Query(Resource);
        filter &&
