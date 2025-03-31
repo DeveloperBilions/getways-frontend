@@ -34,7 +34,7 @@ const WertPaymentButton = () => {
       click_id: clickId,
       redirect_url: "https://yourdomain.com/payment-success",
       listeners: {
-        paymentStatus: async (status) => {
+        'payment-status': async (status) => {
           console.log("Wert Payment Status:", status);
 
           if (status === "success") {
