@@ -361,49 +361,44 @@ export const dataProvider = {
       ) {
         throw new Error("Start date cannot be greater than end date");
       }
-
+    
       let result = null;
       let userIds = [];
       let selectedUser = null;
       let data = [];
-
+    
       if (filter?.username) {
         selectedUser = await new Parse.Query(Parse.User).get(
           filter.username,
           { useMasterKey: true }
         );
       }
-
+    
       if (role === "Agent" || role === "Master-Agent") {
         if (!selectedUser) {
           selectedUser = await Parse.User.current();
         }
       }
-
+    
       if (selectedUser) {
         if (selectedUser.get("roleName") === "Master-Agent") {
-          // fetch all agents under this Master-Agent
           const agentQuery = new Parse.Query(Parse.User);
           agentQuery.equalTo("userParentId", selectedUser.id);
           agentQuery.equalTo("roleName", "Agent");
           const agents = await agentQuery.findAll({ useMasterKey: true });
-      
+    
           userIds.push(selectedUser.id, ...agents.map((agent) => agent.id));
         } else {
-          // if normal agent or user
           userIds.push(selectedUser.id);
         }
       }
-      
-
+    
       const matchConditions = [];
       if (filter.startDate && filter.endDate) {
         matchConditions.push({
-          createdAt: {
+          transactionDate: {
             $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
-            $lte: new Date(
-              new Date(filter.endDate).setHours(23, 59, 59, 999)
-            ),
+            $lte: new Date(new Date(filter.endDate).setHours(23, 59, 59, 999)),
           },
         });
       }
@@ -411,19 +406,18 @@ export const dataProvider = {
         matchConditions.push({
           $or: [
             { userParentId: { $in: userIds } },
-            ...(selectedUser.get("roleName") === "Player" 
-              ? [{ userId: { $in: userIds } }] 
-              : [])
+            ...(selectedUser.get("roleName") === "Player"
+              ? [{ userId: { $in: userIds } }]
+              : []),
           ],
         });
       }
-
+    
       const baseMatch = matchConditions.length
         ? { $and: matchConditions }
         : {};
-
-      const queryPipeline = [
-        { $match: baseMatch },
+    
+      const summaryFacetPipeline = [
         {
           $facet: {
             totalRechargeAmount: [
@@ -534,11 +528,46 @@ export const dataProvider = {
           },
         },
       ];
-
-      const newResults = await new Parse.Query(
-        "TransactionRecords"
-      ).aggregate(queryPipeline, { useMasterKey: true });
-
+    
+      const fullPipeline = [{ $match: baseMatch }, ...summaryFacetPipeline];
+    
+      const activeResults = await new Parse.Query("TransactionRecords").aggregate(fullPipeline, { useMasterKey: true });
+      const archiveResults = await new Parse.Query("Transactionrecords_archive").aggregate(fullPipeline, { useMasterKey: true });
+    
+      function mergeFacets(active, archived) {
+        const merged = {};
+        const keys = Object.keys(active[0] || {});
+    
+        for (const key of keys) {
+          const activeVal = active[0]?.[key]?.[0] || {};
+          const archiveVal = archived[0]?.[key]?.[0] || {};
+    
+          if (key === "totalRedeemSuccessful" || key === "totalRecords") {
+            merged[key] = [
+              {
+                count: (activeVal.count || 0) + (archiveVal.count || 0),
+              },
+            ];
+          } else if (key === "totalRechargeByType") {
+            merged[key] = [
+              {
+                wallet: (activeVal.wallet || 0) + (archiveVal.wallet || 0),
+              },
+            ];
+          } else {
+            merged[key] = [
+              {
+                total: (activeVal.total || 0) + (archiveVal.total || 0),
+              },
+            ];
+          }
+        }
+    
+        return [merged];
+      }
+    
+      const newResults = mergeFacets(activeResults, archiveResults);
+    
       const referralCodeNullQuery = new Parse.Query(Parse.User).equalTo(
         "userReferralCode",
         null
@@ -547,31 +576,28 @@ export const dataProvider = {
         "userReferralCode",
         ""
       );
-
+    
       let finalQuery = Parse.Query.or(
         referralCodeNullQuery,
         referralCodeEmptyQuery
-      ).notEqualTo("isDeleted", true); // exclude deleted users
-
+      ).notEqualTo("isDeleted", true);
+    
       if (selectedUser) {
-        finalQuery.containedIn("userParentId", userIds)
-        //finalQuery.equalTo("userParentId", selectedUser.id);
+        finalQuery.containedIn("userParentId", userIds);
       }
-
+    
       const totalRegisteredUsers = await finalQuery.count({
         useMasterKey: true,
       });
-
+    
       const roles = ["Agent", "Master-Agent"];
-
+    
       let totalAgents;
       if (role === "Super-User" && !filter?.username) {
-        // If Super-User and no username filter, fetch all agents without conditions
         totalAgents = await new Parse.Query(Parse.User)
           .containedIn("roleName", roles)
           .count({ useMasterKey: true });
       } else {
-        // Otherwise, apply filters
         totalAgents = selectedUser
           ? await new Parse.Query(Parse.User)
               .equalTo("userParentId", selectedUser.id)
@@ -581,7 +607,7 @@ export const dataProvider = {
               .containedIn("roleName", roles)
               .count({ useMasterKey: true });
       }
-
+    
       const summary = {
         totalRechargeAmount: Number(
           (newResults[0]?.totalRechargeAmount?.[0]?.total || 0).toFixed(2)
@@ -598,14 +624,14 @@ export const dataProvider = {
         totalCashoutRedeemsInProgress: Number(
           (newResults[0]?.totalCashoutRedeemsInProgress?.[0]?.total || 0).toFixed(2)
         ),
-        totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0, // Keep as integer
+        totalRecords: newResults[0]?.totalRecords?.[0]?.total || 0,
         totalAmt: Number(
           (newResults[0]?.totalAmt?.[0]?.total || 0).toFixed(2)
         ),
         totalFeesCharged: Number(
           (newResults[0]?.totalFeesCharged?.[0]?.total || 0).toFixed(2)
         ),
-        totalRedeemSuccessful: newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0, // Count stays as integer
+        totalRedeemSuccessful: newResults[0]?.totalRedeemSuccessful?.[0]?.count || 0,
         totalFailRedeemAmount: Number(
           (newResults[0]?.totalFailRedeemAmount?.[0]?.total || 0).toFixed(2)
         ),
@@ -623,16 +649,17 @@ export const dataProvider = {
           ),
         },
       };
-      
+    
       result = calculateDataSummariesForSummary({
         id: role === "Super-User" ? 0 : 1,
         users: data,
         walletBalances: 0,
       });
-
+    
       result.data[0] = { ...result.data[0], ...summary };
       return result;
-    }else if (resource === "summaryExport") {
+    }
+    else if (resource === "summaryExport") {
        var result = null;
        if (role === "Super-User") {
          //users
@@ -1285,73 +1312,92 @@ export const dataProvider = {
        };
        return res;
      } else if (resource === "Report") {
-       const { fromDate, toDate } = params.filter || {}; // Extract filter params
-
-       // Define date filtering condition
-       const dateFilter = {};
-       if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
-       if (toDate)
-         dateFilter.transactionDate = {
-           ...dateFilter.transactionDate,
-           $lte: new Date(toDate),
-         };
-
-       const queryPipeline = [
-         {
-           $match: dateFilter, // Apply date filter
-         },
-         {
-           $facet: {
-             // New Calculation for Fees (11% of Transaction Amount)
-             totalFeesAmount: [
-               {
-                 $match: {
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   totalFees: {
-                     $sum: { $multiply: ["$transactionAmount", 0.11] },
-                   },
-                 },
-               },
-             ],
-             // Calculation for Ticket Amount (Transaction Amount - Fees)
-             totalTicketAmount: [
-               {
-                 $match: {
-                   transactionAmount: { $gt: 0, $type: "number" }, // Ensure positive finite numbers
-                 },
-               },
-               {
-                 $group: {
-                   _id: null,
-                   totalTransaction: { $sum: "$transactionAmount" }, // Sum of all transactions
-                   totalFees: {
-                     $sum: { $multiply: ["$transactionAmount", 0.11] },
-                   }, // Sum of all fees
-                 },
-               },
-               {
-                 $project: {
-                   _id: 0,
-                   totalTicketAmount: {
-                     $subtract: ["$totalTransaction", "$totalFees"],
-                   }, // Ticket Amount Calculation
-                 },
-               },
-             ],
-           },
-         },
-       ];
-
-       const newResults = await new Parse.Query("TransactionRecords").aggregate(
-         queryPipeline
-       );
-       return newResults;
-     } else {
+      const { fromDate, toDate } = params.filter || {};
+    
+      // Define date filter
+      const dateFilter = {};
+      if (fromDate) dateFilter.transactionDate = { $gte: new Date(fromDate) };
+      if (toDate)
+        dateFilter.transactionDate = {
+          ...dateFilter.transactionDate,
+          $lte: new Date(toDate),
+        };
+    
+      // Define the aggregation pipeline
+      const queryPipeline = [
+        {
+          $match: dateFilter,
+        },
+        {
+          $facet: {
+            totalFeesAmount: [
+              {
+                $match: {
+                  transactionAmount: { $gt: 0, $type: "number" },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalFees: {
+                    $sum: { $multiply: ["$transactionAmount", 0.11] },
+                  },
+                },
+              },
+            ],
+            totalTicketAmount: [
+              {
+                $match: {
+                  transactionAmount: { $gt: 0, $type: "number" },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  totalTransaction: { $sum: "$transactionAmount" },
+                  totalFees: {
+                    $sum: { $multiply: ["$transactionAmount", 0.11] },
+                  },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  totalTicketAmount: {
+                    $subtract: ["$totalTransaction", "$totalFees"],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ];
+    
+      // Run aggregation on both collections
+      const activeResults = await new Parse.Query("TransactionRecords").aggregate(queryPipeline, { useMasterKey: true });
+      const archiveResults = await new Parse.Query("Transactionrecords_archive").aggregate(queryPipeline, { useMasterKey: true });
+    
+      // Merge results
+      const mergedResults = {
+        totalFeesAmount: [
+          {
+            totalFees:
+              (activeResults[0]?.totalFeesAmount?.[0]?.totalFees || 0) +
+              (archiveResults[0]?.totalFeesAmount?.[0]?.totalFees || 0),
+          },
+        ],
+        totalTicketAmount: [
+          {
+            totalTicketAmount:
+              (activeResults[0]?.totalTicketAmount?.[0]?.totalTicketAmount || 0) +
+              (archiveResults[0]?.totalTicketAmount?.[0]?.totalTicketAmount || 0),
+          },
+        ],
+      };
+    
+      return [mergedResults];
+    }
+     else {
        const Resource = Parse.Object.extend(resource);
        query = new Parse.Query(Resource);
        filter &&
