@@ -199,6 +199,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
                   width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
                 }}
               >
                 <Button
@@ -213,7 +214,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                     onClose();
                     setErrorMessage("");
                   }}
-                  className="mx-2 custom-button cancel"
+                  className="custom-button cancel"
                 >
                   Cancel
                 </Button>

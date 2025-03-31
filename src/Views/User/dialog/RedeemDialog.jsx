@@ -237,7 +237,10 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       name="userName"
                       type="text"
                       className="custom-input"
-                      style={{ backgroundColor: "#DEDEDE", border: "1px solid #A5AFBC" }}
+                      style={{
+                        backgroundColor: "#DEDEDE",
+                        border: "1px solid #A5AFBC",
+                      }}
                       value={userName}
                       required
                       disabled
@@ -444,6 +447,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
                   width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
                 }}
               >
                 <Button
@@ -455,7 +459,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   {loading ? "Processing..." : "Confirm"}
                 </Button>
                 <Button
-                  className="custom-button cancel mx-2"
+                  className="custom-button cancel"
                   onClick={handleClose}
                   // Check and open confirmation modal if needed
                 >
@@ -484,7 +488,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           <div className="d-flex justify-content-end">
             <Button
               color="success"
-              className="mx-2"
               onClick={handleSubmit} // Proceed with submission
             >
               Yes, Proceed
