@@ -154,7 +154,8 @@ if (user.get("roleName") === "Master-Agent") {
         isDeleted: user.get("isDeleted"),
         isBlackListed:user.get("isBlackListed"),
         balance:user.get("potBalance"),
-        totalPotBalanceOfChildren
+        totalPotBalanceOfChildren,
+        rechargeDisabled:user.get("rechargeDisabled") || false,
       };
     } catch (error) {
       console.error("Error getting user identity:", error?.message);
