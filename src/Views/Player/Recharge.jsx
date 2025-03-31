@@ -77,7 +77,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
         <Typography
           variant="body2"
           sx={{
-            height: "19px",
+            height: "29px",
             fontFamily: "Inter, sans-serif",
             fontWeight: 500,
             fontSize: "24px",
@@ -186,7 +186,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
                           justifyContent: "center",
                           alignItems: "center",
                           bgcolor:
-                            paymentSource !== "wallet" ? "#f5f5f5" : "#F4F3FC",
+                            paymentSource !== "wallet" ? "none" : "#F4F3FC",
                           width: "24px",
                           height: "24px",
                           borderRadius: "4px",
@@ -196,7 +196,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
                         <img
                           src={paymentSource !== "wallet" ? Docs : WalletIcon}
                           alt="Payment Method Icon"
-                          style={{ width: "14px", height: "14px" }}
+                          style={{ width: "16px", height: "16px" }}
                         />
                       </Box>
                       <Typography sx={{ fontWeight: 500 }}>

@@ -9,8 +9,9 @@ import {
   Input,
 } from "reactstrap";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, IconButton, TextField, Typography } from "@mui/material";
 import SelectGiftCardDialog from "./SelectGiftCardDialog";
+import Close from "../../../Assets/icons/close.svg";
 
 const CashOutModal = ({
   setOpen,
@@ -79,6 +80,18 @@ const CashOutModal = ({
           <ModalHeader
             toggle={handleClose}
             className="border-bottom-0 pb-0 font-weight-[500] font-size-[24px]"
+            close={
+              <IconButton
+                onClick={onClose}
+                sx={{
+                  position: "absolute",
+                  right: "16px",
+                  top: "16px",
+                }}
+              >
+                <img src={Close} alt="cancel" width="24px" height="24px" />
+              </IconButton>
+            }
           >
             Cash out
           </ModalHeader>
@@ -177,14 +190,24 @@ const CashOutModal = ({
               >
                 <Button
                   className="custom-button cancel"
-                  style={{ border: "#E7E7E7 !important" }}
+                  style={{
+                    border: "#E7E7E7 !important",
+                    fontSize: "18px",
+                    fontWeight: 500,
+                    fontFamily: "Inter",
+                  }}
                   onClick={handleClose}
                 >
                   Cancel
                 </Button>
                 <Button
                   className="custom-button"
-                  style={{ backgroundColor: "#2E5BFF" }}
+                  style={{
+                    backgroundColor: "#2E5BFF",
+                    fontSize: "18px",
+                    fontWeight: 500,
+                    fontFamily: "Inter",
+                  }}
                   onClick={handalOpenGiftCard}
                 >
                   Next

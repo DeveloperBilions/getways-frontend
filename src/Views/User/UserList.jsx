@@ -494,7 +494,7 @@ export const UserList = (props) => {
           </Typography>
         </Box>
       )}
-      <Box>
+      <Box sx={{ display: "flex", gap: 1 }}>
       {role != "Super-User" && role != "Master-Agent" && (
         <Button
           variant="contained"
@@ -502,12 +502,16 @@ export const UserList = (props) => {
           startIcon={<AddIcon />}
           onClick={handleGenerateLink}
           sx={{
-            width: { xs: "100%", sm: "auto" },
+            width: { xs: "100%", sm: "191px" },
+            height:{xs:"100%", sm:"40px"},
             backgroundColor: "var(--primary-color)",
             color: "var(--secondary-color)",
+            mb:1
           }}
         >
-          Referral Link
+          <Typography sx={{fontSize:"16px", fontWeight: 500, color: "var(--secondary-color)"}}>
+            Referral Link
+          </Typography>
         </Button>
       )}
       {isMobile ?(

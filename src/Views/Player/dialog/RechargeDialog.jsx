@@ -8,13 +8,14 @@ import {
   ModalFooter,
 } from "reactstrap";
 import { useGetIdentity, useNotify } from "react-admin";
-import { Box, Typography } from "@mui/material";
+import { Box, IconButton, Typography } from "@mui/material";
 // loader
 import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
 import { checkActiveRechargeLimit } from "../../../Utils/utils";
+import Close from "../../../Assets/icons/close.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -222,6 +223,23 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                     fontSize: "24px",
                     fontWeight: 500,
                   }}
+                  close={
+                    <IconButton
+                      onClick={onClose}
+                      sx={{
+                        position: "absolute",
+                        right: "16px",
+                        top: "16px",
+                      }}
+                    >
+                      <img
+                        src={Close}
+                        alt="cancel"
+                        width="24px"
+                        height="24px"
+                      />
+                    </IconButton>
+                  }
                 >
                   Confirm Recharge
                 </ModalHeader>
@@ -263,6 +281,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                         style={{
                           border: "1px solid var(--primary-color)",
                           borderRadius: "8px",
+                          fontSize: "18px",
+                          fontWeight: 500,
+                          fontFamily: "Inter",
+                          color:"#4D4D4D"
                         }}
                         onClick={onClose}
                       >
@@ -274,6 +296,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                           backgroundColor: "#2E5BFF",
                           color: "white",
                           borderRadius: "8px",
+                          fontFamily: "Inter",
                         }}
                         onClick={handleSubmit}
                       >
