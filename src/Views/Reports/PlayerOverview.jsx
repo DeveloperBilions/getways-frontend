@@ -25,7 +25,7 @@ import { fetchTransactionsofPlayer } from "../../Utils/utils";
 import debounce from "lodash/debounce";
 import { dataProvider } from "../../Provider/parseDataProvider";
 
-export const PlayerOverview = () => {
+export const PlayerOverview = ({description}) => {
   const [playerData, setPlayerData] = useState([]); // For Player transaction report
   const [playerRechargeData, setPlayerRechargeData] = useState([]); // For Player recharge report
   const [playerRedeemData, setPlayerRedeemData] = useState([]); // For Player recharge report
@@ -175,6 +175,10 @@ export const PlayerOverview = () => {
 
   return (
     <>
+      {/* Dashboard Description */}
+      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
+        {description}
+      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

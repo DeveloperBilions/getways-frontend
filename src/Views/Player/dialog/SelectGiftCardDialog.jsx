@@ -17,9 +17,10 @@ import {
   ModalFooter,
 } from "reactstrap";
 import { Parse } from "parse";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import "../../../Assets/css/cashoutDialog.css";
 import { useNotify } from "react-admin";
+import Close from "../../../Assets/icons/close.svg";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -208,6 +209,18 @@ const SelectGiftCardDialog = ({
               toggle={onClose}
               className="border-bottom-0 pb-0"
               style={{ fontWeight: "500", fontSize: "24px" }}
+              close={
+                <IconButton
+                  onClick={onClose}
+                  sx={{
+                    position: "absolute",
+                    right: "16px",
+                    top: "16px",
+                  }}
+                >
+                  <img src={Close} alt="cancel" width="24px" height="24px" />
+                </IconButton>
+              }
             >
               Cash out
             </ModalHeader>
@@ -329,6 +342,8 @@ const SelectGiftCardDialog = ({
                       sx={{
                         fontSize: "18px",
                         textTransform: "none",
+                        fontWeight: "500",
+                        fontFamily: "Inter",
                       }}
                     >
                       Back
@@ -348,6 +363,8 @@ const SelectGiftCardDialog = ({
                       sx={{
                         fontSize: "18px",
                         textTransform: "none",
+                        fontWeight: "500",
+                        fontFamily: "Inter",
                       }}
                     >
                       {loading ? "Processing..." : "Confirm"}

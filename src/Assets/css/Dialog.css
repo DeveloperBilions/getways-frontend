@@ -100,7 +100,7 @@
   width: 100% !important;
   height: 100% !important;
   gap: 8px;
-  padding: 0px 16px !important; /* Consistent padding */
+  padding: 0px 12px !important; /* Consistent padding */
   display: flex;
   flex-direction: column !important; /* Ensure buttons stack vertically */
   align-items: stretch !important; /* Stretch buttons to full width */

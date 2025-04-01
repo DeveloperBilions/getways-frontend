@@ -513,7 +513,7 @@ export const UserList = (props) => {
           </Typography>
         </Box>
       )}
-      <Box>
+      <Box sx={{ display: "flex", gap: 1 }}>
       {role != "Super-User" && role != "Master-Agent" && (
         <Button
           variant="contained"
@@ -521,12 +521,16 @@ export const UserList = (props) => {
           startIcon={<AddIcon />}
           onClick={handleGenerateLink}
           sx={{
-            width: { xs: "100%", sm: "auto" },
+            width: { xs: "100%", sm: "191px" },
+            height:{xs:"100%", sm:"40px"},
             backgroundColor: "var(--primary-color)",
             color: "var(--secondary-color)",
+            mb:1
           }}
         >
-          Referral Link
+          <Typography sx={{fontSize:"16px", fontWeight: 500, color: "var(--secondary-color)"}}>
+            Referral Link
+          </Typography>
         </Button>
       )}
       {isMobile ?(
@@ -585,12 +589,25 @@ export const UserList = (props) => {
   }
 
   return (
-    <Box sx={{ml: isMobile? 2:0, mr:  isMobile? 2:0}}>
+    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
       {!isMobile && (
-        <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mt: "8px"}}>
-          <Typography sx={{fontSize:"24px", fontWeight: 400, color: "var(--primary-color)"}}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: "8px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
             User management
           </Typography>
         </Box>
@@ -609,7 +626,7 @@ export const UserList = (props) => {
           ],
         }}
         {...props}
-        sort={{ field: "createdAt", order: "DESC" }} // ✅ Ensure default sorting
+        sort={{ field: "createdAt", order: "DESC" }}
         pagination={false}
       >
         <Box
@@ -621,17 +638,16 @@ export const UserList = (props) => {
           <Box
             style={{
               width: "100%",
-              overflowX: "auto",
-              overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
             }}
           >
             <Datagrid
               size="small"
               bulkActionButtons={false}
-              // data={data}
               sx={{
-                minWidth: "900px", // Ensure full width for horizontal scroll
+                overflowX: "auto",
+                overflowY: "hidden",
+                width: "100%",
                 maxHeight: "100%",
                 "& .RaDatagrid-row": {
                   borderBottom: "1px solid #eaeaea",
@@ -646,20 +662,19 @@ export const UserList = (props) => {
                 },
                 "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
                   padding: "8px 12px",
-                  textAlign: "center", // Center-align all content
-                  whiteSpace: "nowrap", // Prevent text wrapping
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 },
                 "@media (max-width: 600px)": {
-                  // Ensure responsiveness for mobile screens
                   "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
                     padding: "6px", // Reduce padding on mobile
                     height: "620px",
                   },
                 },
                 "& .MuiTableCell-head": {
-                  fontWeight: 600
+                  fontWeight: 600,
                 },
               }}
             >

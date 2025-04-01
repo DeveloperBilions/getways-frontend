@@ -24,7 +24,7 @@ import React, { useState } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { fetchTransactionsofAgent } from "../../Utils/utils";
 
-export const Overview = () => {
+export const Overview = ({description}) => {
   const [data, setData] = useState();
   const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
   const [fromDate, setFromDate] = useState("");
@@ -149,6 +149,10 @@ export const Overview = () => {
 
   return (
     <>
+      {/* Dashboard Description */}
+      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
+        {description}
+      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

@@ -338,7 +338,7 @@ const WalletDialog = ({ open, onClose, record }) => {
                             fontWeight: "bold",
                           }}
                         >
-                          <span style={{ color: "gray", fontWeight: "600",fontSize:"12px" }}>
+                          <span style={{ color: "gray", fontWeight: "600",fontSize:"12px",whiteSpace:"nowrap"}}>
                             {" "}
                             {item.label}
                           </span>

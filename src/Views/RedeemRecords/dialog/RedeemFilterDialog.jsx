@@ -82,6 +82,7 @@ export const ReedemFilterDialog = ({
             value={searchBy}
             label="Search By"
             onChange={(e) => {
+              setLocalStatus("");
               const newSearchBy = e.target.value;
               handleSearchByChange(newSearchBy);
             }}
@@ -94,7 +95,7 @@ export const ReedemFilterDialog = ({
           </Select>
         </FormControl>
 
-        {role === "Super-User" && (
+        {role !== "Player" && (
           <FormControl fullWidth>
             <InputLabel>Status</InputLabel>
             <Select
@@ -146,13 +147,11 @@ export const ReedemFilterDialog = ({
             height: "48px",
             gap: "8px",
             padding: "14px 20px",
-            border: "1px solid #E7E7E7",
+            border: "1px solid var(--primary-color)",
             borderRadius: "4px",
             fontSize: "16px",
             fontWeight: "500",
-            "&:hover": {
-              border: "1px solid #E7E7E7",
-            },
+            marginRight: { xs: 1, sm: 0 },
           }}
         >
           Cancel

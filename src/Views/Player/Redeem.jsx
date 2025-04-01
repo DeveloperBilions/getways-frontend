@@ -175,9 +175,7 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
             width: "100%",
             border: "1px solid #E7E7E7",
             borderRadius: "8px",
-            padding: { xs: "8px", sm: "10px", md: "12px" }, 
-            background: "#FFFFFF",
-            marginBottom: "16px",
+            padding: "12px",
           }}
         >
           {isTransactionNoteVisible && (

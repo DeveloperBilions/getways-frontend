@@ -332,7 +332,7 @@ export const fetchTransactionsofAgent = async ({
         $match: { 
           // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
           status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
-          createdAt: { $gte: start, $lte: end },
+          transactionDate: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
         } 
       },
@@ -352,7 +352,9 @@ export const fetchTransactionsofAgent = async ({
       }
     ];
 
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
 
     if (transactions.length === 0) {
       return { status: "success", data: [] };
@@ -414,7 +416,7 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
             date: { 
               $dateToString: { 
                 format: dateFormat, 
-                date: "$createdAt",
+                date: "$transactionDate",
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Add local timezone
               }
             },
@@ -439,7 +441,9 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
         $sort: { "_id.date": sortOrder === "asc" ? 1 : -1 },
       },
     ];
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
     if (transactions.length === 0) {
       return { status: "success", data: [] };
     }
@@ -503,7 +507,7 @@ export const fetchTransactionsofPlayer = async ({
         $match: {
           // username: { $exists: true, $ne: null }, // Ensure valid username
           status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
-          createdAt: { $gte: start, $lte: end },
+          transactionDate: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
         } 
       },
@@ -526,7 +530,9 @@ export const fetchTransactionsofPlayer = async ({
       pipeline[0].$match.userParentId = { $exists: true, $ne: null, $eq: userParentId }; // Filter by userParentId
     }
 
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
 
     if (transactions.length === 0) {
       return { status: "success", data: [] };
@@ -566,7 +572,7 @@ export const fetchTransactionsofAgentByDate = async ({
     const matchConditions = {
       // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
       status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
-      createdAt: { $gte: start, $lte: end },
+      transactionDate: { $gte: start, $lte: end },
       transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
     };
 
@@ -583,7 +589,7 @@ export const fetchTransactionsofAgentByDate = async ({
             date: { 
               $dateToString: { 
                 format: "%Y-%m-%d", 
-                date: "$createdAt",
+                date: "$transactionDate",
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Add local timezone
               } 
             }
@@ -601,7 +607,9 @@ export const fetchTransactionsofAgentByDate = async ({
       }
     ];
 
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
 
     if (transactions.length === 0) {
       return { status: "success", data: [] };
@@ -760,7 +768,7 @@ export const fetchPlayerTransactionComparison = async ({ sortOrder = "desc", sel
             date: { 
               $dateToString: { 
                 format: dateFormat, 
-                date: "$createdAt",
+                date: "$transactionDate",
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
               }
             },
@@ -790,7 +798,9 @@ export const fetchPlayerTransactionComparison = async ({ sortOrder = "desc", sel
       pipeline[0].$match.userId = { $exists: true, $ne: null, $eq: playerId } // Ensure valid userId
     }
 
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
     if (transactions.length === 0) {
       return { status: "success", data: [] };
     }
@@ -840,7 +850,7 @@ export const fetchTransactionsofPlayerByDate = async ({
     const matchConditions = {
       // userId: { $exists: true, $ne: null }, // Ensure valid userId
       status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
-      createdAt: { $gte: start, $lte: end },
+      transactionDate: { $gte: start, $lte: end },
       transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
     };
 
@@ -857,7 +867,7 @@ export const fetchTransactionsofPlayerByDate = async ({
             date: { 
               $dateToString: { 
                 format: "%Y-%m-%d", 
-                date: "$createdAt",
+                date: "$transactionDate",
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
               } 
             } 
@@ -875,7 +885,9 @@ export const fetchTransactionsofPlayerByDate = async ({
       }
     ];
 
-    const transactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
+    const transactions = [...activeTransactions, ...archiveTransactions];
 
     if (transactions.length === 0) {
       return { status: "success", data: [] };

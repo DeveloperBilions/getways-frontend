@@ -19,7 +19,7 @@ import { fetchPlayerTransactionComparison } from "../../Utils/utils";
 import debounce from "lodash/debounce";
 import { dataProvider } from "../../Provider/parseDataProvider";
 
-export const PlayerComparison = () => {
+export const PlayerComparison = ({description}) => {
   const [comparisonData, setComparisonData] = useState([]);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareSubmitted, setCompareSubmitted] = useState(false);
@@ -231,6 +231,10 @@ export const PlayerComparison = () => {
 
   return (
     <>
+      {/* Dashboard Description */}
+      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
+        {description}
+      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

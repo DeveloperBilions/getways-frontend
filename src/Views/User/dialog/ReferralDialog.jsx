@@ -36,7 +36,15 @@ const ReferralDialog = ({ open, onClose, referralCode }) => {
         <Row>
           <Col md={2}>
             <FormGroup>
-              <Button color="success" onClick={handleCopy}>
+              <Button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "var(--primary-color)",
+                }}
+                onClick={handleCopy}
+              >
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </FormGroup>
