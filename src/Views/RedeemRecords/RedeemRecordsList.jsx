@@ -680,15 +680,11 @@ export const RedeemRecordsList = (props) => {
           style={{
             width: "100%",
             overflowX: "auto",
-            // position: "relative",
-            // height: "600px",
           }}
         >
           <Box
             style={{
               width: "100%",
-              overflowX: "auto",
-              overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
             }}
           >
@@ -696,8 +692,10 @@ export const RedeemRecordsList = (props) => {
               size="small"
               bulkActionButtons={false}
               sx={{
-                minWidth: "1000px",
-                minHeight: "100%",
+                overflowX: "auto",
+                overflowY: "hidden",
+                width: "100%",
+                maxHeight: "100%",
                 "& .RaDatagrid-table": {
                   width: "100%", // Ensures table fills the available space
                 },

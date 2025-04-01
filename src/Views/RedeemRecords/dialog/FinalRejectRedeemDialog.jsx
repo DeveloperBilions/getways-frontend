@@ -60,11 +60,11 @@ const FinalRejectRedeemDialog = ({
           className="overflow-visible"
         >
           <ModalHeader toggle={onClose} className="border-bottom-0">
-           {cashout ? "Cashout Reject Request"  : "Reject Redeem Amount"}
+            {cashout ? "Cashout Reject Request" : "Reject Redeem Amount"}
           </ModalHeader>
           <ModalBody>
             <Form onSubmit={handleSubmit}>
-            <Col md={12}>
+              <Col md={12}>
                 <Label for="remark">Remark</Label>
                 <Input
                   type="textarea"
@@ -78,7 +78,8 @@ const FinalRejectRedeemDialog = ({
               </Col>
               <Label for="rechargeAmount" className="mt-3">
                 Are you sure you wish to reject the{" "}
-                <b>${selectedRecord?.transactionAmount}</b> {cashout ? "cashout":"redeem"} request of{" "}
+                <b>${selectedRecord?.transactionAmount}</b>{" "}
+                {cashout ? "cashout" : "redeem"} request of{" "}
                 <b>{selectedRecord?.username}</b> ?
                 <br />
                 This action cannot be undone.
@@ -87,14 +88,28 @@ const FinalRejectRedeemDialog = ({
               <Col md={12}>
                 <div className="d-flex justify-content-end">
                   <Button
-                    color="success"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "var(--primary-color)",
+                    }}
                     type="submit"
                     className="mx-2"
                     disabled={loading}
                   >
                     {loading ? "Processing..." : "Confirm"}
                   </Button>
-                  <Button color="secondary" onClick={onClose}>
+                  <Button
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "var(--secondary-color)",
+                      color: "var(--primary-color)",
+                    }}
+                    onClick={onClose}
+                  >
                     Cancel
                   </Button>
                 </div>

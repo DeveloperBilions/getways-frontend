@@ -625,8 +625,6 @@ export const RechargeRecordsList = (props) => {
           <Box
             style={{
               width: "100%",
-              overflowX: "auto",
-              overflowY: "hidden", // Prevent vertical scrolling
               position: "absolute",
             }}
           >
@@ -634,7 +632,9 @@ export const RechargeRecordsList = (props) => {
               size="small"
               bulkActionButtons={false}
               sx={{
-                minWidth: "1000px", // Ensures the table is wide enough to scroll
+                overflowX: "auto",
+                overflowY: "hidden",
+                width: "100%",
                 maxHeight: "100%",
                 "& .RaDatagrid-table": {
                   width: "100%", // Ensures table fills the available space

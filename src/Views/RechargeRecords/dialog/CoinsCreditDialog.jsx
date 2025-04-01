@@ -30,10 +30,28 @@ const CoinsCreditDialog = ({ open, onClose, data, handleRefresh }) => {
           </Col>
           <Col md={12}>
             <div className="d-flex justify-content-end mt-3">
-              <Button color="success" type="submit" className="mx-2">
+              <Button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "var(--primary-color)",
+                }}
+                type="submit"
+                className="mx-2"
+              >
                 Confirm
               </Button>
-              <Button color="secondary" onClick={onClose}>
+              <Button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "var(--secondary-color)",
+                  color: "var(--primary-color)",
+                }}
+                onClick={onClose}
+              >
                 Cancel
               </Button>
             </div>

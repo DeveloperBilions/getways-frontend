@@ -95,7 +95,7 @@ export const ReedemFilterDialog = ({
           </Select>
         </FormControl>
 
-        {role === "Super-User" && (
+        {role !== "Player" && (
           <FormControl fullWidth>
             <InputLabel>Status</InputLabel>
             <Select
