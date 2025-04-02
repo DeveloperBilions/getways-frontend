@@ -83,8 +83,8 @@ export const WalletDetails = ({
                 src={WalletIcon}
                 alt="Wallet Icon"
                 style={{
-                  width: 16,
-                  height: 16,
+                  width: 20,
+                  height: 20,
                 }}
               />
             </Box>

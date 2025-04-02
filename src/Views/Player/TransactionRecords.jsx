@@ -102,7 +102,7 @@ const TransactionRecords = ({
                   src={FileCheckWhite}
                   alt="Transaction Icon"
                   style={{
-                    width: "20px",
+                    width: "24px",
                     height: "24px",
                   }}
                 />
@@ -121,7 +121,7 @@ const TransactionRecords = ({
                 <Typography
                   sx={{
                     fontFamily: "Inter",
-                    fontSize: isMobile ? "16px" : "18px",
+                    fontSize: "20px",
                     fontWeight: 600,
                     color: "#2E5BFF",
                     width: "50px",
