@@ -191,6 +191,7 @@ export const PlayerList = () => {
 
       const statusMessage = {
         2: "Recharge Successful",
+        3: "Coins Credited",
         4: "Success",
         5: "Fail",
         6: "Pending Approval",
@@ -215,7 +216,7 @@ export const PlayerList = () => {
     setLoading(true);
     try {
       console.log("Fetching recharge records...");
-      const { data, total } = await dataProvider.getList("rechargeRecords", {
+      const { data, totalCount } = await dataProvider.getList("rechargeRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
@@ -223,7 +224,7 @@ export const PlayerList = () => {
       const rechargeResponse = rechargeConvertTransactions(data);
       if (rechargeData) {
         setRechargeTransactionData(rechargeResponse);
-        setTotalRechargeData(total);
+        setTotalRechargeData(totalCount);
       } else {
         setRechargeTransactionData([]);
         setTotalRechargeData(0);
@@ -239,7 +240,7 @@ export const PlayerList = () => {
     setLoading(true);
     try {
       console.log("Fetching redeem records...");
-      const { data, total } = await dataProvider.getList("redeemRecords", {
+      const { data, totalCount } = await dataProvider.getList("redeemRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
@@ -247,7 +248,7 @@ export const PlayerList = () => {
       const redeemResponse = redeemConvertTransactions(data);
       if (redeemData) {
         setRedeemTransactionData(redeemResponse);
-        setTotalRedeemData(total);
+        setTotalRedeemData(totalCount);
       } else {
         setRedeemTransactionData([]);
         setTotalRedeemData(0);
@@ -273,7 +274,7 @@ export const PlayerList = () => {
         response.transactions || []
       );
       setCashoutTransactionData(formattedData);
-      setTotalCashoutData(response.pagination?.totalRecords || 0);
+      setTotalCashoutData(response.pagination?.totalCount || 0);
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
     } finally {

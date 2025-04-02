@@ -129,18 +129,26 @@ export const walletService = {
   
       // Define the TransactionRecords class
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
+      const TransactionArchive = Parse.Object.extend("Transactionrecords_archive");
   
       // Create a query to find transactions with isCashOut === true
       const query1 = new Parse.Query(TransactionDetails);
       query1.equalTo("isCashOut", true);
+      const queryA1 = new Parse.Query(TransactionArchive);
+      queryA1.equalTo("isCashOut", true);
   
       // Create a query to find transactions with status === 4
       const query2 = new Parse.Query(TransactionDetails);
       query2.equalTo("type", "redeem");
       query2.containedIn("status", [6, 8, 7]); // Exclude statuses 6 and 9
+      const queryA2 = new Parse.Query(TransactionArchive);
+      queryA2.equalTo("type", "redeem");
+      queryA2.containedIn("status", [6, 8, 7]); // Exclude statuses 6 and 9
 
       const query3 = new Parse.Query(TransactionDetails);
       query3.equalTo("useWallet", true);
+      const queryA3 = new Parse.Query(TransactionArchive);
+      queryA3.equalTo("useWallet", true);
 
       // Combine queries with OR
       const query = Parse.Query.or(query1, query2,query3);
@@ -160,8 +168,11 @@ export const walletService = {
       // Count total records for pagination metadata (without pagination logic applied)
       const countQuery = Parse.Query.or(query1, query2,query3);
       countQuery.equalTo("userId", userId);
+      const countQueryA = Parse.Query.or(queryA1, queryA2,queryA3);
+      countQueryA.equalTo("userId", userId);
      // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
-      const totalCount = await countQuery.count(); // Get total count without limit or skip
+      const count = await countQuery.count(); // Get total count without limit or skip
+      const countA = await countQueryA.count(); // Get total count without limit or skip
   
       // Map the results to a readable format
       const transactions = results.map((transaction) => {
@@ -192,8 +203,9 @@ export const walletService = {
         pagination: {
           currentPage: page,
           pageSize: limit,
-          totalRecords: totalCount, // Include total records count here
-          totalPages: Math.ceil(totalCount / limit), // Calculate total pages
+          count: count, // Include total records count here
+          totalCount: count + countA, // Include total records count here
+          totalPages: Math.ceil(count / limit), // Calculate total pages
         },
       };
     } catch (error) {

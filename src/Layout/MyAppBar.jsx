@@ -25,6 +25,7 @@ import { walletService } from "../Provider/WalletManagement";
 import { useEffect } from "react";
 import AOG_Symbol from "../Assets/icons/AOGsymbol.png";
 import Account from "../Assets/icons/Account.svg";
+import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -35,6 +36,8 @@ export default function MyAppBar(props) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
+  const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] = React.useState(false);
+
   const isMobile = useMediaQuery("(max-width:1023px)");
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -44,8 +47,10 @@ export default function MyAppBar(props) {
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
   const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
+  const handleOpenGlobalSettingsDialog = () => setOpenGlobalSettingsDialog(true);
   const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
   const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
+  const handleCloseGlobalSettingsDialog = () => setOpenGlobalSettingsDialog(false);
 
   const [activeTab, setActiveTab] = useState("users");
 
@@ -316,6 +321,18 @@ export default function MyAppBar(props) {
                   Recharge Limit
                 </MenuItem>
               )}
+              {(role === "Super-User" ) && (
+                <MenuItem
+                  onClick={handleOpenGlobalSettingsDialog}
+                  style={{
+                    color: "#000000",
+                    fontWeight: 400,
+                    fontSize: "16px",
+                  }}
+                >
+                  Global Recharge
+                </MenuItem>
+              )}
               {role === "Super-User" && (
                 <MenuItem
                   onClick={() => setDisableDialogOpen(true)}
@@ -430,6 +447,10 @@ export default function MyAppBar(props) {
       <EmergencyMessageDialog
         open={openEmergencyModal}
         onClose={handleCloseEmergencyModal}
+      />
+      <GlobalSettingsDialog 
+       open={openGlobalSettingsDialog}
+        onClose={handleCloseGlobalSettingsDialog}
       />
     </AppBar>
   );

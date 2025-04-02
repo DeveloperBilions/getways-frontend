@@ -109,6 +109,10 @@ export const RedeemRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
+  
+  const title =
+    identity?.role !== "Player" ? "Redeem Records" : "Pending Redeem Request";
+
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -195,7 +199,7 @@ export const RedeemRecordsList = (props) => {
       return;
     }
     const doc = new jsPDF();
-    doc.text("Redeem Records", 10, 10);
+    doc.text(title, 10, 10);
     doc.autoTable({
       head: [
         ["No", "Name", "Amount($)", "Remark", "Status", "Message", "Date"],
@@ -230,7 +234,7 @@ export const RedeemRecordsList = (props) => {
 
     const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Redeem Records");
+    XLSX.utils.book_append_sheet(workbook, worksheet, title);
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
       new Blob([xlsData], { type: "application/octet-stream" }),
@@ -417,7 +421,7 @@ export const RedeemRecordsList = (props) => {
                 color: "var(--primary-color)",
               }}
             >
-              Redeem records
+              {title}
             </Typography>
           </Box>
         )}
@@ -578,7 +582,7 @@ export const RedeemRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Redeem records
+            {title}
           </Typography>
           <Box
             sx={{
@@ -652,11 +656,7 @@ export const RedeemRecordsList = (props) => {
         )}
       </Box>
       <List
-        title={
-          identity?.role !== "Player"
-            ? "Redeem Records"
-            : "Pending Redeem Request"
-        }
+        title={title}
         filters={dataFilters}
         actions={postListActions}
         empty={false}

@@ -117,6 +117,10 @@ export const RechargeRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
+  const title =
+    identity?.role !== "Player"
+      ? "Recharge Records"
+      : "Pending Recharge Request";
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
     setExportError(null); // Clear any previous errors
@@ -211,12 +215,12 @@ export const RechargeRecordsList = (props) => {
     }
   };
 
-  const handleExportPDF = async () => {
+ const handleExportPDF = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
-    if (!exportData || exportData.length === 0) {
-      console.warn("No data to export.");
-      return;
-    }
+   if (!exportData || exportData.length === 0) {
+     console.warn("No data to export.");
+     return;
+   }
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
@@ -231,7 +235,7 @@ export const RechargeRecordsList = (props) => {
       ]),
     });
     doc.save("RechargeRecords.pdf");
-  };
+ };
 
   const handleExportXLS = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
@@ -249,7 +253,7 @@ export const RechargeRecordsList = (props) => {
 
     const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
+    XLSX.utils.book_append_sheet(workbook, worksheet, title);
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
       new Blob([xlsData], { type: "application/octet-stream" }),
@@ -398,7 +402,7 @@ export const RechargeRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Recharge records
+            {title}
           </Typography>
         </Box>
       )}
@@ -563,7 +567,7 @@ export const RechargeRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Recharge records
+            {title}
           </Typography>
         </Box>
       )}
@@ -597,11 +601,7 @@ export const RechargeRecordsList = (props) => {
       </Box>
 
       <List
-        title={
-          identity?.role !== "Player"
-            ? "Recharge Records"
-            : "Pending Recharge Request"
-        }
+        title={title}
         filters={dataFilters}
         actions={postListActions}
         // sx={{ pt: 1 }}

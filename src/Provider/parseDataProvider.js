@@ -162,7 +162,7 @@ export const dataProvider = {
       return { ids: ids, data: data };
     };
     const referenceDate = new Date("2025-01-17"); // Reference date (17th Jan)
-
+    let archiveCount = 0;
     try {
      if (resource === "users") {
        query = new Parse.Query(Parse.User);
@@ -224,6 +224,13 @@ export const dataProvider = {
        query = new Parse.Query(Resource);
        filter = { type: "redeem", ...filter };
        if (role === "Player") {
+        const archiveResource = Parse.Object.extend(
+          "Transactionrecords_archive"
+        );
+        const archiveQuery = new Parse.Query(archiveResource);
+        archiveQuery.equalTo("userId", userid);
+        archiveQuery.equalTo("type", "redeem");
+        archiveCount = await archiveQuery.count();
          filter = { userId: userid, ...filter };  
         //  filter &&
         //    Object.keys(filter).map((f) => {
@@ -297,7 +304,15 @@ export const dataProvider = {
        filter = { type: "recharge", ...filter };
        console.log(filter,"scssdkclsc");
        if (role === "Player") {
-         filter = { userId: userid, ...filter };
+        const archiveResource = Parse.Object.extend(
+          "Transactionrecords_archive"
+        );
+        const archiveQuery = new Parse.Query(archiveResource);
+        archiveQuery.equalTo("userId", userid);
+        archiveQuery.equalTo("type", "recharge");
+        archiveCount = await archiveQuery.count();
+        filter = { userId: userid, ...filter };
+        
         //  filter &&
         //    Object.keys(filter).map((f) => {
         //      if (f === "username") query.matches(f, filter[f], "i");
@@ -1406,7 +1421,7 @@ export const dataProvider = {
        query.containedIn("userId", ids);
        count = await query.count();
      }
-
+      const totalCount = count + archiveCount;
       query.limit(perPage);
       query.skip((page - 1) * perPage);
       if (order === "DESC") query.descending(field);
@@ -1495,7 +1510,7 @@ export const dataProvider = {
           });
         
           console.log("Final results after mapping:", results); // Debug final output
-          return { data: results, total: count };
+          return { data: results, total: count, totalCount };
         }        
       }
       let res = null;
