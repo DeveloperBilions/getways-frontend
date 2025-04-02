@@ -1,22 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  useGetIdentity,
   useGetList,
   Loading,
-  SearchInput,
-  List,
-  TextInput,
-  SelectInput,
   AutocompleteInput,
   DateInput,
-  SimpleForm,
-  TextField,
-  SimpleShowLayout,
   useListContext,
   ListBase,
   FilterForm,
-  minValue,
-  maxValue,
 } from "react-admin";
 
 import { Loader } from "../Loader";
@@ -28,11 +18,6 @@ import {
   CardContent,
   Grid,
   Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
 } from "@mui/material";
 // mui icons
 import PersonIcon from "@mui/icons-material/Person";
@@ -170,7 +155,6 @@ export const Summary = () => {
         userId: value.id,
       };
       setFilters(updatedFilters);
-      console.log("Updated Filters:", updatedFilters);
     }
   };
 

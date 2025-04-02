@@ -12,7 +12,6 @@ import {
   Button,
   TablePagination,
 } from "@mui/material";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import Parse from "parse";
 import { useGetIdentity } from "react-admin";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import Back Icon

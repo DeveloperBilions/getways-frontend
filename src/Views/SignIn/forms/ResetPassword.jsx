@@ -20,10 +20,7 @@ export default function ResetPassword() {
     
     const onSubmit = (event) => {
       event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      console.log({
-        email: data.get('email'),
-      });
+      new FormData(event.currentTarget);
     };
 
   const [showPassword, setShowPassword] = React.useState(false);

@@ -11,12 +11,8 @@ import {
   TopToolbar,
   usePermissions,
   useGetIdentity,
-  useGetList,
   useRefresh,
-  SelectInput,
   useListController,
-  Pagination,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -32,10 +28,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 // mui icon
-import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import InfoIcon from "@mui/icons-material/Info";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -94,7 +88,6 @@ export const RedeemRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
@@ -115,7 +108,6 @@ export const RedeemRecordsList = (props) => {
 
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
-    setExportError(null); // Clear any previous errors
 
     try {
       const { data } = await dataProvider.getList("redeemRecordsExport", {
@@ -127,7 +119,6 @@ export const RedeemRecordsList = (props) => {
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
-      setExportError("Error fetching data for export."); // Set the error message
       // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {

@@ -92,8 +92,8 @@ const PayModal = ({ open, onClose, userId }) => {
 const TransactionSummaryModal = ({ open, onClose, record }) => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
-  const [conversionFeePercent, setConversionFeePercent] = useState(5);
-  const [redeemServiceFeePercent, setRedeemServiceFeePercent] = useState(3);
+  const conversionFeePercent = 5;
+  const redeemServiceFeePercent= 3;
   const [redeemFeeEnabled, setRedeemFeeEnabled] = useState(true);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false); // State for history modal

@@ -98,7 +98,6 @@ export const walletService = {
     }
   },  
   getCashoutTransactions: async (request) => {
-    console.log(request, "getCashoutTransactions");
     const { page = 1, limit = 10, userId } = request; // Default to page 1 and limit 10
   
     if (!userId) {
@@ -122,9 +121,7 @@ export const walletService = {
           code: 404,
           message: "Wallet not found for the user",
         };
-      }  
-
-      const walletCreationDate = wallet.get("createdAt"); // Assuming createdAt is the wallet's creation date
+      }
 
   
       // Define the TransactionRecords class

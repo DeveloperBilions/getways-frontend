@@ -106,7 +106,6 @@ const EditUserDialog = ({
       setLoading(false);
     }
   };
-  console.log(identity,"identitfy from the EEdituSER")
   return (
     <React.Fragment>
       {loading ? (

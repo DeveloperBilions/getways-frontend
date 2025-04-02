@@ -14,7 +14,6 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => {
-  console.log("Redeem data", redeemFees);
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [loading, setLoading] = useState(false);

@@ -6,7 +6,6 @@ import {
   Button,
   ModalFooter,
   Col,
-  Input,
 } from "reactstrap";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import { Box, IconButton, TextField, Typography } from "@mui/material";

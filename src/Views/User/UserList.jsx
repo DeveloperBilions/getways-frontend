@@ -10,16 +10,9 @@ import {
   useRecordContext,
   useResourceContext,
   useGetIdentity,
-  useCreate,
-  TextInput,
-  useGetList,
   SearchInput,
   useRefresh,
-  useListContext,
   useListController,
-  Pagination,
-  SelectInput,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -46,7 +39,6 @@ import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
 import setting from "../../Assets/icons/setting.svg";
 import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
-import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import CustomPagination from "../Common/CustomPagination";
 import { UserFilterDialog } from "./dialog/UserFilterDialog";
 import AddUser from "../../Assets/icons/AddUser.svg";
@@ -303,7 +295,6 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
   const {
-    data,
     isLoading,
     total,
     page,
@@ -514,7 +505,7 @@ export const UserList = (props) => {
         </Box>
       )}
       <Box sx={{ display: "flex", gap: 1 }}>
-      {role != "Super-User" && role != "Master-Agent" && (
+      {role !== "Super-User" && role !== "Master-Agent" && (
         <Button
           variant="contained"
           size="small"

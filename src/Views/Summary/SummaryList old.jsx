@@ -44,8 +44,6 @@ export const Aside = () => {
     useListContext();
 
   setFilters({ username: "dhyan" });
-  console.log("=====", filterValues);
-  console.log("=====", resource);
 
   const totalUsers =
     data?.filter(
@@ -246,14 +244,12 @@ export const SummaryList = () => {
     const selectedUserObj = data.userRecords?.find(
       (user) => user.username === selectedUser
     );
-    console.log("Selected User Data: ", selectedUserObj);
     try {
       const response = await Parse.Cloud.run("summaryFilter", {
         role: selectedUserObj?.roleName,
         id: selectedUserObj?.id,
       });
       setSumaryData(response);
-      // console.log("*****", response);
     } catch (error) {
       console.error("Error fetching summary", error.message);
     }

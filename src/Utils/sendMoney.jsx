@@ -64,8 +64,6 @@ export const sendMoneyToPayPal = async (recipientPayPalId, amount, currency = "U
         },
       }
     );
-
-    console.log(payoutResponse,"payoutResponsepayoutResponse")
     if (payoutResponse.data.batch_header.batch_status === "SUCCESS" || payoutResponse.data.batch_header.batch_status === "PENDING") {
       return {
         success: true,

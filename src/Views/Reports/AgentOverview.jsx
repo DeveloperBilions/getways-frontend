@@ -22,15 +22,12 @@ export const AgentOverview = ({description}) => {
   const [agentUsername, setAgentUsername] = useState("");
   const perPage = 10;
   const [choices, setChoices] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [userLoading, setUserLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
   const [selectedUsertemp, setSelectedUsertemp] = useState(null);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
   const [totalData, setTotalData] = useState({
     totalRecharge: 0,
@@ -89,7 +86,6 @@ export const AgentOverview = ({description}) => {
         endDate: tempEndDate,
         agentId: selectedUsertemp.id,
       });
-      console.log("transactionResultByDate", transactionResultByDate);
       if (transactionResultByDate?.data.length === 0) {
         setNoDataFound(true);
         return;
@@ -136,9 +132,6 @@ export const AgentOverview = ({description}) => {
 
   const handleFilterSubmit = () => {
     setIsSubmitted(true);
-    setStartDate(tempStartDate);
-    setEndDate(tempEndDate);
-    setSelectedUser(selectedUsertemp);
     fetchSingleAgentData();
   };
 

@@ -5,19 +5,12 @@ import {
   ModalBody,
   Row,
   Col,
-  Button,
   Card,
   CardBody,
-  CardHeader,
-  ListGroup,
-  ListGroupItem,
 } from "reactstrap";
 import { Box, Typography } from "@mui/material";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
-import { FaWallet, FaCashRegister, FaPaypal } from "react-icons/fa";
-import { BiLogoVenmo } from "react-icons/bi";
-import { SiZelle } from "react-icons/si";
 import DisablePaymentMethodDialog from "./DisablePaymentMethodDialog";
 import WalletIcon from "../../../Assets/icons/WalletIcon.svg";
 import PayPalLogo from "../../../Assets/icons/paypal_logo.svg";
@@ -104,7 +97,6 @@ const WalletDialog = ({ open, onClose, record }) => {
   const [walletDetails, setWalletDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
-  const role = localStorage.getItem("role");
   const [cashoutStats, setCashoutStats] = useState({
     inProgressCount: 0,
     completedCount: 0,

@@ -1,9 +1,6 @@
 import React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import FileCheck from "../../Assets/icons/FileCheck.svg";
-import Iicon from "../../Assets/icons/Iicon.svg";
-import PaymentSuccess from "../../Assets/icons/payment-success.svg";
 import { useRedirect } from "react-admin";
 import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import FileCheckWhite from "../../Assets/icons/FileCheckWhite.svg";

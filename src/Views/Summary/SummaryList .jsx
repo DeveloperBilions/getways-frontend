@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useDataProvider, useGetIdentity, Loading } from "react-admin";
+import { useDataProvider, useGetIdentity } from "react-admin";
 // mui
-import { Typography, Card, CardContent, Grid, Box } from "@mui/material";
+import { Typography, Card, CardContent, Grid } from "@mui/material";
 // mui icons
 import PersonIcon from "@mui/icons-material/Person";
 import PaidIcon from "@mui/icons-material/Paid";

@@ -5,13 +5,11 @@ import {
   Resource,
   CustomRoutes,
   Authenticated,
-  ListGuesser,
 } from "react-admin";
-import { Route, Navigate, Routes } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import SummarizeIcon from "@mui/icons-material/Summarize";
-import GridViewIcon from "@mui/icons-material/GridView";
 import LoginPage from "./Views/SignIn/forms/CheckPresence";
 import { Maintenance } from "./Views/Maintenance";
 import UpdateUser from "./Views/SignIn/forms/UpdateUser";
@@ -30,7 +28,6 @@ import { RechargeRecordsList } from "./Views/RechargeRecords/RechargeRecordsList
 import { RedeemRecordsList } from "./Views/RedeemRecords/RedeemRecordsList";
 import { DataSummary } from "./Views/Summary/DataSummary";
 import { PlayerList } from "./Views/Player/PlayerList";
-import { Stripe } from "./Views/Stripe/Stripe";
 import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";

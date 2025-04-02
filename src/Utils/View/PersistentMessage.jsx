@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
 import { useGetIdentity } from "react-admin";
 import { checkActiveRechargeLimit } from "../utils";
 import { Alert } from "@mui/material";
@@ -12,7 +11,6 @@ const PersistentMessage = () => {
     const fetchLimitStatus = async () => {
       try {
         const transactionCheck = await checkActiveRechargeLimit(identity.objectId, 0); // Check limit with 0 recharge
-        console.log(transactionCheck,"transactionChecktransactionCheck")
         setHasReachedLimit(!transactionCheck.success); // If limit exceeded, show message
       } catch (error) {
         console.error("Error checking recharge limit:", error);

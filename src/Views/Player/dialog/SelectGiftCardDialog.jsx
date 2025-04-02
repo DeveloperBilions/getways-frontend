@@ -33,7 +33,6 @@ const SelectGiftCardDialog = ({
   record,
 }) => {
   const [perPage] = useState(50);
-  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [giftCards, setGiftCards] = useState([]);
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
@@ -79,8 +78,6 @@ const SelectGiftCardDialog = ({
           productIds.add(card.productId);
           return true;
         });
-
-        setTotalPages(Math.ceil(allResponse.totalCount / perPage));
       } else {
         const response = await Parse.Cloud.run("fetchGiftCards", {
           searchTerm: search.trim(),
@@ -88,7 +85,6 @@ const SelectGiftCardDialog = ({
           perPage,
         });
         combinedResults = response.brands || [];
-        setTotalPages(Math.ceil(response.totalCount / perPage));
       }
 
       setGiftCards(combinedResults);

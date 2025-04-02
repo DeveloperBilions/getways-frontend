@@ -4,13 +4,10 @@ import { Form, useNotify, useRedirect } from "react-admin";
 import {
   Button,
   CssBaseline,
-  Paper,
   Box,
-  Grid,
   Typography,
   FormHelperText,
   OutlinedInput,
-  useMediaQuery,
   Alert,
 } from "@mui/material";
 // hook form
@@ -20,7 +17,6 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import HelpVideoModal from "../HelpVideoModal";
-import ReCAPTCHA from "react-google-recaptcha";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../Assets/icons/Logo.svg";
 import { Label } from "reactstrap";
@@ -35,11 +31,7 @@ const LoginPage = () => {
   const redirect = useRedirect();
   const notify = useNotify();
   const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
-  const [captchaValue, setCaptchaValue] = useState(null);
   const recaptchaRef = useRef();
-  const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
-  const [isCaptchaReady, setIsCaptchaReady] = useState(false); // Track captcha load status
-  const isSmallScreen = useMediaQuery("(max-width:900px)");
   const {
     register,
     handleSubmit,
@@ -60,9 +52,6 @@ const LoginPage = () => {
 
   useEffect(() => {
     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
-    if (recaptchaRef.current) {
-      setIsCaptchaReady(true); // Set ready status to true when ref is available
-    }
     const savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
 
     if (savedAccounts.length > 0) {

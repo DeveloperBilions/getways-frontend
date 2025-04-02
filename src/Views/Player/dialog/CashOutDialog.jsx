@@ -9,7 +9,6 @@ import {
   Label,
   Form,
   Input,
-  FormText,
   Alert,
   Card,
   CardBody,
@@ -27,9 +26,9 @@ import {
 } from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
-const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
-const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
+// const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
+// const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
+// const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
 
 const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +36,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [totalPages, setTotalPages] = useState(1);
 
   const [userName, setUserName] = useState(localStorage.getItem("username"));
-  const role = localStorage.getItem("role");
   const userId = localStorage.getItem("id");
   const [redeemAmount, setRedeemAmount] = useState("");
   const [redeemFees, setRedeemFees] = useState(0);
@@ -93,7 +91,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
 
   useEffect(() => {
     if (record && open) {
-      //setUserName(record.username || "");
       //parentServiceFee();
     } else {
       resetFields();
@@ -432,7 +429,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     // },
     { key: "virtualCardId", label: "Gift Card", disabled: false },
   ];
-  // console.log(paymentMethods, "paymentMethods");
   return (
     <React.Fragment>
       {loading ? (

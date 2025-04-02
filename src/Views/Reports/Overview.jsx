@@ -40,7 +40,6 @@ export const Overview = ({description}) => {
 
   const fetchData = async () => {
     try {
-      console.log(fromDate, toDate, "date");
       setLoading(true);
       const filter = {};
       if (fromDate) filter.fromDate = fromDate;
@@ -66,7 +65,6 @@ export const Overview = ({description}) => {
       } else {
         setNoDataFound(false);
       }
-      console.log(transactionResult, "rechargeDatarechargeDatarechargeData");
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {

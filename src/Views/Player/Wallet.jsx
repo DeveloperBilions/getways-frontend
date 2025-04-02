@@ -48,7 +48,6 @@ export const Wallet = () => {
         limit: pageSize,
         userId: userId,
       });
-      console.log(response, "responsesdksjdks");
       setTransactions(response.transactions || []);
       setTotalRecords(response.pagination?.count || 0);
     } catch (error) {

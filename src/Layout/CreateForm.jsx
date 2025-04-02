@@ -7,9 +7,6 @@ import Container from '@mui/material/Container';
 
 import { Form, CreateBase } from "react-admin";
 
-const onSubmit = (data) => {
-    console.log(data);
-};
 
 export const CreateForm = ({title, handleClose, children}) => {
     return (

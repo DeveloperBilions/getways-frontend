@@ -1,8 +1,7 @@
 import * as XLSX from "xlsx";
-import { Datagrid, DateField, List, NumberField, ReferenceField, TextField, ExportButton, TopToolbar, useListContext } from 'react-admin';
+import { Datagrid, DateField, List, NumberField, TextField, ExportButton, TopToolbar, useListContext } from 'react-admin';
 import {
   Typography,
-  Box,
 } from "@mui/material";
 import { mapTransactionStatus } from '../../utils';
 import { jsPDF } from "jspdf";
@@ -22,7 +21,6 @@ const excelExporter = transactions => {
     transactionForExport.status = mapTransactionStatus(status);
     return transactionForExport;
   });
-  console.log(objectSorter(transactionsForExport));
   const worksheet = XLSX.utils.json_to_sheet(objectSorter(transactionsForExport));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
@@ -37,7 +35,6 @@ const pdfExporter = transactions => {
       return transactionForExport;
     });
   const sortedTransactions = objectSorter(transactionsForExport);
-  console.log(sortedTransactions);
   const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
@@ -49,7 +46,7 @@ const pdfExporter = transactions => {
 }
 
 const PostListActions = () => {
-  const { data, isPending } = useListContext();
+  const { data } = useListContext();
   const totalTransactionAmount = data && data
       // .filter((item) => item.status === 2 || item.status === 3)
       .reduce((sum, item) => sum + item.transactionAmount, 0);

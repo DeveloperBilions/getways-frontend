@@ -76,7 +76,6 @@ export const PlayerList = () => {
     setLoading(true);
     try {
       const wallet = await walletService.getMyWalletData();
-      console.log(wallet.wallet);
       setWalletData(wallet.wallet);
       setBalance(wallet.wallet.balance);
     } catch (error) {
@@ -91,7 +90,6 @@ export const PlayerList = () => {
         const response = await Parse.Cloud.run("redeemParentServiceFee", {
           userId: identity?.userParentId,
         });
-        console.log("Parent service fee response:", response);
         setRedeemFees(response?.redeemService || 0);
       } catch (error) {
         console.error("Error fetching parent service fee:", error);
@@ -215,12 +213,10 @@ export const PlayerList = () => {
   const rechargeData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching recharge records...");
       const { data, totalCount } = await dataProvider.getList("rechargeRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      console.log("Data from rechargeRecords:", data);
       const rechargeResponse = rechargeConvertTransactions(data);
       if (rechargeData) {
         setRechargeTransactionData(rechargeResponse);
@@ -239,12 +235,10 @@ export const PlayerList = () => {
   const redeemData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching redeem records...");
       const { data, totalCount } = await dataProvider.getList("redeemRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      console.log("Data from redeemRecords:", data);
       const redeemResponse = redeemConvertTransactions(data);
       if (redeemData) {
         setRedeemTransactionData(redeemResponse);

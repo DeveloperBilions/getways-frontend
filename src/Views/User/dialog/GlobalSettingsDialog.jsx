@@ -11,7 +11,6 @@ import {
   Alert,
   CircularProgress,
   Typography,
-  Divider,
 } from "@mui/material";
 import Parse from "parse";
 

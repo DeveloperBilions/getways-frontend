@@ -17,9 +17,8 @@ export const authProvider = {
         "caseInsensitiveLogin",
         { email, password }
       );
-      console.log("LOGGED IN");
       // Set the current user session using the session token
-      const currentUser = await Parse.User.become(sessionToken);
+      await Parse.User.become(sessionToken);
       localStorage.setItem("role", user.get("roleName"));
       localStorage.setItem("id", user.id);
       localStorage.setItem("name", user.get("name"));
@@ -43,18 +42,17 @@ export const authProvider = {
     if (status === 401 || status === 403) {
       Parse.User.current().then(() =>
         Parse.User.logOut().then(() => {
-          const currentUser = Parse.User.current();
+          Parse.User.current();
         })
       );
       throw new Error("Session Expired");
     }
   },
   async checkAuth() {
-    const currentUserData = localStorage.getItem("role");
-    const roleName = currentUserData;
+    localStorage.getItem("role");
     try{
       let user = Parse.User.current();
-      user = await user.fetch();
+      await user.fetch();
     }
     catch (error) {
       if(error?.message === "Invalid session token"){

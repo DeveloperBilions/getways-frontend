@@ -11,12 +11,8 @@ import {
   TopToolbar,
   usePermissions,
   useGetIdentity,
-  useGetList,
   useRefresh,
-  SelectInput,
   useListController,
-  Pagination,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -34,15 +30,10 @@ import {
   useMediaQuery,
 } from "@mui/material";
 // mui icon
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import LinkIcon from "@mui/icons-material/Link";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircularProgress from "@mui/material/CircularProgress";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -79,7 +70,6 @@ export const RechargeRecordsList = (props) => {
         : { type: "recharge" },
   });
   const {
-    data,
     isLoading,
     total,
     page,
@@ -101,7 +91,6 @@ export const RechargeRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const [exportError, setExportError] = useState(null); // Store any export errors
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
@@ -123,7 +112,6 @@ export const RechargeRecordsList = (props) => {
       : "Pending Recharge Request";
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
-    setExportError(null); // Clear any previous errors
 
     try {
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
@@ -131,12 +119,10 @@ export const RechargeRecordsList = (props) => {
         sort: { field: "transactionDate", order: "DESC" },
         filter: currentFilterValues,
       });
-      console.log(data, "datafromrechargeRecordsExport");
       // setData(data);
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
-      setExportError("Error fetching data for export."); // Set the error message
       // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {

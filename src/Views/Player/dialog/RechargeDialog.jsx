@@ -84,10 +84,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       setErrorMessage(transactionCheck.message); // Show error if the limit is exceeded
       return;
     }
-
-    console.log("paymentSource", paymentSource);
     if (paymentSource === "wallet") {
-      console.log("wallet");
       // Ensure wallet balance is sufficient
       if (parseFloat(rechargeAmount) > walletBalance) {
         setErrorMessage("Insufficient wallet balance."); // Set error message
@@ -198,7 +195,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const walletRecord = await walletQuery.first({ useMasterKey: true });
 
   const userWalletAddress = walletRecord?.get("wallet_adress");
-  console.log(userWalletAddress,"userWalletAddress")
   const signedData = signSmartContractData(
     {
       address: userWalletAddress,
@@ -222,7 +218,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       listeners: {
         "payment-status": async (status) => {
           console.log("📥 Wert Payment Status:", status);
-      
           try {
             const Transaction = Parse.Object.extend("TransactionRecords");
             const query = new Parse.Query(Transaction);
