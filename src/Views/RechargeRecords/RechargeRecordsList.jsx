@@ -647,6 +647,8 @@ export const RechargeRecordsList = (props) => {
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
                 },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
               }}
             >
               <FunctionField
@@ -811,15 +813,29 @@ export const RechargeRecordsList = (props) => {
                   label="Mode"
                   render={(record) => {
                     return (
-                      <Chip
-                        label={
+                      <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "4px",
+                        height: "22px",
+                        width: "57px",
+                        border: "1px solid #E4E4E7",
+                        bgcolor: "#F4F4F5",
+                      }}>
+                        <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 400,
+                        }}>{
                           record?.referralLink?.toLowerCase().includes("aog")
                             ? "AOG"
                             : record?.useWallet
                             ? "Wallet"
                             : "Stripe"
-                        }
-                      />
+                        }</Typography>
+                      </Box>
                     );
                   }}
                 />

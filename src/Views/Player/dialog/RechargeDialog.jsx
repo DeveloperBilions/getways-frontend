@@ -30,7 +30,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const paymentSource = data.paymentSource;
   const [walletBalance, setWalletBalance] = useState(0);
   const [redeemFees, setRedeemFees] = useState();
-  const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState("");
   const [successRecharge, setSuccessRecharge] = useState(false);
   const [ RechargeEnabled, setRechargeEnabled]=  useState(false);
@@ -175,7 +174,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   };
   const parentServiceFee = async () => {
     try {
-      setMinLimitLoading(true);
 
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: identity?.userParentId,
@@ -185,14 +183,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
-    } finally {
-      setMinLimitLoading(false);
     }
   };
-
-  if (minLimitLoading) {
-    return <Loader />;
-  }
 
   return (
     <React.Fragment>

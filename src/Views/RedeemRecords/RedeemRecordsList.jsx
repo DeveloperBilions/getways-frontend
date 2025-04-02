@@ -707,6 +707,8 @@ export const RedeemRecordsList = (props) => {
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
                 },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
               }}
               rowStyle={(record) => {
                 if (identity?.role === "Super-User" && record?.status === 11) {

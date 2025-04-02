@@ -13,10 +13,10 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
+const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => {
+  console.log("Redeem data", redeemFees);
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
-  const [redeemFees, setRedeemFees] = useState(0);
   const [loading, setLoading] = useState(false);
   const notify = useNotify();
 
@@ -54,23 +54,6 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
     refresh();
     handleRedeemRefresh();
   };
-
-  const parentServiceFee = async () => {
-    try {
-      const response = await Parse.Cloud.run("redeemParentServiceFee", {
-        userId: transformedIdentity?.userParentId,
-      });
-      setRedeemFees(response?.redeemService || 0);
-    } catch (error) {
-      console.error("Error fetching parent service fee:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (transformedIdentity?.userParentId) {
-      parentServiceFee();
-    }
-  }, []);
 
   const handleConfirm = () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
@@ -370,13 +353,14 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh }) => {
           </Button>
         </Box>
       </Box>
-  
-      <TransactionRecords
-        message={"Recent Redeem"}
-        totalTransactions={totalData}
-        transactionData={data}
-        redirectUrl={"redeemRecords"}
-      />
+      {totalData > 0 && data.length !== 0 && (
+        <TransactionRecords
+          message={"Recent Redeem"}
+          totalTransactions={totalData}
+          transactionData={data}
+          redirectUrl={"redeemRecords"}
+        />
+      )}
       <RedeemDialog
         open={redeemDialogOpen}
         onClose={() => setRedeemDialogOpen(false)}

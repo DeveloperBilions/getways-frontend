@@ -676,6 +676,8 @@ export const UserList = (props) => {
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
                 },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
               }}
             >
               <WrapperField label="Actions">

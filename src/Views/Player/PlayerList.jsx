@@ -46,6 +46,7 @@ export const PlayerList = () => {
   const [totalAvailableGiftCard, setTotalAvailableGiftCard] = useState(0);
   const [totalExpiredGiftCard, setTotalExpiredGiftCard] = useState(0);
   const [walletData, setWalletData] = useState([]);
+  const [redeemFees, setRedeemFees] = useState(0);
 
   useEffect(() => {
     WalletService();
@@ -54,9 +55,16 @@ export const PlayerList = () => {
     cashoutData();
   }, []);
 
+  // useEffect(() => {
+    
+  // }, [identity]);
+
   useEffect(() => {
     if (identity && identity.objectId) {
       giftCardData(identity.objectId, 0, 10);
+    }
+    if (identity && identity?.userParentId) {
+      parentServiceFee();
     }
   }, [identity]);
 
@@ -77,6 +85,18 @@ export const PlayerList = () => {
       setLoading(false);
     }
   }
+
+  const parentServiceFee = async () => {
+      try {
+        const response = await Parse.Cloud.run("redeemParentServiceFee", {
+          userId: identity?.userParentId,
+        });
+        console.log("Parent service fee response:", response);
+        setRedeemFees(response?.redeemService || 0);
+      } catch (error) {
+        console.error("Error fetching parent service fee:", error);
+      }
+    };
 
   const rechargeConvertTransactions = (transactions) => {
     return transactions.map((txn) => {
@@ -299,6 +319,7 @@ export const PlayerList = () => {
   };
   const handleRedeemRefresh = () => {
     redeemData();
+    parentServiceFee();
   };
   const handleCashoutRefresh = () => {
     cashoutData();
@@ -459,6 +480,7 @@ export const PlayerList = () => {
               totalData={totalRedeemData}
               wallet={walletData}
               handleRedeemRefresh={handleRedeemRefresh}
+              redeemFees={redeemFees}
             />
           </Box>
         )}
