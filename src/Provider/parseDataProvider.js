@@ -977,6 +977,8 @@ export const dataProvider = {
            const parentQuery = new Parse.Query(Parse.User);
            parentQuery.containedIn("objectId", parentIds);
            parentQuery.select("objectId", "userParentName");
+           parentQuery.limit(50000);
+
            const parentResults = await parentQuery.find({ useMasterKey: true });
            parentMap = new Map(
              parentResults.map((p) => [p.id, p.get("userParentName")])

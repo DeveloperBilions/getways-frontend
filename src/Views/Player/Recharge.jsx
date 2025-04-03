@@ -299,7 +299,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               flexWrap: { xs: "wrap", md: "nowrap" },
             }}
           >
-            {[10, 20, 50, 100, 200, 500].map((amount) => (
+            {[20, 30, 40, 50, 75, 100].map((amount) => (
               <Button
                 key={amount}
                 variant="outlined"
