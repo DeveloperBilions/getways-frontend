@@ -422,7 +422,7 @@ export const PlayerList = () => {
             />
             Wallet
           </Button>
-          <Button
+          {/* <Button
             variant={selectedTab === "giftcard" ? "contained" : "text"}
             size="small"
             onClick={() => setSelectedTab("giftcard")}
@@ -448,7 +448,7 @@ export const PlayerList = () => {
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             Gift Card
-          </Button>
+          </Button> */}
         </Stack>
       </Box>
       <Box

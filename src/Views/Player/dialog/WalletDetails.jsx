@@ -10,6 +10,7 @@ import TransactionRecords from "../TransactionRecords";
 import { Parse } from "parse";
 import CashOutModal from "./CashOutDialogCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { Alert } from "@mui/material"; 
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -142,11 +143,15 @@ export const WalletDetails = ({
               "&:hover": {
                 bgcolor: "#1D4ED8",
               },
+              "&.Mui-disabled": {
+                bgcolor: "#A0AEC0", // Disabled background color (grayish)
+                color: "#E2E8F0", // Disabled text color (light gray)
+              },
             }}
             onClick={() => {
               setIsOpen(true);
             }}
-            disabled={identity?.isBlackListed}
+            disabled={identity?.isBlackListed || true}
           >
             Cashout{" "}
             <ArrowForwardIcon
@@ -162,6 +167,10 @@ export const WalletDetails = ({
             marginBottom: "16px",
           }}
         >
+
+        <Alert severity="error" sx={{ my: 2 }}>
+        We're experiencing cashout processing delays due to high demand. Please try again later.
+</Alert>
           <Typography
             variant="body2"
             sx={{

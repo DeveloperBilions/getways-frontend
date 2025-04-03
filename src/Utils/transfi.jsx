@@ -54,7 +54,7 @@ export const processTransfiDeposit = async (transactionAmount, userEmail, firstN
 
     // Process deposit order
     const depositRes = await axios.post(
-      "https://sandbox-api.transfi.com/v2/orders/deposit",
+      "https://sandbox-api.transfi.com/v2/orders/gaming",
       {
         paymentType: "card",
         purposeCode: "fee_payments",
