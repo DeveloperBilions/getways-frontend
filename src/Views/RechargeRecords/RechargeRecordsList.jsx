@@ -65,6 +65,8 @@ import EmergencyNotices from "../../Layout/EmergencyNotices";
 import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
 import { RechargeFilterDialog } from "./dialog/RechargeFilterDialog";
+import { isRechargeEnabledForAgent } from "../../Utils/utils";
+import { Alert } from "@mui/material"; 
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -106,6 +108,19 @@ export const RechargeRecordsList = (props) => {
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [rechargeDisabled, setRechargeDisabled] = useState(false);
+
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+      if (identity?.role === "Agent") {
+        const disabled = !(await isRechargeEnabledForAgent(identity.id));
+        setRechargeDisabled(disabled);
+      }
+    };
+  
+    checkRechargeAccess();
+  }, [identity]);
+  
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleOpenFilterModal = () => {
@@ -547,6 +562,12 @@ export const RechargeRecordsList = (props) => {
     <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
+      {role === "Agent" && rechargeDisabled && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+    Recharges are not available at this time. Please advise customers to try again later.
+  </Alert>
+)}
+
       {!isMobile && (
         <Box
           sx={{

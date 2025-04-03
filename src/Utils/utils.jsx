@@ -919,3 +919,49 @@ export const fetchTransactionsofPlayerByDate = async ({
     return { status: "error", code: 500, message: error.message };
   }
 };
+
+export const isRechargeEnabledForAgent = async (agentId) => {
+  try {
+    // Step 1: Fetch the agent user
+    const agent = await new Parse.Query(Parse.User).get(agentId, { useMasterKey: true });
+
+    // Step 2: Get the parent (Master-Agent)
+    const masterAgent = agent.get("userParentId");
+
+    if (!masterAgent || !masterAgent.id) {
+      console.warn("No Master-Agent linked to this agent.");
+      return false;
+    }
+
+    // Step 3: Get allowed recharge Master-Agent IDs from settings
+    const settingsQuery = new Parse.Query("Settings");
+    settingsQuery.equalTo("type", "allowedMasterAgentsForRecharge");
+    const setting = await settingsQuery.first({ useMasterKey: true });
+
+    const allowedIds = setting?.get("settings") || [];
+
+    return allowedIds.includes(masterAgent.id);
+  } catch (err) {
+    console.error("Error checking recharge status:", err);
+    return false;
+  }
+};
+export const isCashoutEnabledForAgent = async (agentId) => {
+  try {
+    const agent = await new Parse.Query(Parse.User).get(agentId, { useMasterKey: true });
+    const masterAgent = agent.get("userParentId");
+
+    if (!masterAgent || !masterAgent.id) return false;
+
+    const settingsQuery = new Parse.Query("Settings");
+    settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
+    const setting = await settingsQuery.first({ useMasterKey: true });
+
+    const allowedCashoutIds = setting?.get("settings") || [];
+
+    return allowedCashoutIds.includes(masterAgent.id);
+  } catch (error) {
+    console.error("Error checking cashout enabled for agent:", error);
+    return false;
+  }
+};

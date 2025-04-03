@@ -62,12 +62,14 @@ import CustomPagination from "../Common/CustomPagination";
 import { ReedemFilterDialog } from "./dialog/RedeemFilterDialog";
 import Reload from "../../Assets/icons/reload.svg";
 import Download from "../../Assets/icons/download.svg";
+import { isCashoutEnabledForAgent } from "../../Utils/utils";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RedeemRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
+  const [cashoutDisabled, setCashoutDisabled] = useState(false);
   const {
     data,
     isLoading,
@@ -102,6 +104,17 @@ export const RedeemRecordsList = (props) => {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
 
+  useEffect(() => {
+    const checkCashoutAccess = async () => {
+      if (identity?.role === "Agent") {
+        const isAllowed = await isCashoutEnabledForAgent(identity?.id);
+        setCashoutDisabled(!isAllowed);
+      }
+    };
+  
+    checkCashoutAccess();
+  }, [identity]);
+  
   const handleOpenFilterModal = () => {
     setFilterModalOpen(true);
   };
@@ -562,6 +575,12 @@ export const RedeemRecordsList = (props) => {
     <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
+      {identity?.role === "Agent" && cashoutDisabled && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+    Cashouts are not available at this time. Please advise customers to try again later.
+  </Alert>
+)}
+
       {!isMobile && (
         <Box
           sx={{

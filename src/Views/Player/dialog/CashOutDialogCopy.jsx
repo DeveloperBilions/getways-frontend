@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -12,6 +12,9 @@ import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import { Box, IconButton, TextField, Typography } from "@mui/material";
 import SelectGiftCardDialog from "./SelectGiftCardDialog";
 import Close from "../../../Assets/icons/close.svg";
+import { isCashoutEnabledForAgent } from "../../../Utils/utils";
+import { useGetIdentity } from "react-admin";
+import { Alert } from "@mui/material"; 
 
 const CashOutModal = ({
   setOpen,
@@ -20,9 +23,20 @@ const CashOutModal = ({
   balance: initialBalance,
   record,
 }) => {
+  const { identity } = useGetIdentity();
   const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [balance, setBalance] = useState(initialBalance);
+  const [cashoutDisabled, setCashoutDisabled] = useState(false);
+
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
+        setCashoutDisabled(disabled);
+    };
+  
+    checkRechargeAccess();
+  }, [identity]);
   const handalOpenGiftCard = () => {
     if (!balance) {
       setErrorMessage(
@@ -96,6 +110,11 @@ const CashOutModal = ({
             Cash out
           </ModalHeader>
           <ModalBody>
+          {cashoutDisabled  && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+  Cashouts are not available at this time. Please try again later.
+  </Alert>
+)}
             <Box
               className="d-flex align-items-center rounded mb-4 justify-content-between"
               sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}
@@ -209,6 +228,7 @@ const CashOutModal = ({
                     fontFamily: "Inter",
                   }}
                   onClick={handalOpenGiftCard}
+                  disabled={cashoutDisabled}
                 >
                   Next
                 </Button>

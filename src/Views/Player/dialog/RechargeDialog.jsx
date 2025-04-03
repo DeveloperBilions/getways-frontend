@@ -14,11 +14,13 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
-import { checkActiveRechargeLimit } from "../../../Utils/utils";
+import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../../Utils/utils";
 import WertWidget from "@wert-io/widget-initializer";
 import { signSmartContractData } from "@wert-io/widget-sc-signer";
 
 import Close from "../../../Assets/icons/close.svg";
+import { Alert } from "@mui/material"; 
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -38,7 +40,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successRecharge, setSuccessRecharge] = useState(false);
   const [RechargeEnabled, setRechargeEnabled] = useState(false);
-  
+  const [rechargeDisabled, setRechargeDisabled] = useState(false);
+
   const resetFields = () => {
     setErrorMessage(""); // Reset error message
   };
@@ -65,6 +68,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     }
   }, [identity, open]);
 
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isRechargeEnabledForAgent(identity?.userParentId));
+        setRechargeDisabled(disabled);
+    };
+  
+    checkRechargeAccess();
+  }, [identity]);
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -365,7 +376,13 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                     {errorMessage}
                   </Box>
                 )}
+             
                 <ModalBody>
+                {rechargeDisabled && paymentSource === "stripe" && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+  Recharges are not available at this time. Please try again later.
+  </Alert>
+)}
                   <Box className="text-center mb-4">
                     <Typography
                       style={{
@@ -417,7 +434,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                           fontFamily: "Inter",
                         }}
                         onClick={handleSubmit}
-                        disabled={RechargeEnabled}
+                        disabled={RechargeEnabled || rechargeDisabled}
                       >
                         Confirm
                       </Button>
