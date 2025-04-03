@@ -70,7 +70,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   useEffect(() => {
     const checkRechargeAccess = async () => {
         const disabled = !(await isRechargeEnabledForAgent(identity?.userParentId));
-        setRechargeDisabled(disabled);
+        setRechargeDisabled(false);
     };
   
     checkRechargeAccess();
