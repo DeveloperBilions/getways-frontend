@@ -3,7 +3,7 @@ import axios from "axios";
 export const processTransfiDeposit = async (transactionAmount, userEmail, firstName, lastName) => {
   const username = process.env.REACT_APP_TRANSFI_USERNAME;
   const password = process.env.REACT_APP_TRANSFI_PASSWORD;
-  const redirectUrl = process.env.REACT_APP_REDIRECT_URL;
+  const redirectUrl = process.env.REACT_APP_REDIRECT_URL_TRANSFI;
 
   try {
     const basicAuthHeader = "Basic " + btoa(`${username}:${password}`);
