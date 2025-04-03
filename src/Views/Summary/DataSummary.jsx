@@ -1137,7 +1137,7 @@ export const DataSummary = () => {
     setSelectedUser(selectedUsertemp);
   };
   return (
-    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
+    <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
         <Box sx={{ px: { xs: 1, sm: 2 } }}>
@@ -1289,6 +1289,6 @@ export const DataSummary = () => {
           endDate={endDate}
         />
       </ListBase>
-    </Box>
+    </>
   );
 };
