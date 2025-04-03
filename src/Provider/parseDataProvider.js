@@ -2,6 +2,7 @@ import { Parse } from "parse";
 import { calculateDataSummaries ,calculateDataSummariesForSummary } from "../utils";
 import Stripe from "stripe";
 import { getParentUserId, updatePotBalance } from "../Utils/utils";
+import { processTransfiDeposit } from "../Utils/transfi";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1924,33 +1925,38 @@ export const dataProvider = {
 
       if (!useWallet) {
         // Process Stripe transaction
-        session = await stripe.checkout.sessions.create({
-         // payment_method_types: ["card", "cashapp"], // Accept card payments
-          mode: "payment", // One-time payment
-          success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-          cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-          expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: "One-time Payment", // Placeholder for product
-                },
-                unit_amount: Math.floor(parseFloat(transactionAmount)), // Store unit amount as integer cents
-              },
-              quantity: 1,
-            },
-          ],
-          metadata: {
-            userId: id,
-            username: username,
-          },
-        });
+        // session = await stripe.checkout.sessions.create({
+        //  // payment_method_types: ["card", "cashapp"], // Accept card payments
+        //   mode: "payment", // One-time payment
+        //   success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
+        //   cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
+        //   expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
+        //   line_items: [
+        //     {
+        //       price_data: {
+        //         currency: "usd",
+        //         product_data: {
+        //           name: "One-time Payment", // Placeholder for product
+        //         },
+        //         unit_amount: Math.floor(parseFloat(transactionAmount)), // Store unit amount as integer cents
+        //       },
+        //       quantity: 1,
+        //     },
+        //   ],
+        //   metadata: {
+        //     userId: id,
+        //     username: username,
+        //   },
+        // });
 
-        transactionDetails.set("status", 1); // Pending status
-        transactionDetails.set("referralLink", session.url);
-        transactionDetails.set("transactionIdFromStripe", session.id);
+        // transactionDetails.set("status", 1); // Pending status
+        // transactionDetails.set("referralLink", session.url);
+        // transactionDetails.set("transactionIdFromStripe", session.id);
+        session = await processTransfiDeposit(transactionAmount,user.get("email"),user.get("name"),user.get("username"))
+        transactionDetails.set("status", 1); // Pending
+       transactionDetails.set("referralLink", session?.paymentUrl); // Payment link from NOWPayments
+       transactionDetails.set("transactionIdFromStripe",session.orderId);
+       session = session
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
         const parentUserId = await getParentUserId(id);

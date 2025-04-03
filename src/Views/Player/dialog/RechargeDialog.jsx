@@ -150,40 +150,41 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         setErrorMessage("Non-Wallet transaction must be at least $10.");
         return;
       }
-      handleOpenWert(amount);
 
-      // const rawData = {
-      //   id: identity.objectId,
-      //   type: "recharge",
-      //   username: identity.username,
-      //   transactionAmount: rechargeAmount * 100,
-      //   remark,
-      // };
+      const rawData = {
+        id: identity.objectId,
+        type: "recharge",
+        username: identity.username,
+        transactionAmount: rechargeAmount * 100,
+        remark,
+      };
 
-      // setLoading(true);
-      // try {
-      //   const response = await dataProvider.userTransaction(rawData);
-      //   if (response?.success) {
-      //     const paymentUrl = response?.apiResponse?.url;
-      //     if (paymentUrl) {
-      //       window.open(paymentUrl, "_blank");
-      //     } else {
-      //       setErrorMessage("Payment URL is missing. Please try again.");
-      //     }
-      //   } else {
-      //     setErrorMessage(
-      //       response?.message || "Stripe recharge failed. Please try again."
-      //     );
-      //   }
-      //   onClose();
-      //   handleRefresh();
-      //   resetFields();
-      // } catch (error) {
-      //   console.error("Error processing Stripe payment:", error);
-      //   setErrorMessage("An unexpected error occurred. Please try again.");
-      // } finally {
-      //   setLoading(false);
-      // }
+      setLoading(true);
+      try {
+        const response = await dataProvider.userTransaction(rawData);
+        window.open(response?.apiResponse.paymentUrl, "_blank");
+
+        if (response?.success) {
+          const paymentUrl = response?.apiResponse?.url;
+          if (paymentUrl) {
+            window.open(paymentUrl, "_blank");
+          } else {
+            setErrorMessage("Payment URL is missing. Please try again.");
+          }
+        } else {
+          setErrorMessage(
+            response?.message || "Stripe recharge failed. Please try again."
+          );
+        }
+        onClose();
+        handleRefresh();
+        resetFields();
+      } catch (error) {
+        console.error("Error processing Stripe payment:", error);
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
   const handleOpenWert = async (amount) => {
