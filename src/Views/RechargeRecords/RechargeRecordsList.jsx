@@ -346,7 +346,7 @@ export const RechargeRecordsList = (props) => {
   const dataFilters = [
     <Box
       key="search-filter"
-      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+      sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", justifyContent: "space-between"}}
       alwaysOn
     >
       <SearchInput
@@ -360,6 +360,7 @@ export const RechargeRecordsList = (props) => {
           marginBottom: 1,
           borderRadius: "5px",
           borderColor: "#CFD4DB",
+          maxWidth: "280px"
         }}
       />
       <Button
@@ -549,14 +550,15 @@ export const RechargeRecordsList = (props) => {
     );
   }
   return (
-    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
+    <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
       {role === "Agent" && rechargeDisabled && (
-  <Alert severity="warning" sx={{ my: 2 }}>
-    Recharges are not available at this time. Please advise customers to try again later.
-  </Alert>
-)}
+        <Alert severity="warning" sx={{ my: 2 }}>
+          Recharges are not available at this time. Please advise customers to
+          try again later.
+        </Alert>
+      )}
 
       {!isMobile && (
         <Box
@@ -622,6 +624,12 @@ export const RechargeRecordsList = (props) => {
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}
+        sx={{
+          "& .RaList-actions": {
+            flexWrap: "nowrap", // Ensures table fills the available space
+          },
+          "& .RaFilterFormInput-spacer": { display: "none" },
+        }}
       >
         <Box
           style={{
@@ -821,27 +829,29 @@ export const RechargeRecordsList = (props) => {
                   render={(record) => {
                     return (
                       <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderRadius: "4px",
-                        height: "22px",
-                        width: "57px",
-                        border: "1px solid #E4E4E7",
-                        bgcolor: "#F4F4F5",
-                      }}>
-                        <Typography
                         sx={{
-                          fontSize: "14px",
-                          fontWeight: 400,
-                        }}>{
-                          record?.referralLink?.toLowerCase().includes("aog")
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          borderRadius: "4px",
+                          height: "22px",
+                          width: "57px",
+                          border: "1px solid #E4E4E7",
+                          bgcolor: "#F4F4F5",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: "14px",
+                            fontWeight: 400,
+                          }}
+                        >
+                          {record?.referralLink?.toLowerCase().includes("aog")
                             ? "AOG"
                             : record?.useWallet
                             ? "Wallet"
-                            : "Stripe"
-                        }</Typography>
+                            : "Stripe"}
+                        </Typography>
                       </Box>
                     );
                   }}
@@ -896,6 +906,6 @@ export const RechargeRecordsList = (props) => {
           handleRefresh={handleRefresh}
         />
       )}
-    </Box>
+    </>
   );
 };

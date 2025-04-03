@@ -96,7 +96,7 @@ export const PlayerList = () => {
       }
     };
 
-  const rechargeConvertTransactions = (transactions) => {
+  const convertTransactions = (transactions,isRecharge) => {
     return transactions.map((txn) => {
       const dateObj = new Date(txn.transactionDate);
 
@@ -116,86 +116,15 @@ export const PlayerList = () => {
       const statusMessage = {
         0: "Pending Referral Link",
         1: "Pending Confirmation",
-        2: "Confirmed",
+        2: isRecharge?"Confirmed":"Recharge Successful",
         3: "Coins Credited",
-        9: "Expired",
+        4: "Success",
+        5: "Fail",
+        6: "Pending Approval",
+        7: "Redeem Rejected",
+        8: "Redeem Successful",
+        9: isRecharge?"Expired":"Redeem Expired",
         10: "Failed Transaction",
-      };
-
-      return {
-        status: statusMessage[txn.status] || "Unknown Status",
-        date: formattedDate,
-        time: formattedTime,
-        amount: txn.transactionAmount,
-      };
-    });
-  };
-
-  const redeemConvertTransactions = (transactions) => {
-    return transactions.map((txn) => {
-      const dateObj = new Date(txn.transactionDate);
-
-      const formattedDate = dateObj.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-
-      const formattedTime = dateObj.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      });
-
-      const statusMessage = {
-        2: "Recharge Successful",
-        4: "Success",
-        5: "Fail",
-        6: "Pending Approval",
-        7: "Redeem Rejected",
-        8: "Redeem Successful",
-        9: "Redeem Expired",
-        11: "In-Progress",
-        12: "Cashout Successful",
-        13: "Cashout Rejected",
-      };
-
-      return {
-        status: statusMessage[txn.status] || "Unknown Status",
-        date: formattedDate,
-        time: formattedTime,
-        amount: txn.transactionAmount,
-      };
-    });
-  };
-
-  const cashoutConvertTransactions = (transactions) => {
-    return transactions.map((txn) => {
-      const dateObj = new Date(txn.transactionDate);
-
-      const formattedDate = dateObj.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      });
-
-      const formattedTime = dateObj.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      });
-
-      const statusMessage = {
-        2: "Recharge Successful",
-        3: "Coins Credited",
-        4: "Success",
-        5: "Fail",
-        6: "Pending Approval",
-        7: "Redeem Rejected",
-        8: "Redeem Successful",
-        9: "Redeem Expired",
         11: "In - Progress",
         12: "Cashout Successful",
         13: "Cashout Rejected",
@@ -217,7 +146,7 @@ export const PlayerList = () => {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      const rechargeResponse = rechargeConvertTransactions(data);
+      const rechargeResponse = convertTransactions(data,true);
       if (rechargeData) {
         setRechargeTransactionData(rechargeResponse);
         setTotalRechargeData(totalCount);
@@ -239,7 +168,7 @@ export const PlayerList = () => {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      const redeemResponse = redeemConvertTransactions(data);
+      const redeemResponse = convertTransactions(data,false);
       if (redeemData) {
         setRedeemTransactionData(redeemResponse);
         setTotalRedeemData(totalCount);
@@ -264,8 +193,8 @@ export const PlayerList = () => {
         limit: 5,
         userId: userId,
       });
-      const formattedData = cashoutConvertTransactions(
-        response.transactions || []
+      const formattedData = convertTransactions(
+        response.transactions || [],false
       );
       setCashoutTransactionData(formattedData);
       setTotalCashoutData(response.pagination?.totalCount || 0);
