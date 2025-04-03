@@ -916,13 +916,15 @@ export const fetchTransactionsofPlayerByDate = async ({
 
 export const isRechargeEnabledForAgent = async (agentId) => {
   try {
+    console.log(agentId,"agentId")
     // Step 1: Fetch the agent user
-    const agent = await new Parse.Query(Parse.User).get(agentId, { useMasterKey: true });
-
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.equalTo("objectId", agentId);
+    const agent = await agentQuery.first({ useMasterKey: true });
     // Step 2: Get the parent (Master-Agent)
     const masterAgent = agent.get("userParentId");
 
-    if (!masterAgent || !masterAgent.id) {
+    if (!masterAgent) {
       console.warn("No Master-Agent linked to this agent.");
       return false;
     }
@@ -934,7 +936,7 @@ export const isRechargeEnabledForAgent = async (agentId) => {
 
     const allowedIds = setting?.get("settings") || [];
 
-    return allowedIds.includes(masterAgent.id);
+    return allowedIds.includes(masterAgent);
   } catch (err) {
     console.error("Error checking recharge status:", err);
     return false;
@@ -942,10 +944,12 @@ export const isRechargeEnabledForAgent = async (agentId) => {
 };
 export const isCashoutEnabledForAgent = async (agentId) => {
   try {
-    const agent = await new Parse.Query(Parse.User).get(agentId, { useMasterKey: true });
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.equalTo("objectId", agentId);
+    const agent = await agentQuery.first({ useMasterKey: true });
     const masterAgent = agent.get("userParentId");
 
-    if (!masterAgent || !masterAgent.id) return false;
+    if (!masterAgent) return false;
 
     const settingsQuery = new Parse.Query("Settings");
     settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
@@ -953,7 +957,7 @@ export const isCashoutEnabledForAgent = async (agentId) => {
 
     const allowedCashoutIds = setting?.get("settings") || [];
 
-    return allowedCashoutIds.includes(masterAgent.id);
+    return allowedCashoutIds.includes(masterAgent);
   } catch (error) {
     console.error("Error checking cashout enabled for agent:", error);
     return false;
