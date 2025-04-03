@@ -46,6 +46,7 @@ export const PlayerList = () => {
   const [totalAvailableGiftCard, setTotalAvailableGiftCard] = useState(0);
   const [totalExpiredGiftCard, setTotalExpiredGiftCard] = useState(0);
   const [walletData, setWalletData] = useState([]);
+  const [redeemFees, setRedeemFees] = useState(0);
 
   useEffect(() => {
     WalletService();
@@ -54,9 +55,16 @@ export const PlayerList = () => {
     cashoutData();
   }, []);
 
+  // useEffect(() => {
+    
+  // }, [identity]);
+
   useEffect(() => {
     if (identity && identity.objectId) {
       giftCardData(identity.objectId, 0, 10);
+    }
+    if (identity && identity?.userParentId) {
+      parentServiceFee();
     }
   }, [identity]);
 
@@ -68,7 +76,6 @@ export const PlayerList = () => {
     setLoading(true);
     try {
       const wallet = await walletService.getMyWalletData();
-      console.log(wallet.wallet);
       setWalletData(wallet.wallet);
       setBalance(wallet.wallet.balance);
     } catch (error) {
@@ -77,6 +84,17 @@ export const PlayerList = () => {
       setLoading(false);
     }
   }
+
+  const parentServiceFee = async () => {
+      try {
+        const response = await Parse.Cloud.run("redeemParentServiceFee", {
+          userId: identity?.userParentId,
+        });
+        setRedeemFees(response?.redeemService || 0);
+      } catch (error) {
+        console.error("Error fetching parent service fee:", error);
+      }
+    };
 
   const rechargeConvertTransactions = (transactions) => {
     return transactions.map((txn) => {
@@ -171,6 +189,7 @@ export const PlayerList = () => {
 
       const statusMessage = {
         2: "Recharge Successful",
+        3: "Coins Credited",
         4: "Success",
         5: "Fail",
         6: "Pending Approval",
@@ -194,16 +213,14 @@ export const PlayerList = () => {
   const rechargeData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching recharge records...");
-      const { data, total } = await dataProvider.getList("rechargeRecords", {
+      const { data, totalCount } = await dataProvider.getList("rechargeRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      console.log("Data from rechargeRecords:", data);
       const rechargeResponse = rechargeConvertTransactions(data);
       if (rechargeData) {
         setRechargeTransactionData(rechargeResponse);
-        setTotalRechargeData(total);
+        setTotalRechargeData(totalCount);
       } else {
         setRechargeTransactionData([]);
         setTotalRechargeData(0);
@@ -218,16 +235,14 @@ export const PlayerList = () => {
   const redeemData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching redeem records...");
-      const { data, total } = await dataProvider.getList("redeemRecords", {
+      const { data, totalCount } = await dataProvider.getList("redeemRecords", {
         pagination: { page: 1, perPage: 5 },
         sort: { field: "id", order: "DESC" },
       });
-      console.log("Data from redeemRecords:", data);
       const redeemResponse = redeemConvertTransactions(data);
       if (redeemData) {
         setRedeemTransactionData(redeemResponse);
-        setTotalRedeemData(total);
+        setTotalRedeemData(totalCount);
       } else {
         setRedeemTransactionData([]);
         setTotalRedeemData(0);
@@ -253,7 +268,7 @@ export const PlayerList = () => {
         response.transactions || []
       );
       setCashoutTransactionData(formattedData);
-      setTotalCashoutData(response.pagination?.totalRecords || 0);
+      setTotalCashoutData(response.pagination?.totalCount || 0);
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
     } finally {
@@ -299,6 +314,7 @@ export const PlayerList = () => {
   };
   const handleRedeemRefresh = () => {
     redeemData();
+    parentServiceFee();
   };
   const handleCashoutRefresh = () => {
     cashoutData();
@@ -459,6 +475,7 @@ export const PlayerList = () => {
               totalData={totalRedeemData}
               wallet={walletData}
               handleRedeemRefresh={handleRedeemRefresh}
+              redeemFees={redeemFees}
             />
           </Box>
         )}

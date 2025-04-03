@@ -59,8 +59,6 @@ export  async function updatePotBalance(userId, amount, type) {
   
       user.set("potBalance", newPotBalance);
       await user.save(null, { useMasterKey: true });
-  
-      console.log(`Updated potBalance for user ${userId}: ${newPotBalance} (${type})`);
     } catch (error) {
       console.error(`Error updating potBalance for user ${userId}: ${error.message}`);
     }
@@ -307,8 +305,6 @@ export const getAgentRechargeReport = async (fromDate, toDate, page = 1, limit =
     })
     .sort((a, b) => b.totalRechargeAmount - a.totalRechargeAmount) // Sort by recharge amount
     .slice((page - 1) * limit, page * limit); // Paginate results
-
-  console.log(finalResults, "Final Agent Recharge Data");
   return finalResults;
 };
 
@@ -361,7 +357,6 @@ export const fetchTransactionsofAgent = async ({
     }
 
     const agentIds = transactions.map(trx => trx.objectId).filter(id => id);
-    console.log("Extracted agentIds:", agentIds);
 
     // Step 3: Fetch agent names from the User table using userParentId
     const agentQuery = new Parse.Query(Parse.User);
@@ -447,7 +442,6 @@ export const fetchTransactionComparison = async ({ sortOrder = "desc", selectedD
     if (transactions.length === 0) {
       return { status: "success", data: [] };
     }
-    console.log("Fetched Transactions:", transactions);
 
     const agentIds = [...new Set(transactions.map((trx) => trx.objectId.agent))];
     const agentQuery = new Parse.Query(Parse.User);

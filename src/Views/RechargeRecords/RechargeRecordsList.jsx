@@ -11,12 +11,8 @@ import {
   TopToolbar,
   usePermissions,
   useGetIdentity,
-  useGetList,
   useRefresh,
-  SelectInput,
   useListController,
-  Pagination,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -34,15 +30,10 @@ import {
   useMediaQuery,
 } from "@mui/material";
 // mui icon
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import LinkIcon from "@mui/icons-material/Link";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import LanguageIcon from "@mui/icons-material/Language";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircularProgress from "@mui/material/CircularProgress";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -81,7 +72,6 @@ export const RechargeRecordsList = (props) => {
         : { type: "recharge" },
   });
   const {
-    data,
     isLoading,
     total,
     page,
@@ -103,7 +93,6 @@ export const RechargeRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const [exportError, setExportError] = useState(null); // Store any export errors
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
@@ -132,9 +121,12 @@ export const RechargeRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
+  const title =
+    identity?.role !== "Player"
+      ? "Recharge Records"
+      : "Pending Recharge Request";
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
-    setExportError(null); // Clear any previous errors
 
     try {
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
@@ -142,12 +134,10 @@ export const RechargeRecordsList = (props) => {
         sort: { field: "transactionDate", order: "DESC" },
         filter: currentFilterValues,
       });
-      console.log(data, "datafromrechargeRecordsExport");
       // setData(data);
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
-      setExportError("Error fetching data for export."); // Set the error message
       // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {
@@ -226,12 +216,12 @@ export const RechargeRecordsList = (props) => {
     }
   };
 
-  const handleExportPDF = async () => {
+ const handleExportPDF = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
-    if (!exportData || exportData.length === 0) {
-      console.warn("No data to export.");
-      return;
-    }
+   if (!exportData || exportData.length === 0) {
+     console.warn("No data to export.");
+     return;
+   }
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
@@ -246,7 +236,7 @@ export const RechargeRecordsList = (props) => {
       ]),
     });
     doc.save("RechargeRecords.pdf");
-  };
+ };
 
   const handleExportXLS = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
@@ -264,7 +254,7 @@ export const RechargeRecordsList = (props) => {
 
     const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
+    XLSX.utils.book_append_sheet(workbook, worksheet, title);
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
       new Blob([xlsData], { type: "application/octet-stream" }),
@@ -413,7 +403,7 @@ export const RechargeRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Recharge records
+            {title}
           </Typography>
         </Box>
       )}
@@ -584,7 +574,7 @@ export const RechargeRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Recharge records
+            {title}
           </Typography>
         </Box>
       )}
@@ -618,11 +608,7 @@ export const RechargeRecordsList = (props) => {
       </Box>
 
       <List
-        title={
-          identity?.role !== "Player"
-            ? "Recharge Records"
-            : "Pending Recharge Request"
-        }
+        title={title}
         filters={dataFilters}
         actions={postListActions}
         // sx={{ pt: 1 }}
@@ -668,6 +654,8 @@ export const RechargeRecordsList = (props) => {
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
                 },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
               }}
             >
               <FunctionField
@@ -832,15 +820,29 @@ export const RechargeRecordsList = (props) => {
                   label="Mode"
                   render={(record) => {
                     return (
-                      <Chip
-                        label={
+                      <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "4px",
+                        height: "22px",
+                        width: "57px",
+                        border: "1px solid #E4E4E7",
+                        bgcolor: "#F4F4F5",
+                      }}>
+                        <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 400,
+                        }}>{
                           record?.referralLink?.toLowerCase().includes("aog")
                             ? "AOG"
                             : record?.useWallet
                             ? "Wallet"
                             : "Stripe"
-                        }
-                      />
+                        }</Typography>
+                      </Box>
                     );
                   }}
                 />

@@ -17,30 +17,23 @@ import {
   CardImg,
   Alert,
 } from "reactstrap";
-import { Loader } from "../../Loader";
 import { walletService } from "../../../Provider/WalletManagement";
-import axios from "axios";
 import "../../../Assets/css/cashoutDialog.css";
 import Parse from "parse";
 
 // Xremit API Config
-const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
-const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
-const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
+// const XREMIT_API_URL = process.env.REACT_APP_Xremit_API_URL;
+// const XREMIT_API_KEY = process.env.REACT_APP_Xremit_API;
+// const XREMIT_API_SECRET = process.env.REACT_APP_Xremit_API_SECRET;
 
 const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState(localStorage.getItem("username"));
-  const role = localStorage.getItem("role");
-  const userId = localStorage.getItem("id");
   const [redeemAmount, setRedeemAmount] = useState("");
-  const [remark, setRemark] = useState("");
-  const [loading, setLoading] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState({});
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [giftCards, setGiftCards] = useState([]);
-  const [loadingGiftCards, setLoadingGiftCards] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -54,7 +47,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   useEffect(() => {
     async function WalletService() {
       const wallet = await walletService.getMyWalletData();
-      const { cashAppId, paypalId, venmoId, zelleId, objectId, balance } = wallet.wallet;
+      const { cashAppId, paypalId, venmoId, zelleId} = wallet.wallet;
       setPaymentMethods({
         cashAppId,
         paypalId,
@@ -76,7 +69,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   }, [selectedPaymentMethod, searchTerm]);
 
 //   const generateSignature = (method, path, body = null) => {
-//     console.log(method,path,XREMIT_API_SECRET)
 //     const requestBody = body ? JSON.stringify(body) : "";
 //     const dataToHash = `${method}${path}${XREMIT_API_SECRET}${requestBody}`;
 //     let signature = CryptoJS.SHA256(`${method}${path}${XREMIT_API_SECRET}`);
@@ -87,7 +79,6 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
 
 
 const fetchGiftCards = async () => {
-  setLoadingGiftCards(true);
   setErrorMessage("");
   try {
     const response = await Parse.Cloud.run("fetchGiftCards");
@@ -95,8 +86,6 @@ const fetchGiftCards = async () => {
   } catch (error) {
     console.error("Error fetching gift cards:", error);
     setErrorMessage("Failed to load gift cards.");
-  } finally {
-    setLoadingGiftCards(false);
   }
 };
 
@@ -124,7 +113,6 @@ const fetchGiftCards = async () => {
    * Submits a cash-out request.
    */
   const handleSubmit = async () => {
-    setLoading(true);
     // const method = "POST";
     // const path = "/playerRedeemRedords";
 

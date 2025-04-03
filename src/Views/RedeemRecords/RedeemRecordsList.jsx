@@ -11,12 +11,8 @@ import {
   TopToolbar,
   usePermissions,
   useGetIdentity,
-  useGetList,
   useRefresh,
-  SelectInput,
   useListController,
-  Pagination,
-  required,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui
@@ -32,10 +28,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 // mui icon
-import GetAppIcon from "@mui/icons-material/GetApp";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import InfoIcon from "@mui/icons-material/Info";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -96,7 +90,6 @@ export const RedeemRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const [exportError, setExportError] = useState(null); // Store any export errors
   const role = localStorage.getItem("role");
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
@@ -122,9 +115,12 @@ export const RedeemRecordsList = (props) => {
   if (!role) {
     navigate("/login");
   }
+  
+  const title =
+    identity?.role !== "Player" ? "Redeem Records" : "Pending Redeem Request";
+
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
-    setExportError(null); // Clear any previous errors
 
     try {
       const { data } = await dataProvider.getList("redeemRecordsExport", {
@@ -136,7 +132,6 @@ export const RedeemRecordsList = (props) => {
       return data; // Return the fetched data
     } catch (error) {
       console.error("Error fetching data for export:", error);
-      setExportError("Error fetching data for export."); // Set the error message
       // setData(null); // Reset data to null in case of error
       return null; // Return null to indicate failure
     } finally {
@@ -208,7 +203,7 @@ export const RedeemRecordsList = (props) => {
       return;
     }
     const doc = new jsPDF();
-    doc.text("Redeem Records", 10, 10);
+    doc.text(title, 10, 10);
     doc.autoTable({
       head: [
         ["No", "Name", "Amount($)", "Remark", "Status", "Message", "Date"],
@@ -243,7 +238,7 @@ export const RedeemRecordsList = (props) => {
 
     const worksheet = XLSX.utils.json_to_sheet(selectedFields);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Redeem Records");
+    XLSX.utils.book_append_sheet(workbook, worksheet, title);
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
       new Blob([xlsData], { type: "application/octet-stream" }),
@@ -430,7 +425,7 @@ export const RedeemRecordsList = (props) => {
                 color: "var(--primary-color)",
               }}
             >
-              Redeem records
+              {title}
             </Typography>
           </Box>
         )}
@@ -597,7 +592,7 @@ export const RedeemRecordsList = (props) => {
               color: "var(--primary-color)",
             }}
           >
-            Redeem records
+            {title}
           </Typography>
           <Box
             sx={{
@@ -671,11 +666,7 @@ export const RedeemRecordsList = (props) => {
         )}
       </Box>
       <List
-        title={
-          identity?.role !== "Player"
-            ? "Redeem Records"
-            : "Pending Redeem Request"
-        }
+        title={title}
         filters={dataFilters}
         actions={postListActions}
         empty={false}
@@ -726,6 +717,8 @@ export const RedeemRecordsList = (props) => {
                 "& .MuiTableCell-head": {
                   fontWeight: 600,
                 },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
               }}
               rowStyle={(record) => {
                 if (identity?.role === "Super-User" && record?.status === 11) {

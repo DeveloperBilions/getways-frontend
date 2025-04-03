@@ -12,7 +12,6 @@ import {
 import {
   Button,
   CssBaseline,
-  Paper,
   Box,
   Grid,
   Typography,
@@ -22,7 +21,6 @@ import {
   FormControlLabel,
   IconButton,
   Checkbox,
-  useMediaQuery,
 } from "@mui/material";
 // mui icon
 import Visibility from "@mui/icons-material/Visibility";
@@ -45,9 +43,8 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
-  const { permissions, refetch } = usePermissions();
-  const [helpOpen, setHelpOpen] = useState(false); // State for help video modal
-  const isSmallScreen = useMediaQuery("(max-width:900px)");
+  const {  refetch } = usePermissions();
+  const [helpOpen, setHelpOpen] = useState(false); 
 
   const refresh = useRefresh();
   const redirect = useRedirect();

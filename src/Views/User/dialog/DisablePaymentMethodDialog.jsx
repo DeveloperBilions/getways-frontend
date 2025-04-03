@@ -12,7 +12,6 @@ import { FaCashRegister, FaPaypal } from "react-icons/fa";
 import { BiLogoVenmo } from "react-icons/bi";
 import { SiZelle } from "react-icons/si";
 import { Switch, CircularProgress } from "@mui/material";
-import { Snackbar, Alert as MuiAlert } from "@mui/material";
 import '../../../Assets/css/DisablePaymentMethodDialog.css';
 import { Parse } from "parse";
 

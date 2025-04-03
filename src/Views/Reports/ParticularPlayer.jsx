@@ -22,15 +22,12 @@ export const ParticularPlayer = ({description}) => {
   const [playerUsername, setPlayerUsername] = useState("");
   const perPage = 10;
   const [choices, setChoices] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [userLoading, setUserLoading] = useState(false);
   const today = new Date().toISOString().split("T")[0];
   const startDateLimit = "2024-12-01";
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
   const [selectedUsertemp, setSelectedUsertemp] = useState(null);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [totalData, setTotalData] = useState({
     totalRecharge: 0,
@@ -135,9 +132,6 @@ export const ParticularPlayer = ({description}) => {
 
   const handleFilterSubmit = () => {
     setIsSubmitted(true);
-    setStartDate(tempStartDate);
-    setEndDate(tempEndDate);
-    setSelectedUser(selectedUsertemp);
     fetchSinglePlayerData();
   };
 

@@ -2,19 +2,12 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Box,
-  TextField,
-  Button,
   Typography,
   Container,
-  Grid,
   Paper,
-  MenuItem,
   IconButton,
 } from "@mui/material";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import the back arrow icon
-
-const countries = ["India", "United States", "United Kingdom", "Australia"];
 
 const CheckoutFormV2 = () => {
   const {
@@ -105,6 +98,7 @@ const CheckoutFormV2 = () => {
     src="https://buy.moneybridge.net/buy/select-coin?apiKey=7b354e84e417f840460e3d7686ccd0598082aff542ac657acc599f1679d29345"
     height="600px"
     width="600px"
+    title="Payment Form"
   ></iframe>
         </Box>
       </Paper>

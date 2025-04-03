@@ -25,7 +25,6 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
   const [remark, setRemark] = useState();
   const [redeemFees, setRedeemFees] = useState();
-  const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [isEditingFees, setIsEditingFees] = useState(false);
   const [editedFees, setEditedFees] = useState("");

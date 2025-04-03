@@ -48,10 +48,6 @@ export const Comparison = ({description}) => {
       } else {
         setNoDataFound(false);
       }
-      console.log(
-        transactionComparison,
-        "transactionComparisontransactionComparisontransactionComparison"
-      );
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {

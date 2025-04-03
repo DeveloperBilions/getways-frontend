@@ -1,9 +1,6 @@
 import React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import FileCheck from "../../Assets/icons/FileCheck.svg";
-import Iicon from "../../Assets/icons/Iicon.svg";
-import PaymentSuccess from "../../Assets/icons/payment-success.svg";
 import { useRedirect } from "react-admin";
 import useDeviceType from "../../Utils/Hooks/useDeviceType";
 import FileCheckWhite from "../../Assets/icons/FileCheckWhite.svg";
@@ -102,7 +99,7 @@ const TransactionRecords = ({
                   src={FileCheckWhite}
                   alt="Transaction Icon"
                   style={{
-                    width: "20px",
+                    width: "24px",
                     height: "24px",
                   }}
                 />
@@ -121,7 +118,7 @@ const TransactionRecords = ({
                 <Typography
                   sx={{
                     fontFamily: "Inter",
-                    fontSize: isMobile ? "16px" : "18px",
+                    fontSize: "20px",
                     fontWeight: 600,
                     color: "#2E5BFF",
                     width: "50px",

@@ -28,7 +28,6 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [userName, setUserName] = useState("");
   const [redeemAmount, setRedeemAmount] = useState();
-  const [remark, setRemark] = useState();
   const [responseData, setResponseData] = useState("");
   const [loading, setLoading] = useState(false);
   const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
@@ -71,7 +70,6 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const resetFields = () => {
     setUserName("");
     setRedeemAmount("");
-    setRemark("");
     setRedeemRemarks("");
     setSelectedGiftCard(null);
   };
@@ -80,7 +78,6 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     if (record && open) {
       setUserName(record.username || "");
       setRedeemAmount(record?.transactionAmount || "");
-      setRemark(record?.remark || "");
     } else {
       resetFields();
     }

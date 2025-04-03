@@ -1,6 +1,4 @@
-import { fontSize, fontStyle, lineHeight } from "@mui/system";
 import { defaultTheme } from "react-admin";
-import { defaultDarkTheme } from "react-admin";
 
 export const MyTheme = {
   ...defaultTheme,

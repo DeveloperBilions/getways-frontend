@@ -48,9 +48,8 @@ export const Wallet = () => {
         limit: pageSize,
         userId: userId,
       });
-      console.log(response, "responsesdksjdks");
       setTransactions(response.transactions || []);
-      setTotalRecords(response.pagination?.totalRecords || 0);
+      setTotalRecords(response.pagination?.count || 0);
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
     } finally {
@@ -259,6 +258,7 @@ export const Wallet = () => {
                         };
                         const statusMessage = {
                           2: "Recharge Successful",
+                          3: "Coins Credited",
                           4: "Success",
                           5: "Fail",
                           6: "Pending Approval",

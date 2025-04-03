@@ -26,7 +26,7 @@ export const Stripe = () => {
 
     try {
       // Call getLink from dataProvider
-      const response = await dataProvider.getLink("paymentLink", {
+      await dataProvider.getLink("paymentLink", {
         amount: amount * 100, // $10 in cents
         currency: "usd",
       }).then((response) => {
@@ -45,13 +45,11 @@ export const Stripe = () => {
   const checkTransactionStatus = async (sessionId) => {
     try {
         setStatusVerify(true)
-      const { transaction, stripeSession } = await dataProvider.retrieveCheckoutSession(sessionId);
+      const { transaction } = await dataProvider.retrieveCheckoutSession(sessionId);
       if (transaction.status === 2) {
         setStatus("Completed Payment")
-        console.log("Payment Successful!");
       } else if (transaction.status === 1) {
         setStatus("Pending Payment")
-        console.log("Payment Pending...");
       } else {
         console.log("Payment Failed.");
       }

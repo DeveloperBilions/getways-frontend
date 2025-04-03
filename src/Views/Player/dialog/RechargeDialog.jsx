@@ -36,7 +36,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const paymentSource = data.paymentSource;
   const [walletBalance, setWalletBalance] = useState(0);
   const [redeemFees, setRedeemFees] = useState();
-  const [minLimitLoading, setMinLimitLoading] = useState(false); // Loader for fetching minimum recharge limit
   const [errorMessage, setErrorMessage] = useState("");
   const [successRecharge, setSuccessRecharge] = useState(false);
   const [RechargeEnabled, setRechargeEnabled] = useState(false);
@@ -96,10 +95,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       setErrorMessage(transactionCheck.message); // Show error if the limit is exceeded
       return;
     }
-
-    console.log("paymentSource", paymentSource);
     if (paymentSource === "wallet") {
-      console.log("wallet");
       // Ensure wallet balance is sufficient
       if (parseFloat(rechargeAmount) > walletBalance) {
         setErrorMessage("Insufficient wallet balance."); // Set error message
@@ -210,7 +206,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const walletRecord = await walletQuery.first({ useMasterKey: true });
 
   const userWalletAddress = walletRecord?.get("wallet_adress");
-  console.log(userWalletAddress,"userWalletAddress")
   const signedData = signSmartContractData(
     {
       address: userWalletAddress,
@@ -234,7 +229,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       listeners: {
         "payment-status": async (status) => {
           console.log("📥 Wert Payment Status:", status);
-      
           try {
             const Transaction = Parse.Object.extend("TransactionRecords");
             const query = new Parse.Query(Transaction);
@@ -302,7 +296,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
   const parentServiceFee = async () => {
     try {
-      setMinLimitLoading(true);
 
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: identity?.userParentId,
@@ -311,14 +304,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       setRechargeEnabled(response?.rechargeDisabled || false);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
-    } finally {
-      setMinLimitLoading(false);
     }
   };
-
-  if (minLimitLoading) {
-    return <Loader />;
-  }
 
   return (
     <React.Fragment>

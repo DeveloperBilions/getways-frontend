@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, required, SelectInput } from "react-admin";
+import { Button } from "react-admin";
 import {
   Dialog,
   DialogTitle,

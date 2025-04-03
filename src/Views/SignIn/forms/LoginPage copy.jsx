@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useLogin, useNotify, Notification, useRedirect } from "react-admin";
+import { useLogin, useNotify, useRedirect } from "react-admin";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -16,8 +14,6 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-
-import PasswordResetEmail from "./PasswordResetEmail";
 import { inputValidations } from "../validations";
 
 import { useForm } from "react-hook-form";
@@ -37,7 +33,6 @@ const LoginPage = () => {
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useForm();
 

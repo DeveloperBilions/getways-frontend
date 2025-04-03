@@ -6,12 +6,10 @@ import { Navigate } from "react-router-dom";
 
 export const MyLayout = (props) => {
   if (Config?.maintenance) {
-    console.log("Maintenance Mode is Active");
     return <Navigate to="/maintenance" replace />;
   }
 
   const role = localStorage.getItem("role");
-  console.log(role, "role");
 
   const isSidebarOpen = role !== "Player";
 

@@ -23,7 +23,7 @@ import RechargeDialog from "./dialog/RechargeDialog";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
+const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -134,7 +134,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
                   justifyContent: "space-between",
                   alignItems: "center",
                   width: "100%",
-                  flexDirection: { xs: "column", md: "row" }
+                  flexDirection: { xs: "column", md: "row" },
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -296,7 +296,7 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
               alignItems: "center",
               mt: 2,
               mb: 2,
-              flexWrap: { xs: "wrap", md: "nowrap" }, 
+              flexWrap: { xs: "wrap", md: "nowrap" },
             }}
           >
             {[10, 20, 50, 100, 200, 500].map((amount) => (
@@ -305,8 +305,8 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
                 variant="outlined"
                 sx={{
                   borderRadius: "40px",
-                  width: { xs: "45%", sm: "30%", md: "100%" }, 
-                  padding: { xs: "6px 12px", md: "8px 16px" }, 
+                  width: { xs: "45%", sm: "30%", md: "100%" },
+                  padding: { xs: "6px 12px", md: "8px 16px" },
                   border:
                     amount !== rechargeAmount ? "1px dashed #93B1D2" : "none",
                   bgcolor:
@@ -317,17 +317,17 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
                     bgcolor: "#2E5BFF",
                     color: "white",
                   },
-                  gap: "8px", 
+                  gap: "8px",
                 }}
                 onClick={() => setRechargeAmount(amount)}
               >
                 <img
                   src={AOG_Symbol}
                   alt="AOG Symbol"
-                  style={{ width: "24px", height: "24px" }} 
+                  style={{ width: "24px", height: "24px" }}
                 />
                 <Typography
-                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }} 
+                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }}
                 >
                   {amount}
                 </Typography>
@@ -385,12 +385,14 @@ const Recharge = ({ data, totalData,handleRechargeRefresh }) => {
           </Button>
         </Box>
       </Box>
-      <TransactionRecords
-        message={"Recent Recharges"}
-        totalTransactions={totalData}
-        transactionData={data}
-        redirectUrl={"rechargeRecords"}
-      />
+      {totalData > 0 && data.length !== 0 && (
+        <TransactionRecords
+          message={"Recent Recharges"}
+          totalTransactions={totalData}
+          transactionData={data}
+          redirectUrl={"rechargeRecords"}
+        />
+      )}
       <RechargeDialog
         open={RechargeDialogOpen}
         onClose={() => setRechargeDialogOpen(false)}

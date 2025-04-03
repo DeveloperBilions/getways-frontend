@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Parse } from "parse";
-import { Box, Typography } from "@mui/material";
 import { Alert } from "@mui/material";
 
 const EmergencyMessages = () => {
   const [messages, setMessages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [blink, setBlink] = useState(false);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -31,9 +29,7 @@ const EmergencyMessages = () => {
   useEffect(() => {
     if (messages.length > 1) {
       const messageInterval = setInterval(() => {
-        setBlink(true);
         setTimeout(() => {
-          setBlink(false);
           setCurrentIndex((prevIndex) => (prevIndex + 1) % messages.length);
         }, 500); // Blink duration before switching
       }, 5000); // Change message every 5 seconds

@@ -199,7 +199,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setEditedFees(redeemFees); // Revert changes
     setIsEditingFees(false);
   };
-  console.log(role, "role", redeemEnabled, "priti");
   return (
     <React.Fragment>
       {loading ? (

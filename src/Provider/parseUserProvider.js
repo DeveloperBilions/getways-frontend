@@ -10,7 +10,6 @@ Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export const userProvider = {
     getListUsers: async (params) => {
-        // console.log(params);
         const { page, perPage } = params.pagination;
         const { field, order } = params.sort;
         const { filter } = params.filter;

@@ -7,7 +7,6 @@ import {
   CardContent,
   Grid,
   Box,
-  TextField,
 } from "@mui/material";
 // mui icons
 import PersonIcon from "@mui/icons-material/Person";
@@ -21,7 +20,6 @@ import WarningIcon from "@mui/icons-material/Warning";
 export const SummaryList = () => {
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
-  console.log("=====", identity);
 
   const [data, setData] = useState({
     rechargeRecords: [],
@@ -128,13 +126,9 @@ export const SummaryList = () => {
 
   useEffect(() => {
     if (selectedUser) {
-      // console.log("*** role ***", selectedUser.roleName);
-      // console.log("$$$ child user $$$", filteredUsers);
       console.log("@@@ child recharge @@@", filteredRecharge);
     }
   }, [selectedUser]);
-
-  console.log("&&&&&", data);
 
   const totalAgents =
     data.userRecords?.filter((user) => user.roleName === "Agent").length || 0;
@@ -242,7 +236,6 @@ export const SummaryList = () => {
           selected={startDate}
           onChange={(date) => {
             setStartDate(date);
-            console.log("Start Date changed:", date);
           }}
           dateFormat="yyyy/MM/dd"
         />
@@ -252,7 +245,6 @@ export const SummaryList = () => {
           selected={endDate}
           onChange={(date) => {
             setEndDate(date);
-            console.log("End Date changed:", date);
           }}
           dateFormat="yyyy/MM/dd"
         /> */}

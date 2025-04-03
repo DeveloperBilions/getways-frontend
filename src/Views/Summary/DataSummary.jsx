@@ -30,7 +30,6 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import GetAppIcon from "@mui/icons-material/GetApp";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
@@ -417,7 +416,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           {
             id: 9,
             name: "Total Wallet Balance",
-            value: data[0].totalRechargeByType?.wallet,
+            value: data[0].totalWalletBalance || 0,
             bgColor: "#FFF3EB",
             borderColor: "#FFC79C",
             icon: (
@@ -628,12 +627,9 @@ export const DataSummary = () => {
   const { identity } = useGetIdentity();
   const [menuAnchor, setMenuAnchor] = React.useState(null);
   const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
-  const [isExporting, setIsExporting] = useState(false); // Track export progress
-  const [exportdData, setExportData] = useState(null); // Store export data
-  const [loadingData, setLoadingData] = useState(false); // Loading state for data fetch
+  const [isExporting, setIsExporting] = useState(false);// Loading state for data fetch
 
   const [choices, setChoices] = useState([]);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const perPage = 10;
   const [selectedUser, setSelectedUser] = useState(null); // Store selected user
@@ -693,7 +689,6 @@ export const DataSummary = () => {
       username: selectedUser?.username
     };
     setIsExporting(true); // Set exporting state
-    setLoadingData(true); // Set loading data state
 
     try {
       const { data } = await dataProvider.getList("summaryExport", {
@@ -701,9 +696,7 @@ export const DataSummary = () => {
         sort: { field: "transactionDate", order: "DESC" },
         filter: { ...filters },
       }); // Call the service to fetch export data
-      console.log(data, "datafrijijrijee");
       if (data) {
-        setExportData(data); // Save the fetched data
         return data; // Return the fetched data
       } else {
         console.error("No data available for export");
@@ -712,7 +705,6 @@ export const DataSummary = () => {
       console.error("Error fetching data:", error);
     } finally {
       setIsExporting(false); // Hide exporting state once finished
-      setLoadingData(false); // Hide loading state once data is fetched
     }
   };
 

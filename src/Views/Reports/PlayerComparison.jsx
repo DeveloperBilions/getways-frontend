@@ -99,10 +99,6 @@ export const PlayerComparison = ({description}) => {
       } else {
         setDataNotFound(false);
       }
-      console.log(
-        transactionComparison,
-        "transactionComparisontransactionComparisontransactionComparison"
-      );
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {

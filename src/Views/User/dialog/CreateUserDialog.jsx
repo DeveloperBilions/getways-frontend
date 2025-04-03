@@ -10,7 +10,6 @@ import {
   Label,
   Form,
   Input,
-  FormText,
   InputGroup,
   InputGroupText,
   ModalFooter,
@@ -284,7 +283,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
            });
          }
        }
-      console.log("API Response:", response);
       if (!response?.success) {
         setErrorMessage(response?.message);
         return;
@@ -295,7 +293,6 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
         refresh();
         handleRefresh();
       }
-      console.log("API Response:", response);
     } catch (error) {
       console.error("Error Creating User:", error);
 

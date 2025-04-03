@@ -83,8 +83,8 @@ export const WalletDetails = ({
                 src={WalletIcon}
                 alt="Wallet Icon"
                 style={{
-                  width: 16,
-                  height: 16,
+                  width: 20,
+                  height: 20,
                 }}
               />
             </Box>
@@ -175,12 +175,14 @@ export const WalletDetails = ({
         </Box>
       </Paper>
       <Box sx={{ padding: 0, bgcolor: "#F7FDF8", marginTop: "16px" }}>
-        <TransactionRecords
-          message={"Recent Cash out history"}
-          totalTransactions={totalTransactions}
-          transactionData={transactionData}
-          redirectUrl={"wallet"}
-        />
+        {totalTransactions > 0 && transactionData.length !== 0 && (
+          <TransactionRecords
+            message={"Recent Cash out history"}
+            totalTransactions={totalTransactions}
+            transactionData={transactionData}
+            redirectUrl={"wallet"}
+          />
+        )}
       </Box>
       <CashOutModal
         setOpen={() => setIsOpen(true)}

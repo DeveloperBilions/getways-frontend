@@ -2,7 +2,6 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -12,17 +11,13 @@ import InputLabel from "@mui/material/InputLabel";
 import FormHelperText from '@mui/material/FormHelperText';
 import { useForm } from 'react-hook-form';
 import { inputValidations } from '../validations';
- // console.log(inputValidations.email);
 
 export default function PasswordResetEmail() {
   const {register, handleSubmit, formState: {errors}} = useForm();
     
   const onSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    // console.log({
-    //   email: data.get('email'),
-    // });
+    new FormData(event.currentTarget);
   };
 
 

@@ -22,8 +22,6 @@ const migrateRedeemTransactions = async () => {
     // Fetch all matching transactions
     const transactions = await query.find();
 
-    console.log(`Found ${transactions.length} transactions to migrate.`);
-
     const now = new Date();
 
     for (const transaction of transactions) {
@@ -41,7 +39,6 @@ const migrateRedeemTransactions = async () => {
         wallet = new Wallet();
         wallet.set("userID", userId);
         wallet.set("balance", 0); // Initialize balance
-        console.log(`Creating new wallet for user ${userId}`);
       }
 
       // Set the cashAppId in the wallet (if provided in the transaction)
@@ -61,12 +58,6 @@ const migrateRedeemTransactions = async () => {
 
       // Save the transaction
       await transaction.save(null, { useMasterKey: true });
-
-      console.log(
-        `Processed transaction ${transaction.id} for user ${userId}. New wallet balance: ${wallet.get(
-          "balance"
-        )}`
-      );
     }
 
     // Step 7: Update transactions with status = 6 and older than 24 hours
@@ -77,17 +68,11 @@ const migrateRedeemTransactions = async () => {
     status6Query.lessThan("createdAt", twentyFourHoursAgo);
 
     const oldTransactions = await status6Query.find();
-    console.log(
-      `Found ${oldTransactions.length} transactions with status = 6 older than 24 hours.`
-    );
 
     for (const oldTransaction of oldTransactions) {
       oldTransaction.set("status", 9);
       await oldTransaction.save(null, { useMasterKey: true });
-      console.log(`Updated transaction ${oldTransaction.id} status to 9.`);
     }
-
-    console.log("Migration completed successfully.");
   } catch (error) {
     console.error("Error during migration:", error.message);
   }

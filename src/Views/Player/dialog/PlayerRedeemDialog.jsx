@@ -8,7 +8,7 @@ import {
   Modal,
 } from "@mui/material";
 import Close from "../../../Assets/icons/close.svg";
-import { Modal as ReactstrapModal, ModalHeader, ModalBody, Row, Col, FormGroup, Label, Form, Input, FormText } from "reactstrap";
+import { Modal as ReactstrapModal, ModalHeader, ModalBody, Row, Col, FormGroup, Label, Form, Input } from "reactstrap";
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { walletService } from "../../../Provider/WalletManagement";
@@ -32,7 +32,6 @@ const PlayerRedeemDialog = ({
   const [redeemAmount, setRedeemAmount] = useState(initialRedeemAmount || "");
   const [redeemFees, setRedeemFees] = useState("");
   const [remark, setRemark] = useState(initialRemark || "");
-  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
   const [walletId, setWalletId] = useState("");
   const [paymentMethods, setPaymentMethods] = useState({
@@ -50,7 +49,6 @@ const PlayerRedeemDialog = ({
   const [errorAddPayment, setErrorAddPayment] = useState("");
 
   const resetFields = () => {
-    setUserName("");
     setRedeemAmount(initialRedeemAmount || "");
     setRemark(initialRemark || "");
     setWarningMessage("");
@@ -72,7 +70,6 @@ const PlayerRedeemDialog = ({
   useEffect(() => {
     if (record && open) {
       parentServiceFee();
-      setUserName(record.username || "");
       setRedeemAmount(initialRedeemAmount || "");
       setRemark(initialRemark || "");
     } else {

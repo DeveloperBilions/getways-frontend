@@ -10,13 +10,12 @@ import {
   Input,
   Col,
 } from "reactstrap";
-import { Box, Typography, Slider, CircularProgress ,Alert} from "@mui/material";
+import { Box, Typography, CircularProgress ,Alert} from "@mui/material";
 import { Parse } from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
   const [passwordPermission, setPasswordPermission] = useState(record?.isPasswordPermission || false);
-  const [customDuration, setCustomDuration] = useState(0);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -63,9 +62,6 @@ const PasswordPermissionDialog = ({ open, onClose, record, handleRefresh }) => {
     setPasswordPermission(record?.isPasswordPermission || false);
   }, [record, open]);
   
-  const handleSliderChange = (event, newValue) => {
-    setCustomDuration(newValue);
-  };
 
   return (
     <Modal isOpen={open} toggle={onClose} centered className="custom-modal">

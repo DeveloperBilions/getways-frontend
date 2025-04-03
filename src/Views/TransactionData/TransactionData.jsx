@@ -26,8 +26,6 @@ export const TransactionData = (props) => {
   const role = localStorage.getItem("role");
   const [menuAnchor, setMenuAnchor] = React.useState(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
   const [tempStartTime, setTempStartTime] = useState(null);
@@ -166,8 +164,6 @@ export const TransactionData = (props) => {
       alert("Please select both the start date and end date.");
       return;
     }
-    setStartDate(tempStartDate);
-    setEndDate(tempEndDate);
     setMenuAnchor(event.currentTarget);
   };
   

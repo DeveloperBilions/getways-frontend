@@ -37,7 +37,7 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const LoginPage = () => {
-  const { permissions, refetch } = usePermissions();
+  const { refetch } = usePermissions();
 
   const refresh = useRefresh();
   const redirect = useRedirect();
@@ -45,8 +45,6 @@ const LoginPage = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const emailPhoneParams = searchParams.get("emailPhone");
-  const nameParams = searchParams.get("name");
-  const usernameParams = searchParams.get("username");
 
   const {
     register,
