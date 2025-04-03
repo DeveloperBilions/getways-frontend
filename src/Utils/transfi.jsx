@@ -13,7 +13,7 @@ export const processTransfiDeposit = async (transactionAmount, userEmail, firstN
     // Check if user exists
     try {
       const checkUserRes = await axios.get(
-        "https://sandbox-api.transfi.com/v2/users/individuals",
+        "https://api.transfi.com/v2/users/individuals",
         {
           params: { email: userEmail },
           headers: {
@@ -34,7 +34,7 @@ export const processTransfiDeposit = async (transactionAmount, userEmail, firstN
     // If user doesn't exist, create them
     if (!userExists) {
       await axios.post(
-        "https://sandbox-api.transfi.com/v2/users/individual",
+        "https://api.transfi.com/v2/users/individual",
         {
           email: userEmail,
           firstName,
@@ -54,7 +54,7 @@ export const processTransfiDeposit = async (transactionAmount, userEmail, firstN
 
     // Process deposit order
     const depositRes = await axios.post(
-      "https://sandbox-api.transfi.com/v2/orders/gaming",
+      "https://api.transfi.com/v2/orders/gaming",
       {
         paymentType: "card",
         purposeCode: "fee_payments",
