@@ -10,7 +10,6 @@ import {
   Label,
   Form,
   Input,
-  Alert,
   ModalFooter,
 } from "reactstrap";
 // loader
@@ -18,8 +17,10 @@ import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
 import "../../../Assets/css/Dialog.css";
-import { checkActiveRechargeLimit } from "../../../Utils/utils";
+import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../../Utils/utils";
 import { Box } from "@mui/material";
+import { Alert } from "@mui/material"; 
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -30,6 +31,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
   const [remark, setRemark] = useState();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // New state for error message
+  const [rechargeDisabled, setRechargeDisabled] = useState(false);
 
   const resetFields = () => {
     setUserName("");
@@ -45,6 +47,15 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
       resetFields();
     }
   }, [record, open]);
+
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isRechargeEnabledForAgent(record?.userParentId));
+        setRechargeDisabled(disabled);
+    };
+  
+    checkRechargeAccess();
+  }, [record]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -104,8 +115,13 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
             Recharge Amount
           </ModalHeader>
           <ModalBody className="custom-modal-body">
+          {rechargeDisabled && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+  Recharges are not available at this time. Please try again later.
+  </Alert>
+)}
             {errorMessage && (
-              <Alert color="danger" className="mt-2">
+              <Alert severity="danger" className="mt-2">
                 {errorMessage}
               </Alert>
             )}
@@ -205,7 +221,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                 <Button
                   className="custom-button confirm"
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={loading || rechargeDisabled}
                 >
                   {loading ? "Processing..." : "Confirm"}
                 </Button>

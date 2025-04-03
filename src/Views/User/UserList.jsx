@@ -446,7 +446,7 @@ export const UserList = (props) => {
   const dataFilters = [
     <Box
       key="search-filter"
-      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+      sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", justifyContent: "space-between" }}
       alwaysOn
     >
       <SearchInput
@@ -460,6 +460,7 @@ export const UserList = (props) => {
           marginBottom: 1,
           borderRadius: "5px",
           borderColor: "#CFD4DB",
+          maxWidth: "280px",
         }}
       />
       <Button
@@ -580,7 +581,7 @@ export const UserList = (props) => {
   }
 
   return (
-    <Box sx={{ ml: isMobile ? 2 : 0, mr: isMobile ? 2 : 0 }}>
+    <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
       {!isMobile && (
@@ -619,6 +620,12 @@ export const UserList = (props) => {
         {...props}
         sort={{ field: "createdAt", order: "DESC" }}
         pagination={false}
+        sx={{
+          "& .RaList-actions": {
+            flexWrap: "nowrap", // Ensures table fills the available space
+          },
+          "& .RaFilterFormInput-spacer": { display: "none" },
+        }}
       >
         <Box
           style={{
@@ -730,6 +737,6 @@ export const UserList = (props) => {
         setFilters={setFilters}
         handleSearchByChange={handleSearchByChange}
       />
-    </Box>
+    </>
   );
 };

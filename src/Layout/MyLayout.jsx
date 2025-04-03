@@ -22,8 +22,8 @@ export const MyLayout = (props) => {
       sidebar={isSidebarOpen ? MySidebar : EmptySidebar}
       sx={{
         "& .RaLayout-content": {
-          paddingLeft: { xs: "0", md: isSidebarOpen ? "120px" : "300px" },
-          paddingRight: { xs: "0", md: isSidebarOpen ? "120px" : "300px" },
+          paddingLeft: { xs: 1, md: isSidebarOpen ? "120px" : "300px" },
+          paddingRight: { xs: 1, md: isSidebarOpen ? "120px" : "300px" },
           width: "100%", // Full width
           overflow: "auto",
           boxSizing: "border-box",

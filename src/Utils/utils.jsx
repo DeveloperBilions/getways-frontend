@@ -916,48 +916,102 @@ export const fetchTransactionsofPlayerByDate = async ({
 
 export const isRechargeEnabledForAgent = async (agentId) => {
   try {
-    console.log(agentId,"agentId")
-    // Step 1: Fetch the agent user
+    // Step 1: Fetch agent user
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
     const agent = await agentQuery.first({ useMasterKey: true });
-    // Step 2: Get the parent (Master-Agent)
-    const masterAgent = agent.get("userParentId");
 
-    if (!masterAgent) {
-      console.warn("No Master-Agent linked to this agent.");
+    if (!agent) {
+      console.warn("Agent not found.");
       return false;
     }
 
-    // Step 3: Get allowed recharge Master-Agent IDs from settings
+    const parentId = agent.get("userParentId");
+    if (!parentId) {
+      console.warn("No parent linked to this agent.");
+      return false;
+    }
+
+    // Step 2: Fetch parent user
+    const parentQuery = new Parse.Query(Parse.User);
+    parentQuery.equalTo("objectId", parentId);
+    const parentUser = await parentQuery.first({ useMasterKey: true });
+
+    if (!parentUser) {
+      console.warn("Parent user not found.");
+      return false;
+    }
+
+    const parentRole = parentUser.get("roleName");
+
+    // Step 3: Fetch allowed recharge IDs
     const settingsQuery = new Parse.Query("Settings");
     settingsQuery.equalTo("type", "allowedMasterAgentsForRecharge");
     const setting = await settingsQuery.first({ useMasterKey: true });
 
     const allowedIds = setting?.get("settings") || [];
 
-    return allowedIds.includes(masterAgent);
+    // Step 4: Determine logic based on parent role
+    if (parentRole === "Super-User") {
+      // Check if agentId is allowed (agent directly under Super-User)
+      return allowedIds.includes(agentId);
+    } else if (parentRole === "Master-Agent") {
+      // Check if parentId is allowed
+      return allowedIds.includes(parentUser.id);
+    }
+
+    return false;
   } catch (err) {
     console.error("Error checking recharge status:", err);
     return false;
   }
 };
+
 export const isCashoutEnabledForAgent = async (agentId) => {
   try {
+    // Step 1: Fetch agent
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
     const agent = await agentQuery.first({ useMasterKey: true });
-    const masterAgent = agent.get("userParentId");
 
-    if (!masterAgent) return false;
+    if (!agent) {
+      console.warn("Agent not found.");
+      return false;
+    }
 
+    const parentId = agent.get("userParentId");
+    if (!parentId) {
+      console.warn("No parent linked to this agent.");
+      return false;
+    }
+
+    // Step 2: Fetch parent user
+    const parentQuery = new Parse.Query(Parse.User);
+    parentQuery.equalTo("objectId", parentId);
+    const parentUser = await parentQuery.first({ useMasterKey: true });
+
+    if (!parentUser) {
+      console.warn("Parent user not found.");
+      return false;
+    }
+
+    const parentRole = parentUser.get("roleName");
+
+    // Step 3: Get allowed cashout list
     const settingsQuery = new Parse.Query("Settings");
     settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
     const setting = await settingsQuery.first({ useMasterKey: true });
 
     const allowedCashoutIds = setting?.get("settings") || [];
 
-    return allowedCashoutIds.includes(masterAgent);
+    // Step 4: Role-based check
+    if (parentRole === "Super-User") {
+      return allowedCashoutIds.includes(agentId);
+    } else if (parentRole === "Master-Agent") {
+      return allowedCashoutIds.includes(parentUser.id);
+    }
+
+    return false;
   } catch (error) {
     console.error("Error checking cashout enabled for agent:", error);
     return false;

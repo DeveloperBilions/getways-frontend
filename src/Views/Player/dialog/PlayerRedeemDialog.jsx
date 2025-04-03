@@ -140,8 +140,9 @@ const PlayerRedeemDialog = ({
       } else {
         // Updated success message format
         setSuccessMessage(`Redeem Successful!\nAmount: ${redeemAmount}`);
-        notify("Redeem Successful!",{
+        notify("Redeem Successful!", {
           type: "success",
+          anchorOrigin: { vertical: "top", horizontal: "right" },
         });
         setTimeout(() => {
           onClose();

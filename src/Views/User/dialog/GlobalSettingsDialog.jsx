@@ -14,6 +14,7 @@ import {
   Divider,
   Stack,
   Grid,
+  TextField,
 } from "@mui/material";
 import Parse from "parse";
 
@@ -22,14 +23,17 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
   const [cashoutEnabled, setCashoutEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [masterAgents, setMasterAgents] = useState([]);
+  const [subAgents, setSubAgents] = useState([]);
   const [agents, setAgents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (open) {
       fetchSettings();
       fetchAgents();
     }
-  }, [open]);
+  }, [open, searchTerm]);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -60,35 +64,99 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
   const fetchAgents = async () => {
     try {
       const [rechargeList, cashoutList] = await Promise.all([
-        new Parse.Query("Settings").equalTo("type", "allowedMasterAgentsForRecharge").first({ useMasterKey: true }),
-        new Parse.Query("Settings").equalTo("type", "allowedMasterAgentsForCashout").first({ useMasterKey: true }),
+        new Parse.Query("Settings")
+          .equalTo("type", "allowedMasterAgentsForRecharge")
+          .first({ useMasterKey: true }),
+        new Parse.Query("Settings")
+          .equalTo("type", "allowedMasterAgentsForCashout")
+          .first({ useMasterKey: true }),
       ]);
-  
+
       const allowedRechargeIds = rechargeList?.get("settings") || [];
       const allowedCashoutIds = cashoutList?.get("settings") || [];
-  
-      const userQuery = new Parse.Query(Parse.User);
-      userQuery.equalTo("roleName", "Master-Agent");
-      const users = await userQuery.find({ useMasterKey: true });
-  
-      const agentsData = users.map((user) => {
-        const id = user.id;
-        const username = user.get("username");
-  
-        return {
-          id,
-          username,
-          rechargeEnabled: allowedRechargeIds.includes(id),
-          cashoutEnabled: allowedCashoutIds.includes(id),
-        };
+
+      const superAdmins = await new Parse.Query(Parse.User)
+        .equalTo("roleName", "Super-User")
+        .find({ useMasterKey: true });
+      const superAdminIds = superAdmins.map((user) => user.id);
+
+      const subAgentQuery = new Parse.Query(Parse.User);
+      subAgentQuery.containedIn("userParentId", superAdminIds);
+      subAgentQuery.equalTo("roleName", "Agent");
+      subAgentQuery.limit(200);
+
+      const masterAgentQuery = new Parse.Query(Parse.User);
+      masterAgentQuery.equalTo("roleName", "Master-Agent");
+      masterAgentQuery.limit(200);
+
+      if (searchTerm.trim() !== "") {
+        const regex = `.*${searchTerm.trim()}.*`;
+        subAgentQuery.matches("username", regex, "i");
+        masterAgentQuery.matches("username", regex, "i");
+      }
+
+      const [masters, subs] = await Promise.all([
+        masterAgentQuery.find({ useMasterKey: true }),
+        subAgentQuery.find({ useMasterKey: true }),
+      ]);
+
+      const toAgentObject = (user) => ({
+        id: user.id,
+        username: user.get("username"),
+        rechargeEnabled: allowedRechargeIds.includes(user.id),
+        cashoutEnabled: allowedCashoutIds.includes(user.id),
       });
-  
-      setAgents(agentsData);
+
+      const masterIds = new Set(masters.map((m) => m.id));
+      const filteredSubs = subs.filter((s) => !masterIds.has(s.id));
+
+      const mastersMapped = masters.map(toAgentObject);
+      const subsMapped = filteredSubs.map(toAgentObject);
+
+      setMasterAgents(mastersMapped);
+      setSubAgents(subsMapped);
+      setAgents([...mastersMapped, ...subsMapped]);
     } catch (err) {
-      console.error("Error fetching agents or allowed list:", err);
+      console.error("Error fetching agents:", err);
     }
   };
-  
+
+  const handleAgentToggle = (agentId, key, value) => {
+    setAgents((prev) =>
+      prev.map((agent) =>
+        agent.id === agentId ? { ...agent, [key]: value } : agent
+      )
+    );
+    setMasterAgents((prev) =>
+      prev.map((agent) =>
+        agent.id === agentId ? { ...agent, [key]: value } : agent
+      )
+    );
+    setSubAgents((prev) =>
+      prev.map((agent) =>
+        agent.id === agentId ? { ...agent, [key]: value } : agent
+      )
+    );
+  };
+
+  const toggleAll = (list, key, value) => {
+    const ids = list.map((a) => a.id);
+
+    setAgents((prev) =>
+      prev.map((a) => (ids.includes(a.id) ? { ...a, [key]: value } : a))
+    );
+    setMasterAgents((prev) =>
+      prev.map((a) => (ids.includes(a.id) ? { ...a, [key]: value } : a))
+    );
+    setSubAgents((prev) =>
+      prev.map((a) => (ids.includes(a.id) ? { ...a, [key]: value } : a))
+    );
+  };
+
+  const areAllSelected = (list, key) => list.length > 0 && list.every((a) => a[key]);
+  const isIndeterminate = (list, key) =>
+    list.some((a) => a[key]) && !areAllSelected(list, key);
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -96,32 +164,27 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
         const query = new Parse.Query("Settings");
         query.equalTo("type", type);
         let obj = await query.first({ useMasterKey: true });
-  
+
         if (!obj) {
           const Settings = Parse.Object.extend("Settings");
           obj = new Settings();
           obj.set("type", type);
         }
-  
+
         obj.set("settings", valueArray);
         await obj.save(null, { useMasterKey: true });
       };
-  
-      // Save global settings
+
+      const allowedRechargeIds = agents.filter((a) => a.rechargeEnabled).map((a) => a.id);
+      const allowedCashoutIds = agents.filter((a) => a.cashoutEnabled).map((a) => a.id);
+
       await Promise.all([
         saveSetting("rechargeEnabled", [rechargeEnabled.toString()]),
         saveSetting("cashoutEnabled", [cashoutEnabled.toString()]),
-      ]);
-  
-      // Save selected agent IDs
-      const allowedRechargeIds = agents.filter((a) => a.rechargeEnabled).map((a) => a.id);
-      const allowedCashoutIds = agents.filter((a) => a.cashoutEnabled).map((a) => a.id);
-  
-      await Promise.all([
         saveSetting("allowedMasterAgentsForRecharge", allowedRechargeIds),
         saveSetting("allowedMasterAgentsForCashout", allowedCashoutIds),
       ]);
-  
+
       setSuccessMsg("Settings updated successfully!");
       setTimeout(() => {
         setSuccessMsg("");
@@ -133,22 +196,40 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
       setLoading(false);
     }
   };
-  
 
-  const handleAgentToggle = (agentId, key, value) => {
-    setAgents((prev) =>
-      prev.map((agent) =>
-        agent.id === agentId ? { ...agent, [key]: value } : agent
-      )
-    );
-  };
-
-  const toggleAllAgents = (key, value) => {
-    setAgents((prev) =>
-      prev.map((agent) => ({
-        ...agent,
-        [key]: value,
-      }))
+  const AgentRow = ({ agent }) => {
+    return (
+      <Grid container alignItems="center" spacing={2} sx={{ borderBottom: "1px solid #eee", pb: 1 }}>
+        <Grid item xs={4}>
+          <Typography>{agent.username}</Typography>
+        </Grid>
+        <Grid item xs={4}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={agent.rechargeEnabled}
+                onChange={(e) =>
+                  handleAgentToggle(agent.id, "rechargeEnabled", e.target.checked)
+                }
+              />
+            }
+            label="Recharge"
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={agent.cashoutEnabled}
+                onChange={(e) =>
+                  handleAgentToggle(agent.id, "cashoutEnabled", e.target.checked)
+                }
+              />
+            }
+            label="Cashout"
+          />
+        </Grid>
+      </Grid>
     );
   };
 
@@ -185,88 +266,91 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
           />
         </Box>
 
-        {agents.length > 0 && (
+        <TextField
+          fullWidth
+          placeholder="Search agents by username..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          size="small"
+          sx={{ mt: 3, mb: 2 }}
+        />
+
+        {(masterAgents.length > 0 || subAgents.length > 0) && (
           <>
-            <Divider sx={{ my: 3 }} />
+            <Divider sx={{ my: 2 }} />
             <Typography variant="h6" fontSize="16px" fontWeight={600} mb={1}>
               Master Agent Overrides
             </Typography>
 
-            {/* Select All checkboxes */}
-            {/* <Box display="flex" justifyContent="space-between" mb={2}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={agents.every((a) => a.rechargeEnabled)}
-                    indeterminate={
-                      agents.some((a) => a.rechargeEnabled) &&
-                      !agents.every((a) => a.rechargeEnabled)
+            {masterAgents.length > 0 && (
+              <>
+                <Typography fontSize="14px" fontWeight={500} color="text.secondary" mb={1}>
+                  Master Agents
+                </Typography>
+                <Box display="flex" justifyContent="space-between" mb={1}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={areAllSelected(masterAgents, "rechargeEnabled")}
+                        indeterminate={isIndeterminate(masterAgents, "rechargeEnabled")}
+                        onChange={(e) => toggleAll(masterAgents, "rechargeEnabled", e.target.checked)}
+                      />
                     }
-                    onChange={(e) =>
-                      toggleAllAgents("rechargeEnabled", e.target.checked)
-                    }
+                    label="Select All Recharge"
                   />
-                }
-                label="Select All Recharge"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={agents.every((a) => a.cashoutEnabled)}
-                    indeterminate={
-                      agents.some((a) => a.cashoutEnabled) &&
-                      !agents.every((a) => a.cashoutEnabled)
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={areAllSelected(masterAgents, "cashoutEnabled")}
+                        indeterminate={isIndeterminate(masterAgents, "cashoutEnabled")}
+                        onChange={(e) => toggleAll(masterAgents, "cashoutEnabled", e.target.checked)}
+                      />
                     }
-                    onChange={(e) =>
-                      toggleAllAgents("cashoutEnabled", e.target.checked)
-                    }
+                    label="Select All Cashout"
                   />
-                }
-                label="Select All Cashout"
-              />
-            </Box> */}
+                </Box>
+                <Stack spacing={2} mb={2}>
+                  {masterAgents.map((agent) => (
+                    <AgentRow key={agent.id} agent={agent} />
+                  ))}
+                </Stack>
+              </>
+            )}
 
-            <Stack spacing={2}>
-              {agents.map((agent) => (
-                <Grid
-                  key={agent.id}
-                  container
-                  alignItems="center"
-                  spacing={2}
-                  sx={{ borderBottom: "1px solid #eee", pb: 1 }}
-                >
-                  <Grid item xs={4}>
-                    <Typography>{agent.username}</Typography>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={agent.rechargeEnabled}
-                          onChange={(e) =>
-                            handleAgentToggle(agent.id, "rechargeEnabled", e.target.checked)
-                          }
-                        />
-                      }
-                      label="Recharge"
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={agent.cashoutEnabled}
-                          onChange={(e) =>
-                            handleAgentToggle(agent.id, "cashoutEnabled", e.target.checked)
-                          }
-                        />
-                      }
-                      label="Cashout"
-                    />
-                  </Grid>
-                </Grid>
-              ))}
-            </Stack>
+            {subAgents.length > 0 && (
+              <>
+                <Typography fontSize="14px" fontWeight={500} color="text.secondary" mb={1}>
+                  Agents under Super Admin
+                </Typography>
+                <Box display="flex" justifyContent="space-between" mb={1}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={areAllSelected(subAgents, "rechargeEnabled")}
+                        indeterminate={isIndeterminate(subAgents, "rechargeEnabled")}
+                        onChange={(e) => toggleAll(subAgents, "rechargeEnabled", e.target.checked)}
+                      />
+                    }
+                    label="Select All Recharge"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={areAllSelected(subAgents, "cashoutEnabled")}
+                        indeterminate={isIndeterminate(subAgents, "cashoutEnabled")}
+                        onChange={(e) => toggleAll(subAgents, "cashoutEnabled", e.target.checked)}
+                      />
+                    }
+                    label="Select All Cashout"
+                  />
+                </Box>
+                <Stack spacing={2}>
+                  {subAgents.map((agent) => (
+                    <AgentRow key={agent.id} agent={agent} />
+                  ))}
+                </Stack>
+              </>
+            )}
           </>
         )}
       </DialogContent>
