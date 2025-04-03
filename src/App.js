@@ -243,6 +243,8 @@ function App() {
                     </Authenticated>
                   }
                 />
+                              <Route path="/success" element={<Success />} />
+
                 <Route
                   path="/checkout"
                   element={
