@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -20,6 +20,7 @@ import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
+import { Alert } from "@mui/material"; // Make sure this is imported
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -36,6 +37,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
+  const [showKycSuccessMsg, setShowKycSuccessMsg] = useState(false); // ✅ new
+
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
     // Update the header display based on selected payment method
@@ -55,7 +58,34 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     refresh();
     resetFields();
   };
+ 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handlecheck()
+    
+    }, 30000); // 1 minute = 60000ms
+  
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
+  
+  const handlecheck = async () => {
+    try {
+      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+      const query = new Parse.Query(TransfiUserInfo);
+      query.equalTo("userId", identity?.objectId);
+      const result = await query.first({ useMasterKey: true });
 
+      const kycStatus = result?.get("kycStatus");
+      const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
+if (kycStatus?.trim().toLowerCase() === "kyc_success" && wasJustCompleted?.trim() === "true") {
+  setShowKycSuccessMsg(true);
+  localStorage.removeItem("kycCompletedOnce");
+}
+
+    } catch (err) {
+      console.error("Error checking KYC after refresh:", err);
+    }  
+  };
   const resetFields = () => {
     setRechargeAmount(50);
     setRemark("");
@@ -83,9 +113,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     }
   };
   
-
+console.log(showKycSuccessMsg,"showKycSuccessMsg")
   return (
     <>
+
       <Box
         sx={{
           padding: "24px",
@@ -373,6 +404,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               style={{ width: "12px", height: "12px", marginLeft: "4px" }}
             />
           </Box>
+          {showKycSuccessMsg && (
+  <Alert severity="success" sx={{ mb: 2 }}>
+    KYC completed successfully! You can now proceed with recharge.
+  </Alert>
+)}
           <Button
             variant="contained"
             sx={{

@@ -91,6 +91,7 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
         lastName: formData.lastName,
         country: formData.country,
       });
+      localStorage.setItem("kycCompletedOnce", "true");
 
       setSuccess(true);
       onSuccess?.();
