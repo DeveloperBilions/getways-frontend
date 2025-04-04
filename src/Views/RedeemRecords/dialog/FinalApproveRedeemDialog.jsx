@@ -32,7 +32,7 @@ const FinalApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [redeemRemarks, setRedeemRemarks] = useState(""); // State for Redeem Remarks
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
 
   // Gift Card List
   const giftCards = [

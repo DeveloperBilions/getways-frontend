@@ -32,13 +32,13 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(50); // You can change how many cards per page
+  const [perPage] = useState(50); // You can change how many cards per page
   const [totalPages, setTotalPages] = useState(1);
 
-  const [userName, setUserName] = useState(localStorage.getItem("username"));
+  const [userName] = useState(localStorage.getItem("username"));
   const userId = localStorage.getItem("id");
   const [redeemAmount, setRedeemAmount] = useState("");
-  const [redeemFees, setRedeemFees] = useState(0);
+  const [redeemFees] = useState(0);
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingsave, setLoadingSave] = useState(false);

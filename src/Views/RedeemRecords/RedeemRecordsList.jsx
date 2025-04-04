@@ -65,7 +65,6 @@ export const RedeemRecordsList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
   const {
-    data,
     isLoading,
     total,
     page,

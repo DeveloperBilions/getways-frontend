@@ -12,8 +12,6 @@ import RedeemDark from "../../Assets/icons/redeem-dark.svg";
 import RedeemLight from "../../Assets/icons/redeem-light.svg";
 import WalletDark from "../../Assets/icons/wallet-dark.svg";
 import WalletLight from "../../Assets/icons/wallet-light.svg";
-import GiftCardDark from "../../Assets/icons/gift-card-dark.svg";
-import GiftCardLight from "../../Assets/icons/gift-card-light.svg";
 import { WalletDetails } from "./dialog/WalletDetails";
 import GiftCardsDisplay from "./GiftCardDisplay";
 import Parse from "parse";

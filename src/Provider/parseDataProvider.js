@@ -215,7 +215,7 @@ export const dataProvider = {
          //     if (f === "username") query.matches(f, filter[f], "i");
          //     else query.equalTo(f, filter[f]);
          //   });
-         var { ids } = await fetchUsers();
+         let { ids } = await fetchUsers();
          query.containedIn("userId", ids);
          query.notEqualTo("isCashOut", true);
        } else if (role === "Master-Agent") {
@@ -224,7 +224,7 @@ export const dataProvider = {
          //     if (f === "username") query.matches(f, filter[f], "i");
          //     else query.equalTo(f, filter[f]);
          //   });
-         var { ids } = await fetchUsers(null, true);
+         let { ids } = await fetchUsers(null, true);
          query.containedIn("userId", ids);
          query.notEqualTo("isCashOut", true);
        }
@@ -289,10 +289,10 @@ export const dataProvider = {
          //      else query.equalTo(f, filter[f]);
          //    });
        } else if (role === "Agent") {
-         var { ids } = await fetchUsers();
+         let { ids } = await fetchUsers();
          query.containedIn("userId", ids);
        } else if (role === "Master-Agent") {
-         var { ids } = await fetchUsers(null, true);
+         let { ids } = await fetchUsers(null, true);
          query.containedIn("userId", ids);
        }
 
@@ -677,7 +677,7 @@ export const dataProvider = {
        result.data[0] = { ...result.data[0], ...summary };
        return result;
      } else if (resource === "summaryExport") {
-       var result = null;
+       let result = null;
        if (role === "Super-User") {
          //users
 
@@ -719,9 +719,9 @@ export const dataProvider = {
              );
            var results = await transactionQuery.find();
          } else {
-           var userQuery = new Parse.Query(Parse.User);
+           let userQuery = new Parse.Query(Parse.User);
            userQuery.limit(150000);
-           var results = await userQuery.find({ useMasterKey: true });
+           results = await userQuery.find({ useMasterKey: true });
            data = results.map((o) => ({ id: o.id, ...o.attributes }));
            const currentUser = await Parse.User.current();
            data.push({ id: userid, ...currentUser.attributes });
@@ -751,7 +751,7 @@ export const dataProvider = {
                new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
              );
            transactionQuery.limit(150000);
-           var results = await transactionQuery.find();
+           results = await transactionQuery.find();
          }
          // Fetch wallet balances for the users
          const walletQuery = new Parse.Query("Wallet");
@@ -1067,7 +1067,7 @@ export const dataProvider = {
        transactionQuery.lessThan("transactionDate", endDate);
 
        transactionQuery.limit(100000);
-       var results = await transactionQuery.find();
+       results = await transactionQuery.find();
 
        // Process transactions and add agentName from the user map
        result = results.map((o) => {
@@ -1095,7 +1095,7 @@ export const dataProvider = {
 
        return { data: result };
      } else if (resource === "walletData") {
-       var result = null;
+       let result = null;
 
        // Fetch all users in one query
        const userQuery = new Parse.Query(Parse.User);
@@ -1130,6 +1130,7 @@ export const dataProvider = {
            const paypalId = walletData.paypalId; // Assuming this comes from the Wallet table
            const venmoId = walletData.venmoId; // Assuming this comes from the Wallet table
            const cashAppId = walletData.cashAppId; // Assuming this comes from the Wallet table
+           const createdAt = walletData.createdAt; // Assuming this comes from the Wallet table
 
            // Add user and wallet-related data to the wallet data
            walletData.agentName = agentName;
@@ -1140,7 +1141,7 @@ export const dataProvider = {
            walletData.venmoId = venmoId;
            walletData.cashAppId = cashAppId;
            walletData.userID = userID;
-           walletData.createdAt = walletData.createdAt;
+           walletData.createdAt = createdAt;
          } else {
            console.log("User not found for userId:", walletData.userId);
          }
@@ -1154,11 +1155,16 @@ export const dataProvider = {
        query = new Parse.Query(Resource);
        filter = { userId: userid };
 
-       filter &&
-         Object.keys(filter).map((f) => {
-           if (f === "username") query.equalTo(f, filter[f]);
-           else query.equalTo(f, filter[f]);
-         });
+      //  filter &&
+      //    Object.keys(filter).map((f) => {
+      //      if (f === "username") query.equalTo(f, filter[f]);
+      //      else query.equalTo(f, filter[f]);
+      //    });
+
+      filter &&
+        Object.keys(filter).forEach((f) => {
+          query.equalTo(f, filter[f]);
+        });
 
        query.limit(100000);
 
@@ -1175,10 +1181,10 @@ export const dataProvider = {
        if (role === "Player") {
          filter = { userId: userid, ...filter };
        } else if (role === "Agent") {
-         var { ids } = await fetchUsers();
+         let { ids } = await fetchUsers();
          query.containedIn("userId", ids);
        } else if (role === "Master-Agent") {
-         var { ids } = await fetchUsers(null, true);
+         let { ids } = await fetchUsers(null, true);
          query.containedIn("userId", ids);
        }
 
@@ -1240,11 +1246,11 @@ export const dataProvider = {
        if (role === "Player") {
          filter = { userId: userid, ...filter };
        } else if (role === "Agent") {
-         var { ids } = await fetchUsers();
+         let { ids } = await fetchUsers();
          query.containedIn("userId", ids);
          query.notContainedIn("status", [11, 12, 13]);
        } else if (role === "Master-Agent") {
-         var { ids } = await fetchUsers(null, true);
+         let { ids } = await fetchUsers(null, true);
          query.containedIn("userId", ids);
          query.notContainedIn("status", [11, 12, 13]);
        }
@@ -1492,7 +1498,7 @@ export const dataProvider = {
     }
   },
   getMany: async (resource, params) => {
-    var query = null;
+    // var query = null;
     var results = null;
     if (resource === "users") {
       results = params.ids.map((id) =>
@@ -1500,7 +1506,7 @@ export const dataProvider = {
       );
     } else {
       const Resource = Parse.Object.extend(resource);
-      query = new Parse.Query(Resource);
+      // query = new Parse.Query(Resource);
       results = params.ids.map((id) => new Parse.Query(Resource).get(id));
     }
     try {

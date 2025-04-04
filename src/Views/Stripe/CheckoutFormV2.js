@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import React from "react";
+// import { useForm } from "react-hook-form";
 import {
   Box,
   Typography,
@@ -10,27 +10,27 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import the back arrow icon
 
 const CheckoutFormV2 = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-  const [cardDetails, setCardDetails] = useState({
-    email: "",
-    number: "",
-    name: "",
-    expiry: "",
-    cvc: "",
-    country: "India",
-  });
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   formState: { errors },
+  // } = useForm();
+  // const [cardDetails, setCardDetails] = useState({
+  //   email: "",
+  //   number: "",
+  //   name: "",
+  //   expiry: "",
+  //   cvc: "",
+  //   country: "India",
+  // });
 
-  const handleInputChange = (e) => {
-    setCardDetails({ ...cardDetails, [e.target.name]: e.target.value });
-  };
+  // const handleInputChange = (e) => {
+  //   setCardDetails({ ...cardDetails, [e.target.name]: e.target.value });
+  // };
 
-  const onSubmit = (data) => {
-    alert("Payment Successful!");
-  };
+  // const onSubmit = (data) => {
+  //   alert("Payment Successful!");
+  // };
 
   const handleBackClick = () => {
     // Add your navigation logic here, for example:

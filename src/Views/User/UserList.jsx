@@ -325,7 +325,7 @@ export const UserList = (props) => {
   //   },
   // });
 
-  const [userData, setUserData] = useState();
+  // const [userData, setUserData] = useState();
   const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
@@ -375,8 +375,8 @@ export const UserList = (props) => {
 
   const fetchAllUsers = async () => {
     try {
-      var response = await Parse.Cloud.run("fetchAllUsers", { identity });
-      setUserData(response.filter((r) => !r.email.includes("@invalid")));
+      await Parse.Cloud.run("fetchAllUsers", { identity });
+      // setUserData(response.filter((r) => !r.email.includes("@invalid")));
     } catch (error) {
       console.error("Error fetching users:", error);
     }
