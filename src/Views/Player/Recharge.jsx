@@ -19,6 +19,7 @@ import { Parse } from "parse";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
+import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -32,10 +33,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [paymentSource, setPaymentSource] = useState("stripe");
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
-
+  const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
-
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
     // Update the header display based on selected payment method
@@ -62,6 +62,27 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     setPaymentSource("strike");
     // setErrorMessage(""); // Reset error message
   };
+
+  const handleRechargeClick = async () => {
+    if (identity?.isBlackListed) return;
+  
+    try {
+      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+      const query = new Parse.Query(TransfiUserInfo);
+      query.equalTo("userId", identity.objectId);
+      const record = await query.first({ useMasterKey: true });
+  
+      if (record && record.get("kycVerified") === true) {
+        setRechargeDialogOpen(true);
+      } else {
+        setSubmitKycDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error checking KYC:", error);
+      setSubmitKycDialogOpen(true);
+    }
+  };
+  
 
   return (
     <>
@@ -370,7 +391,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             disabled={identity?.isBlackListed}
             onClick={() => {
               if (!identity?.isBlackListed) {
-                setRechargeDialogOpen(true);
+                if(paymentSource === "stripe")
+                {
+                  handleRechargeClick()
+                }
+                else{
+                  setRechargeDialogOpen(true);
+                }
               }
             }}
           >
@@ -403,6 +430,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           paymentSource: paymentSource,
         }}
       />
+      <SubmitKYCDialog
+  open={submitKycDialogOpen}
+  onClose={() => setSubmitKycDialogOpen(false)}
+  onSuccess={handleRefresh}
+  identity={identity}
+/>
+
     </>
   );
 };

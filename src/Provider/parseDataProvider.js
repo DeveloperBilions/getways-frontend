@@ -1961,7 +1961,7 @@ export const dataProvider = {
         // transactionDetails.set("status", 1); // Pending status
         // transactionDetails.set("referralLink", session.url);
         // transactionDetails.set("transactionIdFromStripe", session.id);
-        session = await processTransfiDeposit(transactionAmount,user.get("email"),user.get("name"),user.get("username"))
+        session = await processTransfiDeposit(transactionAmount,id)
         transactionDetails.set("status", 1); // Pending
        transactionDetails.set("referralLink", session?.paymentUrl); // Payment link from NOWPayments
        transactionDetails.set("transactionIdFromStripe",session.orderId);
