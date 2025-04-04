@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -19,6 +19,8 @@ import { Parse } from "parse";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
+import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
+import { Alert } from "@mui/material"; // Make sure this is imported
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -32,9 +34,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [paymentSource, setPaymentSource] = useState("stripe");
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
-
+  const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
+  const [showKycSuccessMsg, setShowKycSuccessMsg] = useState(false); // ✅ new
 
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
@@ -55,7 +58,34 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     refresh();
     resetFields();
   };
+ 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handlecheck()
+    
+    }, 30000); // 1 minute = 60000ms
+  
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
+  
+  const handlecheck = async () => {
+    try {
+      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+      const query = new Parse.Query(TransfiUserInfo);
+      query.equalTo("userId", identity?.objectId);
+      const result = await query.first({ useMasterKey: true });
 
+      const kycStatus = result?.get("kycStatus");
+      const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
+if (kycStatus?.trim().toLowerCase() === "kyc_success" && wasJustCompleted?.trim() === "true") {
+  setShowKycSuccessMsg(true);
+  localStorage.removeItem("kycCompletedOnce");
+}
+
+    } catch (err) {
+      console.error("Error checking KYC after refresh:", err);
+    }  
+  };
   const resetFields = () => {
     setRechargeAmount(50);
     setRemark("");
@@ -63,8 +93,30 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     // setErrorMessage(""); // Reset error message
   };
 
+  const handleRechargeClick = async () => {
+    if (identity?.isBlackListed) return;
+  
+    try {
+      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+      const query = new Parse.Query(TransfiUserInfo);
+      query.equalTo("userId", identity.objectId);
+      const record = await query.first({ useMasterKey: true });
+  
+      if (record && record.get("kycVerified") === true) {
+        setRechargeDialogOpen(true);
+      } else {
+        setSubmitKycDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error checking KYC:", error);
+      setSubmitKycDialogOpen(true);
+    }
+  };
+  
+console.log(showKycSuccessMsg,"showKycSuccessMsg")
   return (
     <>
+
       <Box
         sx={{
           padding: "24px",
@@ -352,6 +404,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               style={{ width: "12px", height: "12px", marginLeft: "4px" }}
             />
           </Box>
+          {showKycSuccessMsg && (
+  <Alert severity="success" sx={{ mb: 2 }}>
+    KYC completed successfully! You can now proceed with recharge.
+  </Alert>
+)}
           <Button
             variant="contained"
             sx={{
@@ -370,7 +427,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             disabled={identity?.isBlackListed}
             onClick={() => {
               if (!identity?.isBlackListed) {
-                setRechargeDialogOpen(true);
+                if(paymentSource === "stripe")
+                {
+                  handleRechargeClick()
+                }
+                else{
+                  setRechargeDialogOpen(true);
+                }
               }
             }}
           >
@@ -403,6 +466,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           paymentSource: paymentSource,
         }}
       />
+      <SubmitKYCDialog
+  open={submitKycDialogOpen}
+  onClose={() => setSubmitKycDialogOpen(false)}
+  onSuccess={handleRefresh}
+  identity={identity}
+/>
+
     </>
   );
 };
