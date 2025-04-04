@@ -39,7 +39,7 @@ export const processTransfiDeposit = async (
 
     // Step 3: Place deposit order
     const depositRes = await axios.post(
-      "https://sandbox-api.transfi.com/v2/orders/gaming",
+      "https://api.transfi.com/v2/orders/gaming",
       {
         paymentType: "card",
         purposeCode: "fee_payments",
@@ -83,7 +83,7 @@ export const submitTransfiKyc = async ({
     let userExists = false;
     try {
       const checkUserRes = await axios.get(
-        "https://sandbox-api.transfi.com/v2/users/individuals",
+        "https://api.transfi.com/v2/users/individuals",
         {
           params: { email },
           headers: {
@@ -104,7 +104,7 @@ export const submitTransfiKyc = async ({
     // Step 2: Create user if not exists
     if (!userExists) {
       await axios.post(
-        "https://sandbox-api.transfi.com/v2/users/individual",
+        "https://api.transfi.com/v2/users/individual",
         {
           email,
           firstName,
@@ -124,7 +124,7 @@ export const submitTransfiKyc = async ({
 
     // Step 3: Submit KYC
     const response = await axios.post(
-      "https://sandbox-api.transfi.com/v2/kyc/standard",
+      "https://api.transfi.com/v2/kyc/standard",
       {
         email,
         firstName,
