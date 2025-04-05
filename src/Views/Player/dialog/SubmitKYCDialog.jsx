@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import Parse from 'parse';
-import { submitTransfiKyc } from '../../../Utils/transfi';
+import { regenerateTransfiKycLink, submitTransfiKyc } from '../../../Utils/transfi';
 
 export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) {
   const [formData, setFormData] = useState({
@@ -21,6 +21,7 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
     firstName: '',
     lastName: '',
     country: 'US',
+    dob: '',
     myuserId: identity?.objectId
   });
 
@@ -29,6 +30,7 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
   const [success, setSuccess] = useState(false);
   const [kycStatus, setKycStatus] = useState(null);
   const [redirectLink, setRedirectLink] = useState('');
+  const [linkExpired, setLinkExpired] = useState(false);
 
   useEffect(() => {
     if (identity?.objectId) {
@@ -45,8 +47,15 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
 
       if (result) {
         const status = result.get('kycStatus');
+        const generatedAt = result.get("linkGeneratedAt");
+
         setKycStatus(status);
         setRedirectLink(result.get('redirectUrl'));
+       
+        if (['kyc_failed', 'kyc_rejected'].includes(status)) {
+          setLinkExpired(true);
+        }
+        
       } else {
         setKycStatus('not_found');
       }
@@ -75,7 +84,8 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
     if (
       !isNonEmpty(formData.firstName) ||
       !isNonEmpty(formData.lastName) ||
-      !isValidEmail(formData.email)
+      !isValidEmail(formData.email) ||
+      !isNonEmpty(formData.dob)
     ) {
       setError('Please enter valid details. Fields cannot be empty or contain only spaces.');
       return;
@@ -90,6 +100,7 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
         firstName: formData.firstName,
         lastName: formData.lastName,
         country: formData.country,
+        dob: formData.dob,
       });
       localStorage.setItem("kycCompletedOnce", "true");
 
@@ -105,7 +116,20 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
       setLoading(false);
     }
   };
-
+  const handleGenerateNewKycLink = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { redirectUrl } = await regenerateTransfiKycLink(identity?.objectId);
+      setRedirectLink(redirectUrl);
+      setLinkExpired(false);
+      window.open(redirectUrl, '_blank');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to generate new KYC link');
+    } finally {
+      setLoading(false);
+    }
+  };
   // Show status-specific views
   if (kycStatus && kycStatus !== 'not_found') {
     if (kycStatus === 'kyc_success') return null;
@@ -114,16 +138,32 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
       <Dialog open={open} onClose={onClose} fullWidth>
         <DialogTitle>KYC Status: {kycStatus.replace(/_/g, ' ').toUpperCase()}</DialogTitle>
         <DialogContent>
-          <Alert severity="info">
+          {redirectLink && !linkExpired && (
+            <>
+            <Alert severity="info">
             Your KYC is currently <strong>{kycStatus.replace(/_/g, ' ')}</strong>. Please complete it if needed.
           </Alert>
-          {redirectLink && (
             <Typography mt={2}>
               <Link href={redirectLink} target="_blank" rel="noopener">
                 Go to KYC Portal
               </Link>
             </Typography>
+            </>
           )}
+           {linkExpired && (
+  <Typography mt={2}>
+    <Alert severity="warning" sx={{ mb: 2 }}>
+    Your KYC attempt was rejected or failed. Please generate a new link to try again.    </Alert>
+    <Button
+      variant="outlined"
+      onClick={handleGenerateNewKycLink}
+      disabled={loading}
+    >
+      {loading ? <CircularProgress size={20} /> : 'Generate New KYC Link'}
+    </Button>
+  </Typography>
+)}
+
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Close</Button>
@@ -136,6 +176,12 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>Submit KYC</DialogTitle>
       <DialogContent>
+      <Alert severity="warning" sx={{ mb: 2 }}>
+          Please ensure the details you enter match the information on the document you will upload for the KYC process.
+        </Alert>
+        <Alert severity="warning" sx={{ mb: 2 }}>
+        For verification, please use your email and a debit card registered to your name as it appears on your Driving License.
+        </Alert>
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">KYC submitted successfully!</Alert>}
         <TextField
@@ -161,6 +207,18 @@ export default function SubmitKYCDialog({ open, onClose, onSuccess, identity }) 
           label="Last Name"
           value={formData.lastName}
           onChange={handleChange}
+        />
+         <TextField
+          margin="normal"
+          fullWidth
+          name="dob"
+          label="Date of Birth"
+          type="date"
+          value={formData.dob}
+          onChange={handleChange}
+          InputLabelProps={{
+            shrink: true,
+          }}
         />
         <TextField
           margin="normal"

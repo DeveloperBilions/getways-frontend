@@ -21,6 +21,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
+import { isRechargeEnabledForAgent } from "../../Utils/utils";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -38,7 +39,15 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
   const [showKycSuccessMsg, setShowKycSuccessMsg] = useState(false); // ✅ new
-
+  const [rechargeDisabled, setRechargeDisabled] = useState(false);
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isRechargeEnabledForAgent(identity?.userParentId));
+        setRechargeDisabled(disabled);
+    };
+  
+    checkRechargeAccess();
+  }, [identity]);
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
     // Update the header display based on selected payment method
@@ -417,14 +426,15 @@ console.log(showKycSuccessMsg,"showKycSuccessMsg")
               borderRadius: "4px",
               backgroundColor: "#2E5BFF",
               color: "#FFFFFF",
-              "&:disabled": {
-                backgroundColor: "#A5D6A7", // Optional: Lighter green for disabled state
+              "&.Mui-disabled": {
+                bgcolor: "#A0AEC0", // Disabled background color (grayish)
+                color: "#E2E8F0", // Disabled text color (light gray)
               },
               ":hover": {
                 backgroundColor: "#2E5BFF",
               },
             }}
-            disabled={identity?.isBlackListed}
+            disabled={identity?.isBlackListed || rechargeDisabled}
             onClick={() => {
               if (!identity?.isBlackListed) {
                 if(paymentSource === "stripe")

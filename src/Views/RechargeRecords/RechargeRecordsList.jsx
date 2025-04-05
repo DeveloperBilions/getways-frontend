@@ -67,9 +67,9 @@ export const RechargeRecordsList = (props) => {
   const listContext = useListController({
     ...props,
     filter:
-      props.identity?.role === "Player"
-        ? { type: "recharge", status: 1 }
-        : { type: "recharge" },
+      // props.identity?.role === "Player"
+      //   ? { type: "recharge", status: 1 }:
+         { type: "recharge" },
   });
   const {
     isLoading,
@@ -185,10 +185,10 @@ export const RechargeRecordsList = (props) => {
     if (role === "Player") {
       setSearchBy("");
       setFilters(
-        {
-          type: "recharge",
-          status: 1,
-        },
+        // {
+        //   type: "recharge",
+        //   status: 1,
+        // },
         false
       );
     } else {
@@ -318,8 +318,7 @@ export const RechargeRecordsList = (props) => {
     }
     const currentSearchValue = filterValues[searchBy] || "";
     const newFilters = {
-      searchBy,
-      ...(role === "Player" ? { status: 1 } : {}),
+      searchBy
     };
 
     if (currentSearchValue && currentSearchValue.trim() !== "") {
@@ -617,9 +616,11 @@ export const RechargeRecordsList = (props) => {
         empty={false}
         {...props}
         filter={
-          identity?.role !== "Player"
-            ? { type: "recharge" }
-            : { type: "recharge", status: 1 }
+          // identity?.role !== "Player"
+          //   ? 
+            { type: "recharge" }
+            // : 
+            // { type: "recharge", status: 1 }
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
