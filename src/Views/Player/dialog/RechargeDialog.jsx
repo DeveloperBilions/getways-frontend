@@ -112,6 +112,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         // Use a synthetic event for compatibility
         const syntheticEvent = { preventDefault: () => {} };
         handleSubmit(syntheticEvent);
+      }else{
+        setErrorMessage(transactionCheck?.message  || "Recharge Limit Reached")
       }
     };
 
@@ -423,17 +425,18 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                 >
                   Recharge
                 </ModalHeader>
+               
+
+                <ModalBody>
                 {errorMessage ? (
-                  <Box className="text-center text-danger mt-2">
+                  <Alert severity="error">
                     {errorMessage}
-                  </Box>
+                  </Alert>
                 ) : (
                   <Box className="text-center text-secondary mt-2">
                     Processing your recharge...
                   </Box>
                 )}
-
-                <ModalBody>
                   {rechargeDisabled && paymentSource === "stripe" && (
                     <Alert severity="warning" sx={{ my: 2 }}>
                       Recharges are not available at this time. Please try again
