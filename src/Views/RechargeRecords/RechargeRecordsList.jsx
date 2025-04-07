@@ -769,6 +769,16 @@ export const RechargeRecordsList = (props) => {
                 textAlign="left"
               />
               <TextField source="remark" label="Remark" />
+              {role === "Player" && 
+              <FunctionField
+              label="Failed reason"
+              render={(record) => {
+                 if(record?.status == "10")
+                 {
+                    return "Payment is not received by TransFi or reverted back to end user due to incorrect information while paying in or compliance checks. This is terminal status"
+                 }
+              }}
+            />}
               <FunctionField
                 label="Status"
                 source="status"
@@ -847,7 +857,9 @@ export const RechargeRecordsList = (props) => {
                           }}
                         >
                           {record?.referralLink?.toLowerCase().includes("aog")
-                            ? "AOG"
+                            ? "AOG" :
+                            record?.referralLink?.toLowerCase().includes("transfi") ? 
+                            "TransFi"
                             : record?.useWallet
                             ? "Wallet"
                             : "Stripe"}
