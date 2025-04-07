@@ -163,6 +163,7 @@ export const dataProvider = {
         query = new Parse.Query(Parse.User);
         query.notEqualTo("isDeleted", true);
       
+        // Role-based filtering
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
         } else if (role === "Master-Agent") {
@@ -175,6 +176,7 @@ export const dataProvider = {
           query.containedIn("userParentId", [userid, ...agentIds]);
         }
       
+        // Filters
         if (filter && typeof filter === "object") {
           Object.entries(filter).forEach(([key, value]) => {
             if (!value) return;
@@ -193,11 +195,24 @@ export const dataProvider = {
           });
         }
       
+        // Sorting
+        if (field) {
+          query[order === "ASC" ? "ascending" : "descending"](field);
+        }
+      
+        // Total count before pagination
+        const total = await query.count({ useMasterKey: true });
+      
+        // Pagination
+        const skip = (page - 1) * perPage;
+        query.skip(skip);
+        query.limit(perPage);
+      
+        // Execute user query
         const users = await query.find({ useMasterKey: true });
       
-        // 🔍 Extract userIds to match with KYC table
+        // KYC status mapping
         const userIds = users.map((user) => user.id);
-      
         const kycQuery = new Parse.Query("TransfiUserInfo");
         kycQuery.containedIn("userId", userIds);
         const kycRecords = await kycQuery.find({ useMasterKey: true });
@@ -220,6 +235,9 @@ export const dataProvider = {
             userParentName: user.get("userParentName"),
             userParentId: user.get("userParentId"),
             roleName: user.get("roleName"),
+            monthlyRechargeLimit: user.get("monthlyRechargeLimit"),
+            dailyRechargeLimit: user.get("dailyRechargeLimit"),
+            activeRechargeLimit: user.get("activeRechargeLimit"),
             kycVerified: kyc.kycVerified || false,
             kycStatus: kyc.kycStatus || "unknown",
             createdAt: user.createdAt,
@@ -229,9 +247,10 @@ export const dataProvider = {
       
         return {
           data: formatted,
-          total: formatted.length,
+          total,
         };
       }
+      
        else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
