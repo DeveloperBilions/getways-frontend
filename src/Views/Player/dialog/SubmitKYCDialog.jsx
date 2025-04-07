@@ -207,7 +207,7 @@ export default function SubmitKYCDialog({
                       textTransform: "none",
                     }}
                   >
-                    Recharge Now
+                   Complete KYC
                   </Typography>
                 </Button>
               </Box>
