@@ -40,6 +40,7 @@ import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 import GiftCardHistory from "./Views/Player/GiftCardHistory";
 import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
+import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -163,6 +164,12 @@ function App() {
                     name="Reports"
                     list={Reports}
                     options={{ label: "Reports" }}
+                    icon={SummarizeIcon}
+                  />
+                  <Resource
+                    name="kycRecords"
+                    list={KycRecordsList}
+                    options={{ label: "KYC Data" }}
                     icon={SummarizeIcon}
                   />
                   <CustomRoutes>

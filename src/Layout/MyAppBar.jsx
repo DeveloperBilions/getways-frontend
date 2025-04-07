@@ -108,6 +108,11 @@ export default function MyAppBar(props) {
         label: "Reports",
         onClick: () => navigate("/Reports"),
       });
+      menuItems.push({
+        key: "KYC",
+        label: "KYC",
+        onClick: () => navigate("/kycRecords"),
+      });
     }
   }
 
@@ -203,7 +208,7 @@ export default function MyAppBar(props) {
       </Box>
       {role === "Player" && (
         <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
-          <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Box sx={{ display: "flex", flexDirection: "row",alignItems:"center",gap:0.2 }}>
             {" "}
             <Typography
               variant="body2"
@@ -213,7 +218,7 @@ export default function MyAppBar(props) {
                 fontWeight: 400,
               }}
             >
-              Wallet balance
+              Wallet balance: 
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <img

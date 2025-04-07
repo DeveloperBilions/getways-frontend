@@ -98,11 +98,10 @@ export const RechargeRecordsList = (props) => {
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
-
   useEffect(() => {
     const checkRechargeAccess = async () => {
       if (identity?.role === "Agent") {
-        const disabled = !(await isRechargeEnabledForAgent(identity.id));
+        const disabled = !(await isRechargeEnabledForAgent(identity.objectId));
         setRechargeDisabled(disabled);
       }
     };

@@ -190,7 +190,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           </MenuItem>
         )}
         {record?.roleName === "Player" && (
-          <MenuItem onClick={handleRecharge} disabled={identity?.rechargeDisabled  || true }>Recharge</MenuItem>
+          <MenuItem onClick={handleRecharge} disabled={identity?.rechargeDisabled  || !record?.kycVerified }>Recharge</MenuItem>
         )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&

@@ -14,12 +14,15 @@ import { Loader } from "../../Loader";
 
 import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
-import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../../Utils/utils";
+import {
+  checkActiveRechargeLimit,
+  isRechargeEnabledForAgent,
+} from "../../../Utils/utils";
 import WertWidget from "@wert-io/widget-initializer";
 import { signSmartContractData } from "@wert-io/widget-sc-signer";
 
 import Close from "../../../Assets/icons/close.svg";
-import { Alert } from "@mui/material"; 
+import { Alert } from "@mui/material";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -40,6 +43,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [successRecharge, setSuccessRecharge] = useState(false);
   const [RechargeEnabled, setRechargeEnabled] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
 
   const resetFields = () => {
     setErrorMessage(""); // Reset error message
@@ -69,12 +73,63 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
-        const disabled = !(await isRechargeEnabledForAgent(identity?.userParentId));
-        setRechargeDisabled(disabled);
+      const disabled = !(await isRechargeEnabledForAgent(
+        identity?.userParentId
+      ));
+      setRechargeDisabled(disabled);
     };
-  
+
     checkRechargeAccess();
   }, [identity]);
+  useEffect(() => {
+    const allConditionsSatisfied = () => {
+      const isAmountValid = parseFloat(rechargeAmount) >= redeemFees;
+      const isWalletEnough =
+        paymentSource === "wallet"
+          ? parseFloat(rechargeAmount) <= walletBalance
+          : true;
+      const isStripeMinValid =
+        paymentSource === "stripe" ? parseFloat(rechargeAmount) >= 10 : true;
+      const isAccessGranted = !RechargeEnabled && !rechargeDisabled;
+
+      return (
+        isAmountValid &&
+        isWalletEnough &&
+        isStripeMinValid &&
+        identity &&
+        !autoSubmitted &&
+        isAccessGranted
+      );
+    };
+
+    const submitIfReady = async () => {
+      const transactionCheck = await checkActiveRechargeLimit(
+        identity?.userParentId,
+        rechargeAmount
+      );
+      if (transactionCheck.success && allConditionsSatisfied()) {
+        setAutoSubmitted(true); // prevent multiple calls
+        // Use a synthetic event for compatibility
+        const syntheticEvent = { preventDefault: () => {} };
+        handleSubmit(syntheticEvent);
+      }
+    };
+
+    if (open) {
+      submitIfReady();
+    }
+  }, [
+    open,
+    identity,
+    rechargeAmount,
+    walletBalance,
+    redeemFees,
+    RechargeEnabled,
+    rechargeDisabled,
+    paymentSource,
+    autoSubmitted,
+  ]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -125,6 +180,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             }
           );
           setSuccessRecharge(true);
+          const currentCount = parseInt(localStorage.getItem("kycRechargeCount") || "0", 10);
+          localStorage.setItem("kycRechargeCount", (currentCount + 1).toString());
+          
           // Automatically close success modal after 2 seconds
           setTimeout(() => {
             onClose();
@@ -203,22 +261,22 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
     const user = await currentUser.fetch();
     const walletQuery = new Parse.Query("Master_Wallet_Address");
-  walletQuery.equalTo("userId", currentUser.id);
-  const walletRecord = await walletQuery.first({ useMasterKey: true });
+    walletQuery.equalTo("userId", currentUser.id);
+    const walletRecord = await walletQuery.first({ useMasterKey: true });
 
-  const userWalletAddress = walletRecord?.get("wallet_adress");
-  const signedData = signSmartContractData(
-    {
-      address: userWalletAddress,
-      commodity: "POL",
-      commodity_amount: data.rechargeAmount,
-      network: "amoy",
-      sc_address: "0xAAC496808A678B834073FB3435857FdcF0dc186F",
-      sc_input_data:
-        "0x3c168eab0000000000000000000000000e976df9bb3ac63f7802ca843c9d121ae2ef22ee0000000000000000000000000000000000000000000000000000000000000001",
-    },
-    privateKey
-  );
+    const userWalletAddress = walletRecord?.get("wallet_adress");
+    const signedData = signSmartContractData(
+      {
+        address: userWalletAddress,
+        commodity: "POL",
+        commodity_amount: data.rechargeAmount,
+        network: "amoy",
+        sc_address: "0xAAC496808A678B834073FB3435857FdcF0dc186F",
+        sc_input_data:
+          "0x3c168eab0000000000000000000000000e976df9bb3ac63f7802ca843c9d121ae2ef22ee0000000000000000000000000000000000000000000000000000000000000001",
+      },
+      privateKey
+    );
 
     const wertWidget = new WertWidget({
       ...signedData,
@@ -233,12 +291,15 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
           try {
             const Transaction = Parse.Object.extend("TransactionRecords");
             const query = new Parse.Query(Transaction);
-            query.equalTo("transactionIdFromStripe", status?.order_id || clickId);
+            query.equalTo(
+              "transactionIdFromStripe",
+              status?.order_id || clickId
+            );
             const existingTxn = await query.first({ useMasterKey: true });
-      
+
             const transactionDate = new Date();
             let newStatus = 1; // default to expired
-      
+
             switch (status?.status) {
               case "success":
                 newStatus = 2;
@@ -256,14 +317,19 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                 newStatus = 9;
                 break;
             }
-      
+
             // If transaction exists, update status
             if (existingTxn) {
               existingTxn.set("status", newStatus);
-              existingTxn.set("transactionIdFromStripe", status?.order_id || clickId);
+              existingTxn.set(
+                "transactionIdFromStripe",
+                status?.order_id || clickId
+              );
               existingTxn.set("transactionDate", transactionDate);
               await existingTxn.save(null, { useMasterKey: true });
-              console.log(`🔄 Transaction ${existingTxn.id} updated to status ${newStatus}`);
+              console.log(
+                `🔄 Transaction ${existingTxn.id} updated to status ${newStatus}`
+              );
             } else {
               // Create new record if not found
               const txn = new Transaction();
@@ -279,7 +345,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               await txn.save(null, { useMasterKey: true });
               console.log("🆕 New transaction created with status:", newStatus);
             }
-      
+
             // Optionally close the widget on success
             if (status?.status === "success") {
               wertWidget.close();
@@ -289,7 +355,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
           }
         },
       },
-      
     });
 
     wertWidget.open();
@@ -297,7 +362,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
   const parentServiceFee = async () => {
     try {
-
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: identity?.userParentId,
       });
@@ -357,21 +421,26 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                     </IconButton>
                   }
                 >
-                  Confirm Recharge
+                  Recharge
                 </ModalHeader>
-                {errorMessage && (
+                {errorMessage ? (
                   <Box className="text-center text-danger mt-2">
                     {errorMessage}
                   </Box>
+                ) : (
+                  <Box className="text-center text-secondary mt-2">
+                    Processing your recharge...
+                  </Box>
                 )}
-             
+
                 <ModalBody>
-                {rechargeDisabled && paymentSource === "stripe" && (
-  <Alert severity="warning" sx={{ my: 2 }}>
-  Recharges are not available at this time. Please try again later.
-  </Alert>
-)}
-                  <Box className="text-center mb-4">
+                  {rechargeDisabled && paymentSource === "stripe" && (
+                    <Alert severity="warning" sx={{ my: 2 }}>
+                      Recharges are not available at this time. Please try again
+                      later.
+                    </Alert>
+                  )}
+                  {/* <Box className="text-center mb-4">
                     <Typography
                       style={{
                         fontSize: "18px",
@@ -384,9 +453,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                       Are you sure you want to proceed with the recharge of $
                       {data.rechargeAmount}?
                     </Typography>
-                  </Box>
+                  </Box> */}
                 </ModalBody>
-                <ModalFooter className="custom-modal-footer">
+                {/* <ModalFooter className="custom-modal-footer">
                   <Col md={12}>
                     <Box
                       className="d-flex w-100 justify-content-between"
@@ -428,7 +497,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                       </Button>
                     </Box>
                   </Col>
-                </ModalFooter>
+                </ModalFooter> */}
               </Box>
             ) : (
               <Box
