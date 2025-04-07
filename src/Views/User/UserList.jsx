@@ -43,6 +43,7 @@ import CustomPagination from "../Common/CustomPagination";
 import { UserFilterDialog } from "./dialog/UserFilterDialog";
 import AddUser from "../../Assets/icons/AddUser.svg";
 import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
+import Pusher from "pusher-js";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -295,6 +296,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
 export const UserList = (props) => {
   const listContext = useListController(props); // ✅ Use useListController
   const {
+    data,
     isLoading,
     total,
     page,
@@ -305,6 +307,7 @@ export const UserList = (props) => {
     setFilters,
     setSort,
   } = listContext;
+  console.log(data);
 
   const navigate = useNavigate();
   const refresh = useRefresh();
@@ -356,6 +359,28 @@ export const UserList = (props) => {
     }
     return result;
   }
+
+  useEffect(() => {
+    const pusher = new Pusher("c7244340ac58e6b550b3", {
+      cluster: "ap2",
+    });
+    const channel = pusher.subscribe("transaction-channel");
+    channel.bind("user-update", (d) => {
+      console.log(d);
+      console.log(data);
+      data?.forEach((item) => {
+        if (item.id === d.userId) {
+          handleRefresh();
+        }
+      });
+
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, []);
 
   const handleGenerateLink = async () => {
     const referralCode = generateRandomString();
@@ -442,7 +467,6 @@ export const UserList = (props) => {
       false
     );
   }, [filterValues, searchBy, setFilters]);
-
   const dataFilters = [
     <Box
       key="search-filter"
