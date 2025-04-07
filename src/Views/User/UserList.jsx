@@ -361,26 +361,31 @@ export const UserList = (props) => {
   }
 
   useEffect(() => {
+    // Only set up Pusher if we have data
+    if (!data) return;
+
     const pusher = new Pusher("c7244340ac58e6b550b3", {
       cluster: "ap2",
     });
-    const channel = pusher.subscribe("transaction-channel");
-    channel.bind("user-update", (d) => {
-      console.log(d);
-      console.log(data);
-      data?.forEach((item) => {
-        if (item.id === d.userId) {
-          handleRefresh();
-        }
-      });
 
+    const channel = pusher.subscribe("transaction-channel");
+
+    channel.bind("user-update", (updatedUserData) => {
+      const userExists =
+        Array.isArray(data) &&
+        data.some((item) => item.id === updatedUserData.userId);
+
+      if (userExists) {
+        refresh();
+      }
     });
 
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, []);
+  }, [data, refresh]);
+
 
   const handleGenerateLink = async () => {
     const referralCode = generateRandomString();
