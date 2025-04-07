@@ -204,6 +204,9 @@ function App() {
               </CustomRoutes>
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
+              <CustomRoutes noLayout>
+              <Route path="/create-user" element={<ReferralLinkForm />} />
+              </CustomRoutes>
             </>
           );
         } else if (permissions && permissions === "Player") {
