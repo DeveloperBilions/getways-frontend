@@ -61,7 +61,7 @@ export const walletService = {
           
           const existing = await existingQuery.first();
           if (existing) {
-            throw new Error(`${field} is already in use by another user.`);
+            throw new Error(`The ${field} is already in use by another user. Please enter a new ID.`);
           } else {
             wallet.set(field, value);
           }

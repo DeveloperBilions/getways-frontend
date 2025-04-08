@@ -470,9 +470,9 @@ const PlayerRedeemDialog = ({
             }}
           >
             {errorAddPayment && (
-              <Alert color="danger" className="mt-2">
+              <Box className="text-center text-danger mt-2">
                 {errorAddPayment}
-              </Alert>
+              </Box>
             )}
             <Row>
               <Col md={12}>

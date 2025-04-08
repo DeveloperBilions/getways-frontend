@@ -159,7 +159,7 @@ export const RedeemRecordsList = (props) => {
       case 7:
         return "Rejected";
       case 8:
-        return "Review";
+        return "Redeem Successfully";
       case 9:
         return "Expired";
       case 11:
