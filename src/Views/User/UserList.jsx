@@ -506,48 +506,94 @@ export const UserList = (props) => {
         </Box>
       )}
       <Box sx={{ display: "flex", gap: 1 }}>
-      {role !== "Super-User" && role !== "Master-Agent" && (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<AddIcon />}
-          onClick={handleGenerateLink}
-          sx={{
-            width: { xs: "100%", sm: "191px" },
-            height:{xs:"100%", sm:"40px"},
-            backgroundColor: "var(--primary-color)",
-            color: "var(--secondary-color)",
-            mb:1
-          }}
-        >
-          <Typography sx={{fontSize:"16px", fontWeight: 500, color: "var(--secondary-color)"}}>
-            Referral Link
-          </Typography>
-        </Button>
-      )}
-      {isMobile ?(
-        <Box onClick={handleCreateUser} sx={{cursor: "pointer", display: "flex", alignItems: "center",justifyContent:"center",bgcolor: "var(--primary-color)",color:"var(--secondary-color)",width:"60px",height:"40px",borderRadius:"4px"}}>
-          <img src={AddUser} alt="Add User" width="20px" height="20px" />
-        </Box>
-      ):(
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<img src={AddUser} alt="Add User" width="20px" height="20px" />}
-          onClick={handleCreateUser}
-          sx={{
-            width: { xs: "100%", sm: "191px" },
-            height:{xs:"100%", sm:"40px"},
-            backgroundColor: "var(--primary-color)",
-            color: "var(--secondary-color)",
-            mb:1
-          }} // Full width on small screens
-        >
-          <Typography sx={{fontSize:"16px", fontWeight: 500, color: "var(--secondary-color)"}}>
-          Add New User
-          </Typography>
-        </Button>
-      )}
+        {role !== "Super-User" &&
+          role !== "Master-Agent" &&
+          (isMobile ? (
+            <Box
+              onClick={handleCreateUser}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                width: "60px",
+                height: "40px",
+                borderRadius: "4px",
+              }}
+            >
+              <AddIcon />
+            </Box>
+          ) : (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleGenerateLink}
+              sx={{
+                width: { xs: "100%", sm: "191px" },
+                height: { xs: "100%", sm: "40px" },
+                backgroundColor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                mb: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  color: "var(--secondary-color)",
+                }}
+              >
+                Referral Link
+              </Typography>
+            </Button>
+          ))}
+        {isMobile ? (
+          <Box
+            onClick={handleCreateUser}
+            sx={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "var(--primary-color)",
+              color: "var(--secondary-color)",
+              width: "60px",
+              height: "40px",
+              borderRadius: "4px",
+            }}
+          >
+            <img src={AddUser} alt="Add User" width="20px" height="20px" />
+          </Box>
+        ) : (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={
+              <img src={AddUser} alt="Add User" width="20px" height="20px" />
+            }
+            onClick={handleCreateUser}
+            sx={{
+              width: { xs: "100%", sm: "191px" },
+              height: { xs: "100%", sm: "40px" },
+              backgroundColor: "var(--primary-color)",
+              color: "var(--secondary-color)",
+              mb: 0.5,
+            }} // Full width on small screens
+          >
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 500,
+                color: "var(--secondary-color)",
+              }}
+            >
+              Add New User
+            </Typography>
+          </Button>
+        )}
       </Box>
     </TopToolbar>
   );

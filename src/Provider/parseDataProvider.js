@@ -16,7 +16,7 @@ Parse.initialize(
 );
 const liveQueryClient = new Parse.LiveQueryClient({
   applicationId: process.env.REACT_APP_APPID,
-  serverURL: "ws://localhost:1337",
+  serverURL: process.env.REACT_APP_SERVER_URL,
   javascriptKey: process.env.REACT_APP_JAVASCRIPT_KEY,
   masterKey: process.env.REACT_APP_MASTER_KEY,
 });
