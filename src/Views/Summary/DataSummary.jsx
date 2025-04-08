@@ -735,7 +735,7 @@ export const DataSummary = () => {
     const doc = new jsPDF();
 
     // Add title
-    doc.text("Total Recharge Data", 10, 10);
+    doc.text("Total Redeem Data", 10, 10);
 
     // Prepare wallet data for PDF
     const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
