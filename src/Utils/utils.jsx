@@ -927,40 +927,28 @@ export const isRechargeEnabledForAgent = async (agentId) => {
     }
 
     const parentId = agent.get("userParentId");
-    if (!parentId) {
-      console.warn("No parent linked to this agent.");
-      return false;
+
+    // Step 2: Fetch allowed recharge IDs
+    const settingsQuery = new Parse.Query("Settings");
+    settingsQuery.equalTo("type", "allowedMasterAgentsForRecharge");
+    const setting = await settingsQuery.first({ useMasterKey: true });
+    const allowedIds = setting?.get("settings") || [];
+
+    // ✅ First check: is this agent directly allowed?
+    if (allowedIds.includes(agentId)) {
+      return true;
     }
 
-    // Step 2: Fetch parent user
+    if (!parentId) return false;
+
+    // Step 3: Fetch parent user
     const parentQuery = new Parse.Query(Parse.User);
     parentQuery.equalTo("objectId", parentId);
     const parentUser = await parentQuery.first({ useMasterKey: true });
 
-    if (!parentUser) {
-      console.warn("Parent user not found.");
-      return false;
-    }
+    if (!parentUser) return false;
 
-    const parentRole = parentUser.get("roleName");
-
-    // Step 3: Fetch allowed recharge IDs
-    const settingsQuery = new Parse.Query("Settings");
-    settingsQuery.equalTo("type", "allowedMasterAgentsForRecharge");
-    const setting = await settingsQuery.first({ useMasterKey: true });
-
-    const allowedIds = setting?.get("settings") || [];
-
-    // Step 4: Determine logic based on parent role
-    if (parentRole === "Super-User") {
-      // Check if agentId is allowed (agent directly under Super-User)
-      return allowedIds.includes(agentId);
-    } else if (parentRole === "Master-Agent") {
-      // Check if parentId is allowed
-      return allowedIds.includes(parentUser.id);
-    }
-
-    return false;
+    return allowedIds.includes(parentUser.id);
   } catch (err) {
     console.error("Error checking recharge status:", err);
     return false;
@@ -969,7 +957,6 @@ export const isRechargeEnabledForAgent = async (agentId) => {
 
 export const isCashoutEnabledForAgent = async (agentId) => {
   try {
-    // Step 1: Fetch agent
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
     const agent = await agentQuery.first({ useMasterKey: true });
@@ -980,40 +967,29 @@ export const isCashoutEnabledForAgent = async (agentId) => {
     }
 
     const parentId = agent.get("userParentId");
-    if (!parentId) {
-      console.warn("No parent linked to this agent.");
-      return false;
+
+    const settingsQuery = new Parse.Query("Settings");
+    settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
+    const setting = await settingsQuery.first({ useMasterKey: true });
+    const allowedCashoutIds = setting?.get("settings") || [];
+
+    // ✅ First check: is this agent directly allowed?
+    if (allowedCashoutIds.includes(agentId)) {
+      return true;
     }
 
-    // Step 2: Fetch parent user
+    if (!parentId) return false;
+
     const parentQuery = new Parse.Query(Parse.User);
     parentQuery.equalTo("objectId", parentId);
     const parentUser = await parentQuery.first({ useMasterKey: true });
 
-    if (!parentUser) {
-      console.warn("Parent user not found.");
-      return false;
-    }
+    if (!parentUser) return false;
 
-    const parentRole = parentUser.get("roleName");
-
-    // Step 3: Get allowed cashout list
-    const settingsQuery = new Parse.Query("Settings");
-    settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
-    const setting = await settingsQuery.first({ useMasterKey: true });
-
-    const allowedCashoutIds = setting?.get("settings") || [];
-
-    // Step 4: Role-based check
-    if (parentRole === "Super-User") {
-      return allowedCashoutIds.includes(agentId);
-    } else if (parentRole === "Master-Agent") {
-      return allowedCashoutIds.includes(parentUser.id);
-    }
-
-    return false;
+    return allowedCashoutIds.includes(parentUser.id);
   } catch (error) {
     console.error("Error checking cashout enabled for agent:", error);
     return false;
   }
 };
+

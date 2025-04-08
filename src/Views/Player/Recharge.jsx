@@ -46,7 +46,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         setRechargeDisabled(disabled);
     };
   
-    checkRechargeAccess();
+    if(identity?.userParentId){
+      checkRechargeAccess();
+      handlecheck()
+    }
+
   }, [identity]);
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
@@ -83,18 +87,34 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       const query = new Parse.Query(TransfiUserInfo);
       query.equalTo("userId", identity?.objectId);
       const result = await query.first({ useMasterKey: true });
-
-      const kycStatus = result?.get("kycStatus");
+  
+      const kycStatus = result?.get("kycStatus")?.trim().toLowerCase();
       const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
-if (kycStatus?.trim().toLowerCase() === "kyc_success" && wasJustCompleted?.trim() === "true") {
-  setShowKycSuccessMsg(true);
-  localStorage.removeItem("kycCompletedOnce");
-}
-
+  
+      if (kycStatus === "kyc_success") {
+        let currentCount = parseInt(localStorage.getItem("kycRechargeCount") || "0", 10);
+        console.log(currentCount,"currentCountcurrentCount")
+        // If just completed, reset count to 0 if not already set
+        if (wasJustCompleted?.trim() === "true") {
+          if (isNaN(currentCount)) {
+            localStorage.setItem("kycRechargeCount", "0");
+            currentCount = 0;
+          }
+          localStorage.removeItem("kycCompletedOnce");
+        }
+  
+        // Show KYC message only if count is less than 10
+        if (currentCount < 10) {
+          setShowKycSuccessMsg(true);
+        } else {
+          setShowKycSuccessMsg(false);
+        }
+      }
     } catch (err) {
       console.error("Error checking KYC after refresh:", err);
-    }  
+    }
   };
+  
   const resetFields = () => {
     setRechargeAmount(50);
     setRemark("");
@@ -122,7 +142,6 @@ if (kycStatus?.trim().toLowerCase() === "kyc_success" && wasJustCompleted?.trim(
     }
   };
   
-console.log(showKycSuccessMsg,"showKycSuccessMsg")
   return (
     <>
 
@@ -156,30 +175,12 @@ console.log(showKycSuccessMsg,"showKycSuccessMsg")
               padding: "12px",
             }}
           >
-            {isTransactionNoteVisible && (
+            {/* {isTransactionNoteVisible && (
               <>
-                <Box>
-                  <TextField
-                    fullWidth
-                    label="Add Transaction Note"
-                    value={remark}
-                    onChange={(e) => setRemark(e.target.value)}
-                    variant="outlined"
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          border: "none",
-                        },
-                        "&:hover fieldset": {
-                          border: "none",
-                        },
-                      },
-                    }}
-                  />
-                </Box>
+               
                 <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
               </>
-            )}
+            )} */}
             <Box
               sx={{
                 display: "flex",
@@ -216,10 +217,29 @@ console.log(showKycSuccessMsg,"showKycSuccessMsg")
                   >
                     {rechargeAmount}
                   </Typography>
+                  <Box>
+                  <TextField
+                    fullWidth
+                    label="Add Transaction Note"
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    variant="outlined"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          border: "none",
+                        },
+                        "&:hover fieldset": {
+                          border: "none",
+                        },
+                      },
+                    }}
+                  />
+                </Box>
                 </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <img
+                  {/* <img
                     src={Docs}
                     alt="Docs Icon"
                     style={{ width: "24px", height: "24px", cursor: "pointer" }}
@@ -229,7 +249,7 @@ console.log(showKycSuccessMsg,"showKycSuccessMsg")
                   />
                   <Typography sx={{ color: "#E7E7E7", m: "0px 12px" }}>
                     |
-                  </Typography>
+                  </Typography> */}
                   <Box
                     sx={{
                       display: "flex",
@@ -405,7 +425,7 @@ console.log(showKycSuccessMsg,"showKycSuccessMsg")
             }}
           >
             <Typography sx={{ fontSize: "12px", fontWeight: 400 }}>
-              Recharge now and keep playing!
+              Recharge now and Get your credits
             </Typography>
             <img
               src={Star}

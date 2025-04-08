@@ -160,7 +160,7 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => 
             padding: "12px",
           }}
         >
-          {isTransactionNoteVisible && (
+          {/* {isTransactionNoteVisible && (
             <>
               <Box>
                 <TextField
@@ -186,7 +186,7 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => 
               </Box>
               <Box sx={{ borderBottom: "1px solid #e0e0e0", my: 1 }} />
             </>
-          )}
+          )} */}
   
           <Box
             sx={{
@@ -222,8 +222,28 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => 
               >
                 {redeemAmount}
               </Typography>
+              <TextField
+                  fullWidth
+                  label="Add Transaction Note"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        border: "none",
+                      },
+                      "&:hover fieldset": {
+                        border: "none",
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      fontSize: { xs: "14px", md: "16px" }, 
+                    },
+                  }}
+                />
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            {/* <Box sx={{ display: "flex", alignItems: "center" }}>
               <img
                 src={Docs}
                 alt="Docs Icon"
@@ -236,7 +256,7 @@ const Redeem = ({ data, totalData, wallet,handleRedeemRefresh, redeemFees }) => 
                   setIsTransactionNoteVisible(!isTransactionNoteVisible)
                 }
               />
-            </Box>
+            </Box> */}
           </Box>
         </Box>
   

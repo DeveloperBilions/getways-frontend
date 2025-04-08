@@ -81,13 +81,13 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
       const superAdminIds = superAdmins.map((user) => user.id);
 
       const subAgentQuery = new Parse.Query(Parse.User);
-      subAgentQuery.containedIn("userParentId", superAdminIds);
+     // subAgentQuery.containedIn("userParentId", superAdminIds);
       subAgentQuery.equalTo("roleName", "Agent");
-      subAgentQuery.limit(200);
+      subAgentQuery.limit(10);
 
       const masterAgentQuery = new Parse.Query(Parse.User);
       masterAgentQuery.equalTo("roleName", "Master-Agent");
-      masterAgentQuery.limit(200);
+      masterAgentQuery.limit(10);
 
       if (searchTerm.trim() !== "") {
         const regex = `.*${searchTerm.trim()}.*`;

@@ -40,6 +40,7 @@ import CheckoutForm from "./Views/Stripe/CheckoutForm";
 import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 import GiftCardHistory from "./Views/Player/GiftCardHistory";
 import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
+import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -165,6 +166,12 @@ function App() {
                     options={{ label: "Reports" }}
                     icon={SummarizeIcon}
                   />
+                  <Resource
+                    name="kycRecords"
+                    list={KycRecordsList}
+                    options={{ label: "KYC Data" }}
+                    icon={SummarizeIcon}
+                  />
                   <CustomRoutes>
                     <Route
                       path="/transactionData"
@@ -197,6 +204,9 @@ function App() {
               </CustomRoutes>
               <Route path="/success" element={<Success />} />
               <Route path="/maintenance" element={<Maintenance />} />
+              <CustomRoutes noLayout>
+              <Route path="/create-user" element={<ReferralLinkForm />} />
+              </CustomRoutes>
             </>
           );
         } else if (permissions && permissions === "Player") {

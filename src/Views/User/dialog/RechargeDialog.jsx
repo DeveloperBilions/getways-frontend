@@ -56,7 +56,6 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
   
     checkRechargeAccess();
   }, [record]);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (rechargeAmount <= 0) {
@@ -221,7 +220,7 @@ const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
                 <Button
                   className="custom-button confirm"
                   onClick={handleSubmit}
-                  disabled={loading || rechargeDisabled}
+                  disabled={loading || rechargeDisabled || !record?.kycVerified }
                 >
                   {loading ? "Processing..." : "Confirm"}
                 </Button>

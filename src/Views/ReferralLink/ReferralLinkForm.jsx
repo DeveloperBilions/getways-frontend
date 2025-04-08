@@ -51,6 +51,18 @@ const ReferralLinkForm = () => {
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
 
+   useEffect(() => {
+    const logoutIfLoggedIn = async () => {
+      try {
+        await Parse.User.logOut(); // Ensure Parse session is cleared
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
+    };
+
+    logoutIfLoggedIn();
+  }, []);
+
   useEffect(() => {
     const fetchReferral = async () => {
       try {
