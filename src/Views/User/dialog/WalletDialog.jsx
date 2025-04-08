@@ -103,42 +103,72 @@ const WalletDialog = ({ open, onClose, record }) => {
     retriedCount: 0,
   });
 
-  useEffect(() => {
-    const fetchWalletDetails = async () => {
-      setLoading(true);
-      try {
-        const walletQuery = new Parse.Query("Wallet");
-        walletQuery.equalTo("userID", record.id); // Query by the user ID
-        const wallet = await walletQuery.first();
-        if (wallet) {
-          setWalletDetails({
-            balance: wallet.get("balance"),
-            cashAppId: wallet.get("cashAppId"),
-            isCashAppDisabled: wallet.get("isCashAppDisabled"),
-            paypalId: wallet.get("paypalId"),
-            isPaypalDisabled: wallet.get("isPaypalDisabled"),
-            venmoId: wallet.get("venmoId"),
-            isVenmoDisabled: wallet.get("isVenmoDisabled"),
-            zelleId: wallet.get("zelleId"),
-            isZelleDisabled: wallet.get("isZelleDisabled"),
-          });
-        } else {
-          setWalletDetails(null); // No wallet found
-        }
-      } catch (error) {
-        console.error("Error fetching wallet details:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+ useEffect(() => {
+   let walletSubscription = null;
 
-    if (open) {
-      fetchWalletDetails();
-      fetchCashoutStats(record.id).then((stats) => {
-        setCashoutStats(stats);
-      });
-    }
-  }, [open, record]);
+   const fetchWalletDetails = async () => {
+     setLoading(true);
+     try {
+       const walletQuery = new Parse.Query("Wallet");
+       walletQuery.equalTo("userID", record.id);
+       const wallet = await walletQuery.first();
+       if (wallet) {
+         setWalletDetails({
+           balance: wallet.get("balance"),
+           cashAppId: wallet.get("cashAppId"),
+           isCashAppDisabled: wallet.get("isCashAppDisabled"),
+           paypalId: wallet.get("paypalId"),
+           isPaypalDisabled: wallet.get("isPaypalDisabled"),
+           venmoId: wallet.get("venmoId"),
+           isVenmoDisabled: wallet.get("isVenmoDisabled"),
+           zelleId: wallet.get("zelleId"),
+           isZelleDisabled: wallet.get("isZelleDisabled"),
+         });
+       } else {
+         setWalletDetails(null);
+       }
+     } catch (error) {
+       console.error("Error fetching wallet details:", error);
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   const subscribeToWalletUpdates = async () => {
+     const query = new Parse.Query("Wallet");
+     query.equalTo("userID", record.id);
+
+     walletSubscription = await query.subscribe();
+
+     walletSubscription.on("update", (wallet) => {
+       console.log("Wallet updated (Live):", wallet.toJSON());
+       setWalletDetails({
+         balance: wallet.get("balance"),
+         cashAppId: wallet.get("cashAppId"),
+         isCashAppDisabled: wallet.get("isCashAppDisabled"),
+         paypalId: wallet.get("paypalId"),
+         isPaypalDisabled: wallet.get("isPaypalDisabled"),
+         venmoId: wallet.get("venmoId"),
+         isVenmoDisabled: wallet.get("isVenmoDisabled"),
+         zelleId: wallet.get("zelleId"),
+         isZelleDisabled: wallet.get("isZelleDisabled"),
+       });
+     });
+   };
+
+   if (open) {
+     fetchWalletDetails();
+     fetchCashoutStats(record.id).then((stats) => setCashoutStats(stats));
+     subscribeToWalletUpdates();
+   }
+
+   return () => {
+     if (walletSubscription) {
+       walletSubscription.unsubscribe();
+     }
+   };
+ }, [open, record]);
+
 
   const fetchCashoutStats = async (userId) => {
     try {

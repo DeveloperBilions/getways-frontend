@@ -98,6 +98,7 @@ export const RechargeRecordsList = (props) => {
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
+  const [loading, setLoading] = useState(false); 
   useEffect(() => {
     const checkRechargeAccess = async () => {
       if (identity?.role === "Agent") {
@@ -178,7 +179,11 @@ export const RechargeRecordsList = (props) => {
   //   );
 
   const handleRefresh = async () => {
+    setLoading(true);
     refresh();
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
   useEffect(() => {
     if (role === "Player") {
@@ -540,7 +545,7 @@ export const RechargeRecordsList = (props) => {
     </TopToolbar>
   );
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <>
         <Loader />

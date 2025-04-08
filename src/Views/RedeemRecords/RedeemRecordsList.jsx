@@ -96,6 +96,7 @@ export const RedeemRecordsList = (props) => {
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
+  const [loading, setLoading] = useState(false); 
 
   useEffect(() => {
     const checkCashoutAccess = async () => {
@@ -174,7 +175,11 @@ export const RedeemRecordsList = (props) => {
   };
 
   const handleRefresh = async () => {
+    setLoading(true);
     refresh();
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -566,7 +571,7 @@ export const RedeemRecordsList = (props) => {
       </Box>
     </TopToolbar>
   );
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <>
         <Loader />
