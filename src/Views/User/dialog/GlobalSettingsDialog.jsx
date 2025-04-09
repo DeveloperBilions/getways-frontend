@@ -35,6 +35,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     }
   }, [open, searchTerm]);
 
+  
   const fetchSettings = async () => {
     setLoading(true);
     try {
@@ -61,6 +62,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     }
   };
 
+  
   const fetchAgents = async () => {
     try {
       const [rechargeList, cashoutList] = await Promise.all([
@@ -275,11 +277,11 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
           sx={{ mt: 3, mb: 2 }}
         />
 
-        {(masterAgents.length > 0 || subAgents.length > 0) && (
+        {!rechargeEnabled && !cashoutEnabled &&  (masterAgents.length > 0 || subAgents.length > 0) && (
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" fontSize="16px" fontWeight={600} mb={1}>
-              Master Agent Overrides
+              Master Agent
             </Typography>
 
             {masterAgents.length > 0 && (
@@ -320,7 +322,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
             {subAgents.length > 0 && (
               <>
                 <Typography fontSize="14px" fontWeight={500} color="text.secondary" mb={1}>
-                  Agents under Super Admin
+                  Agents
                 </Typography>
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <FormControlLabel
