@@ -47,7 +47,7 @@ export default function MyAppBar(props) {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
-  const [balance, setBalance] = useState();
+  const [balance, setBalance] = useState(0);
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
@@ -67,7 +67,7 @@ const getBalance = async () => {
 
     if (!walletObject) return;
 
-    setBalance(walletObject.balance);
+    setBalance(walletObject?.balance || 0);
 
     // Set up LiveQuery to listen for balance changes
     const Wallet = Parse.Object.extend("Wallet");

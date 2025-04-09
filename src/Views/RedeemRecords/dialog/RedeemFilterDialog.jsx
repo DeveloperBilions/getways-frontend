@@ -50,6 +50,7 @@ export const ReedemFilterDialog = ({
     { id: 7, name: "Rejected" },
     { id: 8, name: "Redeem Successfully" },
     { id: 9, name: "Expired" },
+    { id: 10, name: "Failed Transaction" },
     ...(role === "Super-User"
       ? [
           { id: 11, name: "Cashouts" },
