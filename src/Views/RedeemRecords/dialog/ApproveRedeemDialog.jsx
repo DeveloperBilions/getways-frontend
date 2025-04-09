@@ -15,6 +15,7 @@ import {
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { useNotify } from "react-admin";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -33,6 +34,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [isReedeemZeroAllowed,setisReedeemZeroAllowed]= useState(false);
   const role = localStorage.getItem("role");
   const [feeError, setFeeError] = useState("");
+  const notify = useNotify();
 
   const resetFields = () => {
     setUserName("");
@@ -46,6 +48,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       const response = await Parse.Cloud.run("redeemParentServiceFee", {
         userId: record?.userParentId,
       });
+      console.log("Parent Service Fee Response:", response);
       setRedeemFees(response?.redeemService || 0);
       setEditedFees(response?.redeemService || 0); // Initialize edited fees
       setRedeemEnabled(response?.redeemServiceEnabled);
@@ -109,7 +112,11 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
     setLoading(true);
     try {
-      await Parse.Cloud.run("agentApproveRedeemRedords", rawData);
+      const response = await Parse.Cloud.run("agentApproveRedeemRedords", rawData);
+      console.log("Redeem Record Response:", response);
+      if(response?.status === "error"){
+        notify(response?.message, {type: "error",anchorOrigin: { vertical: "top", horizontal: "right" }})
+      }
 
       onClose();
       handleRefresh();
