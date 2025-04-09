@@ -649,6 +649,7 @@ const PlayerRedeemDialog = ({
       });
     }
   }, [open]);
+  
 
   const handleSubmit = async () => {
     const validationResponse = validatePositiveNumber(redeemAmount);
