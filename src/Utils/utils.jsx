@@ -317,19 +317,19 @@ export const fetchTransactionsofAgent = async ({
   try {
     // Step 1: Set start and end date with correct hours
     const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0); // Start of the day
+    start.setHours(0, 0, 0, 0); // Start of the day in UTC
 
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // End of the day
+    end.setHours(23, 59, 59, 999); // End of the day in UTC
 
     // Step 2: Fetch transactions grouped by userParentId
     const pipeline = [
       { 
         $match: { 
-          // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
-          status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
           transactionDate: { $gte: start, $lte: end },
-          transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+          transactionAmount: { $gt: 0, $type: "number" }, // Ensure valid transaction amounts
+          status: { $in: [2, 3, 4, 8, 12] }, // Recharge: 2,3; Redeem: 4,8; Cashout: 12
+          // userParentId: { $exists: true, $ne: null } // Ensure valid userParentId
         } 
       },
       { 
@@ -337,51 +337,95 @@ export const fetchTransactionsofAgent = async ({
           _id: "$userParentId", // Group by userParentId (agent)
           totalRecharge: { 
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
-          }, // Sum only recharge transactions
+          },
           totalRedeem: { 
-            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
-          }, // Sum only redeem transactions
+            $sum: { $cond: [{ $in: ["$status", [4, 8]] }, "$transactionAmount", 0] }
+          },
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
-          } // Sum only cashout transactions
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          agentId: "$_id",
+          totalRecharge: { $round: ["$totalRecharge", 2] },
+          totalRedeem: { $round: ["$totalRedeem", 2] },
+          totalCashout: { $round: ["$totalCashout", 2] }
         }
       }
     ];
 
-    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
-    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
-    const transactions = [...activeTransactions, ...archiveTransactions];
+    // Fetch from both collections
+    const activeTransactions = await new Parse.Query("TransactionRecords")
+      .aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive")
+      .aggregate(pipeline, { useMasterKey: true });
 
-    if (transactions.length === 0) {
+    // Step 3: Merge transactions using a Map
+    const transactionMap = new Map();
+
+    // Helper function to process transactions
+    const processTransactions = (transactions) => {
+      transactions.forEach(tx => {
+        const agentId = tx.agentId;
+        if (transactionMap.has(agentId)) {
+          const existing = transactionMap.get(agentId);
+          transactionMap.set(agentId, {
+            agentId,
+            totalRecharge: (existing.totalRecharge || 0) + (tx.totalRecharge || 0),
+            totalRedeem: (existing.totalRedeem || 0) + (tx.totalRedeem || 0),
+            totalCashout: (existing.totalCashout || 0) + (tx.totalCashout || 0)
+          });
+        } else {
+          transactionMap.set(agentId, {
+            agentId,
+            totalRecharge: tx.totalRecharge || 0,
+            totalRedeem: tx.totalRedeem || 0,
+            totalCashout: tx.totalCashout || 0
+          });
+        }
+      });
+    };
+
+    // Process both active and archive transactions
+    processTransactions(activeTransactions);
+    processTransactions(archiveTransactions);
+
+    if (transactionMap.size === 0) {
       return { status: "success", data: [] };
     }
 
-    const agentIds = transactions.map(trx => trx.objectId).filter(id => id);
-
-    // Step 3: Fetch agent names from the User table using userParentId
+    // Step 4: Fetch agent names
+    const agentIds = Array.from(transactionMap.keys());
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.containedIn("objectId", agentIds);
-    agentQuery.select("objectId", "username"); // Fetch only required fields
+    agentQuery.select("objectId", "username");
     agentQuery.limit(10000);
-
     const agents = await agentQuery.find({ useMasterKey: true });
 
-    // Step 4: Map userParentId (_id) -> username
     const agentMap = {};
-    agents.forEach((agent) => {
+    agents.forEach(agent => {
       agentMap[agent.id] = agent.get("username") || "Unknown Agent";
     });
 
-    // Step 5: Map transactions to agents correctly
-    const sortedData = transactions.map((transaction) => ({
-      agentName: agentMap[transaction.objectId] || "Unknown Agent", // Correct agent mapping
-      totalRecharge: Math.floor(transaction.totalRecharge || 0),
-      totalRedeem: Math.floor(transaction.totalRedeem || 0),
-      totalCashout: Math.floor(transaction.totalCashout || 0),
-    }))    
-    .sort((a, b) => sortOrder === "asc" ? a.totalRecharge - b.totalRecharge : b.totalRecharge - a.totalRecharge);
-    
+    // Step 5: Format and sort the data
+    const formattedData = Array.from(transactionMap.values()).map(tx => ({
+      agentName: agentMap[tx.agentId] || "Unknown Agent",
+      totalRecharge: parseFloat((tx.totalRecharge || 0).toFixed(2)),
+      totalRedeem: parseFloat((tx.totalRedeem || 0).toFixed(2)),
+      totalCashout: parseFloat((tx.totalCashout || 0).toFixed(2))
+    }));
+
+    const sortedData = formattedData.sort((a, b) => 
+      sortOrder === "asc" 
+        ? a.totalRecharge - b.totalRecharge 
+        : b.totalRecharge - a.totalRecharge
+    );
+
     return { status: "success", data: sortedData };
+
   } catch (error) {
     console.error("Error fetching transactions:", error.message);
     return { status: "error", code: 500, message: error.message };
@@ -603,17 +647,17 @@ export const fetchTransactionsofAgentByDate = async ({
   try {
     // Step 1: Set start and end date with correct hours
     const start = new Date(startDate);
-    start.setUTCHours(0, 0, 0, 0); // Start of the day
+    start.setUTCHours(0, 0, 0, 0); // Start of the day in UTC
 
     const end = new Date(endDate);
-    end.setUTCHours(23, 59, 59, 999); // End of the day
+    end.setUTCHours(23, 59, 59, 999); // End of the day in UTC
 
-    // Step 2: Fetch transactions grouped by userParentId
+    // Step 2: Fetch transactions grouped by userParentId and date
     const matchConditions = {
-      // userParentId: { $exists: true, $ne: null }, // Ensure valid userParentId
-      status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
       transactionDate: { $gte: start, $lte: end },
-      transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+      transactionAmount: { $gt: 0, $type: "number" }, // Ensure valid transaction amounts
+      status: { $in: [2, 3, 4, 8, 12] }, // Recharge: 2,3; Redeem: 4,8; Cashout: 12
+      // userParentId: { $exists: true, $ne: null } // Ensure valid userParentId
     };
 
     if (agentId) {
@@ -630,82 +674,105 @@ export const fetchTransactionsofAgentByDate = async ({
               $dateToString: { 
                 format: "%Y-%m-%d", 
                 date: "$transactionDate",
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Add local timezone
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // Local timezone
               } 
             }
           },
           totalRecharge: { 
             $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
-          }, // Sum only recharge transactions
+          },
           totalRedeem: { 
-            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
-          }, // Sum only redeem transactions
+            $sum: { $cond: [{ $in: ["$status", [4, 8]] }, "$transactionAmount", 0] }
+          },
           totalCashout: { 
             $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
-          } // Sum only cashout transactions
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          agentId: "$_id.agent",
+          date: "$_id.date",
+          totalRecharge: { $round: ["$totalRecharge", 2] },
+          totalRedeem: { $round: ["$totalRedeem", 2] },
+          totalCashout: { $round: ["$totalCashout", 2] }
         }
       }
     ];
 
-    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
-    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
-    const transactions = [...activeTransactions, ...archiveTransactions];
+    // Fetch from both collections
+    const activeTransactions = await new Parse.Query("TransactionRecords")
+      .aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive")
+      .aggregate(pipeline, { useMasterKey: true });
 
-    if (transactions.length === 0) {
+    // Step 3: Merge transactions using a Map
+    const transactionMap = new Map();
+
+    // Helper function to process transactions
+    const processTransactions = (transactions) => {
+      transactions.forEach(tx => {
+        const key = `${tx.agentId}-${tx.date}`; // Unique key for agent and date
+        if (transactionMap.has(key)) {
+          const existing = transactionMap.get(key);
+          transactionMap.set(key, {
+            agentId: tx.agentId,
+            date: tx.date,
+            totalRecharge: (existing.totalRecharge || 0) + (tx.totalRecharge || 0),
+            totalRedeem: (existing.totalRedeem || 0) + (tx.totalRedeem || 0),
+            totalCashout: (existing.totalCashout || 0) + (tx.totalCashout || 0)
+          });
+        } else {
+          transactionMap.set(key, {
+            agentId: tx.agentId,
+            date: tx.date,
+            totalRecharge: tx.totalRecharge || 0,
+            totalRedeem: tx.totalRedeem || 0,
+            totalCashout: tx.totalCashout || 0
+          });
+        }
+      });
+    };
+
+    // Process both active and archive transactions
+    processTransactions(activeTransactions);
+    processTransactions(archiveTransactions);
+
+    if (transactionMap.size === 0) {
       return { status: "success", data: [] };
     }
 
-    let agentIds = [...new Set(transactions.map(trx => trx.objectId.agent))];
-
-    // Step 3: Fetch agent names (only if agentId is not provided, otherwise we already know it)
-    const agentMap = {};
-    if (!agentId) {
-      const agentQuery = new Parse.Query(Parse.User);
-      agentQuery.containedIn("objectId", agentIds);
-      agentQuery.select("objectId", "username"); // Fetch only required fields
-      agentQuery.limit(10000);
-
-      const agents = await agentQuery.find({ useMasterKey: true });
-
-      agents.forEach((agent) => {
-        agentMap[agent.id] = agent.get("username") || "Unknown Agent";
-      });
-    } else {
-      // Fetch the name of the specific agent
-      const agentQuery = new Parse.Query(Parse.User);
-      agentQuery.equalTo("objectId", agentId);
-      agentQuery.select("username");
-
-      const agent = await agentQuery.first({ useMasterKey: true });
-      agentMap[agentId] = agent ? agent.get("username") : "Unknown Agent";
-    }
-
-    // Step 4: Format Data
-    const formattedData = {};
-    transactions.forEach(transaction => {
-      const agentId = transaction.objectId.agent;
-      const dateKey = transaction.objectId.date;
-
-      if (!formattedData[agentId]) {
-        formattedData[agentId] = {
-          agentName: agentMap[agentId] || "Unknown Agent",
-          transactions: {}
-        };
-      }
-
-      formattedData[agentId].transactions[dateKey] = {
-        totalRecharge: Math.floor(transaction.totalRecharge || 0),
-        totalRedeem: Math.floor(transaction.totalRedeem || 0),
-        totalCashout: Math.floor(transaction.totalCashout || 0)
+    // Step 4: Fetch agent name
+    const agentQuery = new Parse.Query(Parse.User);
+    agentQuery.equalTo("objectId", agentId);
+    agentQuery.select("username");
+    const agent = await agentQuery.first({ useMasterKey: true });
+    const agentName = agent ? agent.get("username") : "Unknown Agent";
+    agentQuery.limit(10000);
+    // Step 5: Format data for output
+    const transactionsByDate = {};
+    transactionMap.forEach((value) => {
+      transactionsByDate[value.date] = {
+        totalRecharge: value.totalRecharge,
+        totalRedeem: value.totalRedeem,
+        totalCashout: value.totalCashout
       };
     });
-    return { status: "success", data: Object.values(formattedData) };
+
+    const formattedData = [{
+      agentName,
+      transactions: transactionsByDate
+    }];
+
+    return { status: "success", data: formattedData };
 
   } catch (error) {
     console.error("Error fetching transactions:", error.message);
     return { status: "error", code: 500, message: error.message };
   }
 };
+
 export const checkActiveRechargeLimit = async (userId, transactionAmount) => {
   try {
     // Fetch user details
