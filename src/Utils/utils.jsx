@@ -499,55 +499,101 @@ export const fetchTransactionsofPlayer = async ({
     const pipeline = [
       { 
         $match: {
-          // username: { $exists: true, $ne: null }, // Ensure valid username
-          status: { $in: [2, 3, 4, 8, 12] }, // Include recharge (2, 3), redeem (8), and cashout (12)
           transactionDate: { $gte: start, $lte: end },
-          transactionAmount: { $gt: 0 } // Ensure valid transaction amounts
+          transactionAmount: { $gt: 0, $type: "number" }, // Ensure valid transaction amounts
+          status: { $in: [2, 3, 4, 8, 12] }, // Relevant statuses only
+          username: { $exists: true, $ne: null } // Ensure valid username
         } 
       },
       { 
         $group: {
-          _id: "$username", // Group by username (player)
+          _id: "$username", // Group by username
           totalRecharge: { 
-            $sum: { $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] }
-          }, // Sum only recharge transactions
+            $sum: { 
+              $cond: [{ $in: ["$status", [2, 3]] }, "$transactionAmount", 0] 
+            }
+          },
           totalRedeem: { 
-            $sum: { $cond: [{ $in: ["$status", [4,8]] }, "$transactionAmount", 0] }
-          }, // Sum only redeem transactions
+            $sum: { 
+              $cond: [{ $in: ["$status", [4, 8]] }, "$transactionAmount", 0] 
+            }
+          },
           totalCashout: { 
-            $sum: { $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] }
-          } // Sum only cashout transactions
+            $sum: { 
+              $cond: [{ $eq: ["$status", 12] }, "$transactionAmount", 0] 
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          username: "$_id",
+          totalRecharge: { $round: ["$totalRecharge", 2] },
+          totalRedeem: { $round: ["$totalRedeem", 2] },
+          totalCashout: { $round: ["$totalCashout", 2] }
         }
       }
     ];
+
     if (userParentId) {
-      pipeline[0].$match.userParentId = { $exists: true, $ne: null, $eq: userParentId }; // Filter by userParentId
+      pipeline[0].$match.userParentId = userParentId;
     }
 
-    const activeTransactions = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
-    const archiveTransactions = await new Parse.Query("Transactionrecords_archive").aggregate(pipeline, { useMasterKey: true });
-    const transactions = [...activeTransactions, ...archiveTransactions];
+    // Fetch from both active and archive collections
+    const activeTransactions = await new Parse.Query("TransactionRecords")
+      .aggregate(pipeline, { useMasterKey: true });
+    const archiveTransactions = await new Parse.Query("Transactionrecords_archive")
+      .aggregate(pipeline, { useMasterKey: true });
 
-    if (transactions.length === 0) {
-      return { status: "success", data: [] };
-    }
+    // Step 3: Merge results from both collections
+    const transactionMap = new Map();
 
-    // Step 3: Sort transactions based on total amounts
-    const sortedTransactions = transactions.map(transaction => ({
-      username: transaction.objectId,
-      totalRecharge: Math.floor(transaction.totalRecharge || 0),
-      totalRedeem: Math.floor(transaction.totalRedeem || 0),
-      totalCashout: Math.floor(transaction.totalCashout || 0)
-    })).sort((a, b) => b.totalRecharge - a.totalRecharge); // Sort by total amount in descending order
+    // Process active transactions
+    activeTransactions.forEach(tx => {
+      transactionMap.set(tx.username, {
+        username: tx.username,
+        totalRecharge: tx.totalRecharge || 0,
+        totalRedeem: tx.totalRedeem || 0,
+        totalCashout: tx.totalCashout || 0
+      });
+    });
 
-    return { status: "success", data: sortedTransactions };
-    
-    // return { status: "success", data: transactions };
+    // Merge archive transactions
+    archiveTransactions.forEach(tx => {
+      if (transactionMap.has(tx.username)) {
+        const existing = transactionMap.get(tx.username);
+        transactionMap.set(tx.username, {
+          username: tx.username,
+          totalRecharge: (existing.totalRecharge || 0) + (tx.totalRecharge || 0),
+          totalRedeem: (existing.totalRedeem || 0) + (tx.totalRedeem || 0),
+          totalCashout: (existing.totalCashout || 0) + (tx.totalCashout || 0)
+        });
+      } else {
+        transactionMap.set(tx.username, {
+          username: tx.username,
+          totalRecharge: tx.totalRecharge || 0,
+          totalRedeem: tx.totalRedeem || 0,
+          totalCashout: tx.totalCashout || 0
+        });
+      }
+    });
+
+    // Convert map to array and sort
+    const mergedTransactions = Array.from(transactionMap.values())
+      .sort((a, b) => b.totalRecharge - a.totalRecharge);
+
+    return {
+      status: "success",
+      data: mergedTransactions.length > 0 ? mergedTransactions : []
+    };
+
   } catch (error) {
     console.error("Error fetching transactions:", error.message);
     return { status: "error", code: 500, message: error.message };
   }
 }
+
 export const fetchTransactionsofAgentByDate = async ({
   sortOrder = "desc",
   startDate,
