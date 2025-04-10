@@ -507,6 +507,7 @@ export const dataProvider = {
         }
 
         const matchConditions = [];
+        matchConditions.push({transactionAmount: { $gt: 0, $type: "number" },});
         if (filter.startDate && filter.endDate) {
           matchConditions.push({
             transactionDate: {
