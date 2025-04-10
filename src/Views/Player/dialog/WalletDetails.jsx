@@ -11,6 +11,7 @@ import { Parse } from "parse";
 import CashOutModal from "./CashOutDialogCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Alert } from "@mui/material"; 
+import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -29,12 +30,24 @@ export const WalletDetails = ({
   const refresh = useRefresh();
   const [cashOutDialogOpen, setcashOutDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [cashoutDisabled, setCashoutDisabled] = useState(false);
 
   const transformedIdentity = {
     id: identity?.objectId,
     ...identity,
   };
 
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
+        setCashoutDisabled(disabled);
+    }
+  
+    if(identity?.userParentId){
+      checkRechargeAccess();
+    }
+
+  }, [identity]);
   const role = localStorage.getItem("role");
 
   useEffect(() => {
@@ -167,10 +180,14 @@ export const WalletDetails = ({
             marginBottom: "16px",
           }}
         >
-
-        <Alert severity="error" sx={{ my: 2 }}>
+{cashoutDisabled && (
+  <Alert severity="error" sx={{ mb: 2 }}>
+    Cashouts are not available at this time. Please try again later.
+  </Alert>
+)}
+        {/* <Alert severity="error" sx={{ my: 2 }}>
         We're experiencing cashout processing delays due to high demand. Please try again later.
-</Alert>
+</Alert> */}
           <Typography
             variant="body2"
             sx={{
