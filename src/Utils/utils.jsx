@@ -598,7 +598,7 @@ export const fetchTransactionsofPlayer = async ({
           transactionDate: { $gte: start, $lte: end },
           transactionAmount: { $gt: 0, $type: "number" }, // Ensure valid transaction amounts
           status: { $in: [2, 3, 4, 8, 12] }, // Relevant statuses only
-          // username: { $exists: true, $ne: null } // Ensure valid username
+          username: { $exists: true, $ne: null } // Ensure valid username
         } 
       },
       { 
