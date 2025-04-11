@@ -277,7 +277,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
           sx={{ mt: 3, mb: 2 }}
         />
 
-        {!rechargeEnabled && !cashoutEnabled &&  (masterAgents.length > 0 || subAgents.length > 0) && (
+        {(masterAgents.length > 0 || subAgents.length > 0) && (
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant="h6" fontSize="16px" fontWeight={600} mb={1}>
