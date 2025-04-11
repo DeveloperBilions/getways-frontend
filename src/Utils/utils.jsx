@@ -1029,6 +1029,14 @@ export const fetchTransactionsofPlayerByDate = async ({
 
 export const isRechargeEnabledForAgent = async (agentId) => {
   try {
+    // Check global recharge setting
+    const globalSettingQuery = new Parse.Query("Settings");
+    globalSettingQuery.equalTo("type", "rechargeEnabled");
+    const globalSetting = await globalSettingQuery.first({ useMasterKey: true });
+    const isGlobalEnabled = globalSetting?.get("settings")?.[0] === "true";
+
+    if (isGlobalEnabled) return true;
+
     // Step 1: Fetch agent user
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
@@ -1047,7 +1055,6 @@ export const isRechargeEnabledForAgent = async (agentId) => {
     const setting = await settingsQuery.first({ useMasterKey: true });
     const allowedIds = setting?.get("settings") || [];
 
-    // ✅ First check: is this agent directly allowed?
     if (allowedIds.includes(agentId)) {
       return true;
     }
@@ -1068,8 +1075,17 @@ export const isRechargeEnabledForAgent = async (agentId) => {
   }
 };
 
+
 export const isCashoutEnabledForAgent = async (agentId) => {
   try {
+    // Check global cashout setting
+    const globalSettingQuery = new Parse.Query("Settings");
+    globalSettingQuery.equalTo("type", "cashoutEnabled");
+    const globalSetting = await globalSettingQuery.first({ useMasterKey: true });
+    const isGlobalEnabled = globalSetting?.get("settings")?.[0] === "true";
+
+    if (isGlobalEnabled) return true;
+
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
     const agent = await agentQuery.first({ useMasterKey: true });
@@ -1086,7 +1102,6 @@ export const isCashoutEnabledForAgent = async (agentId) => {
     const setting = await settingsQuery.first({ useMasterKey: true });
     const allowedCashoutIds = setting?.get("settings") || [];
 
-    // ✅ First check: is this agent directly allowed?
     if (allowedCashoutIds.includes(agentId)) {
       return true;
     }
@@ -1105,4 +1120,5 @@ export const isCashoutEnabledForAgent = async (agentId) => {
     return false;
   }
 };
+
 

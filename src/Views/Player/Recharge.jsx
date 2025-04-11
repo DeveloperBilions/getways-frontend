@@ -438,6 +438,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     KYC completed successfully! You can now proceed with recharge.
   </Alert>
 )}
+{rechargeDisabled && (
+  <Alert severity="error" sx={{ mb: 2 }}>
+    Recharges are not available at this time. Please try again later.
+  </Alert>
+)}
+
           <Button
             variant="contained"
             sx={{
