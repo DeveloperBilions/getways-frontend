@@ -63,7 +63,7 @@ export default function SubmitKYCDialog({
         setKycStatus(status);
         setRedirectLink(result.get("redirectUrl"));
 
-        if (["kyc_failed", "kyc_rejected"].includes(status)) {
+        if (["kyc_failed", "kyc_rejected","kyc_expired"].includes(status)) {
           setLinkExpired(true);
         }
       } else {
@@ -216,7 +216,7 @@ export default function SubmitKYCDialog({
           {linkExpired && (
             <Typography mt={2}>
               <Alert severity="warning" sx={{ mb: 2 }}>
-                Your KYC attempt was rejected or failed. Please generate a new
+                Your KYC attempt was failed or expired. Please generate a new
                 link to try again.{" "}
               </Alert>
               <Button

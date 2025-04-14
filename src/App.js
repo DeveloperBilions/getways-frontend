@@ -41,6 +41,7 @@ import CheckoutFormV2 from "./Views/Stripe/CheckoutFormV2";
 import GiftCardHistory from "./Views/Player/GiftCardHistory";
 import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
 import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
+import { BrowserRouter } from "react-router-dom";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -114,6 +115,7 @@ function App() {
   }
 
   return (
+    <BrowserRouter>
     <Admin
       dataProvider={dataProvider}
       authProvider={authProvider}
@@ -323,6 +325,7 @@ function App() {
         }
       }}
     </Admin>
+    </BrowserRouter>
   );
 }
 
