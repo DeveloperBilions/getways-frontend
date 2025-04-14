@@ -100,11 +100,12 @@ const getBalance = async () => {
   };
 
   useEffect(() => {
-    const hash = window.location.hash.replace(/^#\//, "");
-    const pathSegments = hash.split("?");
+    const pathname = window.location.pathname; // e.g., "/summary"
+    const pathSegments = pathname.split("/").filter(Boolean); // removes empty strings
     setActiveTab(pathSegments[0] || "users");
     getBalance();
   }, []);
+  
 
   // Toggle sidebar state
   const toggleSidebar = () => {
