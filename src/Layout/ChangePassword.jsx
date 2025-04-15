@@ -68,7 +68,7 @@ const ChangePassword = ({ open, onClose }) => {
       setTimeout(() => {
         setLoading(false);
         localStorage.clear()
-        navigate("/login"); // Redirect to login page
+        window.location.href = "/login"; // Reloads the page after redirect
       }, 2000);
     } catch (err) {
       setError(err.message);
