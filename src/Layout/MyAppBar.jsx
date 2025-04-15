@@ -100,11 +100,12 @@ const getBalance = async () => {
   };
 
   useEffect(() => {
-    const hash = window.location.hash.replace(/^#\//, "");
-    const pathSegments = hash.split("?");
-    setActiveTab(pathSegments[0] || "users");
+    const path = window.location.pathname;
+    const pathSegments = path.split("/").filter(Boolean); // Removes empty strings
+    setActiveTab(pathSegments[pathSegments.length - 1] || "users");
     getBalance();
   }, []);
+  
 
   // Toggle sidebar state
   const toggleSidebar = () => {
@@ -140,12 +141,12 @@ const getBalance = async () => {
     );
     if (role === "Super-User") {
       menuItems.push({
-        key: "reports",
+        key: "Reports",
         label: "Reports",
         onClick: () => navigate("/Reports"),
       });
       menuItems.push({
-        key: "KYC",
+        key: "kycRecords",
         label: "KYC",
         onClick: () => navigate("/kycRecords"),
       });

@@ -72,9 +72,12 @@ export const KycRecordsList = (props) => {
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: 1,
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
+        overflowX: "auto",
+        gap: 2,
         width: "100%",
-        mb: 1,
+        mb: 2,
       }}
       alwaysOn
     >
@@ -91,11 +94,24 @@ export const KycRecordsList = (props) => {
           },
         }}
       />
+      <SearchInput
+        source="userParentName"
+        alwaysOn
+        placeholder="Search Parent"
+        resettable
+        sx={{
+          minWidth: "250px",
+          height: "40px",
+          "& .MuiInputBase-root": {
+            height: "40px",
+          },
+        }}
+      />
       <SelectInput
         source="kycStatus"
         choices={statusChoices}
         label="KYC Status"
-        alwaysOn
+        emptyText="All"
         sx={{
           minWidth: "200px",
           height: "40px",
@@ -106,6 +122,7 @@ export const KycRecordsList = (props) => {
       />
     </Box>,
   ];
+  
 
   return (
     <List

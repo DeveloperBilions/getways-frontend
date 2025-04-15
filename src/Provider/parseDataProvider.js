@@ -170,7 +170,7 @@ export const dataProvider = {
       if (resource === "users") {
         query = new Parse.Query(Parse.User);
         query.notEqualTo("isDeleted", true);
-      
+
         // Role-based filtering
         if (role === "Agent") {
           query.equalTo("userParentId", userid);
@@ -183,12 +183,12 @@ export const dataProvider = {
           const agentIds = agents.map((agent) => agent.id);
           query.containedIn("userParentId", [userid, ...agentIds]);
         }
-      
+
         // Filters
         if (filter && typeof filter === "object") {
           Object.entries(filter).forEach(([key, value]) => {
             if (!value) return;
-      
+
             if (["username", "email", "userParentName"].includes(key)) {
               const searchValue = String(value).trim();
               if (searchValue) query.matches(key, new RegExp(searchValue, "i"));
@@ -202,29 +202,29 @@ export const dataProvider = {
             }
           });
         }
-      
+
         // Sorting
         if (field) {
           query[order === "ASC" ? "ascending" : "descending"](field);
         }
-      
+
         // Total count before pagination
         const total = await query.count({ useMasterKey: true });
-      
+
         // Pagination
         const skip = (page - 1) * perPage;
         query.skip(skip);
         query.limit(perPage);
-      
+
         // Execute user query
         const users = await query.find({ useMasterKey: true });
-      
+
         // KYC status mapping
         const userIds = users.map((user) => user.id);
         const kycQuery = new Parse.Query("TransfiUserInfo");
         kycQuery.containedIn("userId", userIds);
         const kycRecords = await kycQuery.find({ useMasterKey: true });
-      
+
         const kycMap = {};
         kycRecords.forEach((kyc) => {
           const uid = kyc.get("userId");
@@ -233,12 +233,13 @@ export const dataProvider = {
             kycStatus: kyc.get("kycStatus") || "unknown",
           };
         });
-      
+
         const formatted = users.map((user) => {
           const kyc = kycMap[user.id] || {};
           return {
             id: user.id,
             username: user.get("username"),
+            name: user.get("name"),
             email: user.get("email"),
             userParentName: user.get("userParentName"),
             userParentId: user.get("userParentId"),
@@ -252,14 +253,12 @@ export const dataProvider = {
             updatedAt: user.updatedAt,
           };
         });
-      
+
         return {
           data: formatted,
           total,
         };
-      }
-      
-       else if (resource === "redeemRecords") {
+      } else if (resource === "redeemRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -405,20 +404,35 @@ export const dataProvider = {
           }
         }
         count = await query.count();
-      }else if (resource === "kycRecords") {
+      } else if (resource === "kycRecords") {
         const Resource = Parse.Object.extend("TransfiUserInfo");
         query = new Parse.Query(Resource);
-      
+
+        let userParentNameFilterUserIds = null;
+
         if (
           filter &&
           typeof filter === "object" &&
           Object.keys(filter).length > 0
         ) {
+          if (filter.userParentName) {
+            const userQuery = new Parse.Query(Parse.User);
+            const regex = new RegExp(filter.userParentName, "i");
+            userQuery.matches("userParentName", regex);
+            const matchedUsers = await userQuery.findAll({
+              useMasterKey: true,
+            });
+            userParentNameFilterUserIds = matchedUsers.map((u) => u.id);
+
+            if (userParentNameFilterUserIds.length === 0) {
+              return { data: [], total: 0 };
+            }
+          }
+
           for (const f of Object.keys(filter)) {
-            if (filter[f] !== undefined && filter[f] !== null) {
+            if (filter[f] !== undefined && f !== "userParentName") {
               if (f === "email") {
-                const emailRegex = new RegExp(filter[f], "i");
-                query.matches("email", emailRegex);
+                query.matches("email", new RegExp(filter[f], "i"));
               } else if (f === "kycStatus") {
                 query.equalTo("kycStatus", filter[f]);
               } else {
@@ -427,17 +441,35 @@ export const dataProvider = {
             }
           }
         }
-      
+
+        if (userParentNameFilterUserIds !== null) {
+          query.containedIn("userId", userParentNameFilterUserIds);
+        }
+
+        if (field && order) {
+          if (order.toLowerCase() === "asc") {
+            query.ascending(field);
+          } else {
+            query.descending(field);
+          }
+        }
+
+        query.skip((page - 1) * perPage);
+        query.limit(perPage);
+
+        // ✅ Also get total count separately
+        const total = await query.count({ useMasterKey: true });
+
         const kycRecords = await query.find({ useMasterKey: true });
-      
-        // 🔍 Collect unique userIds from the KYC records
-        const userIds = [...new Set(kycRecords.map((rec) => rec.get("userId")))].filter(Boolean);
-      
-        // 👥 Fetch users by these IDs
+
+        const userIds = [
+          ...new Set(kycRecords.map((rec) => rec.get("userId"))),
+        ].filter(Boolean);
+
         const userQuery = new Parse.Query(Parse.User);
         userQuery.containedIn("objectId", userIds);
         const users = await userQuery.find({ useMasterKey: true });
-      
+
         const userMap = {};
         users.forEach((user) => {
           userMap[user.id] = {
@@ -445,8 +477,7 @@ export const dataProvider = {
             userParentName: user.get("userParentName"),
           };
         });
-      
-        // 📦 Final data mapping
+
         const formattedData = kycRecords.map((record) => {
           const userId = record.get("userId");
           const userData = userMap[userId] || {};
@@ -464,13 +495,13 @@ export const dataProvider = {
             username: userData.username || "",
             userParentName: userData.userParentName || "",
           };
-        });      
+        });
+
         return {
           data: formattedData,
-          total: formattedData.length,
+          total,
         };
-      }
-       else if (resource === "summary") {
+      } else if (resource === "summary") {
         if (
           filter?.startDate &&
           filter?.endDate &&
