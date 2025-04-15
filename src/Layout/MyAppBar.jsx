@@ -144,8 +144,10 @@ export default function MyAppBar(props) {
             padding: 0,
             minHeight: role === "Player" ? "4em" : "3.5em",
           }}
-          onClick={() => navigate("/")}
-        >
+          onClick={() => {
+            setActiveTab("users");
+            navigate("/users");
+          }}        >
           <img
             src="/assets/company_logo.svg"
             alt="Company Logo"
