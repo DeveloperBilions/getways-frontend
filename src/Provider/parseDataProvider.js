@@ -14,16 +14,10 @@ Parse.initialize(
   process.env.REACT_APP_JAVASCRIPT_KEY,
   process.env.REACT_APP_MASTER_KEY
 );
-const liveQueryClient = new Parse.LiveQueryClient({
-  applicationId: process.env.REACT_APP_APPID,
-  serverURL: process.env.REACT_APP_SERVER_URL,
-  javascriptKey: process.env.REACT_APP_JAVASCRIPT_KEY,
-  masterKey: process.env.REACT_APP_MASTER_KEY,
-});
+
 Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
-liveQueryClient.open();
 
 export const dataProvider = {
   create: async (resource, params) => {
@@ -544,6 +538,7 @@ export const dataProvider = {
         }
 
         const matchConditions = [];
+        matchConditions.push({transactionAmount: { $gt: 0, $type: "number" },});
         if (filter.startDate && filter.endDate) {
           matchConditions.push({
             transactionDate: {
@@ -2089,12 +2084,9 @@ export const dataProvider = {
         }
 
         wallet.set("balance", finalAmount);
-        const subscription = liveQueryClient.subscribe(walletQuery);
+      
         await wallet.save(null);
         console.log(wallet);
-        subscription.on("update", (object) => {
-          console.log("Transaction updated:", object);
-        });
       } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);

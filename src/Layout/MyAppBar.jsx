@@ -310,13 +310,13 @@ const getBalance = async () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-            {role === "Agent" && identity?.balance !== undefined && (
+            {role === "Agent" && (
               <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                 <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
                 <span
                   style={{ fontWeight: 600, color: "var(--secondery-color)" }}
                 >
-                  Balance: {identity.balance}
+                  Balance: {identity.balance || 0}
                 </span>
               </Box>
             )}

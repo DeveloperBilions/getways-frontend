@@ -56,6 +56,11 @@ export const MySidebar = () => {
         // icon: <SummarizeIcon />,
         onClick: () => navigate("/Reports"),
       });
+      menuItems.push({
+        key: "KYC",
+        label: "KYC",
+        onClick: () => navigate("/kycRecords"),
+      });
     }
   }
 

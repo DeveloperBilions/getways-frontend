@@ -243,6 +243,7 @@ export const PlayerList = () => {
   };
   const handleRedeemRefresh = () => {
     redeemData();
+    WalletService();
     parentServiceFee();
   };
   const handleCashoutRefresh = () => {

@@ -640,7 +640,7 @@ export const RedeemRecordsList = (props) => {
           </Box>
         </Box>
       )}
-      {identity?.role === "Agent" && identity?.balance < 500 && (
+      {identity?.role === "Agent" && (identity?.balance < 500 || identity?.balance===undefined) && (
         <Alert severity="error" sx={{ mb: 2 }}>
           Your balance is too low to approve transactions.
         </Alert>
@@ -754,11 +754,18 @@ export const RedeemRecordsList = (props) => {
                     record?.status === 11 && identity?.role === "Super-User";
                   const isCashoutApproved = record?.status === 12; // Example status for approved cashout
 
+                  // const isBalanceLow =
+                  //   (identity?.role === "Master-Agent" ||
+                  //     identity?.role === "Agent") &&
+                  //   (identity?.balance < 500 ||
+                  //     record?.transactionAmount > identity?.balance);
                   const isBalanceLow =
-                    (identity?.role === "Master-Agent" ||
-                      identity?.role === "Agent") &&
-                    (identity?.balance < 500 ||
-                      record?.transactionAmount > identity?.balance);
+                  (identity?.role === "Master-Agent" || identity?.role === "Agent") &&
+                  (
+                    typeof identity?.balance !== 'number' || // Treat undefined or non-number as low balance
+                    identity.balance < 500 || 
+                    (record?.transactionAmount ?? 0) > identity.balance
+                  );
 
                   return (
                     <>
