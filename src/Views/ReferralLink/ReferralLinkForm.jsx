@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from "react";
-import {
-  Row,
-  Col,
-  FormGroup,
-  Label,
-  Form,
-  Input,
-  Card,
-  CardBody,
-  Button,
-  InputGroup,
-  InputGroupText,
-} from "reactstrap";
 import { useLocation } from "react-router-dom";
 import { useNotify } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // mui icon
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-// loader
-import { Loader } from "../Loader";
 import "./ReferralLinkForm.css";
 import { Parse } from "parse";
 import { validateCreateUser } from "../../Validators/user.validator";
 import { validatePassword } from "../../Validators/Password";
+
+import {
+  Box,
+  Card,
+  Typography,
+  TextField,
+  Button,
+  InputAdornment,
+  IconButton,
+  FormControl,
+} from "@mui/material";
+// import "./ReferralLinkForm.css";
+import Getways_Logo_White from "../../Assets/icons/Logo.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -170,228 +168,387 @@ const ReferralLinkForm = () => {
   }
 
   return (
-    <React.Fragment>
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="container123">
-          {/* Left Side: Image and Text */}
-          <div className="left-section">
-            <img
-              src="/assets/referral_link.jpg"
-              alt="Testimonial"
-              className="testimonial-image"
-            />
-            <div className="testimonial-text"></div>
-          </div>
+    <Box
+      sx={{
+        width: "100vw",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        background: "#F6F4F4",
+        overflow: "hidden",
+      }}
+    >
+      {/* Left Sidebar */}
+      <Box
+        sx={{
+          width: { xs: "100%", md: "30%" },
+          minWidth: { md: "200px" },
+          maxWidth: { md: "480px" },
+          height: { xs: "auto", md: "100vh" },
+          bgcolor: "#07070E",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: { xs: 4, md: 0 },
+        }}
+      >
+        <img
+          src={Getways_Logo_White}
+          alt="Getways Logo"
+          style={{
+            width: "80%",
+            maxWidth: "200px",
+          }}
+        />
+      </Box>
 
-          <div className="right-section ">
-            <Card className="mt-5 card-overrid">
-              <CardBody>
-                <Form onSubmit={handleSubmit}>
-                  <Row>
-                    <Label className="fs-3 fw-normal">Get Started</Label>
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="userName" className="pb-0 mb-0">
-                          Referral
-                        </Label>
-                        <Input
-                          id="userName"
-                          name="userName"
-                          type="text"
-                          autoComplete="off"
-                          value={referral}
-                          required
-                          disabled
-                        />
-                      </FormGroup>
-                    </Col>
+      {/* Right Content */}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: { xs: "auto", md: "100vh" },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: { xs: 4, md: 0 },
+        }}
+      >
+        {/* Form Card */}
+        <Card
+          sx={{
+            width: { xs: "90%", sm: "80%", md: "520px" },
+            maxWidth: "520px",
+            borderRadius: "8px",
+            p: { xs: "16px", sm: "24px 32px" },
+            background: "#FFFFFF",
+            boxShadow: 3,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: "Inter",
+              fontWeight: 400,
+              fontSize: { xs: "20px", sm: "24px" },
+              lineHeight: "100%",
+              mb: "24px",
+            }}
+          >
+            Get Started
+          </Typography>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="userName" className="pb-0 mb-0">
-                          User Name
-                        </Label>
-                        <Input
-                          id="userName"
-                          name="userName"
-                          type="text"
-                          autoComplete="off"
-                          value={userName}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (/^[a-zA-Z0-9_.-]*$/.test(value)) {
-                              // Prevents invalid characters from being typed
-                              setUserName(value);
-                            }
-                          }}
-                          required
-                        />
-                      </FormGroup>
-                    </Col>
+          <form onSubmit={handleSubmit}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Referral */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Referral
+                </Typography>
+                <TextField
+                  value={referral}
+                  disabled
+                  required
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="name" className="pb-0 mb-0">
-                          Name
-                        </Label>
-                        <Input
-                          id="name"
-                          name="name"
-                          type="text"
-                          autoComplete="off"
-                          value={name}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (/^[a-zA-Z\s]*$/.test(value)) { // Prevents invalid characters from being typed
-                              setName(value);
-                            }
-                          }}
-                          required
-                        />
-                      </FormGroup>
-                    </Col>
+              {/* Username */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Username
+                </Typography>
+                <TextField
+                  value={userName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[a-zA-Z0-9_.-]*$/.test(value)) {
+                      setUserName(value);
+                    }
+                  }}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="phoneNumber" className="pb-0 mb-0">
-                          Phone Number
-                        </Label>
-                        <Input
-                          id="phoneNumber"
-                          name="phoneNumber"
-                          type="text"
-                          autoComplete="off"
-                          value={phoneNumber}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (/^\d{0,10}$/.test(value)) {
-                              setPhoneNumber(value);
-                            }
-                          }}
-                          required
-                        />
-                      </FormGroup>
-                    </Col>
+              {/* Name */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Name
+                </Typography>
+                <TextField
+                  value={name}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[a-zA-Z\s]*$/.test(value)) {
+                      setName(value);
+                    }
+                  }}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="email" className="pb-0 mb-0">
-                          Email
-                        </Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          autoComplete="off"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-                      </FormGroup>
-                    </Col>
+              {/* Phone Number */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Phone Number
+                </Typography>
+                <TextField
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d{0,10}$/.test(value)) {
+                      setPhoneNumber(value);
+                    }
+                  }}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="password" className="pb-0 mb-0">
-                          Password
-                        </Label>
-                        <InputGroup>
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            autoComplete="off"
-                            value={password}
-                            onChange={handlePasswordChange}
-                            required
-                          />
-                          <InputGroupText
-                            onClick={() => setShowPassword(!showPassword)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </InputGroupText>
-                        </InputGroup>
-                        {isTyping && passwordErrors.length > 0 && (
-                          <div
-                            className="mt-1"
-                            style={{ fontSize: "0.875rem" }}
-                          >
-                            {passwordErrors.map((error, index) => (
-                              <div key={index} className="text-danger">
-                                • {error}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </FormGroup>
-                    </Col>
+              {/* Email */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Email
+                </Typography>
+                <TextField
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                />
+              </FormControl>
 
-                    <Col md={12}>
-                      <FormGroup>
-                        <Label for="confirmPassword" className="pb-0 mb-0">
-                          Confirm Password
-                        </Label>
-                        <InputGroup>
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            autoComplete="off"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                          />
-                          <InputGroupText
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            style={{ cursor: "pointer" }}
-                          >
-                            {showConfirmPassword ? (
-                              <VisibilityOff />
-                            ) : (
-                              <Visibility />
-                            )}
-                          </InputGroupText>
-                        </InputGroup>
-                      </FormGroup>
-                    </Col>
-
-                    {errorMessage && (
-                      <Col sm={12}>
-                        <Label
-                          for="errorResponse"
-                          invalid
-                          className="text-danger mb-2"
+              {/* Password */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Password
+                </Typography>
+                <TextField
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={handlePasswordChange}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          
                         >
-                          {errorMessage}
-                        </Label>
-                      </Col>
-                    )}
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                {isTyping && passwordErrors.length > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    {passwordErrors.map((error, index) => (
+                      <Typography
+                        key={index}
+                        sx={{ color: "error.main", fontSize: "0.875rem" }}
+                      >
+                        • {error}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
+              </FormControl>
 
-                    <Col md={12}>
-                      <div className="d-flex justify-content-end">
-                        <Button
-                          className="w-100"
-                          disabled={disableButtonState}
-                          type="submit"
-                          color="primary"
+              {/* Confirm Password */}
+              <FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "Inter",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    lineHeight: "14px",
+                    letterSpacing: "1.2%",
+                    mb: "4px",
+                  }}
+                >
+                  Confirm Password
+                </Typography>
+                <TextField
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="off"
+                  fullWidth
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      height: { xs: "36px", sm: "40px" },
+                      borderRadius: "5px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #CFD4DB",
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          edge="end"
+                          
                         >
-                          Create Account
-                        </Button>
-                      </div>
-                    </Col>
-                  </Row>
-                </Form>
-              </CardBody>
-            </Card>
-          </div>
-        </div>
-      )}
-    </React.Fragment>
+                          {showConfirmPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </FormControl>
+
+              {/* Error Message */}
+              {errorMessage && (
+                <Typography sx={{ color: "error.main", fontSize: "0.875rem" }}>
+                  {errorMessage}
+                </Typography>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={disableButtonState}
+                sx={{
+                  width: "100%",
+                  height: { xs: "36px", sm: "40px" },
+                  borderRadius: "4px",
+                  background: "#1671C5",
+                  color: "#FFFFFF",
+                  textTransform: "none",
+                  fontFamily: "Inter",
+                  fontWeight: 400,
+                  fontSize: { xs: "13px", sm: "14px" },
+                  "&:hover": {
+                    background: "#135ea3",
+                  },
+                }}
+              >
+                Create Account
+              </Button>
+            </Box>
+          </form>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 

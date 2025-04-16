@@ -26,6 +26,11 @@ import { walletService } from "../Provider/WalletManagement";
 import { useEffect } from "react";
 import AOG_Symbol from "../Assets/icons/AOGsymbol.png";
 import Account from "../Assets/icons/Account.svg";
+import globalRecharge from "../Assets/icons/globalRecharge.svg";
+import paymentMethods from "../Assets/icons/paymentMethods.svg";
+import emergencyMessage from "../Assets/icons/emergencyMessage.svg";
+import helpVideos from "../Assets/icons/helpVideos.svg";
+import logout_icon from "../Assets/icons/logout.svg";
 import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
 import { Loader } from "../Views/Loader";
 import { Parse } from "parse";
@@ -367,7 +372,7 @@ const getBalance = async () => {
               }
               sx={{ ml: 1 }}
             >
-              <Box sx={{ width: "248px" }}>
+              <Box sx={{ width: "248px" , height: "auto" }}>
                 {(role === "Agent" ||
                   role === "Player" ||
                   role === "Master-Agent") && (
@@ -395,30 +400,34 @@ const getBalance = async () => {
                   </MenuItem>
                 )}
                 {role === "Super-User" && (
-                  <MenuItem
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
                     onClick={handleOpenGlobalSettingsDialog}
                     style={{
                       color: "#000000",
-                      fontWeight: 400,
-                      fontSize: "16px",
+                      gap: "8px",
                     }}
                   >
-                    Global Recharge
+                    <img src={globalRecharge} alt="Global Recharge"  />
+                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Global Recharge</Typography>
                   </MenuItem>
+                  </Box>
                 )}
                 {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
                   <MenuItem
                     onClick={() => setDisableDialogOpen(true)}
                     style={{
                       color: "#000000",
-                      fontWeight: 400,
-                      fontSize: "16px",
+                      gap:"8px",
                     }}
                   >
-                    Payment Methods
+                    <img src={paymentMethods} alt="Payment Methods"  />
+                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Payment Methods</Typography>
                   </MenuItem>
+                  </Box>
                 )}
-                {role === "Super-User" && (
+                {/* {role === "Super-User" && (
                   <MenuItem
                     onClick={() => {
                       navigate("/transactionData");
@@ -431,18 +440,21 @@ const getBalance = async () => {
                   >
                     Transaction Export
                   </MenuItem>
-                )}
+                )} */}
                 {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
                   <MenuItem
                     onClick={() => setOpenEmergencyModal(true)}
                     style={{
                       color: "#000000",
-                      fontWeight: 400,
-                      fontSize: "16px",
+                      
+                      gap:"8px",
                     }}
                   >
-                    Emergency Message
+                    <img src={emergencyMessage} alt="Emergency Message" />
+                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Emergency Message</Typography>
                   </MenuItem>
+                  </Box>
                 )}
                 {identity?.redeemServiceEnabled && role === "Master-Agent" && (
                   <MenuItem
@@ -456,25 +468,27 @@ const getBalance = async () => {
                     Agent Redeem Fees
                   </MenuItem>
                 )}
+                <Box sx={{ mb: 1 }}>
                 <MenuItem
                   onClick={() => setOpenHelpVideo(true)}
                   style={{
                     color: "#000000",
-                    fontWeight: 400,
-                    fontSize: "16px",
+                    gap:"8px",
                   }}
                 >
-                  Help Videos
+                   <img src={helpVideos} alt="Help Videos"  />
+                   <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Help Videos</Typography>
                 </MenuItem>
+                </Box>
                 <MenuItem
                   onClick={() => logout()}
                   style={{
                     color: "#000000",
-                    fontWeight: 400,
-                    fontSize: "16px",
+                    gap:"8px",
                   }}
                 >
-                  Logout
+                  <img src={logout_icon} alt="logout" />
+                  <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Logout</Typography>
                 </MenuItem>{" "}
               </Box>
             </UserMenu>
