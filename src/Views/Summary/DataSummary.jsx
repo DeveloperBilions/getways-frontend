@@ -678,6 +678,35 @@ export const DataSummary = () => {
   };
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const rawFilter = queryParams.get("filter");
+  
+    if (rawFilter) {
+      try {
+        const filterObj = JSON.parse(rawFilter);
+        const start = filterObj.startdate;
+        const end = filterObj.enddate;
+        const userId = filterObj.username;
+        const usernameLabel = filterObj.usernameLabel;
+  
+        if (start) setTempStartDate(start);
+        if (end) setTempEndDate(end);
+  
+        if (userId && usernameLabel) {
+          const matchedUser = {
+            id: userId,
+            optionName: usernameLabel,
+          };
+          setSelectedUsertemp(matchedUser);
+          setSelectedUser(matchedUser);
+        }
+      } catch (err) {
+        console.error("Invalid filter JSON:", err);
+      }
+    }
+  }, []);
+  
+  useEffect(() => {
     fetchUsers(); // Initial load
   }, []);
 
@@ -1135,7 +1164,43 @@ export const DataSummary = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setSelectedUser(selectedUsertemp);
+  
+    // const queryParams = new URLSearchParams();
+    // const filterObj = {};
+  
+    // if (tempStartDate) filterObj.startdate = tempStartDate;
+    // if (tempEndDate) filterObj.enddate = tempEndDate;
+  
+    // if (selectedUsertemp?.id) {
+    //   filterObj.username = selectedUsertemp.id; // for backend use
+    //   filterObj.usernameLabel = selectedUsertemp.optionName; // for restoring UI
+    // }
+  
+    // queryParams.set("filter", JSON.stringify(filterObj));
+  
+    // const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+    // window.history.replaceState(null, "", newUrl);
   };
+useEffect(() => {
+  const queryParams = new URLSearchParams();
+  const filterObj = {};
+
+  if (tempStartDate) filterObj.startdate = tempStartDate;
+  if (tempEndDate) filterObj.enddate = tempEndDate;
+
+  if (selectedUsertemp?.id) {
+    filterObj.username = selectedUsertemp.id;
+    filterObj.usernameLabel = selectedUsertemp.optionName;
+  }
+
+  // Only update URL if at least one filter exists
+  if (Object.keys(filterObj).length > 0) {
+    queryParams.set("filter", JSON.stringify(filterObj));
+    const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+  }
+}, [tempStartDate, tempEndDate, selectedUsertemp]);
+
   return (
     <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
