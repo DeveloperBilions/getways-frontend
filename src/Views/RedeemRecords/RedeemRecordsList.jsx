@@ -363,7 +363,7 @@ export const RedeemRecordsList = (props) => {
           borderRadius: "5px",
           border: "1px solid #CFD4DB",
           fontWeight: 400,
-          fontSize: "body-s",
+          fontSize: "14px",
           textTransform: "capitalize",
         }}
       >
