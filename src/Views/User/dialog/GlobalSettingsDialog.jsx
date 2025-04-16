@@ -15,8 +15,15 @@ import {
   Stack,
   Grid,
   TextField,
+  Switch,
+  InputAdornment,
+  Tabs,
+  Tab,
+  IconButton,
 } from "@mui/material";
 import Parse from "parse";
+import SearchIcon from "@mui/icons-material/Search";
+import { FormGroup, Input } from "reactstrap";
 
 const GlobalSettingsDialog = ({ open, onClose }) => {
   const [rechargeEnabled, setRechargeEnabled] = useState(true);
@@ -27,6 +34,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
   const [subAgents, setSubAgents] = useState([]);
   const [agents, setAgents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (open) {
@@ -35,7 +43,6 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     }
   }, [open, searchTerm]);
 
-  
   const fetchSettings = async () => {
     setLoading(true);
     try {
@@ -62,7 +69,6 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     }
   };
 
-  
   const fetchAgents = async () => {
     try {
       const [rechargeList, cashoutList] = await Promise.all([
@@ -83,7 +89,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
       const superAdminIds = superAdmins.map((user) => user.id);
 
       const subAgentQuery = new Parse.Query(Parse.User);
-     // subAgentQuery.containedIn("userParentId", superAdminIds);
+      // subAgentQuery.containedIn("userParentId", superAdminIds);
       subAgentQuery.equalTo("roleName", "Agent");
       subAgentQuery.limit(10);
 
@@ -155,7 +161,8 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     );
   };
 
-  const areAllSelected = (list, key) => list.length > 0 && list.every((a) => a[key]);
+  const areAllSelected = (list, key) =>
+    list.length > 0 && list.every((a) => a[key]);
   const isIndeterminate = (list, key) =>
     list.some((a) => a[key]) && !areAllSelected(list, key);
 
@@ -177,8 +184,12 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
         await obj.save(null, { useMasterKey: true });
       };
 
-      const allowedRechargeIds = agents.filter((a) => a.rechargeEnabled).map((a) => a.id);
-      const allowedCashoutIds = agents.filter((a) => a.cashoutEnabled).map((a) => a.id);
+      const allowedRechargeIds = agents
+        .filter((a) => a.rechargeEnabled)
+        .map((a) => a.id);
+      const allowedCashoutIds = agents
+        .filter((a) => a.cashoutEnabled)
+        .map((a) => a.id);
 
       await Promise.all([
         saveSetting("rechargeEnabled", [rechargeEnabled.toString()]),
@@ -199,171 +210,339 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     }
   };
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const filteredMasterAgents = masterAgents.filter((agent) =>
+    agent.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredSubAgents = subAgents.filter((agent) =>
+    agent.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const AgentRow = ({ agent }) => {
     return (
-      <Grid container alignItems="center" spacing={2} sx={{ borderBottom: "1px solid #eee", pb: 1 }}>
-        <Grid item xs={4}>
-          <Typography>{agent.username}</Typography>
-        </Grid>
-        <Grid item xs={4}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid #f0f0f0",
+          py: 1,
+        }}
+      >
+        <Typography sx={{ flex: 1 }}>{agent.username}</Typography>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
           <FormControlLabel
             control={
               <Checkbox
                 checked={agent.rechargeEnabled}
                 onChange={(e) =>
-                  handleAgentToggle(agent.id, "rechargeEnabled", e.target.checked)
+                  handleAgentToggle(
+                    agent.id,
+                    "rechargeEnabled",
+                    e.target.checked
+                  )
                 }
               />
             }
-            label="Recharge"
+            sx={{ paddingRight: "55px" }}
+            label=""
           />
-        </Grid>
-        <Grid item xs={4}>
           <FormControlLabel
             control={
               <Checkbox
                 checked={agent.cashoutEnabled}
                 onChange={(e) =>
-                  handleAgentToggle(agent.id, "cashoutEnabled", e.target.checked)
+                  handleAgentToggle(
+                    agent.id,
+                    "cashoutEnabled",
+                    e.target.checked
+                  )
                 }
               />
             }
-            label="Cashout"
+            sx={{ paddingRight: "25px" }}
+            label=""
           />
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     );
   };
 
+  // Show overrides section only when at least one global toggle is enabled
+  const showOverrides = rechargeEnabled || cashoutEnabled;
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600, fontSize: "20px" }}>
-        Global Recharge & Cashout Settings
+    <Dialog
+      open={open}
+      onClose={onClose}
+      // maxWidth="500px"
+      fullWidth
+      // PaperProps={{
+      //   sx: {
+      //     borderRadius: 1,
+      //     // maxHeight: "80vh",
+      //   },
+      // }}
+    >
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          px: 2,
+          py: 2,
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "18px" }}>
+          Global Recharge & Cashout Settings
+        </Typography>
+        <IconButton onClick={onClose} size="small">
+          {/* <CloseIcon /> */}
+        </IconButton>
       </DialogTitle>
-      <DialogContent dividers>
+
+      <DialogContent dividers sx={{ px: 2, py: 2 }}>
         {successMsg && (
           <Alert severity="success" sx={{ mb: 2 }}>
             {successMsg}
           </Alert>
         )}
 
-        <Box display="flex" flexDirection="column" gap={2} mt={1}>
-          <FormControlLabel
-            control={
-              <Checkbox
+        <Box display="flex" flexDirection="column" gap={1}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            bgcolor="#F6F4F4"
+            p={1.5}
+            borderRadius={1}
+            height="40px"
+          >
+            <Typography>Enable Recharge (Global)</Typography>
+            <FormGroup check className="form-switch">
+              <Input
+                type="switch"
+                id="RechargeSwitch"
+                className="green-switch"
                 checked={rechargeEnabled}
                 onChange={(e) => setRechargeEnabled(e.target.checked)}
+                style={{ width: "40px", height: "20px" }}
               />
-            }
-            label={<Typography fontSize="16px">Enable Recharge (Global)</Typography>}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
+            </FormGroup>
+          </Box>
+
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            bgcolor="#F6F4F4"
+            p={1.5}
+            borderRadius={1}
+            height="40px"
+          >
+            <Typography>Enable Cashout (Global)</Typography>
+            <FormGroup check className="form-switch">
+              <Input
+                type="switch"
+                id="CashoutSwitch"
+                className="green-switch"
                 checked={cashoutEnabled}
                 onChange={(e) => setCashoutEnabled(e.target.checked)}
+                style={{ width: "40px", height: "20px" }}
               />
-            }
-            label={<Typography fontSize="16px">Enable Cashout (Global)</Typography>}
-          />
+            </FormGroup>
+          </Box>
         </Box>
 
-        <TextField
-          fullWidth
-          placeholder="Search agents by username..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          size="small"
-          sx={{ mt: 3, mb: 2 }}
-        />
-
-        {(masterAgents.length > 0 || subAgents.length > 0) && (
+        {showOverrides && (
           <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" fontSize="16px" fontWeight={600} mb={1}>
-              Master Agent
-            </Typography>
+            <Box sx={{ mt: 2, mb: 2 }}>
+              <Typography variant="h6" fontSize="16px" fontWeight={600} mb={2}>
+                Master Agent Overrides
+              </Typography>
 
-            {masterAgents.length > 0 && (
-              <>
-                <Typography fontSize="14px" fontWeight={500} color="text.secondary" mb={1}>
-                  Master Agents
-                </Typography>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={areAllSelected(masterAgents, "rechargeEnabled")}
-                        indeterminate={isIndeterminate(masterAgents, "rechargeEnabled")}
-                        onChange={(e) => toggleAll(masterAgents, "rechargeEnabled", e.target.checked)}
-                      />
-                    }
-                    label="Select All Recharge"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={areAllSelected(masterAgents, "cashoutEnabled")}
-                        indeterminate={isIndeterminate(masterAgents, "cashoutEnabled")}
-                        onChange={(e) => toggleAll(masterAgents, "cashoutEnabled", e.target.checked)}
-                      />
-                    }
-                    label="Select All Cashout"
-                  />
-                </Box>
-                <Stack spacing={2} mb={2}>
-                  {masterAgents.map((agent) => (
-                    <AgentRow key={agent.id} agent={agent} />
-                  ))}
-                </Stack>
-              </>
-            )}
+              <TextField
+                fullWidth
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="small"
+                sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
-            {subAgents.length > 0 && (
-              <>
-                <Typography fontSize="14px" fontWeight={500} color="text.secondary" mb={1}>
-                  Agents
+              <Box
+                sx={{
+                  border: "1px solid #E7E7E7",
+                  borderRadius: "8px",
+                  mb: 2,
+                  padding: "8px",
+                }}
+              >
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  variant="fullWidth"
+                  sx={{
+                    "& .MuiTabs-indicator": {
+                      display: "none",
+                    },
+                  }}
+                >
+                  <Tab
+                    label="Master Agents"
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      textTransform: "none",
+                      color:
+                        activeTab === 0 ? "white !important" : "text.secondary",
+                      backgroundColor:
+                        activeTab === 0 ? "black" : "transparent",
+                      borderRadius: "4px",
+                      "&:hover": {
+                        backgroundColor: activeTab === 0 ? "black" : "#f5f5f5",
+                      },
+                    }}
+                  />
+                  <Tab
+                    label="Agents under Super Admin"
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      textTransform: "none",
+                      color:
+                        activeTab === 1 ? "white !important" : "text.secondary",
+                      backgroundColor:
+                        activeTab === 1 ? "black" : "transparent",
+                      borderRadius: "4px",
+                      "&:hover": {
+                        backgroundColor: activeTab === 1 ? "black" : "#f5f5f5",
+                      },
+                    }}
+                  />
+                </Tabs>
+              </Box>
+              <Box display="flex" justifyContent="space-between" mb={2}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={areAllSelected(
+                        activeTab === 0 ? masterAgents : subAgents,
+                        "rechargeEnabled"
+                      )}
+                      indeterminate={isIndeterminate(
+                        activeTab === 0 ? masterAgents : subAgents,
+                        "rechargeEnabled"
+                      )}
+                      onChange={(e) =>
+                        toggleAll(
+                          activeTab === 0 ? masterAgents : subAgents,
+                          "rechargeEnabled",
+                          e.target.checked
+                        )
+                      }
+                      size="small"
+                    />
+                  }
+                  label="Select All Recharge"
+                  style={{ fontSize: "14px", fontWeight: 400 }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={areAllSelected(
+                        activeTab === 0 ? masterAgents : subAgents,
+                        "cashoutEnabled"
+                      )}
+                      indeterminate={isIndeterminate(
+                        activeTab === 0 ? masterAgents : subAgents,
+                        "cashoutEnabled"
+                      )}
+                      onChange={(e) =>
+                        toggleAll(
+                          activeTab === 0 ? masterAgents : subAgents,
+                          "cashoutEnabled",
+                          e.target.checked
+                        )
+                      }
+                      size="small"
+                    />
+                  }
+                  label="Select All Cashout"
+                  style={{ fontSize: "14px", fontWeight: 400 }}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <Typography sx={{ flex: 1 }} fontWeight={500}>
+                  Name
                 </Typography>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={areAllSelected(subAgents, "rechargeEnabled")}
-                        indeterminate={isIndeterminate(subAgents, "rechargeEnabled")}
-                        onChange={(e) => toggleAll(subAgents, "rechargeEnabled", e.target.checked)}
-                      />
-                    }
-                    label="Select All Recharge"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={areAllSelected(subAgents, "cashoutEnabled")}
-                        indeterminate={isIndeterminate(subAgents, "cashoutEnabled")}
-                        onChange={(e) => toggleAll(subAgents, "cashoutEnabled", e.target.checked)}
-                      />
-                    }
-                    label="Select All Cashout"
-                  />
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}
+                >
+                  <Typography width={110} textAlign="center" fontWeight={500}>
+                    Recharge
+                  </Typography>
+                  <Typography width={110} textAlign="center" fontWeight={500}>
+                    Cashout
+                  </Typography>
                 </Box>
-                <Stack spacing={2}>
-                  {subAgents.map((agent) => (
+              </Box>
+
+              <Box>
+                {activeTab === 0 ? (
+                  filteredMasterAgents.length > 0 ? (
+                    filteredMasterAgents.map((agent) => (
+                      <AgentRow key={agent.id} agent={agent} />
+                    ))
+                  ) : (
+                    <Typography
+                      color="text.secondary"
+                      textAlign="center"
+                      py={2}
+                    >
+                      No master agents found
+                    </Typography>
+                  )
+                ) : filteredSubAgents.length > 0 ? (
+                  filteredSubAgents.map((agent) => (
                     <AgentRow key={agent.id} agent={agent} />
-                  ))}
-                </Stack>
-              </>
-            )}
+                  ))
+                ) : (
+                  <Typography color="text.secondary" textAlign="center" py={2}>
+                    No agents found
+                  </Typography>
+                )}
+              </Box>
+            </Box>
           </>
         )}
       </DialogContent>
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} color="inherit" disabled={loading}>
+
+      <DialogActions sx={{ px: 3, py: 2, justifyContent: "space-between" }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{ px: 4, borderColor: "#e0e0e0", color: "#000" }}
+        >
           Cancel
         </Button>
         <Button
           onClick={handleSave}
           variant="contained"
           disabled={loading}
+          sx={{ px: 4, bgcolor: "black", "&:hover": { bgcolor: "#333" } }}
           startIcon={loading && <CircularProgress size={18} color="inherit" />}
         >
           {loading ? "Saving..." : "Save"}
@@ -372,5 +551,6 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
     </Dialog>
   );
 };
+
 
 export default GlobalSettingsDialog;
