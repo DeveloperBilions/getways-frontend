@@ -70,7 +70,9 @@ const SelectGiftCardDialog = ({
           currentPage: page,
           perPage,
         });
-        const allCards = allResponse.brands || [];
+                console.log(allResponse,"responseresponseresponseresponse")
+
+        const allCards = allResponse.result || [];
 
         const productIds = new Set();
         combinedResults = [...masterCards, ...allCards].filter((card) => {
@@ -84,7 +86,8 @@ const SelectGiftCardDialog = ({
           currentPage: page,
           perPage,
         });
-        combinedResults = response.brands || [];
+        console.log(response,"responseresponseresponseresponse")
+        combinedResults = response.result || [];
       }
 
       setGiftCards(combinedResults);
