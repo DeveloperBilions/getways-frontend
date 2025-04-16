@@ -446,7 +446,13 @@ export const UserList = (props) => {
   const dataFilters = [
     <Box
       key="search-filter"
-      sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", justifyContent: "space-between" }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        width: "100%",
+        justifyContent: "space-between",
+      }}
       alwaysOn
     >
       <SearchInput
@@ -471,11 +477,14 @@ export const UserList = (props) => {
           borderRadius: "5px",
           border: "1px solid #CFD4DB",
           fontWeight: 400,
-          fontSize: "body-s",
+          fontSize: "14px",
           textTransform: "capitalize",
         }}
       >
-        <FilterListIcon sx={{ marginRight: "6px", width:"16px", height:"16px" }} /> Filter
+        <FilterListIcon
+          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+        />{" "}
+        Filter
       </Button>
     </Box>,
   ];

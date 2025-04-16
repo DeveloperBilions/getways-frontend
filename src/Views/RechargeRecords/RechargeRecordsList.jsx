@@ -349,7 +349,13 @@ export const RechargeRecordsList = (props) => {
   const dataFilters = [
     <Box
       key="search-filter"
-      sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", justifyContent: "space-between"}}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        width: "100%",
+        justifyContent: "space-between",
+      }}
       alwaysOn
     >
       <SearchInput
@@ -363,7 +369,7 @@ export const RechargeRecordsList = (props) => {
           marginBottom: 1,
           borderRadius: "5px",
           borderColor: "#CFD4DB",
-          maxWidth: "280px"
+          maxWidth: "280px",
         }}
       />
       <Button
@@ -374,7 +380,7 @@ export const RechargeRecordsList = (props) => {
           borderRadius: "5px",
           border: "1px solid #CFD4DB",
           fontWeight: 400,
-          fontSize: "body-s",
+          fontSize: "14px",
           textTransform: "capitalize",
         }}
       >

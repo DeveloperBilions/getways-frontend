@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Modal, ModalHeader, ModalBody, Button, ListGroup, ListGroupItem, Alert } from "reactstrap";
-import { TextField, CircularProgress, IconButton } from "@mui/material";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Button,
+  ListGroup,
+  ListGroupItem,
+  Alert,
+  Label,
+} from "reactstrap";
+import { TextField, CircularProgress, IconButton, Box } from "@mui/material";
 import { Parse } from "parse";
-import { MdDelete } from "react-icons/md";
+import deleteIcon from "../../../Assets/icons/delete.svg";
 import "../../../Assets/css/EmergencyDialog.css";
 
 const EmergencyMessageDialog = ({ open, onClose }) => {
@@ -114,11 +123,14 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
           helperText={newMessageError}
           className="emergency-text-field"
         /> */}
+        <Label for="name" className="custom-label">
+          Enter Emergency Message
+        </Label>
 
         <TextField
           fullWidth
-          label="Enter Emergency Message"
           variant="outlined"
+          placeholder="e.g. portal under maintenance "
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           error={Boolean(newMessageError)}
@@ -175,41 +187,59 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
           ))}
         </ListGroup> */}
 
-        <ListGroup className="emergency-list-group">
-          {messages.map((msg, index) => (
-            <ListGroupItem key={index} className="emergency-list-item">
-              <div className="emergency-list-content">{msg}</div>
-              <IconButton
-                color="error"
-                onClick={() => handleDeleteMessage(index)}
-                className="emergency-icon-button"
-              >
-                <MdDelete />
-              </IconButton>
-            </ListGroupItem>
-          ))}
-        </ListGroup>
+        {messages.length > 0 && (
+          <ListGroup className="emergency-list-group">
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Label style={{ fontWeight: 600, fontSize: "14px" }}>
+                Last open message
+              </Label>
+              <Label style={{ fontWeight: 600, fontSize: "14px" }}>
+                Delete
+              </Label>
+            </Box>
+            {messages.map((msg, index) => (
+              <ListGroupItem key={index} className="emergency-list-item">
+                <div className="emergency-list-content">{msg}</div>
+                <IconButton
+                  color="error"
+                  onClick={() => handleDeleteMessage(index)}
+                  className="emergency-icon-button"
+                >
+                  <img src={deleteIcon} alt="Delete" />
+                </IconButton>
+              </ListGroupItem>
+            ))}
+          </ListGroup>
+        )}
 
         <div className="emergency-footer">
-          <Button
-            className="emergency-button primary"
-            onClick={handleSave}
-            disabled={loading}
-            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
-          >
-            {loading ? (
-              <CircularProgress size={20} className="emergency-loader" />
-            ) : (
-              "Save"
-            )}
-          </Button>
           <Button
             className="emergency-button secondary"
             onClick={onClose}
             disabled={loading}
-            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             Cancel
+          </Button>
+          <Button
+            className="emergency-button primary"
+            onClick={handleSave}
+            disabled={loading}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={20} className="emergency-loader" />
+            ) : (
+              "Send message"
+            )}
           </Button>
         </div>
       </ModalBody>
