@@ -164,7 +164,7 @@ export const WalletDetails = ({
             onClick={() => {
               setIsOpen(true);
             }}
-            disabled={identity?.isBlackListed || true}
+            disabled={identity?.isBlackListed}
           >
             Cashout{" "}
             <ArrowForwardIcon
