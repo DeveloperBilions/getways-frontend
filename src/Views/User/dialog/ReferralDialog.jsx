@@ -18,7 +18,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 const ReferralDialog = ({ open, onClose, referralCode }) => {
   const [copied, setCopied] = useState(false);
 
-  var referralLink = `${process.env.REACT_APP_REFERRAL_URL}/#/create-user?referral=${referralCode}`;
+  var referralLink = `${process.env.REACT_APP_REFERRAL_URL}/create-user?referral=${referralCode}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);

@@ -91,13 +91,16 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       const isStripeMinValid =
         paymentSource === "stripe" ? parseFloat(rechargeAmount) >= 10 : true;
       const isAccessGranted = !RechargeEnabled && !rechargeDisabled;
-
+      console.log( isAmountValid ,
+        isWalletEnough ,
+        isStripeMinValid ,
+        identity ,
+        isAccessGranted, "test")
       return (
         isAmountValid &&
         isWalletEnough &&
         isStripeMinValid &&
         identity &&
-        !autoSubmitted &&
         isAccessGranted
       );
     };
@@ -222,23 +225,26 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       setLoading(true);
       try {
         const response = await dataProvider.userTransaction(rawData);
-        window.open(response?.apiResponse.paymentUrl, "_blank");
-
         if (response?.success) {
+          window.open(response?.apiResponse.paymentUrl, "_blank");
+
           const paymentUrl = response?.apiResponse?.url;
           if (paymentUrl) {
             window.open(paymentUrl, "_blank");
           } else {
             setErrorMessage("Payment URL is missing. Please try again.");
           }
-        } else {
+          onClose();
+          handleRefresh();
+          resetFields();
+        }else {
           setErrorMessage(
             response?.message || "Stripe recharge failed. Please try again."
           );
         }
-        onClose();
-        handleRefresh();
-        resetFields();
+        // onClose();
+        // handleRefresh();
+        // resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
