@@ -31,6 +31,8 @@ import { saveAs } from "file-saver";
 import "jspdf-autotable";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CustomPagination from "../Common/CustomPagination";
+import tick from "../../Assets/icons/tick.svg"
+import { pad } from "crypto-js";
 
 const statusChoices = [
   { id: "kyc_success", name: "KYC Success" },
@@ -53,16 +55,126 @@ export const KycRecordsList = (props) => {
 
   const refresh = useRefresh();
   const isMobile = useMediaQuery("(max-width:600px)");
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
 
   const postListActions = (
-    <TopToolbar
-      sx={{
-        display: "flex",
-        justifyContent: isMobile ? "space-between" : "flex-end",
-        width: "100%",
-      }}
-    >
-      <Button onClick={refresh}>Refresh</Button>
+    <TopToolbar>
+      <Button
+        variant="outlined"
+        onClick={handleMenuOpen}
+        sx={{
+          height: "40px",
+          borderRadius: "5px",
+          border: "1px solid #CFD4DB",
+          fontWeight: 400,
+          fontSize: "14px",
+          textTransform: "none",
+          mb: 2,
+        }}
+      >
+        <FilterListIcon
+          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+        />{" "}
+        Status
+      </Button>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+        sx={{
+          marginTop: "8px",
+          "& .MuiPaper-root": {
+      paddingLeft: "8px",
+      paddingRight: "8px",
+    }
+        }}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <MenuItem
+          key="all"
+          onClick={() => {
+            setFilters({ ...filterValues, kycStatus: "" });
+            handleMenuClose();
+          }}
+          sx={{
+            bgcolor:
+              filterValues.kycStatus === "" ||
+              filterValues.kycStatus === undefined
+                ? "#F6F4F4"
+                : "white",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width:"180px",
+            borderRadius: "8px",
+            mb: "2px",
+          }}
+        >
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 400,
+              }}
+            >
+              All
+            </Typography>
+            {filterValues.kycStatus === "" ||
+            filterValues.kycStatus === undefined ? (
+              <img
+                src={tick}
+                alt="tick"
+              />
+            ) : null}
+        </MenuItem>
+        {statusChoices.map((choice) => (
+          <MenuItem
+            key={choice.id}
+            onClick={() => {
+              setFilters({ ...filterValues, kycStatus: choice.id });
+              handleMenuClose();
+            }}
+            sx={{
+              bgcolor:
+                filterValues.kycStatus === choice.id ? "#F6F4F4" : "white",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width:"180px",
+              borderRadius: "8px",
+              mb: "2px",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 400,
+              }}
+            >
+              {choice.name}
+            </Typography>
+            {filterValues.kycStatus ===  choice.id ? (
+              <img
+                src={tick}
+                alt="tick"
+              />
+            ) : null}
+          </MenuItem>
+        ))}
+      </Menu>
     </TopToolbar>
   );
 
@@ -71,7 +183,7 @@ export const KycRecordsList = (props) => {
       key="search-filter"
       sx={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "end",
         justifyContent: "flex-start",
         flexWrap: "nowrap",
         overflowX: "auto",
@@ -107,7 +219,7 @@ export const KycRecordsList = (props) => {
           },
         }}
       />
-      <SelectInput
+      {/* <SelectInput
         source="kycStatus"
         choices={statusChoices}
         label="KYC Status"
@@ -119,10 +231,9 @@ export const KycRecordsList = (props) => {
             height: "40px",
           },
         }}
-      />
+      /> */}
     </Box>,
   ];
-  
 
   return (
     <List
@@ -158,8 +269,18 @@ export const KycRecordsList = (props) => {
               render={(record) => (
                 <Chip
                   label={record.kycVerified ? "Yes" : "No"}
-                  color={record.kycVerified ? "success" : "warning"}
                   variant="outlined"
+                  sx={{
+                    backgroundColor: record.kycVerified ? "#EBF9F0" : "#FFFCEB",
+                    color: "black",
+                    border: `1px solid ${
+                      record.kycVerified ? "#77C79C" : "#FFDC60"
+                    }`,
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    height: "22px",
+                  }}
                 />
               )}
             />

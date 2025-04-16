@@ -8,7 +8,7 @@ import {
   FilterForm,
 } from "react-admin";
 import debounce from "lodash/debounce"; // Import Lodash debounce
-import { Autocomplete, TextField, useMediaQuery } from "@mui/material";
+import { Autocomplete, TextField } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
 // mui
 import {
@@ -28,8 +28,6 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import BackupTableIcon from "@mui/icons-material/BackupTable";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
@@ -43,6 +41,9 @@ import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg"
 import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg"
 import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg"
 import Download from "../../Assets/icons/download.svg";
+import pdfIcon from "../../Assets/icons/pdfIcon.svg";
+import excelIcon from "../../Assets/icons/excelIcon.svg";
+import downloadDark from "../../Assets/icons/downloadDark.svg";
 
 const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
@@ -626,7 +627,6 @@ export const DataSummary = () => {
   const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
   const [menuAnchor, setMenuAnchor] = React.useState(null);
-  const [menuAnchorRedeem, setMenuAnchorRedeem] = React.useState(null);
   const [isExporting, setIsExporting] = useState(false);// Loading state for data fetch
 
   const [choices, setChoices] = useState([]);
@@ -638,7 +638,6 @@ export const DataSummary = () => {
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
   const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
-  const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleUserChange = (selectedId) => {
     setSelectedUsertemp(selectedId);
@@ -714,13 +713,6 @@ export const DataSummary = () => {
 
   const handleMenuClose = () => {
     setMenuAnchor(null);
-  };
-  const handleMenuRedeemOpen = (event) => {
-    setMenuAnchorRedeem(event.currentTarget);
-  };
-
-  const handleMenuRedeemClose = () => {
-    setMenuAnchorRedeem(null);
   };
   const formatDateForExcel = (date) => {
     if (!date) return date; // Keep the original value if it's null or undefined
@@ -1062,8 +1054,33 @@ export const DataSummary = () => {
   const debouncedFetchUsers = useCallback(debounce(fetchUsers, 500), []);
   const dataFilters = [
     <Autocomplete
+      label="Username" // Add label property if supported
       source="username"
-      sx={{ width: { xs: "100%", md: 300 } }}
+      sx={{ 
+        width: { xs: "100%", md: 300 },
+        '& .MuiFormLabel-root': { 
+          position: 'relative',
+          transform: 'none',
+          fontSize: '14px',
+          fontWeight: 600,
+          marginBottom: '4px'
+        },
+        '& .MuiInputLabel-shrink': {
+          transform: 'none',
+        },
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '4px',
+          '& fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&:hover fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#CFD4DB',
+          }
+        }
+      }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
       isOptionEqualToValue={(option, value) => option.id === value?.id}
@@ -1081,8 +1098,13 @@ export const DataSummary = () => {
       renderInput={(params) => (
         <TextField
           {...params}
-          label="Username"
+          placeholder="Search username"
           variant="outlined"
+          InputLabelProps={{
+            shrink: true,
+            style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+          }}
+          label="Username"
           InputProps={{
             ...params.InputProps,
             endAdornment: (
@@ -1091,6 +1113,11 @@ export const DataSummary = () => {
                 {params.InputProps.endAdornment}
               </>
             ),
+            sx: {
+              '& fieldset': {
+                borderColor: '#CFD4DB',
+              }
+            }
           }}
         />
       )}
@@ -1098,11 +1125,39 @@ export const DataSummary = () => {
       resettable
     />,
     <DateInput
-      label="Start date"
+      label="Start Date"
       source="startdate"
-      sx={{ width: { xs: "100%", md: "auto" } }}
+      sx={{ 
+        width: { xs: "100%", md: "auto" },
+        '& .MuiFormLabel-root': { 
+          position: 'relative',
+          transform: 'none',
+          fontSize: '14px',
+          fontWeight: 600,
+          marginBottom: '4px'
+        },
+        '& .MuiInputLabel-shrink': {
+          transform: 'none',
+        },
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '4px',
+          '& fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&:hover fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#CFD4DB',
+          }
+        }
+      }}
       alwaysOn
       resettable
+      InputLabelProps={{
+        shrink: true,
+        style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+      }}
       // validate={maxValue(currentDate)}
       InputProps={{
         inputProps: {
@@ -1113,11 +1168,39 @@ export const DataSummary = () => {
       onChange={(event) => setTempStartDate(event.target.value)}
     />,
     <DateInput
-      label="End date"
+      label="End Date"
       source="enddate"
-      sx={{ width: { xs: "100%", md: "auto" } }}
+      sx={{ 
+        width: { xs: "100%", md: "auto" },
+        '& .MuiFormLabel-root': { 
+          position: 'relative',
+          transform: 'none',
+          fontSize: '14px',
+          fontWeight: 600,
+          marginBottom: '4px'
+        },
+        '& .MuiInputLabel-shrink': {
+          transform: 'none',
+        },
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '4px',
+          '& fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&:hover fieldset': {
+            borderColor: '#CFD4DB',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#CFD4DB',
+          }
+        }
+      }}
       alwaysOn
       resettable
+      InputLabelProps={{
+        shrink: true,
+        style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+      }}
       // validate={maxValue(currentDate)}
       onChange={(event) => setTempEndDate(event.target.value)}
       InputProps={{
@@ -1127,10 +1210,9 @@ export const DataSummary = () => {
         },
       }}
     />,
-
+  
     // <SearchSelectUsersFilter />,
   ];
-
   const handleFilterSubmit = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
@@ -1139,14 +1221,41 @@ export const DataSummary = () => {
   return (
     <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mt: "8px",
+          px: { xs: 1, sm: 2 }
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "24px",
+            fontWeight: 400,
+            color: "var(--primary-color)",
+          }}
+        >
+          Summary
+        </Typography>
+      </Box>
       <ListBase resource="users" filter={{ username: selectedUser?.id }}>
         <Box sx={{ px: { xs: 1, sm: 2 } }}>
           <Box
             display="flex"
             flexDirection={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
-            alignItems={{ xs: "stretch", sm: "center" }}
+            alignItems={{ xs: "stretch", sm: "end" }}
             gap={{ xs: 1, md: 2 }}
+          >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              // gap: 1,
+              alignItems: { xs: "stretch", sm: "end" },
+            }}
           >
             <FilterForm
               filters={dataFilters}
@@ -1155,10 +1264,10 @@ export const DataSummary = () => {
                 padding: "0 !important",
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
-                gap: 1,
+                // gap: 1,
                 alignItems: { xs: "stretch", sm: "flex-start" },
               }}
-            />{" "}
+            />
             <Button
               source="date"
               variant="contained"
@@ -1166,13 +1275,23 @@ export const DataSummary = () => {
               sx={{
                 mt: 1,
                 padding: "2 !important",
-                width: "100%",
+                height: "40px",
+                width: "127px",
                 whiteSpace: "nowrap",
               }} // Adds left margin for spacing
             >
-              Apply Filter
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  color: "var(--white-color)",
+                  textTransform: "none",
+                  fontFamily: "Inter",
+                }}>
+                Apply Filter
+              </Typography>
             </Button>
-          
+          </Box>
           {role === "Super-User" && (
             <Box
               display="flex"
@@ -1182,30 +1301,41 @@ export const DataSummary = () => {
             >
               <Button
                 variant="contained"
-                startIcon={<img src={Download} alt="Export" />}
-                onClick={handleMenuRedeemOpen}
-                sx={{
-                  width: { xs: "100%", md: "auto" },
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Redeem Export{" "}
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<img src={Download} alt="Export" />}
+                color="secondary"
+                startIcon={<img src={downloadDark} alt="Export" />}
                 onClick={handleMenuOpen}
                 sx={{
                   width: { xs: "100%", md: "auto" },
                   whiteSpace: "nowrap",
+                  height: "40px",
                 }}
               >
-                Recharge Export
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 500,
+                    color: "var(--white-color)",
+                    textTransform: "none",
+                    fontFamily: "Inter",
+                  }}>
+                  Export
+                </Typography>
               </Button>
               <Menu
                 anchorEl={menuAnchor}
                 open={Boolean(menuAnchor)}
                 onClose={handleMenuClose}
+                sx={{
+                  marginTop: "8px",
+                }}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
               >
                 <MenuItem
                   onClick={() => {
@@ -1218,10 +1348,26 @@ export const DataSummary = () => {
                     {isExporting ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <PictureAsPdfIcon fontSize="small" />
+                      <img src={pdfIcon} alt="PDF" width={20} height={20} />
                     )}
                   </ListItemIcon>
-                  PDF
+                  .pdf Recharge Export
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleExportRedeemPDF();
+                    //handleMenuRedeemClose();
+                  }}
+                  disabled={isExporting}
+                >
+                  <ListItemIcon>
+                    {isExporting ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <img src={pdfIcon} alt="PDF" width={20} height={20} />
+                    )}
+                  </ListItemIcon>
+                  .pdf Redeem Export
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -1234,33 +1380,10 @@ export const DataSummary = () => {
                     {isExporting ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <BackupTableIcon fontSize="small" />
+                      <img src={excelIcon} alt="EXCEL"/>
                     )}
                   </ListItemIcon>
-                  Excel
-                </MenuItem>
-              </Menu>
-
-              <Menu
-                anchorEl={menuAnchorRedeem}
-                open={Boolean(menuAnchorRedeem)}
-                onClose={handleMenuRedeemClose}
-              >
-                <MenuItem
-                  onClick={() => {
-                    handleExportRedeemPDF();
-                    //handleMenuRedeemClose();
-                  }}
-                  disabled={isExporting}
-                >
-                  <ListItemIcon>
-                    {isExporting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <PictureAsPdfIcon fontSize="small" />
-                    )}
-                  </ListItemIcon>
-                  PDF
+                  .xls Recharge Export
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -1273,10 +1396,10 @@ export const DataSummary = () => {
                     {isExporting ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <BackupTableIcon fontSize="small" />
+                      <img src={excelIcon} alt="EXCEL"/>
                     )}
                   </ListItemIcon>
-                  Excel
+                  .xls Redeem Export
                 </MenuItem>
               </Menu>
             </Box>
