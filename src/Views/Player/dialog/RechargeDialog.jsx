@@ -23,6 +23,7 @@ import { signSmartContractData } from "@wert-io/widget-sc-signer";
 
 import Close from "../../../Assets/icons/close.svg";
 import { Alert } from "@mui/material";
+import { generateScInputData } from "./GenerateInput";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -310,6 +311,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const walletRecord = await walletQuery.first({ useMasterKey: true });
 
     const userWalletAddress = walletRecord?.get("wallet_adress");
+     const sc_input_data = generateScInputData(
+    "0xb432bd78f57233ddc6688870829432a759a6e551",
+    amount // ⚠️ Use your actual logic for token amount here
+  );
     const signedData = signSmartContractData(
       {
         address: "0xb432bd78f57233ddc6688870829432a759a6e551",
@@ -317,8 +322,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         commodity_amount: amount,
         network: "bsc",
         sc_address: "0x3F0848e336dCB0Cb35f63FE10b1af2A44B8Ec3E3",
-        sc_input_data:
-          "0x3c168eab0000000000000000000000000e976df9bb3ac63f7802ca843c9d121ae2ef22ee0000000000000000000000000000000000000000000000000000000000000001",
+        sc_input_data:sc_input_data,
       },
       privateKey
     );
