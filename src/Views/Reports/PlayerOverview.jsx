@@ -16,17 +16,23 @@ import {
   Paper,
   Box,
   Autocomplete,
+  InputAdornment,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useGetIdentity } from "react-admin";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fetchTransactionsofPlayer } from "../../Utils/utils";
 import debounce from "lodash/debounce";
 import { dataProvider } from "../../Provider/parseDataProvider";
+import CustomPagination from "../Common/CustomPagination";
+import SearchIcon from "@mui/icons-material/Search";
+import downloadDark from "../../Assets/icons/downloadDark.svg";
+import jsPDF from "jspdf";
 
-export const PlayerOverview = ({description}) => {
+export const PlayerOverview = () => {
   const [playerData, setPlayerData] = useState([]); // For Player transaction report
+  const [filteredPlayerData, setFilteredPlayerData] = useState([]);
   const [playerRechargeData, setPlayerRechargeData] = useState([]); // For Player recharge report
   const [playerRedeemData, setPlayerRedeemData] = useState([]); // For Player recharge report
   const [playerCashoutData, setPlayerCashoutData] = useState([]); // For Player recharge report
@@ -44,6 +50,35 @@ export const PlayerOverview = ({description}) => {
   const [userLoading, setUserLoading] = useState(false);
   const perPage = 10;
   const [noDataFound, setNoDataFound] = useState(false);
+  const [allPlayerData, setAllPlayerData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPlayerData, setCurrentPlayerData] = useState([]);
+
+  useEffect(() => {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    setCurrentPlayerData(filteredPlayerData.slice(startIndex, endIndex));
+  }, [page, rowsPerPage, filteredPlayerData]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filteredPlayerData]);
+
+  useEffect(() => {
+    // Filter data based on search term whenever rechargeData or searchTerm changes
+    if (searchTerm.trim() === "") {
+      setFilteredPlayerData(allPlayerData);
+    } else {
+      const filtered = allPlayerData.filter((item) =>
+        item.username.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPlayerData(filtered);
+    }
+  }, [searchTerm, setFilteredPlayerData]);
 
   const fetchUsers = async (search = "", pageNum = 1) => {
     setUserLoading(true);
@@ -83,6 +118,7 @@ export const PlayerOverview = ({description}) => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setPage(1);
       // Fetch Player recharge report
       const playerTransactionResult = await fetchTransactionsofPlayer({
         startDate: fromDate,
@@ -93,9 +129,13 @@ export const PlayerOverview = ({description}) => {
       setPlayerData(playerTransactionResult?.data || []);
       if (!playerTransactionResult?.data.length) {
         setNoDataFound(true);
+        setAllPlayerData([]);
+        setFilteredPlayerData([]);
         return;
       } else {
         setNoDataFound(false);
+        setAllPlayerData(playerTransactionResult?.data);
+        setFilteredPlayerData(playerTransactionResult?.data);
       }
       // Sort playerTransactionResult by totalRecharge and select top 30 players
       const sortedPlayerRechargeData = playerTransactionResult?.data
@@ -118,8 +158,44 @@ export const PlayerOverview = ({description}) => {
   };
   const handleSubmit = () => {
     setSubmitted(true);
+    setPage(1);
+    setSearchTerm("");
     fetchData();
   };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
+
+    const handleExportPDF = async () => {
+        if (!filteredPlayerData || filteredPlayerData.length === 0) {
+          console.warn("No data to export.");
+          return;
+        }
+         const doc = new jsPDF();
+         doc.text("Player Transaction Report", 10, 10);
+         doc.autoTable({
+           head: [
+             [
+               "No",
+               "Player Name",
+               "Total Recharge",
+               "Total Redeem",
+               "Total Cashout",
+             ],
+           ],
+           body: filteredPlayerData.map((row, index) => [
+             index + 1,
+             row.username,
+             row.totalRecharge,
+             row.totalRedeem,
+             row.totalCashout,
+           ]),
+         });
+         doc.save("PlayerTransactionReport.pdf");
+      };
+
 
   // Calculate totals for PieChart
   const calculateTotals = () => {
@@ -160,11 +236,10 @@ export const PlayerOverview = ({description}) => {
         });
         return sortedData;
       });
-
+      setPage(1);
       return newSortOrder; // Update the state with the new order
     });
   };
-
   const pieChartData = calculateTotals();
 
   const handleUserChange = (selectedId) => {
@@ -175,10 +250,6 @@ export const PlayerOverview = ({description}) => {
 
   return (
     <>
-      {/* Dashboard Description */}
-      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
-        {description}
-      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
@@ -419,10 +490,68 @@ export const PlayerOverview = ({description}) => {
                   </Grid>
                 </Grid>
 
-                {/* Data Grid for Player Recharge Report */}
-                <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                  Top {playerData.slice(0, 30).length} Player Transaction Report
-                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    margin: "18px 0px",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 400, fontSize: "1.25rem" }}
+                  >
+                    Player Transaction Report
+                  </Typography>
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", gap: "16px" }}
+                  >
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      placeholder="Search"
+                      value={searchTerm}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          height: "40px",
+                        },
+                        maxWidth: "256px",
+                      }}
+                      onChange={handleSearch}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <SearchIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      startIcon={<img src={downloadDark} alt="Export" />}
+                      onClick={handleExportPDF}
+                      sx={{
+                        width: { xs: "100%", md: "auto" },
+                        whiteSpace: "nowrap",
+                        height: "40px",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "16px",
+                          fontWeight: 500,
+                          color: "var(--white-color)",
+                          textTransform: "none",
+                          fontFamily: "Inter",
+                        }}
+                      >
+                        Export
+                      </Typography>
+                    </Button>
+                  </Box>
+                </Box>
                 <TableContainer component={Paper}>
                   <Table>
                     <TableHead>
@@ -466,7 +595,7 @@ export const PlayerOverview = ({description}) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {playerData.slice(0, 30).map((row, index) => (
+                      {currentPlayerData.slice(0, 30).map((row, index) => (
                         <TableRow key={index}>
                           <TableCell>{row.username}</TableCell>
                           <TableCell>{row.totalRecharge}</TableCell>
@@ -476,6 +605,15 @@ export const PlayerOverview = ({description}) => {
                       ))}
                     </TableBody>
                   </Table>
+                  {allPlayerData.length > 0 && (
+                    <CustomPagination
+                      page={page}
+                      perPage={rowsPerPage}
+                      total={filteredPlayerData?.length}
+                      setPage={setPage}
+                      setPerPage={setRowsPerPage}
+                    />
+                  )}
                 </TableContainer>
               </>
             ) : (

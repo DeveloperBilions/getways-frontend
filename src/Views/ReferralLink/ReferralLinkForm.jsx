@@ -262,7 +262,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                 />
@@ -298,7 +298,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                 />
@@ -334,7 +334,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                 />
@@ -370,7 +370,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                 />
@@ -402,7 +402,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                 />
@@ -434,7 +434,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                   InputProps={{
@@ -491,7 +491,7 @@ const ReferralLinkForm = () => {
                       height: { xs: "36px", sm: "40px" },
                       borderRadius: "5px",
                       backgroundColor: "#ffffff",
-                      border: "1px solid #CFD4DB",
+                      borderColor: "#CFD4DB",
                     },
                   }}
                   InputProps={{
