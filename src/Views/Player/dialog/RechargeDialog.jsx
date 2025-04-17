@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   Modal,
@@ -44,9 +44,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [RechargeEnabled, setRechargeEnabled] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const isMountedRef = useRef(false);
 
   const resetFields = () => {
-    setErrorMessage(""); // Reset error message
+    setIsSubmitting(false);
+    setAutoSubmitted(false);
+    setErrorMessage("");
+    setSuccessRecharge(false);
   };
 
   useEffect(() => {
@@ -63,12 +68,16 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       }
     };
 
+    isMountedRef.current = true;
     if (identity && open) {
       fetchWalletBalance();
       parentServiceFee();
     } else {
       resetFields();
     }
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [identity, open]);
 
   useEffect(() => {
@@ -102,6 +111,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     };
   
     const submitIfReady = async () => {
+      if (isSubmitting || autoSubmitted || !isMountedRef.current) return;
+
       const transactionCheck = await checkActiveRechargeLimit(
         identity?.userParentId,
         rechargeAmount
@@ -137,11 +148,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       }
   
       setAutoSubmitted(true); // prevent multiple calls
+       setIsSubmitting(true);
       const syntheticEvent = { preventDefault: () => {} };
       handleSubmit(syntheticEvent);
     };
-  
-    if (open && !autoSubmitted) {
+    if (open && identity && !autoSubmitted) {
       submitIfReady();
     }
   }, [
@@ -156,10 +167,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     autoSubmitted,
   ]);
   
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    if (isSubmitting) return; 
+    setIsSubmitting(true);
     setErrorMessage(""); // Clear previous errors
 
     if (parseFloat(rechargeAmount) < redeemFees) {
@@ -225,8 +236,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       } catch (error) {
         console.error("Error processing wallet recharge:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
-      } finally {
-        setLoading(false);
+      }  finally {
+        if (isMountedRef.current) {
+          setIsSubmitting(false);
+          setLoading(false);
+        }
       }
     } else if (paymentSource === "stripe") {
       const amount = parseFloat(rechargeAmount);
