@@ -1,4 +1,5 @@
 import { Parse } from "parse";
+import { dataProvider } from "../Provider/parseDataProvider";
 Parse.initialize(
     process.env.REACT_APP_APPID,
     process.env.REACT_APP_JAVASCRIPT_KEY,
@@ -1274,4 +1275,25 @@ export const isCashoutEnabledForAgent = async (agentId) => {
   }
 };
 
+export const KYCReport = async (filter) => {
+  try {
+    const response = await dataProvider.getList("kycRecords", {
+      pagination: { page: 1, perPage: 100000 },
+      sort: { field: "createdAt", order: "DESC" },
+      filter: filter,
+    });
+
+    const statusCounts = response.data.reduce((acc, record) => {
+      const status = record.kycStatus;
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return { status: "success", data: statusCounts };
+
+  } catch (error) {
+    console.error("Error fetching KYC report:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};
 

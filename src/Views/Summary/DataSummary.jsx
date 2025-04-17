@@ -32,7 +32,9 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
 import TotalUser from "../../Assets/icons/TotalUser.svg"
+import TotalAgent from "../../Assets/icons/TotalAgent.svg"
 import TotalRecharge from "../../Assets/icons/TotalRecharge.svg"
+import TotalRedeem from "../../Assets/icons/TotalRedeem.svg"
 import PendingRecharge from "../../Assets/icons/PendingRecharge.svg"
 import FailedRedeem from "../../Assets/icons/FailedRedeem.svg"
 import TotalCashoutRedeemSuccessfull from "../../Assets/icons/TotalCashoutRedeemSuccessfull.svg"
@@ -40,7 +42,6 @@ import TotalCashoutRedeemPending from "../../Assets/icons/TotalCashoutRedeemPend
 import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg"
 import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg"
 import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg"
-import Download from "../../Assets/icons/download.svg";
 import pdfIcon from "../../Assets/icons/pdfIcon.svg";
 import excelIcon from "../../Assets/icons/excelIcon.svg";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
@@ -145,8 +146,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 <span>{filteredRechargeValue}</span>
               </Box>
             ),
-            bgColor: "#FFEBEB",
+            bgColor: "#EBF7FF",
             borderColor: "#FF9C9C",
+            color: "#287AB1",
             icon: (
               <img
                 src={TotalRecharge_Filtered}
@@ -181,8 +183,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       id: 1,
       name: "Total User",
       value: data[0].totalRegisteredUsers,
-      bgColor: "#EBF4FF",
+      bgColor: "#EFF6FF",
       borderColor: "#7EB9FB",
+      color: "#4556D9",
       icon: (
         <img src={TotalUser} alt="Total User" style={{ marginRight: "4px" }} />
       ),
@@ -191,11 +194,12 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       id: 2,
       name: "Total Agent",
       value: data[0].totalAgents,
-      bgColor: "#EEEBFF",
+      bgColor: "#FAF5FF",
       borderColor: "#937EFB",
+      color: "#4943D9",
       icon: (
         <img
-          src={TotalUser}
+          src={TotalAgent}
           alt="Total Agent"
           style={{ marginRight: "4px" }}
         />
@@ -222,6 +226,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
       ),
       bgColor: "#EBF9F0",
       borderColor: "#9CDAB8",
+      color: "#1AA24D",
       icon: (
         <img
           src={TotalRecharge}
@@ -249,11 +254,12 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <span>{data[0].totalRedeemAmount}</span>
         </div>
       ),
-      bgColor: "#F4F0F9",
+      bgColor: "#FEF2F2",
       borderColor: "#C4B0DF",
+      color: "#DC2626",
       icon: (
         <img
-          src={TotalRecharge}
+          src={TotalRedeem}
           alt="Total Redeem"
           style={{ marginRight: "4px" }}
         />
@@ -278,8 +284,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <span>{data[0].totalPendingRechargeAmount}</span>
         </div>
       ),
-      bgColor: "#FFFCEB",
+      bgColor: "#FEFCE8",
       borderColor: "#FFE787",
+      color: "#C48400",
       icon: (
         <img
           src={PendingRecharge}
@@ -307,8 +314,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <span>{data[0].totalFailRedeemAmount}</span>
         </div>
       ),
-      bgColor: "#FFEBEB",
+      bgColor: "#FEF2F2",
       borderColor: "#FF9C9C",
+      color: "#DC2626",
       icon: (
         <img
           src={FailedRedeem}
@@ -340,6 +348,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             ),
             bgColor: "#EBFFF1",
             borderColor: "#9CFFBD",
+            color: "#1AA24D",
             icon: (
               <img
                 src={TotalCashoutRedeemSuccessfull}
@@ -367,8 +376,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 <span>{data[0].totalCashoutRedeemsInProgress}</span>
               </div>
             ),
-            bgColor: "#FCFFEB",
+            bgColor: "#FFF7ED",
             borderColor: "#EEFF9C",
+            color: "#EA580C",
             icon: (
               <img
                 src={TotalCashoutRedeemPending}
@@ -404,8 +414,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 <span>{data[0].totalFeesCharged}</span>
               </div>
             ),
-            bgColor: "#FDEBFF",
+            bgColor: "#EEF2FF",
             borderColor: "#F79CFF",
+            color: "#4F46E5",
             icon: (
               <img
                 src={TotalFeesCharged}
@@ -418,8 +429,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             id: 9,
             name: "Total Wallet Balance",
             value: data[0].totalWalletBalance || 0,
-            bgColor: "#FFF3EB",
+            bgColor: "#F0FDFA",
             borderColor: "#FFC79C",
+            color: "#0D9488",
             icon: (
               <img
                 src={TotalWalletBalance}
@@ -442,9 +454,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <Card
             sx={{
               backgroundColor: item?.bgColor,
-              border: 2,
-              borderColor: item?.borderColor,
-              borderRadius: 0,
+              // border: 2,
+              // borderColor: item?.borderColor,
+              borderRadius: "4px",
               boxShadow: 0,
               px: 1,
             }}
@@ -463,10 +475,11 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 sx={{
                   mt: 2,
                   fontWeight: 400,
-                  fontSize: "header-xl",
+                  fontSize: "32px",
                   lineHeight: "100%",
                   letterSpacing: "0%",
                   verticalAlign: "middle",
+                  color: item?.color || "inherit",
                 }}
               >
                 {item?.value}
@@ -482,9 +495,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <Card
             sx={{
               backgroundColor: item?.bgColor,
-              border: 2,
-              borderColor: item?.borderColor,
-              borderRadius: 0,
+              // border: 2,
+              // borderColor: item?.borderColor,
+              borderRadius: "4px",
               boxShadow: 0,
               px: { xs: 1, sm: 2 },
             }}
@@ -504,10 +517,11 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 sx={{
                   mt: 2,
                   fontWeight: 400,
-                  fontSize: "header-xl",
+                  fontSize: "32px",
                   lineHeight: "100%",
                   letterSpacing: "0%",
                   verticalAlign: "middle",
+                color: item?.color || "inherit",
                 }}
               >
                 {item?.value}
@@ -523,9 +537,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <Card
             sx={{
               backgroundColor: item?.bgColor,
-              border: 2,
-              borderColor: item?.borderColor,
-              borderRadius: 0,
+              // border: 2,
+              // borderColor: item?.borderColor,
+              borderRadius: "4px",
               boxShadow: 0,
               px: { xs: 1, sm: 2 },
             }}
@@ -545,10 +559,11 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                 sx={{
                   mt: 2,
                   fontWeight: 400,
-                  fontSize: "header-xl",
+                  fontSize: "32px",
                   lineHeight: "100%",
                   letterSpacing: "0%",
                   verticalAlign: "middle",
+                  color: item?.color || "inherit",
                 }}
               >
                 {item?.value}
@@ -564,9 +579,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
           <Card
             sx={{
               backgroundColor: item?.bgColor,
-              border: 2,
-              borderColor: item?.borderColor,
-              borderRadius: 0,
+              // border: 2,
+              // borderColor: item?.borderColor,
+              borderRadius: "4px",
               boxShadow: 0,
               px: { xs: 1, sm: 2 },
             }}
@@ -599,10 +614,11 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   sx={{
                     mt: 2, // Small margin to separate from the name
                     fontWeight: 400, // Bold to match the image
-                    fontSize: "header-xl", // Large font size
+                    fontSize: "32px", // Large font size
                     lineHeight: "100%",
                     letterSpacing: "0%",
                     verticalAlign: "middle",
+                    color: item?.color || "inherit",
                   }}
                 >
                   {item?.value} {/* e.g., 9346 */}

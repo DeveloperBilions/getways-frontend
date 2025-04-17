@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
-import PersonIcon from "@mui/icons-material/Person";
 import { useGetIdentity } from "react-admin";
 import React, { useEffect, useState } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
@@ -28,8 +27,10 @@ import CustomPagination from "../Common/CustomPagination";
 import SearchIcon from "@mui/icons-material/Search";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
 import jsPDF from "jspdf";
+import TotalUser from "../../Assets/icons/TotalUser.svg";
+import TotalAgent from "../../Assets/icons/TotalAgent.svg";
 
-export const Overview = ({description}) => {
+export const Overview = ({ description }) => {
   const [data, setData] = useState();
   const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
   const [filteredRechargeData, setFilteredRechargeData] = useState([]);
@@ -149,9 +150,10 @@ export const Overview = ({description}) => {
       value: data?.totalFeesAmount?.[0]?.totalFees
         ? data.totalFeesAmount[0].totalFees.toFixed(2)
         : "0.00",
-      bgColor: "#E3F2FD",
+      bgColor: "#F2EFFF",
       borderColor: "#7EB9FB",
-      icon: <PersonIcon color="primary" />,
+      color: "#3C24B2",
+      icon: <img src={TotalUser} alt="Total User" />,
     },
     {
       id: 2,
@@ -159,9 +161,10 @@ export const Overview = ({description}) => {
       value: data?.totalTicketAmount?.[0]?.totalTicketAmount
         ? data.totalTicketAmount[0].totalTicketAmount.toFixed(2)
         : "0.00",
-      bgColor: "#dedede",
+      bgColor: "#F5FCFF",
       borderColor: "#adb5bd",
-      icon: <PersonIcon color="info" />,
+      color: "#276E91",
+      icon: <img src={TotalAgent} alt="Total Agent" />,
     },
   ];
 
@@ -220,46 +223,83 @@ export const Overview = ({description}) => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2, height: "auto" }}>
-            <TextField
-              label="From Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              inputProps={{
-                min: startDateLimit,
-                max: toDate || today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
-            <TextField
-              label="To Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              inputProps={{
-                min: fromDate || startDateLimit,
-                max: today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
+          <Box
+            display="flex"
+            sx={{ mb: 1, gap: 2, height: "auto" }}
+            alignItems={"end"}
+          >
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                inputProps={{
+                  min: startDateLimit,
+                  max: toDate || today,
+                }}
+                required
+                sx={{
+                  "& .MuiFormLabel-asterisk": {
+                    color: "red",
+                  },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                inputProps={{
+                  min: fromDate || startDateLimit,
+                  max: today,
+                }}
+                required
+                sx={{
+                  "& .MuiFormLabel-asterisk": {
+                    color: "red",
+                  },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               color="primary"
               onClick={handleSubmit}
               disabled={loading || !fromDate || !toDate}
+              sx={{
+                height: "40px",
+              }}
             >
               {loading ? "Loading..." : "Apply Filter"}
             </Button>
@@ -271,9 +311,9 @@ export const Overview = ({description}) => {
                   <Card
                     sx={{
                       backgroundColor: item?.bgColor,
-                      border: 2,
-                      borderColor: item?.borderColor,
-                      borderRadius: 0,
+                      // border: 2,
+                      // borderColor: item?.borderColor,
+                      borderRadius: 1,
                       boxShadow: 0,
                     }}
                   >
@@ -288,7 +328,12 @@ export const Overview = ({description}) => {
                       </Typography>
                       <Typography
                         variant="h4"
-                        sx={{ mt: 1, fontWeight: "bold" }}
+                        sx={{
+                          mt: 1,
+                          fontWeight: 500,
+                          color: item?.color,
+                          fontSize: "32px",
+                        }}
                       >
                         {item?.value}
                       </Typography>
