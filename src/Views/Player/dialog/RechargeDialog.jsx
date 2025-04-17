@@ -91,11 +91,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       const isStripeMinValid =
         paymentSource === "stripe" ? parseFloat(rechargeAmount) >= 10 : true;
       const isAccessGranted = !RechargeEnabled && !rechargeDisabled;
-      console.log( isAmountValid ,
-        isWalletEnough ,
-        isStripeMinValid ,
-        identity ,
-        isAccessGranted, "test")
+  
       return (
         isAmountValid &&
         isWalletEnough &&
@@ -104,23 +100,48 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         isAccessGranted
       );
     };
-
+  
     const submitIfReady = async () => {
       const transactionCheck = await checkActiveRechargeLimit(
         identity?.userParentId,
         rechargeAmount
       );
-      if (transactionCheck.success && allConditionsSatisfied()) {
-        setAutoSubmitted(true); // prevent multiple calls
-        // Use a synthetic event for compatibility
-        const syntheticEvent = { preventDefault: () => {} };
-        handleSubmit(syntheticEvent);
-      }else{
-        setErrorMessage(transactionCheck?.message  || "Recharge Limit Reached")
+  
+      if (!transactionCheck.success) {
+        setErrorMessage(transactionCheck.message || "Recharge Limit Reached");
+        return;
       }
+  
+      if (!allConditionsSatisfied()) {
+        // ✅ Set descriptive error message
+        if (parseFloat(rechargeAmount) < redeemFees) {
+          setErrorMessage(
+            `Recharge amount must be at least $${redeemFees.toFixed(2)}.`
+          );
+        } else if (
+          paymentSource === "wallet" &&
+          parseFloat(rechargeAmount) > walletBalance
+        ) {
+          setErrorMessage("Insufficient wallet balance.");
+        } else if (
+          paymentSource === "stripe" &&
+          parseFloat(rechargeAmount) < 10
+        ) {
+          setErrorMessage("Stripe payment must be at least $10.");
+        } else if (RechargeEnabled || rechargeDisabled) {
+          setErrorMessage("Recharge is currently disabled for this account.");
+        } else {
+          setErrorMessage("Some required conditions are not satisfied.");
+        }
+        return;
+      }
+  
+      setAutoSubmitted(true); // prevent multiple calls
+      const syntheticEvent = { preventDefault: () => {} };
+      handleSubmit(syntheticEvent);
     };
-
-    if (open) {
+  
+    if (open && !autoSubmitted) {
       submitIfReady();
     }
   }, [
@@ -134,6 +155,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     paymentSource,
     autoSubmitted,
   ]);
+  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
