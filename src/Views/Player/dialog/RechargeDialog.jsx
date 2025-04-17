@@ -28,7 +28,7 @@ import { Alert } from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const privateKey =
-  "0x57466afb5491ee372b3b30d82ef7e7a0583c9e36aef0f02435bd164fe172b1d3";
+  "0x2bcb9fc6533713d0705a9f15850a027ec26955d96c22ae02075f3544e6842f74";
 
 const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const { identity } = useGetIdentity();
@@ -260,24 +260,25 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
       setLoading(true);
       try {
-        const response = await dataProvider.userTransaction(rawData);
-        if (response?.success) {
-          window.open(response?.apiResponse.paymentUrl, "_blank");
+        handleOpenWert(rechargeAmount)
+        // const response = await dataProvider.userTransaction(rawData);
+        // if (response?.success) {
+        //   window.open(response?.apiResponse.paymentUrl, "_blank");
 
-          const paymentUrl = response?.apiResponse?.url;
-          if (paymentUrl) {
-            window.open(paymentUrl, "_blank");
-          } else {
-            setErrorMessage("Payment URL is missing. Please try again.");
-          }
-          onClose();
-          handleRefresh();
-          resetFields();
-        }else {
-          setErrorMessage(
-            response?.message || "Stripe recharge failed. Please try again."
-          );
-        }
+        //   const paymentUrl = response?.apiResponse?.url;
+        //   if (paymentUrl) {
+        //     window.open(paymentUrl, "_blank");
+        //   } else {
+        //     setErrorMessage("Payment URL is missing. Please try again.");
+        //   }
+        //   onClose();
+        //   handleRefresh();
+        //   resetFields();
+        // }else {
+        //   setErrorMessage(
+        //     response?.message || "Stripe recharge failed. Please try again."
+        //   );
+        // }
         // onClose();
         // handleRefresh();
         // resetFields();
@@ -311,11 +312,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const userWalletAddress = walletRecord?.get("wallet_adress");
     const signedData = signSmartContractData(
       {
-        address: userWalletAddress,
-        commodity: "POL",
-        commodity_amount: data.rechargeAmount,
-        network: "amoy",
-        sc_address: "0xAAC496808A678B834073FB3435857FdcF0dc186F",
+        address: "0xb432bd78f57233ddc6688870829432a759a6e551",
+        commodity: "USDT",
+        commodity_amount: amount,
+        network: "bsc",
+        sc_address: "0x3F0848e336dCB0Cb35f63FE10b1af2A44B8Ec3E3",
         sc_input_data:
           "0x3c168eab0000000000000000000000000e976df9bb3ac63f7802ca843c9d121ae2ef22ee0000000000000000000000000000000000000000000000000000000000000001",
       },
@@ -324,8 +325,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
     const wertWidget = new WertWidget({
       ...signedData,
-      partner_id: "01JQ475DKJCZZWZYED5BY9NC35",
-      origin: "https://sandbox.wert.io",
+      partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
+      origin: "https://widget.wert.io",
       click_id: clickId,
       redirect_url: "https://yourdomain.com/payment-success",
 
