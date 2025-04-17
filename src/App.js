@@ -42,6 +42,7 @@ import GiftCardHistory from "./Views/Player/GiftCardHistory";
 import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
 import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
 import { BrowserRouter } from "react-router-dom";
+import NotFoundPage from "./Views/PageNotFound/NotFoundPage";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -113,6 +114,46 @@ function App() {
       </Admin>
     );
   }
+
+  const currentPath = window.location.pathname;
+
+const allowedPaths = [
+  "/",
+  "/login",
+  "/loginEmail",
+  "/updateUser",
+  "/signup",
+  "/reset-email-sent",
+  "/reset-password",
+  "/reset-email",
+  "/create-user",
+  "/checkout",
+  "/checkout-version2",
+  "/success",
+  "/maintenance",
+  "/playerDashboard",
+  "/rechargeRecords",
+  "/redeemRecords",
+  "/gift-card-history",
+  "/wallet-details",
+  "/transactionData"
+];
+if (!allowedPaths.includes(currentPath)) {
+  return (
+    <BrowserRouter>
+    <Admin  dataProvider={dataProvider}
+      authProvider={authProvider}
+      loginPage={LoginPage}
+      layout={MyLayout}
+      theme={MyTheme}>
+   <CustomRoutes>
+  <Route path="/404" element={<NotFoundPage />} />
+  <Route path="*" element={<Navigate to="/404" replace />} />
+</CustomRoutes>
+    </Admin>
+    </BrowserRouter>
+  );
+}
 
   return (
     <BrowserRouter>
@@ -324,6 +365,8 @@ function App() {
           );
         }
       }}
+  
+
     </Admin>
     </BrowserRouter>
   );
