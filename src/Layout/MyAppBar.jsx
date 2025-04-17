@@ -200,8 +200,13 @@ const getBalance = async () => {
               minHeight: role === "Player" ? "4em" : "3.5em",
             }}
             onClick={() => {
-              setActiveTab("users");
-              navigate("/users");
+              if(role === "Player"){
+                setActiveTab("playerDashboard");
+                navigate("/playerDashboard");
+              }else{
+                setActiveTab("users");
+                navigate("/users");
+              }
             }} 
           >
             <img
