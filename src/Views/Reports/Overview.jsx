@@ -30,7 +30,7 @@ import jsPDF from "jspdf";
 import TotalUser from "../../Assets/icons/TotalUser.svg";
 import TotalAgent from "../../Assets/icons/TotalAgent.svg";
 
-export const Overview = ({ description }) => {
+export const Overview = () => {
   const [data, setData] = useState();
   const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
   const [filteredRechargeData, setFilteredRechargeData] = useState([]);
@@ -216,10 +216,6 @@ export const Overview = ({ description }) => {
 
   return (
     <>
-      {/* Dashboard Description */}
-      <Typography variant="body1" paragraph sx={{ mb: 3, fontSize: "20px" }}>
-        {description}
-      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

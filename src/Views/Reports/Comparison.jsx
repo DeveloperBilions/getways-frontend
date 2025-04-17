@@ -16,7 +16,7 @@ import { useGetIdentity } from "react-admin";
 import React, { useState } from "react";
 import { fetchTransactionComparison } from "../../Utils/utils";
 
-export const Comparison = ({description}) => {
+export const Comparison = () => {
   const [comparisonData, setComparisonData] = useState([]);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareSubmitted, setCompareSubmitted] = useState(false);
@@ -132,10 +132,6 @@ export const Comparison = ({description}) => {
 
   return (
     <>
-      {/* Dashboard Description */}
-      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
-        {description}
-      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

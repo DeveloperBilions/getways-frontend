@@ -30,7 +30,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
 import jsPDF from "jspdf";
 
-export const PlayerOverview = ({ description }) => {
+export const PlayerOverview = () => {
   const [playerData, setPlayerData] = useState([]); // For Player transaction report
   const [filteredPlayerData, setFilteredPlayerData] = useState([]);
   const [playerRechargeData, setPlayerRechargeData] = useState([]); // For Player recharge report
@@ -250,10 +250,6 @@ export const PlayerOverview = ({ description }) => {
 
   return (
     <>
-      {/* Dashboard Description */}
-      <Typography variant="body1" paragraph sx={{ mb: 3, fontSize: "20px" }}>
-        {description}
-      </Typography>
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>

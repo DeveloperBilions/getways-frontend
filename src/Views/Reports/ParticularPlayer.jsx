@@ -15,7 +15,7 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import { fetchTransactionsofPlayerByDate } from "../../Utils/utils"; // Ensure this utility exists
 import debounce from "lodash/debounce";
 
-export const ParticularPlayer = ({description}) => {
+export const ParticularPlayer = () => {
   const { identity } = useGetIdentity();
   const [formattedData, setFormattedData] = useState([]);
   const [lineChartDates, setLineChartDates] = useState([]);
@@ -137,10 +137,6 @@ export const ParticularPlayer = ({description}) => {
 
   return (
     <>
-      {/* Dashboard Description */}
-      <Typography variant="body1" paragraph sx={{ mb: 3,fontSize: "20px" }}>
-        {description}
-      </Typography>
       {identity?.email === "zen@zen.com" && (
         <>
           <Box display="flex" sx={{ mb: 1, gap: 2 }}>
