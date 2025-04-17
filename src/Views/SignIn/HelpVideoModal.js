@@ -49,7 +49,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
               letterSpacing: 1,
             }}
           >
-             Help Videos
+            Help Videos
           </Typography>
 
           {/* Video Grid */}
@@ -83,6 +83,8 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   style={{
                     borderRadius: "8px",
                     boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
+                    objectFit: "cover",
+                    height: "150px",
                   }}
                 >
                   <source src={video1} type="video/mp4" />
@@ -120,6 +122,8 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   style={{
                     borderRadius: "8px",
                     boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
+                    objectFit: "cover",
+                    height: "150px",
                   }}
                 >
                   <source src={video2} type="video/mp4" />
@@ -147,7 +151,7 @@ const HelpVideoModal = ({ open, handleClose }) => {
               },
             }}
           >
-             Close
+            Close
           </Button>
         </Box>
       </Fade>

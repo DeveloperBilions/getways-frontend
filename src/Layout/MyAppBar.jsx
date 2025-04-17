@@ -34,6 +34,7 @@ import logout_icon from "../Assets/icons/logout.svg";
 import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
 import { Loader } from "../Views/Loader";
 import { Parse } from "parse";
+import passwordChange from "../Assets/icons/passwordChange.svg";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -200,14 +201,14 @@ const getBalance = async () => {
               minHeight: role === "Player" ? "4em" : "3.5em",
             }}
             onClick={() => {
-              if(role === "Player"){
+              if (role === "Player") {
                 setActiveTab("playerDashboard");
                 navigate("/playerDashboard");
-              }else{
+              } else {
                 setActiveTab("users");
                 navigate("/users");
               }
-            }} 
+            }}
           >
             <img
               src="/assets/company_logo.svg"
@@ -377,20 +378,28 @@ const getBalance = async () => {
               }
               sx={{ ml: 1 }}
             >
-              <Box sx={{ width: "248px" , height: "auto" }}>
+              <Box sx={{ width: "248px", height: "auto" }}>
                 {(role === "Agent" ||
                   role === "Player" ||
                   role === "Master-Agent") && (
-                  <MenuItem
-                    onClick={handleOpenModal}
-                    style={{
-                      color: "#000000",
-                      fontWeight: 400,
-                      fontSize: "16px",
-                    }}
-                  >
-                    Change Password
-                  </MenuItem>
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={handleOpenModal}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img
+                        src={passwordChange}
+                        alt="Change Password"
+                        style={{ height: "24px", width: "24px" }}
+                      />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Change Password
+                      </Typography>
+                    </MenuItem>
+                  </Box>
                 )}
                 {(role === "Agent" || role === "Master-Agent") && (
                   <MenuItem
@@ -407,29 +416,33 @@ const getBalance = async () => {
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
-                    onClick={handleOpenGlobalSettingsDialog}
-                    style={{
-                      color: "#000000",
-                      gap: "8px",
-                    }}
-                  >
-                    <img src={globalRecharge} alt="Global Recharge"  />
-                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Global Recharge</Typography>
-                  </MenuItem>
+                      onClick={handleOpenGlobalSettingsDialog}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={globalRecharge} alt="Global Recharge" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Global Recharge
+                      </Typography>
+                    </MenuItem>
                   </Box>
                 )}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
-                  <MenuItem
-                    onClick={() => setDisableDialogOpen(true)}
-                    style={{
-                      color: "#000000",
-                      gap:"8px",
-                    }}
-                  >
-                    <img src={paymentMethods} alt="Payment Methods"  />
-                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Payment Methods</Typography>
-                  </MenuItem>
+                    <MenuItem
+                      onClick={() => setDisableDialogOpen(true)}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={paymentMethods} alt="Payment Methods" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Payment Methods
+                      </Typography>
+                    </MenuItem>
                   </Box>
                 )}
                 {/* {role === "Super-User" && (
@@ -448,17 +461,19 @@ const getBalance = async () => {
                 )} */}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
-                  <MenuItem
-                    onClick={() => setOpenEmergencyModal(true)}
-                    style={{
-                      color: "#000000",
-                      
-                      gap:"8px",
-                    }}
-                  >
-                    <img src={emergencyMessage} alt="Emergency Message" />
-                    <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Emergency Message</Typography>
-                  </MenuItem>
+                    <MenuItem
+                      onClick={() => setOpenEmergencyModal(true)}
+                      style={{
+                        color: "#000000",
+
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={emergencyMessage} alt="Emergency Message" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Emergency Message
+                      </Typography>
+                    </MenuItem>
                   </Box>
                 )}
                 {identity?.redeemServiceEnabled && role === "Master-Agent" && (
@@ -474,26 +489,30 @@ const getBalance = async () => {
                   </MenuItem>
                 )}
                 <Box sx={{ mb: 1 }}>
-                <MenuItem
-                  onClick={() => setOpenHelpVideo(true)}
-                  style={{
-                    color: "#000000",
-                    gap:"8px",
-                  }}
-                >
-                   <img src={helpVideos} alt="Help Videos"  />
-                   <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Help Videos</Typography>
-                </MenuItem>
+                  <MenuItem
+                    onClick={() => setOpenHelpVideo(true)}
+                    style={{
+                      color: "#000000",
+                      gap: "8px",
+                    }}
+                  >
+                    <img src={helpVideos} alt="Help Videos" />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Help Videos
+                    </Typography>
+                  </MenuItem>
                 </Box>
                 <MenuItem
                   onClick={() => logout()}
                   style={{
                     color: "#000000",
-                    gap:"8px",
+                    gap: "8px",
                   }}
                 >
                   <img src={logout_icon} alt="logout" />
-                  <Typography sx={{fontWeight: 400,fontSize: "16px"}}>Logout</Typography>
+                  <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                    Logout
+                  </Typography>
                 </MenuItem>{" "}
               </Box>
             </UserMenu>
