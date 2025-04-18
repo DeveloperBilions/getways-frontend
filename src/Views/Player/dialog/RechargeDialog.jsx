@@ -23,12 +23,13 @@ import { signSmartContractData } from "@wert-io/widget-sc-signer";
 
 import Close from "../../../Assets/icons/close.svg";
 import { Alert } from "@mui/material";
+import { generateScInputData } from "./GenerateInput";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const privateKey =
-  "0x57466afb5491ee372b3b30d82ef7e7a0583c9e36aef0f02435bd164fe172b1d3";
+  "0x2bcb9fc6533713d0705a9f15850a027ec26955d96c22ae02075f3544e6842f74";
 
 const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const { identity } = useGetIdentity();
@@ -260,6 +261,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
       setLoading(true);
       try {
+       // handleOpenWert(rechargeAmount)
         const response = await dataProvider.userTransaction(rawData);
         if (response?.success) {
           window.open(response?.apiResponse.paymentUrl, "_blank");
@@ -278,9 +280,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             response?.message || "Stripe recharge failed. Please try again."
           );
         }
-        // onClose();
-        // handleRefresh();
-        // resetFields();
+        onClose();
+        handleRefresh();
+        resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
@@ -309,23 +311,26 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const walletRecord = await walletQuery.first({ useMasterKey: true });
 
     const userWalletAddress = walletRecord?.get("wallet_adress");
+     const sc_input_data = generateScInputData(
+    "0xb432bd78f57233ddc6688870829432a759a6e551",
+    amount // ⚠️ Use your actual logic for token amount here
+  );
     const signedData = signSmartContractData(
       {
-        address: userWalletAddress,
-        commodity: "POL",
-        commodity_amount: data.rechargeAmount,
-        network: "amoy",
-        sc_address: "0xAAC496808A678B834073FB3435857FdcF0dc186F",
-        sc_input_data:
-          "0x3c168eab0000000000000000000000000e976df9bb3ac63f7802ca843c9d121ae2ef22ee0000000000000000000000000000000000000000000000000000000000000001",
+        address: "0xb432bd78f57233ddc6688870829432a759a6e551",
+        commodity: "USDT",
+        commodity_amount: amount,
+        network: "bsc",
+        sc_address: "0x3F0848e336dCB0Cb35f63FE10b1af2A44B8Ec3E3",
+        sc_input_data:sc_input_data,
       },
       privateKey
     );
 
     const wertWidget = new WertWidget({
       ...signedData,
-      partner_id: "01JQ475DKJCZZWZYED5BY9NC35",
-      origin: "https://sandbox.wert.io",
+      partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
+      origin: "https://widget.wert.io",
       click_id: clickId,
       redirect_url: "https://yourdomain.com/payment-success",
 
