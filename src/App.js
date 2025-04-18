@@ -31,7 +31,7 @@ import { PlayerList } from "./Views/Player/PlayerList";
 import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
-import { QueryClient } from "react-query";
+// import { QueryClient } from "react-query";
 import { Reports } from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
@@ -94,15 +94,15 @@ function App() {
     );
   }
 
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: false,
-        staleTime: 5 * 60 * 1000,
-      },
-    },
-  });
+  // const queryClient = new QueryClient({
+  //   defaultOptions: {
+  //     queries: {
+  //       refetchOnWindowFocus: false,
+  //       retry: false,
+  //       staleTime: 5 * 60 * 1000,
+  //     },
+  //   },
+  // });
 
   if (Config?.maintenance) {
     return (
@@ -136,7 +136,8 @@ const allowedPaths = [
   "/redeemRecords",
   "/gift-card-history",
   "/wallet-details",
-  "/transactionData"
+  "/transactionData",
+    "/404"
 ];
 if (!allowedPaths.includes(currentPath)) {
   return (
@@ -148,7 +149,6 @@ if (!allowedPaths.includes(currentPath)) {
       theme={MyTheme}>
    <CustomRoutes>
   <Route path="/404" element={<NotFoundPage />} />
-  <Route path="*" element={<Navigate to="/404" replace />} />
 </CustomRoutes>
     </Admin>
     </BrowserRouter>
@@ -365,8 +365,6 @@ if (!allowedPaths.includes(currentPath)) {
           );
         }
       }}
-  
-
     </Admin>
     </BrowserRouter>
   );

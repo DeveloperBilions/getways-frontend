@@ -1,8 +1,10 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export default function NotFoundPage() {
   const role = localStorage.getItem("role");
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -39,27 +41,18 @@ export default function NotFoundPage() {
         Sorry, the page you're looking for doesn't exist or has been moved.
       </Typography>
       <Button
-        variant="outlined"
-        sx={{
-          borderColor: "#000",
-          color: "#000",
-          "&:hover": {
-            backgroundColor: "#000",
-            color: "#fff",
-          },
-        }}
-        onClick={() => {
-          if (role === "Player") {
-            window.location.href = "/playerDashboard";
-          } else if (role === "Agent" || role === "Master-Agent" || role === "Super-User" ) {
-            window.location.href = "/users";
-          }else{
-            window.location.href = "/";
-          }
-        }}
-      >
-        Go to Home
-      </Button>
+  onClick={() => {
+    if (role === "Player") {
+      navigate("/playerDashboard");
+    } else if (role === "Agent" || role === "Master-Agent" || role === "Super-User") {
+      navigate("/users");
+    } else {
+      navigate("/");
+    }
+  }}
+>
+  Go to Home
+</Button>
     </Box>
   );
 }
