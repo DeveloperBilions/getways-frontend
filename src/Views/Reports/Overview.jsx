@@ -247,9 +247,6 @@ export const Overview = () => {
                 }}
                 required
                 sx={{
-                  "& .MuiFormLabel-asterisk": {
-                    color: "red",
-                  },
                   "& .MuiInputBase-root": {
                     height: "40px",
                   },

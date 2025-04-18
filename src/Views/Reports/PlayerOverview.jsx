@@ -168,34 +168,33 @@ export const PlayerOverview = () => {
     setPage(1);
   };
 
-    const handleExportPDF = async () => {
-        if (!filteredPlayerData || filteredPlayerData.length === 0) {
-          console.warn("No data to export.");
-          return;
-        }
-         const doc = new jsPDF();
-         doc.text("Player Transaction Report", 10, 10);
-         doc.autoTable({
-           head: [
-             [
-               "No",
-               "Player Name",
-               "Total Recharge",
-               "Total Redeem",
-               "Total Cashout",
-             ],
-           ],
-           body: filteredPlayerData.map((row, index) => [
-             index + 1,
-             row.username,
-             row.totalRecharge,
-             row.totalRedeem,
-             row.totalCashout,
-           ]),
-         });
-         doc.save("PlayerTransactionReport.pdf");
-      };
-
+  const handleExportPDF = async () => {
+    if (!filteredPlayerData || filteredPlayerData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text("Player Transaction Report", 10, 10);
+    doc.autoTable({
+      head: [
+        [
+          "No",
+          "Player Name",
+          "Total Recharge",
+          "Total Redeem",
+          "Total Cashout",
+        ],
+      ],
+      body: filteredPlayerData.map((row, index) => [
+        index + 1,
+        row.username,
+        row.totalRecharge,
+        row.totalRedeem,
+        row.totalCashout,
+      ]),
+    });
+    doc.save("PlayerTransactionReport.pdf");
+  };
 
   // Calculate totals for PieChart
   const calculateTotals = () => {
@@ -228,7 +227,7 @@ export const PlayerOverview = () => {
     setSortOrder((prevSortOrder) => {
       const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
 
-      setPlayerData((prevData) => {
+      setFilteredPlayerData((prevData) => {
         const sortedData = [...prevData].sort((a, b) => {
           if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
           if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
@@ -253,75 +252,119 @@ export const PlayerOverview = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
-            <Autocomplete
-              sx={{ width: { xs: "100%", md: 230 } }}
-              options={choices}
-              getOptionLabel={(option) => option.optionName}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-              loading={userLoading}
-              loadingText="....Loading"
-              value={selectedUser}
-              onChange={(event, newValue) => handleUserChange(newValue)}
-              onInputChange={(event, newInputValue, reason) => {
-                if (reason === "input") {
-                  debouncedFetchUsers(newInputValue, 1);
-                  setSelectedUser(null);
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems="end">
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Agent
+              </Typography>
+              <Autocomplete
+                sx={{ width: { xs: "100%", md: 230 } }}
+                options={choices}
+                getOptionLabel={(option) => option.optionName}
+                isOptionEqualToValue={(option, value) =>
+                  option.id === value?.id
                 }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Agent Username"
-                  variant="outlined"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {userLoading ? <CircularProgress size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-            <TextField
-              required
-              sx={{
-                width: { xs: "100%", md: "auto" },
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-              label="From Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              inputProps={{
-                min: startDateLimit,
-                max: toDate || today,
-              }}
-            />
-            <TextField
-              required
-              sx={{
-                width: { xs: "100%", md: "auto" },
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-              label="To Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              inputProps={{
-                min: fromDate || startDateLimit,
-                max: today,
-              }}
-            />
+                loading={userLoading}
+                loadingText="....Loading"
+                value={selectedUser}
+                onChange={(event, newValue) => handleUserChange(newValue)}
+                onInputChange={(event, newInputValue, reason) => {
+                  if (reason === "input") {
+                    debouncedFetchUsers(newInputValue, 1);
+                    setSelectedUser(null);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search"
+                    variant="outlined"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {userLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                required
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                inputProps={{
+                  min: startDateLimit,
+                  max: toDate || today,
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                required
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                inputProps={{
+                  min: fromDate || startDateLimit,
+                  max: today,
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               color="primary"

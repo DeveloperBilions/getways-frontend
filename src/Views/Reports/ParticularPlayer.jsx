@@ -139,79 +139,118 @@ export const ParticularPlayer = () => {
     <>
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
-            <Autocomplete
-              sx={{ width: 230 }}
-              options={choices}
-              getOptionLabel={(option) => option.optionName}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-              loading={userLoading}
-              loadingText="....Loading"
-              value={selectedUsertemp}
-              onChange={(event, newValue) => handleUserChange(newValue)}
-              onInputChange={(event, newInputValue, reason) => {
-                if (reason === "input") {
-                  debouncedFetchUsers(newInputValue, 1);
-                  setSelectedUsertemp(null);
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Player<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <Autocomplete
+                sx={{ width: 230 }}
+                options={choices}
+                getOptionLabel={(option) => option.optionName}
+                isOptionEqualToValue={(option, value) =>
+                  option.id === value?.id
                 }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Player Username"
-                  variant="outlined"
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {userLoading ? <CircularProgress size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-            <TextField
-              label="From Date"
-              type="date"
-              value={tempStartDate}
-              onChange={(event) => setTempStartDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: startDateLimit,
-                max: tempEndDate || today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
-            <TextField
-              label="To Date"
-              type="date"
-              value={tempEndDate}
-              onChange={(event) => setTempEndDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: tempStartDate || startDateLimit,
-                max: today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
+                loading={userLoading}
+                loadingText="....Loading"
+                value={selectedUsertemp}
+                onChange={(event, newValue) => handleUserChange(newValue)}
+                onInputChange={(event, newInputValue, reason) => {
+                  if (reason === "input") {
+                    debouncedFetchUsers(newInputValue, 1);
+                    setSelectedUsertemp(null);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search"
+                    variant="outlined"
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {userLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempStartDate}
+                onChange={(event) => setTempStartDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: startDateLimit,
+                  max: tempEndDate || today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempEndDate}
+                onChange={(event) => setTempEndDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: tempStartDate || startDateLimit,
+                  max: today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               onClick={handleFilterSubmit}

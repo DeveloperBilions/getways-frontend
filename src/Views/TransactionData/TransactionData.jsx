@@ -1,18 +1,8 @@
 import React, { useState } from "react";
-import {
-  DateInput,
-  ListBase,
-  FilterForm,
-} from "react-admin";
-import {TextField } from "@mui/material";
+import { DateInput, ListBase, FilterForm } from "react-admin";
+import { TextField, Typography } from "@mui/material";
 // mui
-import {
-  Box,
-  MenuItem,
-  Button,
-  Menu,
-  ListItemIcon,
-} from "@mui/material";
+import { Box, MenuItem, Button, Menu, ListItemIcon } from "@mui/material";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -83,7 +73,7 @@ export const TransactionData = (props) => {
       "Redeem Service Fee": item.redeemServiceFee,
       "Agent Name": item?.agentName,
       "User Name": item?.userName,
-      "Agent Parent Name":item?.agentParentName,
+      "Agent Parent Name": item?.agentParentName,
       isCashout: item?.isCashOut,
       paymentMode: item?.paymentMode,
       paymentMethodType: item?.paymentMethodType,
@@ -106,58 +96,6 @@ export const TransactionData = (props) => {
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
-  const dataFilters = [
-    <DateInput
-      label="Start date"
-      source="startdate"
-      alwaysOn
-      resettable
-      InputProps={{
-        inputProps: {
-          min: startDateLimit,
-          max: tempEndDate || today,
-        },
-      }}
-      onChange={(event) => setTempStartDate(event.target.value)}
-    />,
-    <TextField
-      label="Start time"
-      source="starttime"
-      type="time"
-      alwaysOn
-      resettable
-      InputLabelProps={{ shrink: true }}
-      inputProps={{
-        step: 300,
-      }}
-      onChange={(event) => setTempStartTime(event.target.value)}
-    />,
-    <DateInput
-      label="End date"
-      source="enddate"
-      alwaysOn
-      resettable
-      InputProps={{
-        inputProps: {
-          min: tempStartDate || startDateLimit,
-          max: today,
-        },
-      }}
-      onChange={(event) => setTempEndDate(event.target.value)}
-    />,
-    <TextField
-      label="End time"
-      source="endtime"
-      type="time"
-      alwaysOn
-      resettable
-      InputLabelProps={{ shrink: true }}
-      inputProps={{
-        step: 300,
-      }}
-      onChange={(event) => setTempEndTime(event.target.value)}
-    />,
-  ];
 
   const handleFilterSubmit = (event) => {
     if (!tempStartDate || !tempEndDate) {
@@ -166,22 +104,125 @@ export const TransactionData = (props) => {
     }
     setMenuAnchor(event.currentTarget);
   };
-  
+
   return (
     <React.Fragment>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users">
         <Box display="flex" flexDirection="column">
-          {" "}
-          <Box display="flex" sx={{ mb: 1 }}>
-            <FilterForm
-              filters={dataFilters}
-              sx={{
-                flex: "0 2 auto !important",
-                padding: "0px 0px 0px 0px !important",
-                alignItems: "flex-start",
-              }}
-            />
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+            <Box display="flex" flexDirection="column" key="start-date">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempStartDate}
+                onChange={(event) => setTempStartDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: startDateLimit,
+                  max: tempEndDate || today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column" key="start-time">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Time
+              </Typography>
+              <TextField
+                type="time"
+                value={tempStartTime}
+                onChange={(event) => setTempStartTime(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  step: 300,
+                }}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column" key="end-date">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempEndDate}
+                onChange={(event) => setTempEndDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: tempStartDate || startDateLimit,
+                  max: today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column" key="end-time">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Time
+              </Typography>
+              <TextField
+                type="time"
+                value={tempEndTime}
+                onChange={(event) => setTempEndTime(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  step: 300,
+                }}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               startIcon={<GetAppIcon sx={{ fontSize: "10px" }} />}
