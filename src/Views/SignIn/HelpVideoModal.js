@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import video1 from "../../Assets/videos/HelpVideo1.mp4";
 import video2 from "../../Assets/videos/HelpVideo2.mp4";
+import CloseIcon from "../../Assets/icons/closeIcon.png";
 
 const HelpVideoModal = ({ open, handleClose }) => {
   return (
@@ -27,58 +28,60 @@ const HelpVideoModal = ({ open, handleClose }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "90%",
-            maxWidth: 700,
+            // width: "90%",
+            width: "630px",
             bgcolor: "background.paper",
             boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.2)",
-            p: 4,
+            padding: 3,
             borderRadius: 3,
-            textAlign: "center",
           }}
         >
-          {/* Heading */}
-          <Typography
-            variant="h5"
+          <Box
             sx={{
-              fontWeight: "bold",
-              mb: 3,
-              color: "white",
-              backgroundColor: "#000",
-              p: 1.5,
-              borderRadius: "8px",
-              letterSpacing: 1,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            Help Videos
-          </Typography>
+            <Typography
+              variant="h5"
+              sx={{
+                fontFamily: "Inter",
+                fontWeight: 400,
+                fontSize: "20px",
+                color: "#000000",
+              }}
+            >
+              How can we help you?
+            </Typography>
+
+            <Button
+              onClick={handleClose}
+              sx={{
+                minWidth: "auto",
+                padding: 0,
+                backgroundColor: "transparent",
+                "&:hover": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              <img src={CloseIcon} alt="Close" />
+            </Button>
+          </Box>
 
           {/* Video Grid */}
-          <Grid container spacing={2}>
-            {/* Login Video */}
+          <Grid container spacing={2} mt={1}>
             <Grid item xs={12} sm={6}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: "bold",
-                  mb: 1,
-                  color: "#000",
-                  textTransform: "uppercase",
-                }}
-              >
-                🔑 How to Login
-              </Typography>
               <Box
                 sx={{
-                  p: 1,
                   borderRadius: 2,
-                  backgroundColor: "rgba(0, 0, 0, 0.05)",
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                  border: "1px solid #ddd",
+                  background: "#FFFFFF",
+                  border: "1px solid #E7E7E7",
                 }}
               >
                 <video
                   width="100%"
-                  height="auto"
                   controls
                   style={{
                     borderRadius: "8px",
@@ -90,34 +93,45 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   <source src={video1} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mt: 1,
+                    paddingLeft: 1,
+                    paddingRight: 1,
+                    fontWeight: 500,
+                    fontSize: "18px",
+                    color: "#000000",
+                  }}
+                >
+                  How to Login
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    paddingLeft: 1,
+                    paddingRight: 1,
+                    paddingBottom: 1,
+                    fontWeight: 400,
+                    color: "#0000008F",
+                  }}
+                >
+                  This video will guide you step-by-step through the login
+                  process.
+                </Typography>
               </Box>
             </Grid>
 
-            {/* Signup Video */}
             <Grid item xs={12} sm={6}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: "bold",
-                  mb: 1,
-                  color: "#000",
-                  textTransform: "uppercase",
-                }}
-              >
-                📝 How to Signup
-              </Typography>
               <Box
                 sx={{
-                  p: 1,
                   borderRadius: 2,
-                  backgroundColor: "rgba(0, 0, 0, 0.05)",
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                  border: "1px solid #ddd",
+                  background: "#FFFFFF",
+                  border: "1px solid #E7E7E7",
                 }}
               >
                 <video
                   width="100%"
-                  height="auto"
                   controls
                   style={{
                     borderRadius: "8px",
@@ -129,30 +143,35 @@ const HelpVideoModal = ({ open, handleClose }) => {
                   <source src={video2} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mt: 1,
+                    paddingLeft: 1,
+                    paddingRight: 1,
+                    fontWeight: 500,
+                    fontSize: "18px",
+                    color: "#000000",
+                  }}
+                >
+                  How to Signup
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    paddingLeft: 1,
+                    paddingRight: 1,
+                    paddingBottom: 1,
+                    fontWeight: 400,
+                    color: "#0000008F",
+                  }}
+                >
+                  This video will guide you step-by-step through the signup
+                  process.
+                </Typography>
               </Box>
             </Grid>
           </Grid>
-
-          {/* Close Button */}
-          <Button
-            variant="contained"
-            onClick={handleClose}
-            sx={{
-              mt: 3,
-              px: 3,
-              py: 1.2,
-              fontSize: "1rem",
-              fontWeight: "bold",
-              backgroundColor: "#000",
-              "&:hover": {
-                backgroundColor: "#333",
-                transform: "scale(1.05)",
-                transition: "0.3s ease-in-out",
-              },
-            }}
-          >
-            Close
-          </Button>
         </Box>
       </Fade>
     </Modal>

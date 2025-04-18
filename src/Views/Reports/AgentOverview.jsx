@@ -275,64 +275,15 @@ export const AgentOverview = () => {
             !noDataFound ? (
               <>
                 {/* Charts Container */}
-                <Grid container spacing={3}>
-                  {/* Line Chart */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>
-                      Daily Transactions
-                    </Typography>
-                    <LineChart
-                      xAxis={[
-                        {
-                          data: formattedData,
-                          scaleType: "band",
-                          label: "Date",
-                        },
-                      ]}
-                      yAxis={[
-                        {
-                          label: "Amount",
-                        },
-                      ]}
-                      series={[
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              agentUsername.transactions[date].totalRecharge
-                          ),
-                          label: "Total Recharge",
-                          color: "#2196f3",
-                        },
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              agentUsername.transactions[date].totalRedeem
-                          ),
-                          label: "Total Redeem",
-                          color: "#f44336",
-                        },
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              agentUsername.transactions[date].totalCashout
-                          ),
-                          label: "Total Cashout",
-                          color: "#4caf50",
-                        },
-                      ]}
-                      width={1200}
-                      height={400}
-                      margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
-                    />
-                  </Grid>
-
-                  {/* Pie Chart */}
-                  <Grid item xs={12} md={6} lg={6}>
+                <Grid container spacing={3} mt={3}>
+                  {/* Pie Chart - Left Side */}
+                  <Grid item xs={12} md={4}>
                     <Box
                       sx={{
                         p: 2,
                         border: "1px solid #eaeaea",
                         borderRadius: 2,
+                        height: "100%",
                       }}
                     >
                       <Typography variant="h6" gutterBottom align="center">
@@ -352,20 +303,20 @@ export const AgentOverview = () => {
                                 {
                                   id: 0,
                                   value: totalData.totalRecharge,
-                                  label: "Total Recharge",
-                                  color: "#2196f3",
+                                  label: "Recharge",
+                                  color: "#43A047",
                                 },
                                 {
                                   id: 1,
                                   value: totalData.totalRedeem,
-                                  label: "Total Redeem",
-                                  color: "#f44336",
+                                  label: "Redeem",
+                                  color: "#E53935",
                                 },
                                 {
                                   id: 2,
                                   value: totalData.totalCashout,
-                                  label: "Total Cashout",
-                                  color: "#4caf50",
+                                  label: "Cashout",
+                                  color: "#FB8C00",
                                 },
                               ],
                               innerRadius: 30,
@@ -397,6 +348,65 @@ export const AgentOverview = () => {
                           Period: {tempStartDate} to {tempEndDate}
                         </Typography>
                       </Box>
+                    </Box>
+                  </Grid>
+
+                  {/* Line Chart - Right Side */}
+                  <Grid item xs={12} md={8}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        border: "1px solid #eaeaea",
+                        borderRadius: 2,
+                        height: "100%",
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom>
+                        Daily Transactions
+                      </Typography>
+                      <LineChart
+                        xAxis={[
+                          {
+                            data: formattedData,
+                            scaleType: "band",
+                            label: "Date",
+                          },
+                        ]}
+                        yAxis={[
+                          {
+                            label: "Amount",
+                          },
+                        ]}
+                        series={[
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalRecharge
+                            ),
+                            label: "Recharge",
+                            color: "#2196f3",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalRedeem
+                            ),
+                            label: "Redeem",
+                            color: "#f44336",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalCashout
+                            ),
+                            label: "Cashout",
+                            color: "#4caf50",
+                          },
+                        ]}
+                        // width={500}
+                        height={400}
+                        margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
+                      />
                     </Box>
                   </Grid>
                 </Grid>
