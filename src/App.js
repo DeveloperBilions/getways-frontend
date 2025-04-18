@@ -119,6 +119,10 @@ function App() {
 
 const allowedPaths = [
   "/",
+  "/users",
+  "/summary",
+  "/Reports",
+  "/kycRecords",
   "/login",
   "/loginEmail",
   "/updateUser",

@@ -261,28 +261,28 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
       setLoading(true);
       try {
-        handleOpenWert(rechargeAmount)
-        // const response = await dataProvider.userTransaction(rawData);
-        // if (response?.success) {
-        //   window.open(response?.apiResponse.paymentUrl, "_blank");
+       // handleOpenWert(rechargeAmount)
+        const response = await dataProvider.userTransaction(rawData);
+        if (response?.success) {
+          window.open(response?.apiResponse.paymentUrl, "_blank");
 
-        //   const paymentUrl = response?.apiResponse?.url;
-        //   if (paymentUrl) {
-        //     window.open(paymentUrl, "_blank");
-        //   } else {
-        //     setErrorMessage("Payment URL is missing. Please try again.");
-        //   }
-        //   onClose();
-        //   handleRefresh();
-        //   resetFields();
-        // }else {
-        //   setErrorMessage(
-        //     response?.message || "Stripe recharge failed. Please try again."
-        //   );
-        // }
-        // onClose();
-        // handleRefresh();
-        // resetFields();
+          const paymentUrl = response?.apiResponse?.url;
+          if (paymentUrl) {
+            window.open(paymentUrl, "_blank");
+          } else {
+            setErrorMessage("Payment URL is missing. Please try again.");
+          }
+          onClose();
+          handleRefresh();
+          resetFields();
+        }else {
+          setErrorMessage(
+            response?.message || "Stripe recharge failed. Please try again."
+          );
+        }
+        onClose();
+        handleRefresh();
+        resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
