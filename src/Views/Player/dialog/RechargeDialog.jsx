@@ -332,7 +332,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       {
         address: "0x2Ff0EC69341f43CC462251bD49BB63681adAfCb0",
         commodity: "USDT",
-        commodity_amount: amountIn,
+        commodity_amount: amount,
         network: "bsc",
         sc_address: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
         sc_input_data: sc_input_data,
@@ -345,13 +345,12 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
       origin: "https://widget.wert.io",
       click_id: clickId,
-      redirect_url: "https://yourdomain.com/payment-success",
+      redirect_url: process.env.REACT_APP_REFERRAL_URL,
       currency: "USD",
-      currency_amount: amountIn, 
       is_crypto_hidden: true,
       listeners: {
         "payment-status": async (status) => {
-          console.log("📥 Wert Payment Status:", status);
+          console.log("Wert Payment Status:", status);
           try {
             const Transaction = Parse.Object.extend("TransactionRecords");
             const query = new Parse.Query(Transaction);
@@ -392,7 +391,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               existingTxn.set("transactionDate", transactionDate);
               await existingTxn.save(null, { useMasterKey: true });
               console.log(
-                `🔄 Transaction ${existingTxn.id} updated to status ${newStatus}`
+                `Transaction ${existingTxn.id} updated to status ${newStatus}`
               );
             } else {
               // Create new record if not found
@@ -407,15 +406,16 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               txn.set("gameId", "786");
               txn.set("transactionDate", transactionDate);
               await txn.save(null, { useMasterKey: true });
-              console.log("🆕 New transaction created with status:", newStatus);
+              console.log("New transaction created with status:", newStatus);
             }
 
             // Optionally close the widget on success
             if (status?.status === "success") {
               wertWidget.close();
+              onClose()
             }
           } catch (err) {
-            console.error("❌ Error handling Wert status:", err.message);
+            console.error("Error handling Wert status:", err.message);
           }
         },
       },
