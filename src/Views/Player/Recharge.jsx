@@ -125,21 +125,21 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const handleRechargeClick = async () => {
     if (identity?.isBlackListed) return;
   
-    try {
-      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
-      const query = new Parse.Query(TransfiUserInfo);
-      query.equalTo("userId", identity.objectId);
-      const record = await query.first({ useMasterKey: true });
+    // try {
+    //   const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+    //   const query = new Parse.Query(TransfiUserInfo);
+    //   query.equalTo("userId", identity.objectId);
+    //   const record = await query.first({ useMasterKey: true });
   
-      if (record && record.get("kycVerified") === true) {
+    //   if (record && record.get("kycVerified") === true) {
         setRechargeDialogOpen(true);
-      } else {
-        setSubmitKycDialogOpen(true);
-      }
-    } catch (error) {
-      console.error("Error checking KYC:", error);
-      setSubmitKycDialogOpen(true);
-    }
+    //   } else {
+    //     setSubmitKycDialogOpen(true);
+    //   }
+    // } catch (error) {
+    //   console.error("Error checking KYC:", error);
+    //   setSubmitKycDialogOpen(true);
+    // }
   };
   
   return (
