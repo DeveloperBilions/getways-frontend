@@ -45,6 +45,8 @@ import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.sv
 import pdfIcon from "../../Assets/icons/pdfIcon.svg";
 import excelIcon from "../../Assets/icons/excelIcon.svg";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
+import { TextField as MonthPickerField } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 
 const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
@@ -655,7 +657,8 @@ export const DataSummary = () => {
   const [tempEndDate, setTempEndDate] = useState(null);
   const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
   const [formResetKey, setFormResetKey] = useState(0);
-
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+const [exportMonth, setExportMonth] = useState(null);
   const handleUserChange = (selectedId) => {
     setSelectedUsertemp(selectedId);
   };
@@ -740,12 +743,21 @@ export const DataSummary = () => {
   }, []);
 
   const loadAndExportData = async () => {
-    const filters = {
-      startDate:
-        document.querySelector('input[name="startdate"]')?.value || null,
-      endDate: document.querySelector('input[name="enddate"]')?.value || null,
-      username: selectedUser?.username
-    };
+    let startDate = document.querySelector('input[name="startdate"]')?.value || null;
+  let endDate = document.querySelector('input[name="enddate"]')?.value || null;
+
+  if (exportMonth) {
+    const [year, month] = exportMonth.split("-");
+    startDate = `${year}-${month}-01`;
+    const lastDay = new Date(year, parseInt(month), 0).getDate();
+    endDate = `${year}-${month}-${lastDay}`;
+  }
+
+  const filters = {
+    startDate,
+    endDate,
+    username: selectedUser?.username
+  };
     setIsExporting(true); // Set exporting state
 
     try {
@@ -767,11 +779,11 @@ export const DataSummary = () => {
   };
 
   const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
+    setExportDialogOpen(true);
   };
 
   const handleMenuClose = () => {
-    setMenuAnchor(null);
+    setExportDialogOpen(false);
   };
   const formatDateForExcel = (date) => {
     if (!date) return date; // Keep the original value if it's null or undefined
@@ -1491,6 +1503,337 @@ key={`filter-reset-${formResetKey}`} // 🔁 this causes full internal reset
           endDate={endDate}
         />
       </ListBase>
+      <Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
+  <DialogTitle>Select Month to Export</DialogTitle>
+  <DialogContent>
+    <MonthPickerField
+      label="Month"
+      type="month"
+      value={exportMonth}
+      onChange={(e) => {
+        const value = e.target.value;
+        setExportMonth(value);
+      }}
+      InputLabelProps={{ shrink: true }}
+      fullWidth
+      sx={{ mt: 1 }}
+    />
+
+    {isExporting && (
+      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+        <CircularProgress size={24} sx={{ mr: 2 }} />
+        <Typography variant="body2">Exporting...</Typography>
+      </Box>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
+      Cancel
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+        setIsExporting(true);
+
+        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+        // Combine wallet and others data for Excel
+        const combinedData = [
+          ...exportData[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
+            "Transaction ID": item.transactionId,
+            Amount: item.amount,
+            "Transaction Date": formatDateForExcel(item.transactionDate),
+            Status: item.status,
+            paymentType: item?.paymentType,
+            "Stripe Transaction ID": item.transactionIdFromStripe,
+            "Payment Type": item.paymentType,
+            "Agent Name": item?.agentName,
+            "User Name": item?.userName,
+          })),
+          ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
+            "Transaction ID": item.transactionId,
+            Amount: item.amount,
+            "Transaction Date": formatDateForExcel(item.transactionDate),
+            Status: item.status,
+            paymentType: item?.paymentType,
+            "Stripe Transaction ID": item.transactionIdFromStripe,
+            "Payment Type": item.paymentType,
+            "Agent Name": item?.agentName,
+            "User Name": item?.userName,
+          })),
+        ];
+    
+        // Create worksheet and workbook
+        const worksheet = XLSX.utils.json_to_sheet(combinedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+    
+        // Write Excel file
+        const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        saveAs(
+          new Blob([xlsData], { type: "application/octet-stream" }),
+          "TotalRechargeData.xlsx"
+        );
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      <img src={excelIcon} alt="PDF" width={20} height={20} />  Recharge 
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        setIsExporting(true);
+        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+    const doc = new jsPDF();
+
+    // Add title
+    doc.text("Total Recharge Data", 10, 10);
+
+    // Prepare wallet data for PDF
+    const walletTableData = exportData[0]?.totalRechargeByTypeData?.wallet?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Prepare others data for PDF
+    const othersTableData = exportData[0]?.totalRechargeByTypeData?.others?.map(
+      (item, index) => [
+        item.transactionId,
+        item.amount,
+        new Date(item.transactionDate).toLocaleString(),
+        item.status,
+        item.transactionIdFromStripe,
+        item.paymentType,
+        item?.agentName,
+        item?.userName,
+      ]
+    );
+
+    // Add Wallet Transactions
+    doc.text("Wallet Transactions", 10, 20);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: walletTableData,
+      startY: 25,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Add Others Transactions
+    doc.text("Others Transactions", 10, doc.lastAutoTable.finalY + 10);
+    doc.autoTable({
+      head: [
+        [
+          "ID",
+          "Amount",
+          "Transaction Date",
+          "Status",
+          "Stripe ID",
+          "Payment Type",
+          "Agent Name",
+          "User Name",
+        ],
+      ],
+      body: othersTableData,
+      startY: doc.lastAutoTable.finalY + 15,
+      columnStyles: {
+        4: { cellWidth: 50 }, // Stripe ID column
+      },
+      styles: {
+        overflow: "linebreak", // Ensure long text wraps
+        fontSize: 10, // Adjust font size for readability
+      },
+    });
+
+    // Save PDF
+    doc.save("TotalRechargeData.pdf");
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      <img src={pdfIcon} alt="PDF" width={20} height={20} />  Recharge 
+    </Button>
+
+
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+        setIsExporting(true);
+
+
+        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+    // Combine wallet and others data for Excel
+    const combinedData = [
+      ...exportData[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Redeem Service Fee": item.redeemServiceFee,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+      ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
+        "Transaction ID": item.transactionId,
+        Amount: item.amount,
+        "Transaction Date": formatDateForExcel(item.transactionDate),
+        Status: item.status,
+        paymentType: item?.paymentType,
+        "Redeem Service Fee": 0,
+        "Agent Name": item?.agentName,
+        "User Name": item?.userName,
+      })),
+    ];
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(combinedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+
+    // Write Excel file
+    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(
+      new Blob([xlsData], { type: "application/octet-stream" }),
+      "TotalReedeemData.xlsx"
+    );
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      <img src={excelIcon} alt="PDF" width={20} height={20} />  Redeem 
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        setIsExporting(true);
+        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+
+        const doc = new jsPDF();
+    
+        // Add title
+        doc.text("Total Redeem Data", 10, 10);
+    
+        // Prepare wallet data for PDF
+        const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
+          (item, index) => [
+            item.amount,
+            new Date(item.transactionDate).toLocaleString(),
+            item.status,
+            item.redeemServiceFee,
+            item?.agentName,
+            item?.userName,
+          ]
+        );
+    
+        // Prepare others data for PDF
+        const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
+          (item, index) => [
+            item.amount,
+            new Date(item.transactionDate).toLocaleString(),
+            item.status,
+            item.redeemServiceFee,
+            item?.agentName,
+            item?.userName,
+          ]
+        );
+    
+        // Add Wallet Transactions
+        doc.text("Redeem Transactions", 10, 20);
+        doc.autoTable({
+          head: [
+            [
+              "Amount",
+              "Transaction Date",
+              "Status",
+              "Redeem Service Fee",
+              "Agent Name",
+              "User Name",
+            ],
+          ],
+          body: walletTableData,
+          startY: 25,
+          columnStyles: {
+            4: { cellWidth: 50 }, // Stripe ID column
+          },
+          styles: {
+            overflow: "linebreak", // Ensure long text wraps
+            fontSize: 10, // Adjust font size for readability
+          },
+        });
+    
+        // Add Others Transactions
+        doc.text("Cashout Transactions", 10, doc.lastAutoTable.finalY + 10);
+        doc.autoTable({
+          head: [
+            [
+              "Amount",
+              "Transaction Date",
+              "Status",
+              "Redeem Service Fee",
+              "Agent Name",
+              "User Name",
+            ],
+          ],
+          body: othersTableData,
+          startY: doc.lastAutoTable.finalY + 15,
+          columnStyles: {
+            4: { cellWidth: 50 }, // Stripe ID column
+          },
+          styles: {
+            overflow: "linebreak", // Ensure long text wraps
+            fontSize: 10, // Adjust font size for readability
+          },
+        });
+    
+        // Save PDF
+        doc.save("TotalRedeemData.pdf");
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+     <img src={pdfIcon} alt="PDF" width={20} height={20} />  Redeem 
+    </Button>
+  </DialogActions>
+</Dialog>
+
     </>
   );
 };

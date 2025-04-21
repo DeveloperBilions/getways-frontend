@@ -45,7 +45,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [RechargeEnabled, setRechargeEnabled] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isMountedRef = useRef(false);
 
   const resetFields = () => {
@@ -101,7 +101,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       const isStripeMinValid =
         paymentSource === "stripe" ? parseFloat(rechargeAmount) >= 10 : true;
       const isAccessGranted = !RechargeEnabled && !rechargeDisabled;
-  
+
       return (
         isAmountValid &&
         isWalletEnough &&
@@ -110,7 +110,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         isAccessGranted
       );
     };
-  
+
     const submitIfReady = async () => {
       if (isSubmitting || autoSubmitted || !isMountedRef.current) return;
 
@@ -118,12 +118,12 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         identity?.userParentId,
         rechargeAmount
       );
-  
+
       if (!transactionCheck.success) {
         setErrorMessage(transactionCheck.message || "Recharge Limit Reached");
         return;
       }
-  
+
       if (!allConditionsSatisfied()) {
         // ✅ Set descriptive error message
         if (parseFloat(rechargeAmount) < redeemFees) {
@@ -147,9 +147,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         }
         return;
       }
-  
+
       setAutoSubmitted(true); // prevent multiple calls
-       setIsSubmitting(true);
+      setIsSubmitting(true);
       const syntheticEvent = { preventDefault: () => {} };
       handleSubmit(syntheticEvent);
     };
@@ -167,10 +167,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     paymentSource,
     autoSubmitted,
   ]);
-  
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isSubmitting) return; 
+    if (isSubmitting) return;
     setIsSubmitting(true);
     setErrorMessage(""); // Clear previous errors
 
@@ -219,9 +219,15 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             }
           );
           setSuccessRecharge(true);
-          const currentCount = parseInt(localStorage.getItem("kycRechargeCount") || "0", 10);
-          localStorage.setItem("kycRechargeCount", (currentCount + 1).toString());
-          
+          const currentCount = parseInt(
+            localStorage.getItem("kycRechargeCount") || "0",
+            10
+          );
+          localStorage.setItem(
+            "kycRechargeCount",
+            (currentCount + 1).toString()
+          );
+
           // Automatically close success modal after 2 seconds
           setTimeout(() => {
             onClose();
@@ -237,7 +243,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       } catch (error) {
         console.error("Error processing wallet recharge:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
-      }  finally {
+      } finally {
         if (isMountedRef.current) {
           setIsSubmitting(false);
           setLoading(false);
@@ -261,28 +267,28 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
       setLoading(true);
       try {
-       // handleOpenWert(rechargeAmount)
-        const response = await dataProvider.userTransaction(rawData);
-        if (response?.success) {
-          window.open(response?.apiResponse.paymentUrl, "_blank");
+        handleOpenWert(rechargeAmount);
+        // const response = await dataProvider.userTransaction(rawData);
+        // if (response?.success) {
+        //   window.open(response?.apiResponse.paymentUrl, "_blank");
 
-          const paymentUrl = response?.apiResponse?.url;
-          if (paymentUrl) {
-            window.open(paymentUrl, "_blank");
-          } else {
-            setErrorMessage("Payment URL is missing. Please try again.");
-          }
-          onClose();
-          handleRefresh();
-          resetFields();
-        }else {
-          setErrorMessage(
-            response?.message || "Stripe recharge failed. Please try again."
-          );
-        }
-        onClose();
-        handleRefresh();
-        resetFields();
+        //   const paymentUrl = response?.apiResponse?.url;
+        //   if (paymentUrl) {
+        //     window.open(paymentUrl, "_blank");
+        //   } else {
+        //     setErrorMessage("Payment URL is missing. Please try again.");
+        //   }
+        //   onClose();
+        //   handleRefresh();
+        //   resetFields();
+        // }else {
+        //   setErrorMessage(
+        //     response?.message || "Stripe recharge failed. Please try again."
+        //   );
+        // }
+        // onClose();
+        // handleRefresh();
+        // resetFields();
       } catch (error) {
         console.error("Error processing Stripe payment:", error);
         setErrorMessage("An unexpected error occurred. Please try again.");
@@ -306,34 +312,43 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     }
 
     const user = await currentUser.fetch();
-    const walletQuery = new Parse.Query("Master_Wallet_Address");
-    walletQuery.equalTo("userId", currentUser.id);
-    const walletRecord = await walletQuery.first({ useMasterKey: true });
+    console.log(user.get("walletAddr"), "userDetails");
 
-    const userWalletAddress = walletRecord?.get("wallet_adress");
-     const sc_input_data = generateScInputData(
-    "0xb432bd78f57233ddc6688870829432a759a6e551",
-    amount // ⚠️ Use your actual logic for token amount here
-  );
+    const path =
+      "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
+
+    const recipient = user.get("walletAddr");
+    const amountIn = (parseFloat(amount) * Math.pow(10, 6)).toString(); // Converts to 6 decimals
+    const amountOutMinimum = "0";
+
+    const sc_input_data = generateScInputData(
+      path,
+      recipient,
+      amountIn,
+      amountOutMinimum
+    );
+
     const signedData = signSmartContractData(
       {
-        address: "0xb432bd78f57233ddc6688870829432a759a6e551",
+        address: "0x2Ff0EC69341f43CC462251bD49BB63681adAfCb0",
         commodity: "USDT",
-        commodity_amount: amount,
+        commodity_amount: amountIn,
         network: "bsc",
-        sc_address: "0x3F0848e336dCB0Cb35f63FE10b1af2A44B8Ec3E3",
-        sc_input_data:sc_input_data,
+        sc_address: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
+        sc_input_data: sc_input_data,
       },
       privateKey
     );
-
+    console.log(signedData, "signedDatasignedDatasignedData");
     const wertWidget = new WertWidget({
       ...signedData,
       partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
       origin: "https://widget.wert.io",
       click_id: clickId,
       redirect_url: "https://yourdomain.com/payment-success",
-
+      currency: "USD",
+      currency_amount: amountIn, 
+      is_crypto_hidden: true,
       listeners: {
         "payment-status": async (status) => {
           console.log("📥 Wert Payment Status:", status);
@@ -472,18 +487,15 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                 >
                   Recharge
                 </ModalHeader>
-               
 
                 <ModalBody>
-                {errorMessage ? (
-                  <Alert severity="error">
-                    {errorMessage}
-                  </Alert>
-                ) : (
-                  <Box className="text-center text-secondary mt-2">
-                    Processing your recharge...
-                  </Box>
-                )}
+                  {errorMessage ? (
+                    <Alert severity="error">{errorMessage}</Alert>
+                  ) : (
+                    <Box className="text-center text-secondary mt-2">
+                      Processing your recharge...
+                    </Box>
+                  )}
                   {rechargeDisabled && paymentSource === "stripe" && (
                     <Alert severity="warning" sx={{ my: 2 }}>
                       Recharges are not available at this time. Please try again

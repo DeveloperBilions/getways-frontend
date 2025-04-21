@@ -57,6 +57,9 @@ import { ReedemFilterDialog } from "./dialog/RedeemFilterDialog";
 import Reload from "../../Assets/icons/reload.svg";
 import Download from "../../Assets/icons/download.svg";
 import { isCashoutEnabledForAgent } from "../../Utils/utils";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { TextField as MonthPickerField } from "@mui/material";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -97,7 +100,8 @@ export const RedeemRecordsList = (props) => {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
   const [loading, setLoading] = useState(false); 
-
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportMonth, setExportMonth] = useState(null);
   useEffect(() => {
     const checkCashoutAccess = async () => {
       if (identity?.role === "Agent") {
@@ -122,12 +126,25 @@ export const RedeemRecordsList = (props) => {
 
   const fetchDataForExport = async (currentFilterValues) => {
     setIsExporting(true); // Set exporting to true before fetching
+    const exportFilters = { ...currentFilterValues };
+      
+    if (exportFilters.month) {
+      const [year, month] = exportFilters.month.split("-");
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
 
+      exportFilters.transactionDate = {
+        $gte: startDate.toISOString(),
+        $lte: endDate.toISOString(),
+      };
+
+      delete exportFilters.month; // remove 'month' key as it's transformed
+    }
     try {
       const { data } = await dataProvider.getList("redeemRecordsExport", {
         pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
         sort: { field: "transactionDate", order: "DESC" },
-        filter: currentFilterValues,
+        filter: exportFilters,
       });
       // setData(data);
       return data; // Return the fetched data
@@ -252,11 +269,11 @@ export const RedeemRecordsList = (props) => {
   };
 
   const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
+    setExportDialogOpen(event.currentTarget);
   };
 
   const handleMenuClose = () => {
-    setMenuAnchor(null);
+    setExportDialogOpen(null);
   };
 
   const searchFields = [
@@ -1032,6 +1049,98 @@ export const RedeemRecordsList = (props) => {
           />
         </>
       )}
+
+<Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
+  <DialogTitle>Select Month to Export</DialogTitle>
+  <DialogContent>
+    <MonthPickerField
+      label="Month"
+      type="month"
+      value={exportMonth}
+      onChange={(e) => {
+        const value = e.target.value;
+        setExportMonth(value);
+      }}
+      InputLabelProps={{ shrink: true }}
+      fullWidth
+      sx={{ mt: 1 }}
+    />
+
+    {isExporting && (
+      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+        <CircularProgress size={24} sx={{ mr: 2 }} />
+        <Typography variant="body2">Exporting...</Typography>
+      </Box>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
+      Cancel
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        const filters = { ...filterValues, month: exportMonth };
+        const exportData = await fetchDataForExport(filters);
+
+        if (!exportData?.length) return;
+
+        const doc = new jsPDF();
+        doc.text("Redeem Records", 10, 10);
+        doc.autoTable({
+          head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+          body: exportData.map((row, index) => [
+            index + 1,
+            row.username,
+            row.transactionAmount,
+            row.remark,
+            mapStatus(row.status),
+            new Date(row.transactionDate).toLocaleDateString(),
+          ]),
+        });
+        doc.save("RedeemRecords.pdf");
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      Export PDF
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        const filters = { ...filterValues, month: exportMonth };
+        const exportData = await fetchDataForExport(filters);
+
+        if (!exportData?.length) return;
+
+        const selectedFields = exportData.map((item) => ({
+          Name: item.username,
+          "Amount($)": item.transactionAmount,
+          Remark: item.remark,
+          Status: mapStatus(item.status),
+          Date: new Date(item.transactionDate).toLocaleDateString(),
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(selectedFields);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Redeem Records");
+        const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        saveAs(
+          new Blob([xlsData], { type: "application/octet-stream" }),
+          "RedeemRecords.xlsx"
+        );
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      Export Excel
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
     </>
   );
 };

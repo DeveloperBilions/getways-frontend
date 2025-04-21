@@ -18,6 +18,8 @@ import { useNavigate } from "react-router-dom";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
 import CoinsCreditDialog from "./dialog/CoinsCreditDialog";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+
 // mui
 import {
   Chip,
@@ -58,6 +60,7 @@ import CustomPagination from "../Common/CustomPagination";
 import { RechargeFilterDialog } from "./dialog/RechargeFilterDialog";
 import { isRechargeEnabledForAgent } from "../../Utils/utils";
 import { Alert } from "@mui/material"; 
+import { TextField as MonthPickerField } from "@mui/material";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -98,7 +101,11 @@ export const RechargeRecordsList = (props) => {
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
+  const [selectedMonth, setSelectedMonth]=useState(null) 
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+const [exportMonth, setExportMonth] = useState(null);
+
   useEffect(() => {
     const checkRechargeAccess = async () => {
       if (identity?.role === "Agent") {
@@ -125,25 +132,40 @@ export const RechargeRecordsList = (props) => {
     identity?.role !== "Player"
       ? "Recharge Records"
       : "Pending Recharge Request";
-  const fetchDataForExport = async (currentFilterValues) => {
-    setIsExporting(true); // Set exporting to true before fetching
-
-    try {
-      const { data } = await dataProvider.getList("rechargeRecordsExport", {
-        pagination: { page: 1, perPage: 1000 }, // Fetch up to 1000 records
-        sort: { field: "transactionDate", order: "DESC" },
-        filter: currentFilterValues,
-      });
-      // setData(data);
-      return data; // Return the fetched data
-    } catch (error) {
-      console.error("Error fetching data for export:", error);
-      // setData(null); // Reset data to null in case of error
-      return null; // Return null to indicate failure
-    } finally {
-      setIsExporting(false); // Set exporting to false after fetch, regardless of success/failure
-    }
-  };
+      const fetchDataForExport = async (currentFilterValues) => {
+        setIsExporting(true);
+      
+        try {
+          const exportFilters = { ...currentFilterValues };
+      
+          if (exportFilters.month) {
+            const [year, month] = exportFilters.month.split("-");
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0, 23, 59, 59);
+      
+            exportFilters.transactionDate = {
+              $gte: startDate.toISOString(),
+              $lte: endDate.toISOString(),
+            };
+      
+            delete exportFilters.month; // remove 'month' key as it's transformed
+          }
+      
+          const { data } = await dataProvider.getList("rechargeRecordsExport", {
+            pagination: { page: 1, perPage: 1000 },
+            sort: { field: "transactionDate", order: "DESC" },
+            filter: exportFilters,
+          });
+      
+          return data;
+        } catch (error) {
+          console.error("Error fetching data for export:", error);
+          return null;
+        } finally {
+          setIsExporting(false);
+        }
+      };
+      
   const mapStatus = (status) => {
     switch (status) {
       case 0:
@@ -266,12 +288,12 @@ export const RechargeRecordsList = (props) => {
     );
   };
 
-  const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget);
-  };
+  const handleMenuOpen = () => {
+    setExportDialogOpen(true); // Open dialog instead of dropdown
+  };  
 
   const handleMenuClose = () => {
-    setMenuAnchor(null);
+    setExportDialogOpen(null);
   };
 
   const searchFields = [
@@ -568,7 +590,6 @@ export const RechargeRecordsList = (props) => {
           try again later.
         </Alert>
       )}
-
       {!isMobile && (
         <Box
           sx={{
@@ -616,8 +637,7 @@ export const RechargeRecordsList = (props) => {
             </Typography>
           </>
         )}
-      </Box>
-
+      </Box> 
       <List
         title={title}
         filters={dataFilters}
@@ -929,6 +949,111 @@ export const RechargeRecordsList = (props) => {
           handleRefresh={handleRefresh}
         />
       )}
+<Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
+  <DialogTitle>Select Month to Export</DialogTitle>
+  <DialogContent>
+    <MonthPickerField
+      label="Month"
+      type="month"
+      value={exportMonth}
+      onChange={(e) => {
+        const value = e.target.value;
+        setExportMonth(value);
+      }}
+      InputLabelProps={{ shrink: true }}
+      fullWidth
+      sx={{ mt: 1 }}
+    />
+
+    {isExporting && (
+      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+        <CircularProgress size={24} sx={{ mr: 2 }} />
+        <Typography variant="body2">Exporting...</Typography>
+      </Box>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
+      Cancel
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        setIsExporting(true);
+        const filters = { ...filterValues, month: exportMonth };
+        const exportData = await fetchDataForExport(filters);
+
+        if (!exportData || exportData.length === 0) {
+          console.warn("No data to export.");
+          setIsExporting(false);
+          return;
+        }
+
+        const doc = new jsPDF();
+        doc.text("Recharge Records", 10, 10);
+        doc.autoTable({
+          head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+          body: exportData.map((row, index) => [
+            index + 1,
+            row.username,
+            row.transactionAmount,
+            row.remark,
+            mapStatus(row.status),
+            new Date(row.transactionDate).toLocaleDateString(),
+          ]),
+        });
+        doc.save("RechargeRecords.pdf");
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      Export PDF
+    </Button>
+    <Button
+      onClick={async () => {
+        if (!exportMonth) return;
+
+        setIsExporting(true);
+        const filters = { ...filterValues, month: exportMonth };
+        const exportData = await fetchDataForExport(filters);
+
+        if (!exportData || exportData.length === 0) {
+          console.warn("No data to export.");
+          setIsExporting(false);
+          return;
+        }
+
+        const selectedFields = exportData.map((item) => ({
+          Name: item.username,
+          "Amount($)": item.transactionAmount,
+          Remark: item.remark,
+          Status: mapStatus(item.status),
+          Date: new Date(item.transactionDate).toLocaleDateString(),
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(selectedFields);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
+        const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        saveAs(
+          new Blob([xlsData], { type: "application/octet-stream" }),
+          "RechargeRecords.xlsx"
+        );
+
+        setIsExporting(false);
+        setExportDialogOpen(false);
+      }}
+      disabled={!exportMonth || isExporting}
+    >
+      Export Excel
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
     </>
   );
 };

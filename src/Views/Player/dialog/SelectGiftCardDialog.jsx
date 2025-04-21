@@ -43,7 +43,8 @@ const SelectGiftCardDialog = ({
   const [loading, setLoading] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const notify = useNotify();
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     if (open) {
       fetchGiftCards(searchTerm);
@@ -70,7 +71,6 @@ const SelectGiftCardDialog = ({
           currentPage: page,
           perPage,
         });
-                console.log(allResponse,"responseresponseresponseresponse")
 
         const allCards = allResponse.result || [];
 
@@ -80,6 +80,8 @@ const SelectGiftCardDialog = ({
           productIds.add(card.productId);
           return true;
         });
+        setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+
       } else {
         const response = await Parse.Cloud.run("fetchGiftCards", {
           searchTerm: search.trim(),
@@ -88,6 +90,8 @@ const SelectGiftCardDialog = ({
         });
         console.log(response,"responseresponseresponseresponse")
         combinedResults = response.result || [];
+        setTotalPages(Math.ceil(response.totalCount / perPage));
+
       }
 
       setGiftCards(combinedResults);
@@ -138,10 +142,12 @@ const SelectGiftCardDialog = ({
           setSuccessModalOpen(false);
         }, 2000);
       } else {
-        setErrorMessage(response.message || "Purchase failed");
+        console.log("Gift card purchase error:", response);
+
+        setErrorMessage(response.error || "Purchase failed");
       }
     } catch (error) {
-      console.error("Gift card purchase error:", error);
+      console.log("Gift card purchase error:", error);
       setErrorMessage("Gift card purchase failed. Please try again.");
     } finally {
       setLoading(false);
@@ -319,6 +325,33 @@ const SelectGiftCardDialog = ({
                   </Row>
                 </Box>
               )}
+                 <Col md={12} className="d-flex justify-content-center mt-3">
+                  <Button
+                  variant="outlined"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage(currentPage - 1);
+                      fetchGiftCards(searchTerm, currentPage - 1);
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  <span style={{ margin: "0 10px", alignSelf: "center" }}>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                  variant="outlined"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage(currentPage + 1);
+                      fetchGiftCards(searchTerm, currentPage + 1);
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Col>
             </ModalBody>
             <ModalFooter className="custom-modal-footer">
               <Col md={12}>

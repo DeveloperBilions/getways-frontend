@@ -1387,7 +1387,16 @@ export const dataProvider = {
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
-              } else {
+              } else if (f === "transactionDate" && typeof filter[f] === "object") {
+                const dateFilter = filter[f];
+                if (dateFilter.$gte) {
+                  query.greaterThanOrEqualTo("transactionDate", new Date(dateFilter.$gte));
+                }
+                if (dateFilter.$lte) {
+                  query.lessThanOrEqualTo("transactionDate", new Date(dateFilter.$lte));
+                }
+              }
+              else {
                 query.equalTo(f, filter[f]);
               }
             }
@@ -1454,7 +1463,15 @@ export const dataProvider = {
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
-              } else {
+              } else if (f === "transactionDate" && typeof filter[f] === "object") {
+                const dateFilter = filter[f];
+                if (dateFilter.$gte) {
+                  query.greaterThanOrEqualTo("transactionDate", new Date(dateFilter.$gte));
+                }
+                if (dateFilter.$lte) {
+                  query.lessThanOrEqualTo("transactionDate", new Date(dateFilter.$lte));
+                }
+              }else {
                 query.equalTo(f, filter[f]);
               }
             }
