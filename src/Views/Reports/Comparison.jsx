@@ -135,137 +135,211 @@ export const Comparison = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
             {type === "date" && (
               <>
-                <TextField
-                  label="Date"
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  inputProps={{
-                    min: startDateLimit,
-                    max: today,
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                />
-                <TextField
-                  label="Date"
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  inputProps={{
-                    min: startDateLimit,
-                    max: today,
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                />
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Date<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    inputProps={{
+                      min: startDateLimit,
+                      max: today,
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                  />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Date<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    inputProps={{
+                      min: startDateLimit,
+                      max: today,
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                  />
+                </Box>
               </>
             )}
             {type === "month" && (
               <>
-                <TextField
-                  label="Month"
-                  type="month"
-                  InputLabelProps={{ shrink: true }}
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  inputProps={{
-                    min: startDateLimit.slice(0, 7),
-                    max: today.slice(0, 7),
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                />
-                <TextField
-                  label="Month"
-                  type="month"
-                  InputLabelProps={{ shrink: true }}
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  inputProps={{
-                    min: startDateLimit.slice(0, 7),
-                    max: today.slice(0, 7),
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                />
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Month<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="month"
+                    InputLabelProps={{ shrink: true }}
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    inputProps={{
+                      min: startDateLimit.slice(0, 7),
+                      max: today.slice(0, 7),
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                  />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Month<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="month"
+                    InputLabelProps={{ shrink: true }}
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    inputProps={{
+                      min: startDateLimit.slice(0, 7),
+                      max: today.slice(0, 7),
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                  />
+                </Box>
               </>
             )}
             {type === "year" && (
               <>
-                <TextField
-                  label="Year"
-                  type="number"
-                  InputLabelProps={{ shrink: true }}
-                  value={fromDate}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value, 10);
-                    if (value >= 2024 && value <= currentYear)
-                      setFromDate(value.toString());
-                  }}
-                  inputProps={{
-                    min: 2024,
-                    max: currentYear,
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                  onInput={(e) => {
-                    if (e.target.value < 2024) e.target.value = 2024;
-                    if (e.target.value > currentYear)
-                      e.target.value = currentYear;
-                  }}
-                />
-                <TextField
-                  label="Year"
-                  type="number"
-                  InputLabelProps={{ shrink: true }}
-                  value={toDate}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value, 10);
-                    if (value >= 2024 && value <= currentYear)
-                      setToDate(value.toString());
-                  }}
-                  inputProps={{
-                    min: 2024,
-                    max: currentYear,
-                  }}
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                  onInput={(e) => {
-                    if (e.target.value < 2024) e.target.value = 2024;
-                    if (e.target.value > currentYear)
-                      e.target.value = currentYear;
-                  }}
-                />
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Year<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="number"
+                    placeholder="YYYY"
+                    InputLabelProps={{ shrink: true }}
+                    value={fromDate}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (value >= 2024 && value <= currentYear)
+                        setFromDate(value.toString());
+                    }}
+                    inputProps={{
+                      min: 2024,
+                      max: currentYear,
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    onInput={(e) => {
+                      if (e.target.value < 2024) e.target.value = 2024;
+                      if (e.target.value > currentYear)
+                        e.target.value = currentYear;
+                    }}
+                  />
+                </Box>
+                <Box display="flex" flexDirection="column">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 0.5,
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#00000099",
+                    }}
+                  >
+                    Year<span style={{ color: "red" }}> *</span>
+                  </Typography>
+                  <TextField
+                    type="number"
+                    placeholder="YYYY"
+                    InputLabelProps={{ shrink: true }}
+                    value={toDate}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (value >= 2024 && value <= currentYear)
+                        setToDate(value.toString());
+                    }}
+                    inputProps={{
+                      min: 2024,
+                      max: currentYear,
+                    }}
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    onInput={(e) => {
+                      if (e.target.value < 2024) e.target.value = 2024;
+                      if (e.target.value > currentYear)
+                        e.target.value = currentYear;
+                    }}
+                  />
+                </Box>
               </>
             )}
 
@@ -273,6 +347,7 @@ export const Comparison = () => {
               <Select
                 value={type}
                 onChange={(e) => handleSetType(e.target.value)}
+                sx={{ height: 40 }}
               >
                 <MenuItem value="date">Date</MenuItem>
                 <MenuItem value="month">Month</MenuItem>

@@ -139,79 +139,118 @@ export const ParticularPlayer = () => {
     <>
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
-            <Autocomplete
-              sx={{ width: 230 }}
-              options={choices}
-              getOptionLabel={(option) => option.optionName}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-              loading={userLoading}
-              loadingText="....Loading"
-              value={selectedUsertemp}
-              onChange={(event, newValue) => handleUserChange(newValue)}
-              onInputChange={(event, newInputValue, reason) => {
-                if (reason === "input") {
-                  debouncedFetchUsers(newInputValue, 1);
-                  setSelectedUsertemp(null);
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Player<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <Autocomplete
+                sx={{ width: 230 }}
+                options={choices}
+                getOptionLabel={(option) => option.optionName}
+                isOptionEqualToValue={(option, value) =>
+                  option.id === value?.id
                 }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Player Username"
-                  variant="outlined"
-                  required
-                  sx={{
-                    "& .MuiFormLabel-asterisk": {
-                      color: "red",
-                    },
-                  }}
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {userLoading ? <CircularProgress size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-            <TextField
-              label="From Date"
-              type="date"
-              value={tempStartDate}
-              onChange={(event) => setTempStartDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: startDateLimit,
-                max: tempEndDate || today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
-            <TextField
-              label="To Date"
-              type="date"
-              value={tempEndDate}
-              onChange={(event) => setTempEndDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: tempStartDate || startDateLimit,
-                max: today,
-              }}
-              required
-              sx={{
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-            />
+                loading={userLoading}
+                loadingText="....Loading"
+                value={selectedUsertemp}
+                onChange={(event, newValue) => handleUserChange(newValue)}
+                onInputChange={(event, newInputValue, reason) => {
+                  if (reason === "input") {
+                    debouncedFetchUsers(newInputValue, 1);
+                    setSelectedUsertemp(null);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search"
+                    variant="outlined"
+                    required
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {userLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempStartDate}
+                onChange={(event) => setTempStartDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: startDateLimit,
+                  max: tempEndDate || today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                type="date"
+                value={tempEndDate}
+                onChange={(event) => setTempEndDate(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: tempStartDate || startDateLimit,
+                  max: today,
+                }}
+                required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               onClick={handleFilterSubmit}
@@ -234,58 +273,15 @@ export const ParticularPlayer = () => {
           ) : isSubmitted ? (
             !noDataFound ? (
               <>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Typography variant="h6" gutterBottom>
-                      Daily Player Transactions
-                    </Typography>
-                    <LineChart
-                      xAxis={[
-                        {
-                          data: formattedData,
-                          scaleType: "band",
-                          label: "Date",
-                        },
-                      ]}
-                      yAxis={[{ label: "Amount" }]}
-                      series={[
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              playerUsername.transactions[date].totalRecharge
-                          ),
-                          label: "Total Recharge",
-                          color: "#2196f3",
-                        },
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              playerUsername.transactions[date].totalRedeem
-                          ),
-                          label: "Total Redeem",
-                          color: "#f44336",
-                        },
-                        {
-                          data: lineChartDates.map(
-                            (date) =>
-                              playerUsername.transactions[date].totalCashout
-                          ),
-                          label: "Total Cashout",
-                          color: "#4caf50",
-                        },
-                      ]}
-                      width={1200}
-                      height={400}
-                      margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6} lg={6}>
+                <Grid container spacing={3} mt={3}>
+                  {/* Pie Chart - Left Side */}
+                  <Grid item xs={12} md={4}>
                     <Box
                       sx={{
                         p: 2,
                         border: "1px solid #eaeaea",
                         borderRadius: 2,
+                        height: "100%",
                       }}
                     >
                       <Typography variant="h6" gutterBottom align="center">
@@ -306,23 +302,27 @@ export const ParticularPlayer = () => {
                                   id: 0,
                                   value: totalData.totalRecharge,
                                   label: "Recharge",
-                                  color: "#2196f3",
+                                  color: "#43A047",
                                 },
                                 {
                                   id: 1,
                                   value: totalData.totalRedeem,
                                   label: "Redeem",
-                                  color: "#f44336",
+                                  color: "#E53935",
                                 },
                                 {
                                   id: 2,
                                   value: totalData.totalCashout,
                                   label: "Cashout",
-                                  color: "#4caf50",
+                                  color: "#FB8C00",
                                 },
                               ],
                               innerRadius: 30,
                               outerRadius: 100,
+                              paddingAngle: 1,
+                              cornerRadius: 5,
+                              startAngle: -90,
+                              endAngle: 270,
                               cx: 150,
                               cy: 150,
                             },
@@ -336,6 +336,7 @@ export const ParticularPlayer = () => {
                                 vertical: "bottom",
                                 horizontal: "middle",
                               },
+                              padding: 0,
                             },
                           }}
                         />
@@ -346,6 +347,61 @@ export const ParticularPlayer = () => {
                         </Typography>
                       </Box>
                     </Box>
+                  </Grid>
+
+                  {/* Line Chart - Right Side */}
+                  <Grid item xs={12} md={8}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        border: "1px solid #eaeaea",
+                        borderRadius: 2,
+                        height: "100%",
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom>
+                        Daily Player Transactions
+                      </Typography>
+                      <LineChart
+                        xAxis={[
+                          {
+                            data: formattedData,
+                            scaleType: "band",
+                          },
+                        ]}
+                        yAxis={[{ label: "Amount" }]}
+                        series={[
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                playerUsername.transactions[date].totalRecharge
+                            ),
+                            label: "Total Recharge",
+                            color: "#2196f3",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                playerUsername.transactions[date].totalRedeem
+                            ),
+                            label: "Total Redeem",
+                            color: "#f44336",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                playerUsername.transactions[date].totalCashout
+                            ),
+                            label: "Total Cashout",
+                            color: "#4caf50",
+                          },
+                        ]}
+                        // width={1200}
+                        height={400}
+                        margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
+                      />
+                    </Box>{" "}
+                    {/* Closing Box tag moved here */}
                   </Grid>
                 </Grid>
               </>

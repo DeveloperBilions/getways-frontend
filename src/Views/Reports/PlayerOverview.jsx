@@ -168,34 +168,33 @@ export const PlayerOverview = () => {
     setPage(1);
   };
 
-    const handleExportPDF = async () => {
-        if (!filteredPlayerData || filteredPlayerData.length === 0) {
-          console.warn("No data to export.");
-          return;
-        }
-         const doc = new jsPDF();
-         doc.text("Player Transaction Report", 10, 10);
-         doc.autoTable({
-           head: [
-             [
-               "No",
-               "Player Name",
-               "Total Recharge",
-               "Total Redeem",
-               "Total Cashout",
-             ],
-           ],
-           body: filteredPlayerData.map((row, index) => [
-             index + 1,
-             row.username,
-             row.totalRecharge,
-             row.totalRedeem,
-             row.totalCashout,
-           ]),
-         });
-         doc.save("PlayerTransactionReport.pdf");
-      };
-
+  const handleExportPDF = async () => {
+    if (!filteredPlayerData || filteredPlayerData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text("Player Transaction Report", 10, 10);
+    doc.autoTable({
+      head: [
+        [
+          "No",
+          "Player Name",
+          "Total Recharge",
+          "Total Redeem",
+          "Total Cashout",
+        ],
+      ],
+      body: filteredPlayerData.map((row, index) => [
+        index + 1,
+        row.username,
+        row.totalRecharge,
+        row.totalRedeem,
+        row.totalCashout,
+      ]),
+    });
+    doc.save("PlayerTransactionReport.pdf");
+  };
 
   // Calculate totals for PieChart
   const calculateTotals = () => {
@@ -215,11 +214,11 @@ export const PlayerOverview = () => {
       {
         id: 0,
         value: totalRecharge,
-        label: "Total Recharge",
-        color: "#4caf50",
+        label: "Recharge",
+        color: "#43A047",
       },
-      { id: 1, value: totalRedeem, label: "Total Redeem", color: "#2196f3" },
-      { id: 2, value: totalCashout, label: "Total Cashout", color: "#f44336" },
+      { id: 1, value: totalRedeem, label: "Redeem", color: "#E53935" },
+      { id: 2, value: totalCashout, label: "Cashout", color: "#FB8C00" },
     ];
   };
 
@@ -228,7 +227,7 @@ export const PlayerOverview = () => {
     setSortOrder((prevSortOrder) => {
       const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
 
-      setPlayerData((prevData) => {
+      setFilteredPlayerData((prevData) => {
         const sortedData = [...prevData].sort((a, b) => {
           if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
           if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
@@ -253,75 +252,119 @@ export const PlayerOverview = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }}>
-            <Autocomplete
-              sx={{ width: { xs: "100%", md: 230 } }}
-              options={choices}
-              getOptionLabel={(option) => option.optionName}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-              loading={userLoading}
-              loadingText="....Loading"
-              value={selectedUser}
-              onChange={(event, newValue) => handleUserChange(newValue)}
-              onInputChange={(event, newInputValue, reason) => {
-                if (reason === "input") {
-                  debouncedFetchUsers(newInputValue, 1);
-                  setSelectedUser(null);
+          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems="end">
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Agent
+              </Typography>
+              <Autocomplete
+                sx={{ width: { xs: "100%", md: 230 } }}
+                options={choices}
+                getOptionLabel={(option) => option.optionName}
+                isOptionEqualToValue={(option, value) =>
+                  option.id === value?.id
                 }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Agent Username"
-                  variant="outlined"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {userLoading ? <CircularProgress size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-            />
-            <TextField
-              required
-              sx={{
-                width: { xs: "100%", md: "auto" },
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-              label="From Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              inputProps={{
-                min: startDateLimit,
-                max: toDate || today,
-              }}
-            />
-            <TextField
-              required
-              sx={{
-                width: { xs: "100%", md: "auto" },
-                "& .MuiFormLabel-asterisk": {
-                  color: "red",
-                },
-              }}
-              label="To Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              inputProps={{
-                min: fromDate || startDateLimit,
-                max: today,
-              }}
-            />
+                loading={userLoading}
+                loadingText="....Loading"
+                value={selectedUser}
+                onChange={(event, newValue) => handleUserChange(newValue)}
+                onInputChange={(event, newInputValue, reason) => {
+                  if (reason === "input") {
+                    debouncedFetchUsers(newInputValue, 1);
+                    setSelectedUser(null);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search"
+                    variant="outlined"
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        height: "40px",
+                      },
+                    }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {userLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                Start Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                required
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                inputProps={{
+                  min: startDateLimit,
+                  max: toDate || today,
+                }}
+              />
+            </Box>
+            <Box display="flex" flexDirection="column">
+              <Typography
+                variant="body2"
+                sx={{
+                  mb: 0.5,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#00000099",
+                }}
+              >
+                End Date<span style={{ color: "red" }}> *</span>
+              </Typography>
+              <TextField
+                required
+                sx={{
+                  width: { xs: "100%", md: "auto" },
+                  "& .MuiInputBase-root": {
+                    height: "40px",
+                  },
+                }}
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                inputProps={{
+                  min: fromDate || startDateLimit,
+                  max: today,
+                }}
+              />
+            </Box>
             <Button
               variant="contained"
               color="primary"
@@ -340,155 +383,265 @@ export const PlayerOverview = () => {
             !noDataFound ? (
               <>
                 {/* PieChart for Totals */}
-                <Grid container spacing={2} sx={{ mt: 4 }}>
-                  <Grid item xs={12}>
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                          Transaction Overview - Total Distribution
-                        </Typography>
-                        <div
-                          style={{
-                            height: 400,
+                <Box sx={{ mt: 4 }}>
+                  <CardContent sx={{ p: 0 }}>
+                    <Grid container spacing={2}>
+                      {/* Left Side - Pie Chart */}
+                      <Grid item xs={12} md={4}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            height: { xs: "auto", md: 422 },
+                            minHeight: { xs: 400, md: "unset" },
+                            border: "1px solid #E7E7E7",
+                            borderRadius: 1,
+                            backgroundColor: "#ffffff",
                             width: "100%",
+                            gap: 2,
                             display: "flex",
-                            justifyContent: "center",
+                            flexDirection: "column",
                           }}
                         >
-                          {pieChartData.length > 0 ? (
-                            <PieChart
-                              series={[
-                                {
-                                  data: pieChartData,
-                                  highlightScope: {
-                                    faded: "global",
-                                    highlighted: "item",
+                          <Typography
+                            variant="subtitle1"
+                            gutterBottom
+                            sx={{
+                              fontFamily: "Inter",
+                              fontWeight: 600,
+                              fontSize: "16px",
+                              lineHeight: "100%",
+                              color: "#333333",
+                            }}
+                          >
+                            Transaction Overview - Total Distribution
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: "Inter",
+                              fontWeight: 400,
+                              fontSize: "12px",
+                              lineHeight: "150%",
+                              color: "#666666",
+                              mb: 2,
+                            }}
+                          >
+                            The pie chart below shows the distribution of
+                            different transaction types in the system.
+                          </Typography>
+                          <Box
+                            sx={{
+                              flex: 1,
+                              minHeight: 300,
+                              width: "100%",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                            }}
+                          >
+                            {pieChartData.length > 0 ? (
+                              <PieChart
+                                series={[
+                                  {
+                                    data: pieChartData,
+                                    highlightScope: {
+                                      faded: "global",
+                                      highlighted: "item",
+                                    },
+                                    faded: {
+                                      innerRadius: 30,
+                                      additionalRadius: -30,
+                                      color: "gray",
+                                    },
                                   },
-                                  faded: {
-                                    innerRadius: 30,
-                                    additionalRadius: -30,
-                                    color: "gray",
+                                ]}
+                                height={300}
+                                width={300}
+                                margin={{
+                                  top: 0,
+                                  bottom: 100,
+                                  left: 30,
+                                  right: 30,
+                                }}
+                                legend={{
+                                  direction: "row",
+                                  position: {
+                                    vertical: "bottom",
+                                    horizontal: "middle",
                                   },
-                                },
-                              ]}
-                              height={400}
-                              width={500}
-                              margin={{
-                                top: 0,
-                                bottom: 100,
-                                left: 30,
-                                right: 30,
-                              }}
-                              legend={{
-                                direction: "row",
-                                position: {
-                                  vertical: "bottom",
-                                  horizontal: "middle",
-                                },
-                              }}
-                            />
-                          ) : (
-                            <Typography>
-                              No data available for pie chart
-                            </Typography>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                </Grid>
+                                  itemMarkWidth: 10,
+                                  itemMarkHeight: 10,
+                                }}
+                                sx={{
+                                  "& .MuiChartsLegend-mark": {
+                                    width: "10px !important",
+                                    height: "10px !important",
+                                  },
+                                }}
+                              />
+                            ) : (
+                              <Typography>
+                                No data available for pie chart
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      </Grid>
 
-                <Grid container spacing={2} sx={{ mt: 4 }}>
-                  <Grid item xs={12}>
-                    <Card>
-                      <CardContent>
-                        {loading ? (
-                          <Grid container justifyContent="center">
-                            <CircularProgress />
-                          </Grid>
-                        ) : (
-                          <div style={{ overflowX: "auto", width: "100%" }}>
-                            <Typography variant="h6" gutterBottom>
-                              Top {playerRechargeData.length} Player Recharge
-                              Overview
-                            </Typography>
-                            <BarChart
-                              xAxis={[
-                                {
-                                  data: playerRechargeData.map(
-                                    (item) => item.username
-                                  ),
-                                  scaleType: "band",
-                                },
-                              ]}
-                              series={[
-                                {
-                                  data: playerRechargeData.map(
-                                    (item) => item.totalRecharge
-                                  ),
-                                  color: "#4caf50",
-                                },
-                              ]}
-                              height={400}
-                              width={1200} // Adjust width dynamically
-                              margin={{ left: 100, right: 50, bottom: 50 }}
-                            />
-                            <Typography variant="h6" gutterBottom>
-                              Top {playerRedeemData.length} Player Redeem
-                              Overview
-                            </Typography>
-                            <BarChart
-                              xAxis={[
-                                {
-                                  data: playerRedeemData.map(
-                                    (item) => item.username
-                                  ),
-                                  scaleType: "band",
-                                },
-                              ]}
-                              series={[
-                                {
-                                  data: playerRedeemData.map(
-                                    (item) => item.totalRedeem
-                                  ),
-                                  color: "#4caf50",
-                                },
-                              ]}
-                              height={400}
-                              width={1200} // Adjust width dynamically
-                              margin={{ left: 100, right: 50, bottom: 50 }}
-                            />
-                            <Typography variant="h6" gutterBottom>
-                              Top {playerCashoutData.length} Player Cashout
-                              Overview
-                            </Typography>
-                            <BarChart
-                              xAxis={[
-                                {
-                                  data: playerCashoutData.map(
-                                    (item) => item.username
-                                  ),
-                                  scaleType: "band",
-                                },
-                              ]}
-                              series={[
-                                {
-                                  data: playerCashoutData.map(
-                                    (item) => item.totalCashout
-                                  ),
-                                  color: "#4caf50",
-                                },
-                              ]}
-                              height={400}
-                              width={1200} // Adjust width dynamically
-                              margin={{ left: 100, right: 50, bottom: 50 }}
-                            />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                </Grid>
+                      {/* Right Side - Bar Chart */}
+                      <Grid item xs={12} md={8}>
+                        <Box
+                          sx={{
+                            p: 2,
+                            height: 422,
+                            border: "1px solid #E7E7E7",
+                            borderRadius: 1,
+                            backgroundColor: "#ffffff",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                          }}
+                        >
+                          {loading ? (
+                            <Grid
+                              container
+                              justifyContent="center"
+                              alignItems="center"
+                              sx={{ height: "100%" }}
+                            >
+                              <CircularProgress />
+                            </Grid>
+                          ) : (
+                            <Box
+                              sx={{
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                              }}
+                            >
+                              <Typography
+                                variant="subtitle1"
+                                gutterBottom
+                                sx={{
+                                  fontFamily: "Inter",
+                                  fontWeight: 600,
+                                  fontSize: "16px",
+                                  lineHeight: "100%",
+                                  color: "#333333",
+                                }}
+                              >
+                                Players Transaction Overview
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: "Inter",
+                                  fontWeight: 400,
+                                  fontSize: "12px",
+                                  lineHeight: "150%",
+                                  color: "#666666",
+                                  mb: 2,
+                                }}
+                              >
+                                The bar chart below shows the transaction
+                                distribution among players.
+                              </Typography>
+
+                              <Box
+                                sx={{
+                                  flex: 1,
+                                  width: "100%",
+                                  position: "relative",
+                                }}
+                              >
+                                <BarChart
+                                  xAxis={[
+                                    {
+                                      data: playerRechargeData
+                                        .slice(0, 10)
+                                        .map((item) => item.username),
+                                      scaleType: "band",
+                                      tickLabelStyle: {
+                                        fontSize: "7px",
+                                      },
+                                    },
+                                  ]}
+                                  series={[
+                                    {
+                                      data: playerRechargeData
+                                        .slice(0, 10)
+                                        .map((item) => item.totalRecharge),
+                                      label: "Recharge",
+                                      color: "#089B2D",
+                                    },
+                                    {
+                                      data: playerRechargeData
+                                        .slice(0, 10)
+                                        .map((player) => {
+                                          const redeemPlayer =
+                                            playerRedeemData.find(
+                                              (p) =>
+                                                p.username === player.username
+                                            );
+                                          return redeemPlayer
+                                            ? redeemPlayer.totalRedeem
+                                            : 0;
+                                        }),
+                                      label: "Redeem",
+                                      color: "#F20D33",
+                                    },
+                                    {
+                                      data: playerRechargeData
+                                        .slice(0, 10)
+                                        .map((player) => {
+                                          const cashoutPlayer =
+                                            playerCashoutData.find(
+                                              (p) =>
+                                                p.username === player.username
+                                            );
+                                          return cashoutPlayer
+                                            ? cashoutPlayer.totalCashout
+                                            : 0;
+                                        }),
+                                      label: "Cashout",
+                                      color: "#0D46F2",
+                                    },
+                                  ]}
+                                  height={350}
+                                  // width={Math.max(600, playerRechargeData.slice(0, 10).length * 60)}
+                                  margin={{
+                                    left: 70,
+                                    right: 30,
+                                    top: 30,
+                                    bottom:
+                                      playerRechargeData.length > 5 ? 100 : 70,
+                                  }}
+                                  slotProps={{
+                                    legend: {
+                                      direction: "row",
+                                      position: {
+                                        vertical: "top",
+                                        horizontal: "right",
+                                      },
+                                      padding: { top: 0 },
+                                      itemMarkWidth: 10,
+                                      itemMarkHeight: 10,
+                                    },
+                                  }}
+                                  sx={{
+                                    "& .MuiChartsAxis-tickLabel": {
+                                      fontSize: "0.75rem",
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Box>
 
                 <Box
                   sx={{

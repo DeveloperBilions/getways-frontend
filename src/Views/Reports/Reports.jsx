@@ -105,6 +105,7 @@ import { PlayerOverview } from "./PlayerOverview";
 import { PlayerComparison } from "./PlayerComparison";
 import { ParticularPlayer } from "./ParticularPlayer";
 import { TransactionData } from "../TransactionData/TransactionData";
+import Kyc from "./Kyc";
 
 export const Reports = () => {
   const { identity } = useGetIdentity();
@@ -121,6 +122,7 @@ export const Reports = () => {
     "Player Overview": "playerOverview",
     "Player Comparison": "playerComparison",
     "Particular Player": "particularPlayer",
+    KYC: "Kyc",
     "Transaction Export": "TransactionData",
   };
 
@@ -131,6 +133,7 @@ export const Reports = () => {
     "Player Overview",
     "Player Comparison",
     "Particular Player",
+    "KYC",
     "Transaction Export",
   ];
 
@@ -149,6 +152,7 @@ export const Reports = () => {
       "The Particular Player page allows admins to analyze an player’s transactions over a selected date range, featuring an player search with autocomplete, date filters, and data visualization. It retrieves transaction records, including total recharges, redeems, and cashouts, and presents them using a line chart for daily trends and a pie chart for a summarized breakdown.",
     TransactionData:
       "The Transaction Export page allows users to download transaction data in various formats for further analysis and reporting.",
+    Kyc: "This KYC page provides a comprehensive view of customer verification statuses, visualizing the distribution of KYC requests across five categories (Expired, Failed, Initiated, Pending, and Success) through an interactive pie chart.",
   };
 
   // Only render if the user is authorized
@@ -191,7 +195,7 @@ export const Reports = () => {
           display: "flex",
           alignItems: "center",
           width: "fit-content",
-          maxWidth: "100%",  
+          maxWidth: "100%",
         }}
       >
         {tabOptions.map((tab) => (
@@ -255,37 +259,42 @@ export const Reports = () => {
       {/* Content Area with conditional rendering for each component */}
       {activeComponent === "overview" && (
         <Box sx={{ mb: 3 }}>
-          <Overview description={descriptions["overview"]} />
+          <Overview />
         </Box>
       )}
       {activeComponent === "comparison" && (
         <Box sx={{ mb: 3 }}>
-          <Comparison description={descriptions["comparison"]} />
+          <Comparison />
         </Box>
       )}
       {activeComponent === "agentOverview" && (
         <Box sx={{ mb: 3 }}>
-          <AgentOverview description={descriptions["agentOverview"]} />
+          <AgentOverview />
         </Box>
       )}
       {activeComponent === "playerOverview" && (
         <Box sx={{ mb: 3 }}>
-          <PlayerOverview description={descriptions["playerOverview"]} />
+          <PlayerOverview />
         </Box>
       )}
       {activeComponent === "playerComparison" && (
         <Box sx={{ mb: 3 }}>
-          <PlayerComparison description={descriptions["playerComparison"]} />
+          <PlayerComparison />
         </Box>
       )}
       {activeComponent === "particularPlayer" && (
         <Box sx={{ mb: 3 }}>
-          <ParticularPlayer description={descriptions["particularPlayer"]} />
+          <ParticularPlayer />
+        </Box>
+      )}
+      {activeComponent === "Kyc" && (
+        <Box sx={{ mb: 3 }}>
+          <Kyc />
         </Box>
       )}
       {activeComponent === "TransactionData" && (
         <Box sx={{ mb: 3 }}>
-          <TransactionData description={descriptions["transactionExport"]} />
+          <TransactionData />
         </Box>
       )}
     </Box>
