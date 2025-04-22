@@ -417,6 +417,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             console.error("Error handling Wert status:", err.message);
           }
         },
+        "close": ()=> {
+          onClose();
+        }
       },
     });
 
