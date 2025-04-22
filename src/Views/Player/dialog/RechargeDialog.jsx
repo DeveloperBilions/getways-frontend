@@ -318,7 +318,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
 
     const recipient = user.get("walletAddr");
-    const amountIn = (parseFloat(amount) * Math.pow(10, 6)).toString(); // Converts to 6 decimals
+    const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
     const amountOutMinimum = "0";
 
     const sc_input_data = generateScInputData(
@@ -339,7 +339,6 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       },
       privateKey
     );
-    console.log(signedData, "signedDatasignedDatasignedData");
     const wertWidget = new WertWidget({
       ...signedData,
       partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
