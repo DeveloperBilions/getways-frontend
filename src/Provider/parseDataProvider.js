@@ -685,17 +685,30 @@ export const dataProvider = {
           "Transactionrecords_archive"
         ).aggregate(fullPipeline, { useMasterKey: true });
 
-        // Add Wallet Balance Calculation
         let totalWalletBalance = 0;
-        const walletQuery = new Parse.Query("Wallet");
-        if (userIds.length) {
-          walletQuery.containedIn("userID", userIds);
+
+        const pipe = [];
+        
+        if (filter?.username && userIds.length) {
+          pipe.push({
+            $match: {
+              userID: { $in: userIds }
+            }
+          });
         }
-        const wallets = await walletQuery.find({ useMasterKey: true });
-        totalWalletBalance = wallets.reduce(
-          (sum, wallet) => sum + (wallet.get("balance") || 0),
-          0
-        );
+        
+        // Group stage for sum (common for both cases)
+        pipe.push({
+          $group: {
+            _id: null,
+            totalBalance: { $sum: "$balance" }
+          }
+        });
+        
+        const res = await new Parse.Query("Wallet").aggregate(pipe, { useMasterKey: true });
+        
+        totalWalletBalance = res.length > 0 ? res[0].totalBalance : 0;
+        
 
         function mergeFacets(active, archived, walletBalance = 0) {
           const merged = {};
