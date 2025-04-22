@@ -356,7 +356,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             const query = new Parse.Query(Transaction);
             query.equalTo(
               "transactionIdFromStripe",
-              status?.order_id || clickId
+              clickId
             );
             const existingTxn = await query.first({ useMasterKey: true });
 
@@ -386,7 +386,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               existingTxn.set("status", newStatus);
               existingTxn.set(
                 "transactionIdFromStripe",
-                status?.order_id || clickId
+                 clickId
               );
               existingTxn.set("transactionDate", transactionDate);
               await existingTxn.save(null, { useMasterKey: true });
@@ -396,7 +396,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             } else {
               // Create new record if not found
               const txn = new Transaction();
-              txn.set("transactionIdFromStripe", status?.order_id || clickId);
+              txn.set("transactionIdFromStripe", clickId);
               txn.set("status", newStatus);
               txn.set("userId", currentUser.id);
               txn.set("username", user.get("username"));
