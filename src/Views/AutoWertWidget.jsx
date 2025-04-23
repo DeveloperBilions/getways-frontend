@@ -28,10 +28,10 @@ const AutoWertWidget = () => {
         "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
       const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
       const amountOutMinimum = "0";
-
+      const recipient = walletAddr
       const scInputData = generateScInputData(
         path,
-        walletAddr,
+        recipient,
         amountIn,
         amountOutMinimum
       );
