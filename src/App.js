@@ -43,6 +43,7 @@ import { WalletDetails } from "./Views/Player/dialog/WalletDetails";
 import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
 import { BrowserRouter } from "react-router-dom";
 import NotFoundPage from "./Views/PageNotFound/NotFoundPage";
+import AutoWertWidget from "./Views/AutoWertWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -141,6 +142,7 @@ const allowedPaths = [
   "/gift-card-history",
   "/wallet-details",
   "/transactionData",
+  "/buyWert",
     "/404"
 ];
 if (!allowedPaths.includes(currentPath)) {
@@ -369,6 +371,10 @@ if (!allowedPaths.includes(currentPath)) {
           );
         }
       }}
+      <CustomRoutes noLayout>
+      <Route path="/buyWert" element={<AutoWertWidget />} />
+      </CustomRoutes>
+      
     </Admin>
     </BrowserRouter>
   );
