@@ -267,8 +267,27 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
       setLoading(true);
       try {
+        const currentUser = await Parse.User.current().fetch();
+        let walletAddr = currentUser.get("walletAddr");
+        
+        if (!walletAddr || walletAddr.trim() === "") {
+          try {
+            const walletResp = await Parse.Cloud.run("assignRandomWalletAddrIfMissing", {
+              userId: currentUser.id,
+            });
+            walletAddr = walletResp.walletAddr;
+            console.log("Assigned new walletAddr:", walletAddr);
+          } catch (e) {
+            console.error("Failed to assign wallet address:", e.message);
+            setErrorMessage("Wallet address assignment failed. Please try again.");
+            setLoading(false);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+        
         handleOpenWert(rechargeAmount);
-        // const response = await dataProvider.userTransaction(rawData);
+                // const response = await dataProvider.userTransaction(rawData);
         // if (response?.success) {
         //   window.open(response?.apiResponse.paymentUrl, "_blank");
 
