@@ -48,6 +48,23 @@ const AutoWertWidget = () => {
         privateKey
       );
 
+      try {
+        const AOGTransaction = Parse.Object.extend("AOGTransaction");
+        const newTxn = new AOGTransaction();
+
+        newTxn.set("clickId", clickId);
+        newTxn.set("walletAddress", walletAddr);
+        newTxn.set("amount", parseFloat(amount));
+        newTxn.set("status", "Pending");
+        newTxn.set("date", new Date());
+        newTxn.set("userId", userId);
+
+        await newTxn.save(null);
+        console.log("✅ Transaction inserted as Pending");
+      } catch (err) {
+        console.error("❌ Error inserting transaction:", err.message);
+      }
+
       const wertWidget = new WertWidget({
         ...signedData,
         partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
@@ -61,56 +78,47 @@ const AutoWertWidget = () => {
             window.location.href = "https://aogcoin.club/Games/index.php";
           },
           "payment-status": async (status) => {
-            console.log("Wert Payment Status:", status);
-          
+            console.log("🔁 Wert Payment Status:", status);
+
             try {
-              const queryParams = new URLSearchParams(window.location.search);
-              const amount = parseFloat(queryParams.get("amount"));
-              const walletAddr = queryParams.get("walletAddr");
-              const userId = queryParams.get("userId");
-          
-              const clickId = `txn-${Date.now()}`;
-              const transactionDate = new Date();
-          
-              // Prepare status code
-              let statusText = "Pending";
+              let updatedStatus = "Pending";
+
               switch (status?.status) {
                 case "success":
-                  statusText = "Success";
+                  updatedStatus = "Success";
                   break;
                 case "failed":
-                  statusText = "Failed";
+                  updatedStatus = "Failed";
                   break;
                 case "cancelled":
-                  statusText = "Cancelled";
+                  updatedStatus = "Cancelled";
                   break;
                 case "expired":
-                  statusText = "Expired";
+                  updatedStatus = "Expired";
                   break;
-                default:
-                  statusText = "Pending";
               }
-          
+
               const AOGTransaction = Parse.Object.extend("AOGTransaction");
-              const newTxn = new AOGTransaction();
-          
-              newTxn.set("clickId", clickId);
-              newTxn.set("walletAddress", walletAddr);
-              newTxn.set("amount", amount);
-              newTxn.set("status", statusText);
-              newTxn.set("date", transactionDate);
-              newTxn.set("userId", userId);
-          
-              await newTxn.save(null, { useMasterKey: true });
-              console.log("Transaction stored in AOGTransaction table");
-          
+              const query = new Parse.Query(AOGTransaction);
+              query.equalTo("clickId", clickId);
+
+              const existingTxn = await query.first({ useMasterKey: true });
+
+              if (existingTxn) {
+                existingTxn.set("status", updatedStatus);
+                await existingTxn.save(null, { useMasterKey: true });
+                console.log(`✅ Transaction status updated to ${updatedStatus}`);
+              } else {
+                console.warn("⚠️ Transaction not found for clickId:", clickId);
+              }
+
               if (status?.status === "success") {
                 window.location.href = "https://aogcoin.club/Games/index.php";
               }
             } catch (err) {
-              console.error("Error saving transaction:", err.message);
+              console.error("❌ Error updating transaction:", err.message);
             }
-          }          
+          },    
         },
       });
 
