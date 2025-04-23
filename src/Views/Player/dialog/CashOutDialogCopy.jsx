@@ -29,6 +29,10 @@ const CashOutModal = ({
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
 
   useEffect(() => {
+    setErrorMessage(""); // Clear error message when modal opens
+  }, [open]);
+
+  useEffect(() => {
     const checkRechargeAccess = async () => {
         const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
         setCashoutDisabled(disabled);

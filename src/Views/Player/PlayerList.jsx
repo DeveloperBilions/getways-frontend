@@ -77,7 +77,7 @@ export const PlayerList = () => {
     try {
       const wallet = await walletService.getMyWalletData();
       setWalletData(wallet.wallet);
-      setBalance(wallet.wallet.balance);
+      setBalance(wallet.wallet.balance || 0);
     } catch (error) {
       console.error("Failed to fetch wallet data:", error);
     } finally {
