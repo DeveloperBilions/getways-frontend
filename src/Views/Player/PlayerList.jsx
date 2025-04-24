@@ -406,6 +406,7 @@ export const PlayerList = () => {
               wallet={walletData}
               handleRedeemRefresh={handleRedeemRefresh}
               redeemFees={redeemFees}
+              totalRechargeData={totalRechargeData}
             />
           </Box>
         )}

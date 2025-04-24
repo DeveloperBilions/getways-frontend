@@ -20,6 +20,14 @@ import {
   Row,
 } from "reactstrap";
 import { walletService } from "../../Provider/WalletManagement";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
+import { getTotalRechargeAmount } from "../../Utils/utils";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -30,13 +38,15 @@ const Redeem = ({
   wallet,
   handleRedeemRefresh,
   redeemFees,
+  totalRechargeData,
 }) => {
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [loading, setLoading] = useState(false);
   const notify = useNotify();
-
+  const [showRedeemConfirmDialog, setShowRedeemConfirmDialog] = useState(false);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState(false);
+  const [liveRechargeTotal, setLiveRechargeTotal] = useState(0);
   const refresh = useRefresh();
   const [remark, setRemark] = useState("");
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -74,10 +84,10 @@ const Redeem = ({
     handleRedeemRefresh();
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
     const methodCount = [cashAppId, paypalId, venmoId].filter(Boolean).length;
-
+  
     if (methodCount === 0) {
       notify(
         "No payment methods are added. Please add a payment method to proceed.",
@@ -87,10 +97,28 @@ const Redeem = ({
         }
       );
       setShowWarningModal(true);
-    } else {
-      handleSubmit();
+      return;
     }
+  else{
+    handleConfirmDoublee()
+  }
   };
+  const handleConfirmDoublee = async () => {
+    try {
+      const total = await getTotalRechargeAmount(identity?.objectId);
+      setLiveRechargeTotal(total);
+      if (redeemAmount > total * 0.5) {
+        setShowRedeemConfirmDialog(true); // open MUI dialog
+      } else {
+        handleSubmit();
+      }
+    } catch (error) {
+      console.error("Failed to fetch recharge total", error);
+      notify("Unable to validate redeem limit at the moment.", {
+        type: "error",
+      });
+    }
+  }
 
   const handleSubmit = async () => {
     const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
@@ -197,7 +225,8 @@ const Redeem = ({
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
-      handleSubmit();
+      handleConfirmDoublee()
+      //handleSubmit();
     } catch (error) {
       console.error("Error updating payment methods:", error);
       setErrorAddPayment(
@@ -211,7 +240,6 @@ const Redeem = ({
   if (loading) {
     return <Loader />;
   }
-
   return (
     <>
       <Box
@@ -450,7 +478,14 @@ const Redeem = ({
               "&:hover": {
                 backgroundColor: "#2E5BFF",
               },
+              "&.Mui-disabled": {
+                backgroundColor: "#B0B0B0", // Light gray disabled background
+                color: "#F0F0F0", // Faded text color
+                cursor: "not-allowed",
+                opacity: 0.7,
+              },
             }}
+            disabled={!totalRechargeData || totalRechargeData <= 0}
           >
             Redeem Request
             <ArrowForwardIcon
@@ -517,7 +552,8 @@ const Redeem = ({
                 color="primary"
                 onClick={() => {
                   setShowWarningModal(false);
-                  handleSubmit();
+                  handleConfirmDoublee();
+                  //handleSubmit();
                 }}
               >
                 No, Continue
@@ -534,7 +570,8 @@ const Redeem = ({
               }}
               onClick={() => {
                 setShowWarningModal(false);
-                handleSubmit();
+                handleConfirmDoublee()
+                //handleSubmit();
               }}
             >
               Close
@@ -668,6 +705,37 @@ const Redeem = ({
           </Form>
         </ModalBody>
       </ReactstrapModal>
+      <Dialog
+        open={showRedeemConfirmDialog}
+        onClose={() => setShowRedeemConfirmDialog(false)}
+      >
+        <DialogTitle>Confirm Redeem</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            The redeem amount is higher than 50% of your total recharge.
+            Would you like to continue?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setShowRedeemConfirmDialog(false)}
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setShowRedeemConfirmDialog(false);
+              handleConfirmDoublee()
+             // handleSubmit();
+            }}
+            variant="contained"
+            sx={{ backgroundColor: "#2E5BFF", color: "#fff" }}
+          >
+            Yes, Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

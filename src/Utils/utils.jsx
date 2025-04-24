@@ -1297,3 +1297,25 @@ export const KYCReport = async (filter) => {
   }
 };
 
+export async function getTotalRechargeAmount(userId) {
+  const queryPipeline = [
+    {
+      $match: {
+        userId: userId, // direct match instead of $in
+        status: { $in: [2, 3] }, // successful recharge statuses
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$transactionAmount" },
+      },
+    },
+  ];
+
+  const results = await new Parse.Query("TransactionRecords")
+    .aggregate(queryPipeline);
+
+  return results[0]?.total || 0;
+}
+
