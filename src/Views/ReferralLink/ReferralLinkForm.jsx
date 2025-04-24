@@ -49,17 +49,28 @@ const ReferralLinkForm = () => {
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
 
-   useEffect(() => {
-    const logoutIfLoggedIn = async () => {
+  useEffect(() => {
+    const clearSession = async () => {
       try {
-        await Parse.User.logOut(); // Ensure Parse session is cleared
+        // Log out from Parse session
+        await Parse.User.logOut();
+  
+        // Clear localStorage and sessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+  
+        // Optionally clear cookies if needed
+        // document.cookie = ''; // Or use cookie utilities
       } catch (err) {
-        console.error("Logout error:", err);
+        console.error("Session cleanup failed:", err);
+      } finally {
+        console.log("✅ Session cleared");
       }
     };
-
-    logoutIfLoggedIn();
+  
+    clearSession();
   }, []);
+  
 
   useEffect(() => {
     const fetchReferral = async () => {
@@ -147,12 +158,12 @@ const ReferralLinkForm = () => {
       const response = await Parse.Cloud.run("referralUserUpdate", rawData);
       if (response.status === "error") {
         setLoading(false);
-        navigate("/login");
+        window.location.href = "/login";
       }
       if (response.status === "success") {
         setLoading(false);
         notify(response.message, { type: "success", autoHideDuration: 5000 });
-        navigate("/login");
+        window.location.href = "/login";
       }
     } catch (error) {
       console.error("Error Creating User details", error);
