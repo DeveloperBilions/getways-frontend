@@ -642,7 +642,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
       const user = await Parse.User.current()?.fetch();
 
-      transactionDetails.set("type", "Recharge");
+      transactionDetails.set("type", "recharge");
       transactionDetails.set("gameId", "786");
       transactionDetails.set("username", identity?.username || "");
       transactionDetails.set("userId", identity?.objectId);
