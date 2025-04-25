@@ -747,7 +747,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             open={snackbarOpen}
             autoHideDuration={3000}
             onClose={() => setSnackbarOpen(false)}
-            message="Wallet address copied! Use it to pay in USDC."
+            message="Wallet address copied!"
             //anchorOrigin={{ vertical: "top", horizontal: "center" }}
             sx={{
               zIndex: (theme) => theme.zIndex.tooltip + 1000, // Keep it on top
