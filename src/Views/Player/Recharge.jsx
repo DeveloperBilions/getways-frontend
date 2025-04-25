@@ -600,7 +600,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         <DialogTitle>Recharge Wallet Address</DialogTitle>
         <DialogContent>
           <Alert
-            severity="info"
+            severity="warning"
             sx={{
               mb: 2,
               borderRadius: "8px",
@@ -610,6 +610,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }}
           >
             Leave all details as they are to avoid issues with your transaction.
+            <br />
             When prompted, you’ll need to enter your wallet key 🔑.
           </Alert>
           {/* <Box
@@ -665,9 +666,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
           {/* External Recharge Link */}
           <Box sx={{ mt: 3 }}>
-            <Typography sx={{ mb: 1, fontWeight: 500 }}>
-              Proceed to Crypto Recharge
-            </Typography>
             <Button
               variant="outlined"
               fullWidth
@@ -716,12 +714,27 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   setProcessingCryptoRecharge(false);
                 }
               }}
-              disabled={processingCryptoRecharge || !walletCopied}
               sx={{
                 textTransform: "none",
                 fontWeight: 500,
                 borderRadius: "8px",
+                bgcolor: walletCopied && !processingCryptoRecharge ? "green" : "grey.400",
+                color: "white",
+                "&:hover": {
+                  bgcolor: walletCopied && !processingCryptoRecharge ? "darkgreen" : "grey.500",
+                },
+                "&.Mui-disabled": {
+                  bgcolor: "grey.400",
+                  color: "white",
+                  borderColor: "grey.400",
+                },
               }}
+              disabled={processingCryptoRecharge || !walletCopied}
+              // sx={{
+              //   textTransform: "none",
+              //   fontWeight: 500,
+              //   borderRadius: "8px",
+              // }}
             >
               {processingCryptoRecharge
                 ? "Processing..."
