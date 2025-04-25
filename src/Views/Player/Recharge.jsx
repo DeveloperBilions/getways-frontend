@@ -470,7 +470,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Recharges are not available at this time. Please try again later.
             </Alert>
           )}
-
+{/* 
           <Button
             variant="contained"
             sx={{
@@ -506,7 +506,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <ArrowForwardIcon
               style={{ width: "24px", height: "24px", marginLeft: "10px" }}
             />
-          </Button>
+          </Button> */}
 
           <Button
             variant="contained"
