@@ -22,6 +22,13 @@ import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
 import { isRechargeEnabledForAgent } from "../../Utils/utils";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import Tooltip from "@mui/material/Tooltip";
+import Snackbar from "@mui/material/Snackbar";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -33,6 +40,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
   const [paymentSource, setPaymentSource] = useState("stripe");
+  const [processingCryptoRecharge, setProcessingCryptoRecharge] = useState(false);
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
   const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
@@ -40,17 +48,23 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
   const [showKycSuccessMsg, setShowKycSuccessMsg] = useState(false); // ✅ new
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
+  const [rechargeLinkDialogOpen, setRechargeLinkDialogOpen] = useState(false);
+  const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
+
   useEffect(() => {
     const checkRechargeAccess = async () => {
-        const disabled = !(await isRechargeEnabledForAgent(identity?.userParentId));
-        setRechargeDisabled(disabled);
+      const disabled = !(await isRechargeEnabledForAgent(
+        identity?.userParentId
+      ));
+      setRechargeDisabled(disabled);
     };
-  
-    if(identity?.userParentId){
-      checkRechargeAccess();
-      handlecheck()
-    }
 
+    if (identity?.userParentId) {
+      checkRechargeAccess();
+      handlecheck();
+    }
   }, [identity]);
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
@@ -59,6 +73,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       setDisplayMethod("Wallet");
     } else if (event.target.value === "stripe") {
       setDisplayMethod("Payment Portal");
+    }
+  };
+
+  const handleCopy = () => {
+    if (identity?.walletAddr) {
+      navigator.clipboard.writeText(identity.walletAddr);
+      setSnackbarOpen(true);
     }
   };
 
@@ -71,29 +92,31 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     refresh();
     resetFields();
   };
- 
+
   useEffect(() => {
     const interval = setInterval(() => {
-      handlecheck()
-    
+      handlecheck();
     }, 30000); // 1 minute = 60000ms
-  
+
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
-  
+
   const handlecheck = async () => {
     try {
       const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
       const query = new Parse.Query(TransfiUserInfo);
       query.equalTo("userId", identity?.objectId);
       const result = await query.first({ useMasterKey: true });
-  
+
       const kycStatus = result?.get("kycStatus")?.trim().toLowerCase();
       const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
-  
+
       if (kycStatus === "kyc_success") {
-        let currentCount = parseInt(localStorage.getItem("kycRechargeCount") || "0", 10);
-        console.log(currentCount,"currentCountcurrentCount")
+        let currentCount = parseInt(
+          localStorage.getItem("kycRechargeCount") || "0",
+          10
+        );
+        console.log(currentCount, "currentCountcurrentCount");
         // If just completed, reset count to 0 if not already set
         if (wasJustCompleted?.trim() === "true") {
           if (isNaN(currentCount)) {
@@ -102,7 +125,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           }
           localStorage.removeItem("kycCompletedOnce");
         }
-  
+
         // Show KYC message only if count is less than 10
         if (currentCount < 10) {
           setShowKycSuccessMsg(true);
@@ -114,7 +137,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       console.error("Error checking KYC after refresh:", err);
     }
   };
-  
+
   const resetFields = () => {
     setRechargeAmount(50);
     setRemark("");
@@ -124,15 +147,15 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
   const handleRechargeClick = async () => {
     if (identity?.isBlackListed) return;
-  
+
     // try {
     //   const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
     //   const query = new Parse.Query(TransfiUserInfo);
     //   query.equalTo("userId", identity.objectId);
     //   const record = await query.first({ useMasterKey: true });
-  
+
     //   if (record && record.get("kycVerified") === true) {
-        setRechargeDialogOpen(true);
+    setRechargeDialogOpen(true);
     //   } else {
     //     setSubmitKycDialogOpen(true);
     //   }
@@ -141,10 +164,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     //   setSubmitKycDialogOpen(true);
     // }
   };
-  
+  const rechargeUrl = `https://crypto.link.com?ref=lb&source_amount=${rechargeAmount}&source_currency=usd&destination_currency=usdc&destination_network=ethereum`;
+
   return (
     <>
-
       <Box
         sx={{
           padding: "24px",
@@ -218,24 +241,24 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                     {rechargeAmount}
                   </Typography>
                   <Box>
-                  <TextField
-                    fullWidth
-                    label="Add Transaction Note"
-                    value={remark}
-                    onChange={(e) => setRemark(e.target.value)}
-                    variant="outlined"
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          border: "none",
+                    <TextField
+                      fullWidth
+                      label="Add Transaction Note"
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      variant="outlined"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": {
+                            border: "none",
+                          },
+                          "&:hover fieldset": {
+                            border: "none",
+                          },
                         },
-                        "&:hover fieldset": {
-                          border: "none",
-                        },
-                      },
-                    }}
-                  />
-                </Box>
+                      }}
+                    />
+                  </Box>
                 </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -434,15 +457,15 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             />
           </Box>
           {showKycSuccessMsg && (
-  <Alert severity="success" sx={{ mb: 2 }}>
-    KYC completed successfully! You can now proceed with recharge.
-  </Alert>
-)}
-{rechargeDisabled && (
-  <Alert severity="error" sx={{ mb: 2 }}>
-    Recharges are not available at this time. Please try again later.
-  </Alert>
-)}
+            <Alert severity="success" sx={{ mb: 2 }}>
+              KYC completed successfully! You can now proceed with recharge.
+            </Alert>
+          )}
+          {rechargeDisabled && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              Recharges are not available at this time. Please try again later.
+            </Alert>
+          )}
 
           <Button
             variant="contained"
@@ -463,11 +486,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             disabled={identity?.isBlackListed || rechargeDisabled}
             onClick={() => {
               if (!identity?.isBlackListed) {
-                if(paymentSource === "stripe")
-                {
-                  handleRechargeClick()
-                }
-                else{
+                if (paymentSource === "stripe") {
+                  handleRechargeClick();
+                } else {
                   setRechargeDialogOpen(true);
                 }
               }
@@ -482,6 +503,80 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               style={{ width: "24px", height: "24px", marginLeft: "10px" }}
             />
           </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              width: "100%",
+              height: "52px",
+              borderRadius: "4px",
+              backgroundColor: "green",
+              color: "#FFFFFF",
+              "&.Mui-disabled": {
+                bgcolor: "#A0AEC0",
+                color: "#E2E8F0",
+              },
+              ":hover": {
+                backgroundColor: "#2E5BFF",
+              },
+              marginTop: "10px",
+            }}
+            onClick={async () => {
+              if (walletLoading) return; // prevent spamming
+
+              if (!identity?.walletAddr) {
+                try {
+                  setWalletLoading(true);
+
+                  const walletResp = await Parse.Cloud.run(
+                    "assignRandomWalletAddrIfMissing",
+                    {
+                      userId: identity?.objectId,
+                    }
+                  );
+
+                  if (walletResp?.walletAddr) {
+                    identity.walletAddr = walletResp.walletAddr;
+                    setSnackbarOpen(true);
+                  } else {
+                    alert("Failed to assign wallet address. Please try again.");
+                    return;
+                  }
+                } catch (err) {
+                  console.error("Error assigning wallet:", err);
+                  alert("Something went wrong while assigning wallet address.");
+                  return;
+                } finally {
+                  setWalletLoading(false);
+                }
+              }
+
+              setRechargeLinkDialogOpen(true);
+            }}
+            // onClick={() => setRechargeLinkDialogOpen(true)} // ✅ Add this
+            disabled={walletLoading}
+          >
+            {walletLoading ? (
+              <Typography sx={{ fontSize: "16px", fontWeight: 500 }}>
+                Assigning Wallet...
+              </Typography>
+            ) : (
+              <>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "18px",
+                    textTransform: "none",
+                  }}
+                >
+                  Recharge Link
+                </Typography>
+                <ArrowForwardIcon
+                  style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+                />
+              </>
+            )}
+          </Button>
         </Box>
       </Box>
       {totalData > 0 && data.length !== 0 && (
@@ -492,6 +587,114 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           redirectUrl={"rechargeRecords"}
         />
       )}
+      <Dialog
+        open={rechargeLinkDialogOpen}
+        onClose={() => setRechargeLinkDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Recharge Wallet Address</DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+              padding: "10px",
+              background: "#f9f9f9",
+              mt: 1,
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{ wordBreak: "break-all", flex: 1 }}
+            >
+              {identity?.walletAddr || "No Wallet Address Found"}
+            </Typography>
+            <Tooltip
+              title="Copy"
+              open={copyTooltipOpen}
+              onClose={() => setCopyTooltipOpen(false)}
+              arrow
+            >
+              <IconButton onClick={handleCopy}>
+                <ContentCopyIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* External Recharge Link */}
+          <Box sx={{ mt: 3 }}>
+            <Typography sx={{ mb: 1, fontWeight: 500 }}>
+              Proceed to Crypto Recharge
+            </Typography>
+            <Button
+  variant="outlined"
+  fullWidth
+  onClick={async () => {
+    if (processingCryptoRecharge) return;
+    try {
+      setProcessingCryptoRecharge(true);
+
+      const TransactionDetails = Parse.Object.extend("TransactionRecords");
+      const transactionDetails = new TransactionDetails();
+
+      const user = await Parse.User.current()?.fetch();
+
+      transactionDetails.set("type", "Recharge");
+      transactionDetails.set("gameId", "786");
+      transactionDetails.set("username", identity?.username || "");
+      transactionDetails.set("userId", identity?.objectId);
+      transactionDetails.set("transactionDate", new Date());
+      transactionDetails.set(
+        "transactionAmount",rechargeAmount
+      );
+      transactionDetails.set("remark", remark);
+      transactionDetails.set("useWallet", paymentSource === "wallet");
+      transactionDetails.set("userParentId", user?.get("userParentId") || "");
+      transactionDetails.set("status", 1);
+      transactionDetails.set("referralLink", rechargeUrl);
+      transactionDetails.set("transactionIdFromStripe", rechargeUrl);
+      transactionDetails.set("portal", "Stripe");
+
+      await transactionDetails.save(null, { useMasterKey: true });
+
+      window.open(rechargeUrl, "_blank");
+      //setRechargeLinkDialogOpen(false); // optional: close dialog
+    } catch (err) {
+      console.error("Failed to save transaction:", err);
+      alert("Failed to initiate transaction. Please try again.");
+    } finally {
+      setProcessingCryptoRecharge(false);
+    }
+  }}
+  disabled={processingCryptoRecharge}
+  sx={{
+    textTransform: "none",
+    fontWeight: 500,
+    borderRadius: "8px",
+  }}
+>
+  {processingCryptoRecharge ? "Processing..." : "Go to Payment Portal"}
+</Button>
+
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRechargeLinkDialogOpen(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message="Wallet address copied!"
+      />
+
       <RechargeDialog
         open={RechargeDialogOpen}
         onClose={() => setRechargeDialogOpen(false)}
@@ -503,12 +706,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         }}
       />
       <SubmitKYCDialog
-  open={submitKycDialogOpen}
-  onClose={() => setSubmitKycDialogOpen(false)}
-  onSuccess={handleRefresh}
-  identity={identity}
-/>
-
+        open={submitKycDialogOpen}
+        onClose={() => setSubmitKycDialogOpen(false)}
+        onSuccess={handleRefresh}
+        identity={identity}
+      />
     </>
   );
 };
