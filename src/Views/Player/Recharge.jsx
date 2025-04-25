@@ -40,7 +40,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
   const [paymentSource, setPaymentSource] = useState("stripe");
-  const [processingCryptoRecharge, setProcessingCryptoRecharge] = useState(false);
+  const [processingCryptoRecharge, setProcessingCryptoRecharge] =
+    useState(false);
   const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
     useState(false);
   const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
@@ -52,6 +53,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
+  const [walletCopied, setWalletCopied] = useState(false); // Add this at the top with other states
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -78,8 +80,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
   const handleCopy = () => {
     if (identity?.walletAddr) {
-      navigator.clipboard.writeText(identity.walletAddr);
-      setSnackbarOpen(true);
+      navigator.clipboard.writeText(identity.walletAddr).then(() => {
+        setWalletCopied(true); // Mark as copied
+        setSnackbarOpen(true); // Show success message
+      });
     }
   };
 
@@ -595,7 +599,20 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       >
         <DialogTitle>Recharge Wallet Address</DialogTitle>
         <DialogContent>
-          <Box
+          <Alert
+            severity="info"
+            sx={{
+              mb: 2,
+              borderRadius: "8px",
+              backgroundColor: "#e8f4fd",
+              color: "#0c5460",
+              fontWeight: 500,
+            }}
+          >
+            Leave all details as they are to avoid issues with your transaction.
+            When prompted, you’ll need to enter your wallet key 🔑.
+          </Alert>
+          {/* <Box
             sx={{
               display: "flex",
               alignItems: "center",
@@ -622,6 +639,28 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 <ContentCopyIcon />
               </IconButton>
             </Tooltip>
+          </Box> */}
+          {/* Wallet Copy Button with same styling as Recharge Now */}
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleCopy}
+              sx={{
+                height: "52px",
+                borderRadius: "4px",
+                backgroundColor: "#2E5BFF",
+                color: "#FFFFFF",
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "18px",
+                ":hover": {
+                  backgroundColor: "#2E5BFF",
+                },
+              }}
+            >
+              Copy Wallet Key
+            </Button>
           </Box>
 
           {/* External Recharge Link */}
@@ -630,56 +669,86 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Proceed to Crypto Recharge
             </Typography>
             <Button
-  variant="outlined"
-  fullWidth
-  onClick={async () => {
-    if (processingCryptoRecharge) return;
-    try {
-      setProcessingCryptoRecharge(true);
+              variant="outlined"
+              fullWidth
+              onClick={async () => {
+                if (processingCryptoRecharge) return;
+                try {
+                  setProcessingCryptoRecharge(true);
 
-      const TransactionDetails = Parse.Object.extend("TransactionRecords");
-      const transactionDetails = new TransactionDetails();
+                  const TransactionDetails =
+                    Parse.Object.extend("TransactionRecords");
+                  const transactionDetails = new TransactionDetails();
 
-      const user = await Parse.User.current()?.fetch();
+                  const user = await Parse.User.current()?.fetch();
 
-      transactionDetails.set("type", "recharge");
-      transactionDetails.set("gameId", "786");
-      transactionDetails.set("username", identity?.username || "");
-      transactionDetails.set("userId", identity?.objectId);
-      transactionDetails.set("transactionDate", new Date());
-      transactionDetails.set(
-        "transactionAmount",rechargeAmount
-      );
-      transactionDetails.set("remark", remark);
-      transactionDetails.set("useWallet", paymentSource === "wallet");
-      transactionDetails.set("userParentId", user?.get("userParentId") || "");
-      transactionDetails.set("status", 1);
-      transactionDetails.set("referralLink", rechargeUrl);
-      transactionDetails.set("transactionIdFromStripe", rechargeUrl);
-      transactionDetails.set("portal", "Stripe");
+                  transactionDetails.set("type", "recharge");
+                  transactionDetails.set("gameId", "786");
+                  transactionDetails.set("username", identity?.username || "");
+                  transactionDetails.set("userId", identity?.objectId);
+                  transactionDetails.set("transactionDate", new Date());
+                  transactionDetails.set("transactionAmount", rechargeAmount);
+                  transactionDetails.set("remark", remark);
+                  transactionDetails.set(
+                    "useWallet",
+                    paymentSource === "wallet"
+                  );
+                  transactionDetails.set(
+                    "userParentId",
+                    user?.get("userParentId") || ""
+                  );
+                  transactionDetails.set("status", 1);
+                  transactionDetails.set("referralLink", rechargeUrl);
+                  transactionDetails.set(
+                    "transactionIdFromStripe",
+                    rechargeUrl
+                  );
+                  transactionDetails.set("portal", "Stripe");
 
-      await transactionDetails.save(null, { useMasterKey: true });
+                  await transactionDetails.save(null, { useMasterKey: true });
 
-      window.open(rechargeUrl, "_blank");
-      //setRechargeLinkDialogOpen(false); // optional: close dialog
-    } catch (err) {
-      console.error("Failed to save transaction:", err);
-      alert("Failed to initiate transaction. Please try again.");
-    } finally {
-      setProcessingCryptoRecharge(false);
-    }
-  }}
-  disabled={processingCryptoRecharge}
-  sx={{
-    textTransform: "none",
-    fontWeight: 500,
-    borderRadius: "8px",
-  }}
->
-  {processingCryptoRecharge ? "Processing..." : "Go to Payment Portal"}
-</Button>
-
+                  window.open(rechargeUrl, "_blank");
+                  //setRechargeLinkDialogOpen(false); // optional: close dialog
+                } catch (err) {
+                  console.error("Failed to save transaction:", err);
+                  alert("Failed to initiate transaction. Please try again.");
+                } finally {
+                  setProcessingCryptoRecharge(false);
+                }
+              }}
+              disabled={processingCryptoRecharge || !walletCopied}
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                borderRadius: "8px",
+              }}
+            >
+              {processingCryptoRecharge
+                ? "Processing..."
+                : !walletCopied
+                ? "Copy Wallet Key First"
+                : "Go to Payment Portal"}
+            </Button>
           </Box>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={3000}
+            onClose={() => setSnackbarOpen(false)}
+            message="Wallet address copied! Use it to pay in USDC."
+            //anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            sx={{
+              zIndex: (theme) => theme.zIndex.tooltip + 1000, // Keep it on top
+              "& .MuiSnackbarContent-root": {
+                backgroundColor: "#323232",
+                color: "#fff",
+                fontWeight: 500,
+                fontSize: "14px",
+                borderRadius: "6px",
+                padding: "10px 16px",
+                boxShadow: "0px 4px 20px rgba(0,0,0,0.2)",
+              },
+            }}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRechargeLinkDialogOpen(false)}>
@@ -687,13 +756,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        message="Wallet address copied!"
-      />
 
       <RechargeDialog
         open={RechargeDialogOpen}
