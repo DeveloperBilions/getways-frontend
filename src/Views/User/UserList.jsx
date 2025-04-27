@@ -519,7 +519,7 @@ export const UserList = (props) => {
           role !== "Master-Agent" &&
           (isMobile ? (
             <Box
-              onClick={handleCreateUser}
+              onClick={handleGenerateLink}
               sx={{
                 cursor: "pointer",
                 display: "flex",
@@ -564,7 +564,7 @@ export const UserList = (props) => {
             onClick={handleCreateUser}
             sx={{
               cursor: "pointer",
-              display: identity?.roleName === "Agent" || identity?.roleName === "Master-Agent" ? "none" : "flex",
+              display: role === "Agent" || role === "Master-Agent" ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
               bgcolor: "var(--primary-color)",
