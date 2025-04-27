@@ -887,7 +887,13 @@ const [exportMonth, setExportMonth] = useState(null);
                             fontWeight: 400,
                           }}
                         >
-                          {record?.referralLink?.toLowerCase().includes("aog")
+                          {record?.transactionIdFromStripe?.toLowerCase().includes("txn") ?
+                            "WERT" :
+
+                            record?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com") ? 
+
+                            "Link" :
+                          record?.referralLink?.toLowerCase().includes("aog")
                             ? "AOG" :
                             record?.referralLink?.toLowerCase().includes("transfi") ? 
                             "TransFi"
