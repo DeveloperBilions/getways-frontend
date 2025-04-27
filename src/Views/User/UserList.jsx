@@ -564,7 +564,7 @@ export const UserList = (props) => {
             onClick={handleCreateUser}
             sx={{
               cursor: "pointer",
-              display: "flex",
+              display: identity?.roleName === "Agent" || identity?.roleName === "Master-Agent" ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
               bgcolor: "var(--primary-color)",
@@ -583,7 +583,7 @@ export const UserList = (props) => {
             startIcon={
               <img src={AddUser} alt="Add User" width="20px" height="20px" />
             }
-            onClick={handleCreateUser}
+            //onClick={handleCreateUser}
             sx={{
               width: { xs: "100%", sm: "191px" },
               height: { xs: "100%", sm: "40px" },
@@ -591,6 +591,7 @@ export const UserList = (props) => {
               color: "var(--secondary-color)",
               mb: 0.5,
             }} // Full width on small screens
+            disabled= {role === "Agent" || role === "Master-Agent"}
           >
             <Typography
               sx={{
