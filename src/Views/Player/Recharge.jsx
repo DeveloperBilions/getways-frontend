@@ -54,6 +54,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletCopied, setWalletCopied] = useState(false); // Add this at the top with other states
+  const [checkbookEmail, setCheckbookEmail] = useState(
+    identity?.checkbookEmail || ""
+  );
+  const [processingCheckbookRecharge, setProcessingCheckbookRecharge] =
+    useState(false);
+  const [checkbookDialogOpen, setCheckbookDialogOpen] = useState(false);
+  const [isEmailAlreadySaved, setIsEmailAlreadySaved] = useState(false);
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -84,6 +91,35 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         setWalletCopied(true); // Mark as copied
         setSnackbarOpen(true); // Show success message
       });
+    }
+  };
+
+  const handleCheckbookRecharge = async () => {
+    try {
+      setProcessingCheckbookRecharge(true); // Start Loader ✅
+
+      if (!isEmailAlreadySaved) {
+        const user = await Parse.User.current();
+        user.set("checkbookEmail", checkbookEmail);
+        await user.save(null, { useMasterKey: true });
+      }
+
+      await Parse.Cloud.run("sendCheckbookInvoice", {
+        email: checkbookEmail,
+        amount: rechargeAmount,
+        description: remark || "Recharge Request",
+        userId: identity?.objectId,
+        username: identity?.username,
+        userParentId: identity?.userParentId,
+      });
+
+      alert("Invoice sent successfully!");
+      setCheckbookDialogOpen(false);
+    } catch (error) {
+      console.error("Checkbook Recharge Error:", error);
+      alert("Failed to send invoice. Please try again.");
+    } finally {
+      setProcessingCheckbookRecharge(false); // Stop Loader ✅
     }
   };
 
@@ -470,7 +506,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Recharges are not available at this time. Please try again later.
             </Alert>
           )}
-          
+
           <Button
             variant="contained"
             sx={{
@@ -580,6 +616,37 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
+          </Button>
+          <Button
+            variant="contained"
+            sx={{
+              width: "100%",
+              height: "52px",
+              borderRadius: "4px",
+              backgroundColor: "#FF5722", // Orange color
+              color: "#FFFFFF",
+              "&:hover": { backgroundColor: "#E64A19" },
+              marginTop: "10px",
+            }}
+            onClick={() => {
+              if (identity?.checkbookEmail) {
+                setCheckbookEmail(identity.checkbookEmail); // Pre-fill from user data
+                setIsEmailAlreadySaved(true);
+              } else {
+                setCheckbookEmail(""); // Force asking for new email
+                setIsEmailAlreadySaved(false);
+              }
+              setCheckbookDialogOpen(true);
+            }}
+          >
+            <Typography
+              sx={{ fontWeight: 500, fontSize: "18px", textTransform: "none" }}
+            >
+              🧾 Recharge with Checkbook
+            </Typography>
+            <ArrowForwardIcon
+              style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+            />
           </Button>
         </Box>
       </Box>
@@ -718,10 +785,16 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 textTransform: "none",
                 fontWeight: 500,
                 borderRadius: "8px",
-                bgcolor: walletCopied && !processingCryptoRecharge ? "green" : "grey.400",
+                bgcolor:
+                  walletCopied && !processingCryptoRecharge
+                    ? "green"
+                    : "grey.400",
                 color: "white",
                 "&:hover": {
-                  bgcolor: walletCopied && !processingCryptoRecharge ? "darkgreen" : "grey.500",
+                  bgcolor:
+                    walletCopied && !processingCryptoRecharge
+                      ? "darkgreen"
+                      : "grey.500",
                 },
                 "&.Mui-disabled": {
                   bgcolor: "grey.400",
@@ -786,6 +859,54 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         onSuccess={handleRefresh}
         identity={identity}
       />
+      <Dialog
+        open={checkbookDialogOpen}
+        onClose={() => setCheckbookDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Recharge via Checkbook</DialogTitle>
+        <DialogContent>
+          {!isEmailAlreadySaved && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+                            The payment Link will be sent to email<br />
+              The invoice will be sent to email.
+              <br />
+              Please confirm the email is correct before proceeding.
+            </Alert>
+          )}
+          {isEmailAlreadySaved ? (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              The payment Link will be sent to email<br />
+              The invoice will be sent to <strong>{checkbookEmail}</strong>.
+              <br />
+              Please confirm the email is correct before proceeding.
+            </Alert>
+          ) : (
+            <TextField
+              fullWidth
+              label="Enter your Email"
+              value={checkbookEmail}
+              onChange={(e) => setCheckbookEmail(e.target.value)}
+              sx={{ my: 2 }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCheckbookDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!checkbookEmail || processingCheckbookRecharge}
+            onClick={handleCheckbookRecharge}
+          >
+            {processingCheckbookRecharge
+              ? "Processing..."
+              : isEmailAlreadySaved
+              ? "Confirm & Send Invoice"
+              : "Save & Send Invoice"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
