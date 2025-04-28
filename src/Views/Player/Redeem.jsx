@@ -40,6 +40,7 @@ const Redeem = ({
   redeemFees,
   totalRechargeData,
 }) => {
+  const [isRedeemDisabled, setIsRedeemDisabled] = useState(true);
   const [redeemAmount, setRedeemAmount] = useState(50);
   const { identity } = useGetIdentity();
   const [loading, setLoading] = useState(false);
@@ -73,6 +74,27 @@ const Redeem = ({
       setWalletId(objectId);
     }
   }, [wallet]);
+
+  useEffect(() => {
+  const fetchRechargeTotal = async () => {
+    try {
+      if (identity?.objectId) {
+        const total = await getTotalRechargeAmount(identity.objectId);
+        setLiveRechargeTotal(total);
+        if (total <= 0) {
+          setIsRedeemDisabled(true);
+        } else {
+          setIsRedeemDisabled(false);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch total recharge amount:", error);
+      setIsRedeemDisabled(true); // Disable in case of error
+    }
+  };
+
+  fetchRechargeTotal();
+}, [identity]);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -485,7 +507,7 @@ const Redeem = ({
                 opacity: 0.7,
               },
             }}
-            disabled={!totalRechargeData || totalRechargeData <= 0}
+            disabled={isRedeemDisabled}
           >
             Redeem Request
             <ArrowForwardIcon
@@ -707,7 +729,7 @@ const Redeem = ({
       </ReactstrapModal>
       <Dialog
         open={showRedeemConfirmDialog}
-        onClose={() => setShowRedeemConfirmDialog(false)}
+        //onClose={() => setShowRedeemConfirmDialog(false)}
       >
         <DialogTitle>Confirm Redeem</DialogTitle>
         <DialogContent>
@@ -726,8 +748,8 @@ const Redeem = ({
           <Button
             onClick={() => {
               setShowRedeemConfirmDialog(false);
-              handleConfirmDoublee()
-             // handleSubmit();
+              //handleConfirmDoublee()
+              handleSubmit();
             }}
             variant="contained"
             sx={{ backgroundColor: "#2E5BFF", color: "#fff" }}
