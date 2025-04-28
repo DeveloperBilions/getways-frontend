@@ -470,7 +470,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Recharges are not available at this time. Please try again later.
             </Alert>
           )}
-
+          
           <Button
             variant="contained"
             sx={{
@@ -501,7 +501,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <Typography
               sx={{ fontWeight: 500, fontSize: "18px", textTransform: "none" }}
             >
-              Recharge Now
+              ⚡️ Instant Recharge
             </Typography>
             <ArrowForwardIcon
               style={{ width: "24px", height: "24px", marginLeft: "10px" }}
@@ -573,7 +573,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                     textTransform: "none",
                   }}
                 >
-                  Recharge Link
+                  ⏳ Standard Recharge
                 </Typography>
                 <ArrowForwardIcon
                   style={{ width: "24px", height: "24px", marginLeft: "10px" }}
