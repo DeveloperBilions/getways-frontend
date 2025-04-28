@@ -583,7 +583,7 @@ export const UserList = (props) => {
             startIcon={
               <img src={AddUser} alt="Add User" width="20px" height="20px" />
             }
-            //onClick={handleCreateUser}
+            onClick={handleCreateUser}
             sx={{
               width: { xs: "100%", sm: "191px" },
               height: { xs: "100%", sm: "40px" },

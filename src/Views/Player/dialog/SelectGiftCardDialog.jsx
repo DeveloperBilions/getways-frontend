@@ -64,7 +64,7 @@ const SelectGiftCardDialog = ({
           currentPage: page,
           perPage,
         });
-        const masterCards = masterResponse.brands || [];
+        const masterCards = masterResponse.result || [];
 
         const allResponse = await Parse.Cloud.run("fetchGiftCards", {
           searchTerm: "",
