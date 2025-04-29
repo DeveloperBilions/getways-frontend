@@ -380,6 +380,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
             const transactionDate = new Date();
             let newStatus = 1; // default to expired
+            let failReason = ""; // initialize empty
 
             switch (status?.status) {
               case "success":
@@ -393,6 +394,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               case "failed":
               case "cancelled":
                 newStatus = 10;
+                failReason = status?.fail_reason || "Unknown failure"; 
                 break;
               default:
                 newStatus = 9;
@@ -407,6 +409,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                  clickId
               );
               existingTxn.set("transactionDate", transactionDate);
+              if (failReason) {
+                existingTxn.set("failed_reason", failReason);
+              }      
               await existingTxn.save(null, { useMasterKey: true });
               console.log(
                 `Transaction ${existingTxn.id} updated to status ${newStatus}`
@@ -423,6 +428,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               txn.set("transactionAmount", parseFloat(amount));
               txn.set("gameId", "786");
               txn.set("transactionDate", transactionDate);
+              if (failReason) {
+                existingTxn.set("failed_reason", failReason);
+              }      
               await txn.save(null, { useMasterKey: true });
               console.log("New transaction created with status:", newStatus);
             }

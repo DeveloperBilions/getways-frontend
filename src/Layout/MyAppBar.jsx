@@ -271,7 +271,7 @@ const getBalance = async () => {
             </Box>
           )}
         </Box>
-        {role === "Player" && (
+        {/* {role === "Player" && (
           <Box
             sx={{ width: "100%", display: "flex", justifyContent: "center" }}
           >
@@ -313,7 +313,7 @@ const getBalance = async () => {
               </Box>
             </Box>
           </Box>
-        )}
+        )} */}
         <Box
           sx={{
             display: "flex",

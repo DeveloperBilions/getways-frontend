@@ -18,7 +18,12 @@ import { useNavigate } from "react-router-dom";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
 import CoinsCreditDialog from "./dialog/CoinsCreditDialog";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 
 // mui
 import {
@@ -59,7 +64,7 @@ import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
 import { RechargeFilterDialog } from "./dialog/RechargeFilterDialog";
 import { isRechargeEnabledForAgent } from "../../Utils/utils";
-import { Alert } from "@mui/material"; 
+import { Alert } from "@mui/material";
 import { TextField as MonthPickerField } from "@mui/material";
 
 // Initialize Parse
@@ -72,7 +77,7 @@ export const RechargeRecordsList = (props) => {
     filter:
       // props.identity?.role === "Player"
       //   ? { type: "recharge", status: 1 }:
-         { type: "recharge" },
+      { type: "recharge" },
   });
   const {
     isLoading,
@@ -102,9 +107,21 @@ export const RechargeRecordsList = (props) => {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedMonth, setSelectedMonth]=useState(null) 
+  const [selectedMonth, setSelectedMonth] = useState(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-const [exportMonth, setExportMonth] = useState(null);
+  const [exportMonth, setExportMonth] = useState(null);
+  const failedReasonMessages = {
+    4000: "We weren’t able to charge the user’s card and the order was not completed. The user can try again.",
+    4001: "The transaction failed due to an incorrect CVV/CVC. The user can try again ensuring they enter the correct CVV/CVC.",
+    4002: "Payment was declined by the card issuer. The user should contact them for further details.",
+    4010: "Payment was declined by the card issuer. The user should contact them for further details.",
+    4012: "Payment was declined by the card issuer. The user should contact them for further details.",
+    4003: "Incorrect card details. The user can try again ensuring they enter valid card details.",
+    4004: "Insufficient balance. The user should add funds to their card and try again.",
+    4005: "Card limit was exceeded. The user should use a different card to complete their purchase.",
+    4011: "Card validation failed. The user can add a valid card and try again.",
+    4013: "We weren’t able to charge the user’s card and the order was not completed. The user should contact support for further assistance.",
+  };
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -113,10 +130,10 @@ const [exportMonth, setExportMonth] = useState(null);
         setRechargeDisabled(disabled);
       }
     };
-  
+
     checkRechargeAccess();
   }, [identity]);
-  
+
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleOpenFilterModal = () => {
@@ -132,40 +149,40 @@ const [exportMonth, setExportMonth] = useState(null);
     identity?.role !== "Player"
       ? "Recharge Records"
       : "Pending Recharge Request";
-      const fetchDataForExport = async (currentFilterValues) => {
-        setIsExporting(true);
-      
-        try {
-          const exportFilters = { ...currentFilterValues };
-      
-          if (exportFilters.month) {
-            const [year, month] = exportFilters.month.split("-");
-            const startDate = new Date(year, month - 1, 1);
-            const endDate = new Date(year, month, 0, 23, 59, 59);
-      
-            exportFilters.transactionDate = {
-              $gte: startDate.toISOString(),
-              $lte: endDate.toISOString(),
-            };
-      
-            delete exportFilters.month; // remove 'month' key as it's transformed
-          }
-      
-          const { data } = await dataProvider.getList("rechargeRecordsExport", {
-            pagination: { page: 1, perPage: 1000 },
-            sort: { field: "transactionDate", order: "DESC" },
-            filter: exportFilters,
-          });
-      
-          return data;
-        } catch (error) {
-          console.error("Error fetching data for export:", error);
-          return null;
-        } finally {
-          setIsExporting(false);
-        }
-      };
-      
+  const fetchDataForExport = async (currentFilterValues) => {
+    setIsExporting(true);
+
+    try {
+      const exportFilters = { ...currentFilterValues };
+
+      if (exportFilters.month) {
+        const [year, month] = exportFilters.month.split("-");
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0, 23, 59, 59);
+
+        exportFilters.transactionDate = {
+          $gte: startDate.toISOString(),
+          $lte: endDate.toISOString(),
+        };
+
+        delete exportFilters.month; // remove 'month' key as it's transformed
+      }
+
+      const { data } = await dataProvider.getList("rechargeRecordsExport", {
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "transactionDate", order: "DESC" },
+        filter: exportFilters,
+      });
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching data for export:", error);
+      return null;
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const mapStatus = (status) => {
     switch (status) {
       case 0:
@@ -226,7 +243,7 @@ const [exportMonth, setExportMonth] = useState(null);
 
     return () => clearInterval(interval); // Cleanup when unmounted
   }, []);
-  
+
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
     setCreditCoinDialogOpen(true);
@@ -242,12 +259,12 @@ const [exportMonth, setExportMonth] = useState(null);
     }
   };
 
- const handleExportPDF = async () => {
+  const handleExportPDF = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
-   if (!exportData || exportData.length === 0) {
-     console.warn("No data to export.");
-     return;
-   }
+    if (!exportData || exportData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
@@ -262,7 +279,7 @@ const [exportMonth, setExportMonth] = useState(null);
       ]),
     });
     doc.save("RechargeRecords.pdf");
- };
+  };
 
   const handleExportXLS = async () => {
     const exportData = await fetchDataForExport(filterValues); // Use existing data or fetch if null
@@ -290,7 +307,7 @@ const [exportMonth, setExportMonth] = useState(null);
 
   const handleMenuOpen = () => {
     setExportDialogOpen(true); // Open dialog instead of dropdown
-  };  
+  };
 
   const handleMenuClose = () => {
     setExportDialogOpen(null);
@@ -344,7 +361,7 @@ const [exportMonth, setExportMonth] = useState(null);
     }
     const currentSearchValue = filterValues[searchBy] || "";
     const newFilters = {
-      searchBy
+      searchBy,
     };
 
     if (currentSearchValue && currentSearchValue.trim() !== "") {
@@ -356,10 +373,7 @@ const [exportMonth, setExportMonth] = useState(null);
     }
 
     const cleanedFilters = Object.keys(filterValues)
-      .filter(
-        (key) =>
-          !searchFields.includes(key) || key === searchBy
-      )
+      .filter((key) => !searchFields.includes(key) || key === searchBy)
       .reduce((obj, key) => {
         obj[key] = filterValues[key];
         return obj;
@@ -463,7 +477,7 @@ const [exportMonth, setExportMonth] = useState(null);
             backgroundColor: "var(--secondary-color)",
             color: "var(--primary-color)",
             mb: 1,
-          }} 
+          }}
         >
           <Typography
             sx={{
@@ -637,7 +651,7 @@ const [exportMonth, setExportMonth] = useState(null);
             </Typography>
           </>
         )}
-      </Box> 
+      </Box>
       <List
         title={title}
         filters={dataFilters}
@@ -647,10 +661,10 @@ const [exportMonth, setExportMonth] = useState(null);
         {...props}
         filter={
           // identity?.role !== "Player"
-          //   ? 
-            { type: "recharge" }
-            // : 
-            // { type: "recharge", status: 1 }
+          //   ?
+          { type: "recharge" }
+          // :
+          // { type: "recharge", status: 1 }
         }
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
@@ -858,6 +872,21 @@ const [exportMonth, setExportMonth] = useState(null);
                 }}
               />
               <FunctionField
+                label="Failed Reason"
+                render={(record) => {
+                  const errorCode = parseInt(record.fail_reason); // Ensure it's a number
+                  const message = failedReasonMessages[errorCode];
+                  return message ? (
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {record.fail_reason} - {message}
+                    </Typography>
+                  ) : (
+                    "-"
+                  ); // Show dash if no message found
+                }}
+              />
+
+              <FunctionField
                 label="Parent"
                 render={(record) => {
                   return record?.userParentName;
@@ -887,16 +916,22 @@ const [exportMonth, setExportMonth] = useState(null);
                             fontWeight: 400,
                           }}
                         >
-                          {record?.transactionIdFromStripe?.toLowerCase().includes("txn") ?
-                            "WERT" :
-
-                            record?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com") ? 
-
-                            "Link" :
-                          record?.referralLink?.toLowerCase().includes("aog")
-                            ? "AOG" :
-                            record?.referralLink?.toLowerCase().includes("transfi") ? 
-                            "TransFi"
+                          {record?.transactionIdFromStripe
+                            ?.toLowerCase()
+                            .includes("txn")
+                            ? "WERT"
+                            : record?.transactionIdFromStripe
+                                ?.toLowerCase()
+                                .includes("crypto.link.com")
+                            ? "Link"
+                            : record?.referralLink
+                                ?.toLowerCase()
+                                .includes("aog")
+                            ? "AOG"
+                            : record?.referralLink
+                                ?.toLowerCase()
+                                .includes("transfi")
+                            ? "TransFi"
                             : record?.useWallet
                             ? "Wallet"
                             : "Stripe"}
@@ -955,111 +990,122 @@ const [exportMonth, setExportMonth] = useState(null);
           handleRefresh={handleRefresh}
         />
       )}
-<Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
-  <DialogTitle>Select Month to Export</DialogTitle>
-  <DialogContent>
-    <MonthPickerField
-      label="Month"
-      type="month"
-      value={exportMonth}
-      onChange={(e) => {
-        const value = e.target.value;
-        setExportMonth(value);
-      }}
-      InputLabelProps={{ shrink: true }}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
+      <Dialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+      >
+        <DialogTitle>Select Month to Export</DialogTitle>
+        <DialogContent>
+          <MonthPickerField
+            label="Month"
+            type="month"
+            value={exportMonth}
+            onChange={(e) => {
+              const value = e.target.value;
+              setExportMonth(value);
+            }}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            sx={{ mt: 1 }}
+          />
 
-    {isExporting && (
-      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-        <CircularProgress size={24} sx={{ mr: 2 }} />
-        <Typography variant="body2">Exporting...</Typography>
-      </Box>
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
-      Cancel
-    </Button>
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
+          {isExporting && (
+            <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+              <CircularProgress size={24} sx={{ mr: 2 }} />
+              <Typography variant="body2">Exporting...</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setExportDialogOpen(false)}
+            disabled={isExporting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!exportMonth) return;
 
-        setIsExporting(true);
-        const filters = { ...filterValues, month: exportMonth };
-        const exportData = await fetchDataForExport(filters);
+              setIsExporting(true);
+              const filters = { ...filterValues, month: exportMonth };
+              const exportData = await fetchDataForExport(filters);
 
-        if (!exportData || exportData.length === 0) {
-          console.warn("No data to export.");
-          setIsExporting(false);
-          return;
-        }
+              if (!exportData || exportData.length === 0) {
+                console.warn("No data to export.");
+                setIsExporting(false);
+                return;
+              }
 
-        const doc = new jsPDF();
-        doc.text("Recharge Records", 10, 10);
-        doc.autoTable({
-          head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
-          body: exportData.map((row, index) => [
-            index + 1,
-            row.username,
-            row.transactionAmount,
-            row.remark,
-            mapStatus(row.status),
-            new Date(row.transactionDate).toLocaleDateString(),
-          ]),
-        });
-        doc.save("RechargeRecords.pdf");
+              const doc = new jsPDF();
+              doc.text("Recharge Records", 10, 10);
+              doc.autoTable({
+                head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+                body: exportData.map((row, index) => [
+                  index + 1,
+                  row.username,
+                  row.transactionAmount,
+                  row.remark,
+                  mapStatus(row.status),
+                  new Date(row.transactionDate).toLocaleDateString(),
+                ]),
+              });
+              doc.save("RechargeRecords.pdf");
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-      Export PDF
-    </Button>
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
+              setIsExporting(false);
+              setExportDialogOpen(false);
+            }}
+            disabled={!exportMonth || isExporting}
+          >
+            Export PDF
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!exportMonth) return;
 
-        setIsExporting(true);
-        const filters = { ...filterValues, month: exportMonth };
-        const exportData = await fetchDataForExport(filters);
+              setIsExporting(true);
+              const filters = { ...filterValues, month: exportMonth };
+              const exportData = await fetchDataForExport(filters);
 
-        if (!exportData || exportData.length === 0) {
-          console.warn("No data to export.");
-          setIsExporting(false);
-          return;
-        }
+              if (!exportData || exportData.length === 0) {
+                console.warn("No data to export.");
+                setIsExporting(false);
+                return;
+              }
 
-        const selectedFields = exportData.map((item) => ({
-          Name: item.username,
-          "Amount($)": item.transactionAmount,
-          Remark: item.remark,
-          Status: mapStatus(item.status),
-          Date: new Date(item.transactionDate).toLocaleDateString(),
-        }));
+              const selectedFields = exportData.map((item) => ({
+                Name: item.username,
+                "Amount($)": item.transactionAmount,
+                Remark: item.remark,
+                Status: mapStatus(item.status),
+                Date: new Date(item.transactionDate).toLocaleDateString(),
+              }));
 
-        const worksheet = XLSX.utils.json_to_sheet(selectedFields);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Recharge Records");
-        const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-        saveAs(
-          new Blob([xlsData], { type: "application/octet-stream" }),
-          "RechargeRecords.xlsx"
-        );
+              const worksheet = XLSX.utils.json_to_sheet(selectedFields);
+              const workbook = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Recharge Records"
+              );
+              const xlsData = XLSX.write(workbook, {
+                bookType: "xlsx",
+                type: "array",
+              });
+              saveAs(
+                new Blob([xlsData], { type: "application/octet-stream" }),
+                "RechargeRecords.xlsx"
+              );
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-      Export Excel
-    </Button>
-  </DialogActions>
-</Dialog>
-
-
+              setIsExporting(false);
+              setExportDialogOpen(false);
+            }}
+            disabled={!exportMonth || isExporting}
+          >
+            Export Excel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
