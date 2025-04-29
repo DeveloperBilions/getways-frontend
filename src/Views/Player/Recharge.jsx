@@ -644,7 +644,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("userId", identity?.objectId);
                 transactionDetails.set("transactionDate", new Date());
                 transactionDetails.set("transactionAmount", rechargeAmount);
-                transactionDetails.set("remark", "Coinbase Onramp");
+                transactionDetails.set("remark", "Debit Recharge");
                 transactionDetails.set("useWallet", false);
                 transactionDetails.set(
                   "userParentId",
@@ -668,7 +668,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           >
             {walletLoading
               ? "Assigning Wallet..."
-              : "🪙 Coinbase Onramp Recharge"}
+              : "🪙 Debit Recharge"}
           </Button>
         </Box>
       </Box>
