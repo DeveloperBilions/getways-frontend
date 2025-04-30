@@ -22,7 +22,10 @@ const Kyc = () => {
     kyc_initiated: true,
     kyc_pending: true,
     kyc_success: true,
+    kyc_manual_review: true
   });
+ // Calculate total of selected statuses
+ const [total ,setTotal] = useState(0);
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState(null);
@@ -77,6 +80,7 @@ const Kyc = () => {
     setLoading(true);
     const kycCalc = await KYCReport([]);
     setRawData(kycCalc.data);
+    setTotal(kycCalc.total)
     setLoading(false);
   };
 
@@ -105,6 +109,7 @@ const Kyc = () => {
     { key: "kyc_initiated", label: "KYC Initiated", color: "#FFBB28" },
     { key: "kyc_pending", label: "KYC Pending", color: "#2196f3" },
     { key: "kyc_success", label: "KYC Success", color: "#4caf50" },
+    { key: "kyc_manual_review", label: "KYC Manual Review", color: "#c3e321" },
   ];
 
   const calculateKycData = () => {
@@ -120,10 +125,6 @@ const Kyc = () => {
 
   // Generate pie chart data using the same approach as your other reports
   const pieChartData = calculateKycData();
-
-  // Calculate total of selected statuses
-  const total = pieChartData.reduce((sum, item) => sum + item.value, 0);
-
   // Check if data is still loading
   if (loading) {
     return <Loader />;

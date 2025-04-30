@@ -216,6 +216,9 @@ export const WalletDetails = ({
         onClose={() => setIsOpen(false)}
         balance={balance}
         record={transformedIdentity}
+        handleRefresh={() => {
+          handleCashoutRefresh();
+        }}
       />
       <CashOutDialog
         open={cashOutDialogOpen}

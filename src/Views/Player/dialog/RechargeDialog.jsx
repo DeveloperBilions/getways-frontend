@@ -269,25 +269,30 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       try {
         const currentUser = await Parse.User.current().fetch();
         let walletAddr = currentUser.get("walletAddr");
-        
+
         if (!walletAddr || walletAddr.trim() === "") {
           try {
-            const walletResp = await Parse.Cloud.run("assignRandomWalletAddrIfMissing", {
-              userId: currentUser.id,
-            });
+            const walletResp = await Parse.Cloud.run(
+              "assignRandomWalletAddrIfMissing",
+              {
+                userId: currentUser.id,
+              }
+            );
             walletAddr = walletResp.walletAddr;
             console.log("Assigned new walletAddr:", walletAddr);
           } catch (e) {
             console.error("Failed to assign wallet address:", e.message);
-            setErrorMessage("Wallet address assignment failed. Please try again.");
+            setErrorMessage(
+              "Wallet address assignment failed. Please try again."
+            );
             setLoading(false);
             setIsSubmitting(false);
             return;
           }
         }
-        
+
         handleOpenWert(rechargeAmount);
-                // const response = await dataProvider.userTransaction(rawData);
+        // const response = await dataProvider.userTransaction(rawData);
         // if (response?.success) {
         //   window.open(response?.apiResponse.paymentUrl, "_blank");
 
@@ -372,46 +377,37 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
           try {
             const Transaction = Parse.Object.extend("TransactionRecords");
             const query = new Parse.Query(Transaction);
-            query.equalTo(
-              "transactionIdFromStripe",
-              clickId
-            );
+            query.equalTo("transactionIdFromStripe", clickId);
             const existingTxn = await query.first({ useMasterKey: true });
 
             const transactionDate = new Date();
             let newStatus = 1; // default to expired
             let failReason = ""; // initialize empty
 
-            switch (status?.status) {
-              case "success":
-                newStatus = 2;
-                break;
-              case "pending":
-              case "progress":
-              case "created":
-                newStatus = 1;
-                break;
-              case "failed":
-              case "cancelled":
-                newStatus = 10;
-                failReason = status?.fail_reason || "Unknown failure"; 
-                break;
-              default:
-                newStatus = 9;
-                break;
-            }
+            // switch (status?.status) {
+            //   case "success":
+            //     newStatus = 2;
+            //     break;
+            //   case "pending":
+            //   case "progress":
+            //   case "created":
+            //     newStatus = 1;
+            //     break;
+            //   case "failed":
+            //   case "cancelled":
+            //     newStatus = 10;
+            //     failReason = status?.fail_reason || "Unknown failure";
+            //     break;
+            //   default:
+            //     newStatus = 9;
+            //     break;
+            // }
 
             // If transaction exists, update status
             if (existingTxn) {
               existingTxn.set("status", newStatus);
-              existingTxn.set(
-                "transactionIdFromStripe",
-                 clickId
-              );
+              existingTxn.set("transactionIdFromStripe", clickId);
               existingTxn.set("transactionDate", transactionDate);
-              if (failReason) {
-                existingTxn.set("failed_reason", failReason);
-              }      
               await existingTxn.save(null, { useMasterKey: true });
               console.log(
                 `Transaction ${existingTxn.id} updated to status ${newStatus}`
@@ -425,12 +421,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               txn.set("username", user.get("username"));
               txn.set("userParentId", user.get("userParentId"));
               txn.set("type", "recharge");
+              txn.set("portal", "Wert");
               txn.set("transactionAmount", parseFloat(amount));
               txn.set("gameId", "786");
               txn.set("transactionDate", transactionDate);
-              if (failReason) {
-                existingTxn.set("failed_reason", failReason);
-              }      
               await txn.save(null, { useMasterKey: true });
               console.log("New transaction created with status:", newStatus);
             }
@@ -438,15 +432,15 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
             // Optionally close the widget on success
             if (status?.status === "success") {
               wertWidget.close();
-              onClose()
+              onClose();
             }
           } catch (err) {
             console.error("Error handling Wert status:", err.message);
           }
         },
-        "close": ()=> {
+        close: () => {
           onClose();
-        }
+        },
       },
     });
 

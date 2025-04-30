@@ -154,7 +154,8 @@ if (user.get("roleName") === "Master-Agent") {
         balance:user.get("potBalance"),
         totalPotBalanceOfChildren,
         rechargeDisabled:user.get("rechargeDisabled") || false,
-        walletAddr:user.get("walletAddr")
+        walletAddr:user.get("walletAddr"),
+        allowUserCreation:user.get("allowUserCreation")
       };
     } catch (error) {
       console.error("Error getting user identity:", error?.message);

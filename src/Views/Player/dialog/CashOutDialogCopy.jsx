@@ -13,7 +13,8 @@ import SelectGiftCardDialog from "./SelectGiftCardDialog";
 import Close from "../../../Assets/icons/close.svg";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
-import { Alert } from "@mui/material"; 
+import { Alert } from "@mui/material";
+import CheckbookPaymentDialog from './CheckbookPaymentDialog'; // Adjust path as needed
 
 const CashOutModal = ({
   setOpen,
@@ -21,12 +22,14 @@ const CashOutModal = ({
   onClose,
   balance: initialBalance,
   record,
+  handleRefresh
 }) => {
   const { identity } = useGetIdentity();
   const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [balance, setBalance] = useState(initialBalance);
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     setErrorMessage(""); // Clear error message when modal opens
@@ -34,10 +37,12 @@ const CashOutModal = ({
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
-        const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
-        setCashoutDisabled(disabled);
+      const disabled = !(await isCashoutEnabledForAgent(
+        identity?.userParentId
+      ));
+      setCashoutDisabled(disabled);
     };
-  
+
     checkRechargeAccess();
   }, [identity]);
   const handalOpenGiftCard = () => {
@@ -113,11 +118,11 @@ const CashOutModal = ({
             Cash out
           </ModalHeader>
           <ModalBody>
-          {cashoutDisabled  && (
-  <Alert severity="warning" sx={{ my: 2 }}>
-  Cashouts are not available at this time. Please try again later.
-  </Alert>
-)}
+            {cashoutDisabled && (
+              <Alert severity="warning" sx={{ my: 2 }}>
+                Cashouts are not available at this time. Please try again later.
+              </Alert>
+            )}
             <Box
               className="d-flex align-items-center rounded mb-4 justify-content-between"
               sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}
@@ -235,6 +240,20 @@ const CashOutModal = ({
                 >
                   Next
                 </Button>
+                <Button
+                  className="custom-button"
+                  style={{
+                    backgroundColor: "#2E5BFF",
+                    fontSize: "18px",
+                    fontWeight: 500,
+                    fontFamily: "Inter",
+                  }}
+                  onClick={()=> {setIsOpen(true)
+                    onClose()}}
+                  disabled={cashoutDisabled}
+                >
+                 CheckBook
+                </Button>
               </Box>
             </Col>
           </ModalFooter>
@@ -254,6 +273,13 @@ const CashOutModal = ({
         redeemAmount={balance}
         record={record}
         onSuccess={handleGiftCardSuccess}
+      />
+
+      <CheckbookPaymentDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        amount={balance}
+        handleRefresh={handleRefresh}
       />
     </>
   );

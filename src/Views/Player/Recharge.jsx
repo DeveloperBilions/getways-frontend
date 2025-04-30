@@ -29,6 +29,8 @@ import DialogActions from "@mui/material/DialogActions";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
+import { BsFillCreditCard2FrontFill } from "react-icons/bs";
+
 const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -408,7 +410,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               flexWrap: { xs: "wrap", md: "nowrap" },
             }}
           >
-            {[20, 30, 40, 50, 75, 100].map((amount) => (
+            {[10, 15, 20, 30, 40, 50, 75, 100].map((amount) => (
               <Button
                 key={amount}
                 variant="outlined"
@@ -478,6 +480,109 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               width: "100%",
               height: "52px",
               borderRadius: "4px",
+              backgroundColor: "#00695C", // Slightly lighter than #0052FF
+              color: "#FFFFFF",
+              mt: 2,
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "18px",
+              ":hover": {
+                backgroundColor: "#004D40", // deeper teal-green on hover
+              },
+            }}
+            onClick={async () => {
+              try {
+                // Assign wallet if missing
+                if (!identity?.walletAddr) {
+                  setWalletLoading(true);
+                  const walletResp = await Parse.Cloud.run(
+                    "assignRandomWalletAddrIfMissing",
+                    {
+                      userId: identity?.objectId,
+                    }
+                  );
+
+                  if (walletResp?.walletAddr) {
+                    identity.walletAddr = walletResp.walletAddr;
+                    setSnackbarOpen(true);
+                  } else {
+                    alert("Failed to assign wallet address. Please try again.");
+                    return;
+                  }
+                }
+
+                // Generate Onramp URL
+                // const buyUrl = getOnrampBuyUrl({
+                //   projectId,
+                //   addresses: { "0x1": [identity.walletAddr] }, // Ethereum mainnet
+                //   assets: ["USDC"],
+                //   presetFiatAmount: rechargeAmount,
+                //   fiatCurrency: "USD",
+                //   redirectUrl: "https://yourapp.com/onramp-return",
+                // });
+
+                //const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&destinationWallets=[{"address":"0xb69b947183c5a4434bb028e295947a3496e12298","blockchains":["ethereum"]}]&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+                const encodedAddresses = encodeURIComponent(
+                  JSON.stringify({ [identity.walletAddr]: ["base"] })
+                );
+
+                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+                /// const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+                // Save the transaction
+                const TransactionDetails =
+                  Parse.Object.extend("TransactionRecords");
+                const transactionDetails = new TransactionDetails();
+                const user = await Parse.User.current()?.fetch();
+
+                transactionDetails.set("type", "recharge");
+                transactionDetails.set("gameId", "786");
+                transactionDetails.set("username", identity?.username || "");
+                transactionDetails.set("userId", identity?.objectId);
+                transactionDetails.set("transactionDate", new Date());
+                transactionDetails.set("transactionAmount", rechargeAmount);
+                transactionDetails.set("remark", "Debit Recharge");
+                transactionDetails.set("useWallet", false);
+                transactionDetails.set(
+                  "userParentId",
+                  user?.get("userParentId") || ""
+                );
+                transactionDetails.set("status", 1); // pending
+                transactionDetails.set("portal", "Coinbase");
+                transactionDetails.set("referralLink", buyUrl);
+                transactionDetails.set("transactionIdFromStripe", buyUrl);
+
+                await transactionDetails.save(null, { useMasterKey: true });
+
+                window.open(buyUrl, "_blank");
+              } catch (error) {
+                console.error("Coinbase Onramp Error:", error);
+                alert("Something went wrong with Coinbase Recharge.");
+              } finally {
+                setWalletLoading(false);
+              }
+            }}
+            disabled={identity?.isBlackListed || rechargeDisabled || walletLoading}
+          >
+            {walletLoading ? (
+              "Assigning Wallet..."
+            ) : (
+              <>
+              <BsFillCreditCard2FrontFill style={{ marginRight: 8 }}/>
+                Quick Debit Recharge
+                <ArrowForwardIcon
+                  style={{ width: 24, height: 24, marginLeft: 10 }}
+                />
+              </>
+            )}
+          </Button>
+          <Button
+            variant="contained"
+            sx={{
+              width: "100%",
+              height: "52px",
+              borderRadius: "4px",
               backgroundColor: "#2E5BFF",
               color: "#FFFFFF",
               "&.Mui-disabled": {
@@ -485,8 +590,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 color: "#E2E8F0", // Disabled text color (light gray)
               },
               ":hover": {
-                backgroundColor: "#2E5BFF",
+                backgroundColor: "#2448D8", // soft dark blue hover
               },
+              marginTop: "10px",
             }}
             disabled={identity?.isBlackListed || rechargeDisabled}
             onClick={() => {
@@ -522,10 +628,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 color: "#E2E8F0",
               },
               ":hover": {
-                backgroundColor: "#2E5BFF",
+                backgroundColor: "#2E7D32", // deeper material green
               },
               marginTop: "10px",
             }}
+            disabled={identity?.isBlackListed || rechargeDisabled || walletLoading}
             onClick={async () => {
               if (walletLoading) return; // prevent spamming
 
@@ -559,7 +666,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               setRechargeLinkDialogOpen(true);
             }}
             // onClick={() => setRechargeLinkDialogOpen(true)} // ✅ Add this
-            disabled={walletLoading}
           >
             {walletLoading ? (
               <Typography sx={{ fontSize: "16px", fontWeight: 500 }}>
@@ -581,94 +687,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
-
-          <Button
-            variant="contained"
-            sx={{
-              width: "100%",
-              height: "52px",
-              borderRadius: "4px",
-              backgroundColor: "#0052FF",
-              color: "#FFFFFF",
-              mt: 2,
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: "18px",
-              ":hover": {
-                backgroundColor: "#0039CC",
-              },
-            }}
-            onClick={async () => {
-              try {
-                // Assign wallet if missing
-                if (!identity?.walletAddr) {
-                  setWalletLoading(true);
-                  const walletResp = await Parse.Cloud.run(
-                    "assignRandomWalletAddrIfMissing",
-                    {
-                      userId: identity?.objectId,
-                    }
-                  );
-
-                  if (walletResp?.walletAddr) {
-                    identity.walletAddr = walletResp.walletAddr;
-                    setSnackbarOpen(true);
-                  } else {
-                    alert("Failed to assign wallet address. Please try again.");
-                    return;
-                  }
-                }
-
-                // Generate Onramp URL
-                // const buyUrl = getOnrampBuyUrl({
-                //   projectId,
-                //   addresses: { "0x1": [identity.walletAddr] }, // Ethereum mainnet
-                //   assets: ["USDC"],
-                //   presetFiatAmount: rechargeAmount,
-                //   fiatCurrency: "USD",
-                //   redirectUrl: "https://yourapp.com/onramp-return",
-                // });
-
-                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&destinationWallets=[{"address":"0xb69b947183c5a4434bb028e295947a3496e12298","blockchains":["ethereum"]}]&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
-
-                // Save the transaction
-                const TransactionDetails =
-                  Parse.Object.extend("TransactionRecords");
-                const transactionDetails = new TransactionDetails();
-                const user = await Parse.User.current()?.fetch();
-
-                transactionDetails.set("type", "recharge");
-                transactionDetails.set("gameId", "786");
-                transactionDetails.set("username", identity?.username || "");
-                transactionDetails.set("userId", identity?.objectId);
-                transactionDetails.set("transactionDate", new Date());
-                transactionDetails.set("transactionAmount", rechargeAmount);
-                transactionDetails.set("remark", "Debit Recharge");
-                transactionDetails.set("useWallet", false);
-                transactionDetails.set(
-                  "userParentId",
-                  user?.get("userParentId") || ""
-                );
-                transactionDetails.set("status", 1); // pending
-                transactionDetails.set("portal", "Coinbase");
-                transactionDetails.set("referralLink", buyUrl);
-
-                await transactionDetails.save(null, { useMasterKey: true });
-
-                window.open(buyUrl, "_blank");
-              } catch (error) {
-                console.error("Coinbase Onramp Error:", error);
-                alert("Something went wrong with Coinbase Recharge.");
-              } finally {
-                setWalletLoading(false);
-              }
-            }}
-            disabled={walletLoading}
-          >
-            {walletLoading
-              ? "Assigning Wallet..."
-              : "🪙 Debit Recharge"}
           </Button>
         </Box>
       </Box>

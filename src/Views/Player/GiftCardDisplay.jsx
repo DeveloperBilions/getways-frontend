@@ -186,12 +186,12 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
               />
             </Box>
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "flex-end",alignItems:"center", mt: 2 }}>
+          {/* <Box sx={{ display: "flex", justifyContent: "flex-end",alignItems:"center", mt: 2 }}>
             <Typography sx={{ fontSize: 16, color: "#2E5BFF", cursor: "pointer",fontWeight: 600, mr: 1 }}>
               Use now 
             </Typography>
             <img src={LinkButton} alt="LinkButton" />
-          </Box>
+          </Box> */}
         </Box>
       ))}
     </Box>

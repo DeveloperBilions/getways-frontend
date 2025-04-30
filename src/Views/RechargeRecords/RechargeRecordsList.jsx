@@ -904,8 +904,6 @@ export const RechargeRecordsList = (props) => {
                           justifyContent: "center",
                           alignItems: "center",
                           borderRadius: "4px",
-                          height: "22px",
-                          width: "57px",
                           border: "1px solid #E4E4E7",
                           bgcolor: "#F4F4F5",
                         }}
@@ -924,6 +922,10 @@ export const RechargeRecordsList = (props) => {
                                 ?.toLowerCase()
                                 .includes("crypto.link.com")
                             ? "Link"
+                            : record?.referralLink
+                                ?.toLowerCase()
+                                .includes("pay.coinbase.com")
+                            ? "CoinBase"
                             : record?.referralLink
                                 ?.toLowerCase()
                                 .includes("aog")

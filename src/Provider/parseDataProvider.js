@@ -241,6 +241,8 @@ export const dataProvider = {
             monthlyRechargeLimit: user.get("monthlyRechargeLimit"),
             dailyRechargeLimit: user.get("dailyRechargeLimit"),
             activeRechargeLimit: user.get("activeRechargeLimit"),
+            walletAddr: user.get("walletAddr"),
+            allowUserCreation:user.get("allowUserCreation"),
             kycVerified: kyc.kycVerified || false,
             kycStatus: kyc.kycStatus || "unknown",
             createdAt: user.createdAt,

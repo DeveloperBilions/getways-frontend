@@ -1282,14 +1282,13 @@ export const KYCReport = async (filter) => {
       sort: { field: "createdAt", order: "DESC" },
       filter: filter,
     });
-
     const statusCounts = response.data.reduce((acc, record) => {
       const status = record.kycStatus;
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});
 
-    return { status: "success", data: statusCounts };
+    return { status: "success", data: statusCounts,total:response?.total };
 
   } catch (error) {
     console.error("Error fetching KYC report:", error.message);

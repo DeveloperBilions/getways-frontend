@@ -27,7 +27,15 @@ import RedeemServiceDialog from "./dialog/RedeemService";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
 // mui
-import { Menu, MenuItem, Button, Box, useMediaQuery, Typography } from "@mui/material";
+import {
+  Menu,
+  MenuItem,
+  Button,
+  Box,
+  useMediaQuery,
+  Typography,
+  Alert,
+} from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
@@ -43,6 +51,9 @@ import CustomPagination from "../Common/CustomPagination";
 import { UserFilterDialog } from "./dialog/UserFilterDialog";
 import AddUser from "../../Assets/icons/AddUser.svg";
 import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
+import Snackbar from "@mui/material/Snackbar";
+import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -63,10 +74,16 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
   const [rechargeLimitDialogOpen, setRechargeLimitDialogOpen] = useState(false); // State for Recharge Limit Dialog
   const [disableRechargeDialogOpen, setDisableRechargeDialogOpen] =
-  useState(false);
+    useState(false);
   const role = localStorage.getItem("role");
   const record = useRecordContext();
   const resource = useResourceContext();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success or error
+  const [toggleUserCreationDialogOpen, setToggleUserCreationDialogOpen] =
+    useState(false);
+
   if (!record) return null;
 
   const open = Boolean(anchorEl);
@@ -115,6 +132,23 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const handleDrawer = () => {
     handleClose();
     setDrawerDialogOpen(true);
+  };
+  const handleViewKey = async () => {
+    handleClose();
+    if (record?.walletAddr) {
+      try {
+        await navigator.clipboard.writeText(record.walletAddr);
+        setSnackbarMsg("Wallet address copied");
+        setSnackbarSeverity("success");
+      } catch (error) {
+        setSnackbarMsg("Failed to copy wallet address");
+        setSnackbarSeverity("error");
+      }
+    } else {
+      setSnackbarMsg("No wallet address found");
+      setSnackbarSeverity("error");
+    }
+    setSnackbarOpen(true);
   };
 
   const handleRechargeLimit = () => {
@@ -190,7 +224,22 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           </MenuItem>
         )}
         {record?.roleName === "Player" && (
-          <MenuItem onClick={handleRecharge} disabled={identity?.rechargeDisabled  || !record?.kycVerified }>Recharge</MenuItem>
+          <MenuItem
+            onClick={handleRecharge}
+            disabled={identity?.rechargeDisabled || !record?.kycVerified}
+          >
+            Recharge
+          </MenuItem>
+        )}
+        {record?.roleName === "Agent" && (
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              setToggleUserCreationDialogOpen(true);
+            }}
+          >
+            Allow Creation Permission
+          </MenuItem>
         )}
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
@@ -200,6 +249,9 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           )}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleWallet}>Wallet</MenuItem>
+        )}
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleViewKey}>View Key 🔑</MenuItem>
         )}
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
@@ -215,6 +267,12 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           </MenuItem>
         )}
       </Menu>
+      <AllowUserCreationDialog
+        open={toggleUserCreationDialogOpen}
+        onClose={() => setToggleUserCreationDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
       <RedeemDialog
         open={redeemDialogOpen}
         onClose={() => setRedeemDialogOpen(false)}
@@ -282,12 +340,26 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         onClose={() => setDrawerDialogOpen(false)}
         record={record}
       />
-       <DisableRechargeDialog
+      <DisableRechargeDialog
         open={disableRechargeDialogOpen}
         onClose={() => setDisableRechargeDialogOpen(false)}
         record={record}
         handleRefresh={handleRefresh}
       />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 };
@@ -312,7 +384,6 @@ export const UserList = (props) => {
   // const [create, { isPending, error }] = useCreate();
   const role = localStorage.getItem("role");
   const isMobile = useMediaQuery("(max-width:600px)");
-
   if (!role) {
     navigate("/login");
   }
@@ -434,10 +505,7 @@ export const UserList = (props) => {
           )
         ),
         ...newFilters,
-        $or: [
-          { userReferralCode: "" },
-          { userReferralCode: null }
-        ],
+        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
       },
       false
     );
@@ -564,7 +632,8 @@ export const UserList = (props) => {
             onClick={handleCreateUser}
             sx={{
               cursor: "pointer",
-              display: role === "Agent" || role === "Master-Agent" ? "none" : "flex",
+              display:
+              role === "Agent" && !identity?.allowUserCreation ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
               bgcolor: "var(--primary-color)",
@@ -591,7 +660,10 @@ export const UserList = (props) => {
               color: "var(--secondary-color)",
               mb: 0.5,
             }} // Full width on small screens
-            disabled= {role === "Agent" || role === "Master-Agent"}
+            disabled={
+              (role === "Agent" && !identity?.allowUserCreation) ||
+              role === "Master-Agent"
+            }
           >
             <Typography
               sx={{
@@ -616,7 +688,7 @@ export const UserList = (props) => {
 
   useEffect(() => {
     refresh(); // ✅ Forces a fresh request
-    setFilters({searchBy:"username"},{}); // Clear filters when the component mounts
+    setFilters({ searchBy: "username" }, {}); // Clear filters when the component mounts
     setSort({ field: "createdAt", order: "DESC" });
   }, []);
 
