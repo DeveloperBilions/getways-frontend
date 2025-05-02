@@ -80,13 +80,13 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
 
     try {
       const response = await fetch(
-        "https://sandbox.checkbook.io/v3/check/digital",
+        "https://api.checkbook.io/v3/check/digital",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization:
-              "57834abba5ef49dea102b57561a56524:zuVmx7yC0rzx7edpgSNnzL1MpbOP7i",
+              "a5e3acd961a04d5aaba30475f84f5c20:roRCkg6IkwuVhj2an2LQrzKppn93iw",
           },
           body: JSON.stringify({
             amount,
