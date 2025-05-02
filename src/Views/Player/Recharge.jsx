@@ -504,6 +504,14 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }}
             onClick={debounce(async () => {
               try {
+
+                const testPopup = window.open("", "_blank", "width=1,height=1");
+                if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
+                  setPopupBlocked(true);
+                  setPopupDialogOpen(true);
+                  return;
+                }
+                testPopup.close();
                 // Assign wallet if missing
                 if (!identity?.walletAddr) {
                   setWalletLoading(true);
