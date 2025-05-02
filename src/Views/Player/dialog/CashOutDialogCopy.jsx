@@ -227,7 +227,7 @@ const CashOutModal = ({
                 >
                   Cancel
                 </Button>
-                {/* <Button
+                <Button
                   className="custom-button"
                   style={{
                     backgroundColor: "#2E5BFF",
@@ -239,8 +239,8 @@ const CashOutModal = ({
                   disabled={cashoutDisabled}
                 >
                   Next
-                </Button> */}
-                <Button
+                </Button>
+                {/* <Button
                   className="custom-button"
                   style={{
                     backgroundColor: "#2E5BFF",
@@ -277,7 +277,7 @@ const CashOutModal = ({
                   disabled={cashoutDisabled}
                 >
                  Next
-                </Button>
+                </Button> */}
               </Box>
             </Col>
           </ModalFooter>
