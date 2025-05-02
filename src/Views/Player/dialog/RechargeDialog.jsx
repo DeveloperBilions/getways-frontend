@@ -425,6 +425,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               txn.set("transactionAmount", parseFloat(amount));
               txn.set("gameId", "786");
               txn.set("transactionDate", transactionDate);
+              txn.set("walletAddr", user.get("walletAddr"));
+
               await txn.save(null, { useMasterKey: true });
               console.log("New transaction created with status:", newStatus);
             }

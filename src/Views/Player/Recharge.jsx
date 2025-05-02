@@ -26,6 +26,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import DialogContentText from "@mui/material/DialogContentText";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
@@ -57,6 +58,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletCopied, setWalletCopied] = useState(false); // Add this at the top with other states
+  const [popupBlocked, setPopupBlocked] = useState(false);
+  const [popupDialogOpen, setPopupDialogOpen] = useState(false);
+  const [storedBuyUrl, setStoredBuyUrl] = useState("");
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -172,6 +176,14 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     // }
   };
   const rechargeUrl = `https://crypto.link.com?ref=lb&source_amount=${rechargeAmount}&source_currency=usd&destination_currency=usdc&destination_network=ethereum`;
+  const debounce = (func, delay = 3000) => {
+    let inDebounce;
+    return (...args) => {
+      if (inDebounce) return;
+      inDebounce = setTimeout(() => (inDebounce = null), delay);
+      func(...args);
+    };
+  };
 
   return (
     <>
@@ -490,7 +502,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 backgroundColor: "#004D40", // deeper teal-green on hover
               },
             }}
-            onClick={async () => {
+            onClick={debounce(async () => {
               try {
                 // Assign wallet if missing
                 if (!identity?.walletAddr) {
@@ -552,24 +564,35 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("portal", "Coinbase");
                 transactionDetails.set("referralLink", buyUrl);
                 transactionDetails.set("transactionIdFromStripe", buyUrl);
+                transactionDetails.set("walletAddr", identity?.walletAddr);
 
                 await transactionDetails.save(null, { useMasterKey: true });
-
-                window.open(buyUrl, "_blank");
+                setStoredBuyUrl(buyUrl); // Store for retry
+                const popup = window.open(buyUrl, "_blank");
+                if (
+                  !popup ||
+                  popup.closed ||
+                  typeof popup.closed === "undefined"
+                ) {
+                  setPopupBlocked(true);
+                  setPopupDialogOpen(true);
+                }
               } catch (error) {
                 console.error("Coinbase Onramp Error:", error);
                 alert("Something went wrong with Coinbase Recharge.");
               } finally {
                 setWalletLoading(false);
               }
-            }}
-            disabled={identity?.isBlackListed || rechargeDisabled || walletLoading}
+            })}
+            disabled={
+              identity?.isBlackListed || rechargeDisabled || walletLoading
+            }
           >
             {walletLoading ? (
               "Assigning Wallet..."
             ) : (
               <>
-              <BsFillCreditCard2FrontFill style={{ marginRight: 8 }}/>
+                <BsFillCreditCard2FrontFill style={{ marginRight: 8 }} />
                 Quick Debit Recharge
                 <ArrowForwardIcon
                   style={{ width: 24, height: 24, marginLeft: 10 }}
@@ -595,7 +618,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               marginTop: "10px",
             }}
             disabled={identity?.isBlackListed || rechargeDisabled}
-            onClick={() => {
+            onClick={debounce(() => {
               if (!identity?.isBlackListed) {
                 if (paymentSource === "stripe") {
                   handleRechargeClick();
@@ -603,7 +626,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   setRechargeDialogOpen(true);
                 }
               }
-            }}
+            })}
           >
             <Typography
               sx={{ fontWeight: 500, fontSize: "18px", textTransform: "none" }}
@@ -632,8 +655,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               },
               marginTop: "10px",
             }}
-            disabled={identity?.isBlackListed || rechargeDisabled || walletLoading}
-            onClick={async () => {
+            disabled={
+              identity?.isBlackListed || rechargeDisabled || walletLoading
+            }
+            onClick={debounce(async () => {
               if (walletLoading) return; // prevent spamming
 
               if (!identity?.walletAddr) {
@@ -664,7 +689,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               }
 
               setRechargeLinkDialogOpen(true);
-            }}
+            })}
             // onClick={() => setRechargeLinkDialogOpen(true)} // ✅ Add this
           >
             {walletLoading ? (
@@ -809,6 +834,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                     rechargeUrl
                   );
                   transactionDetails.set("portal", "Stripe");
+                  transactionDetails.set("walletAddr", identity?.walletAddr);
 
                   await transactionDetails.save(null, { useMasterKey: true });
 
@@ -899,6 +925,37 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         onSuccess={handleRefresh}
         identity={identity}
       />
+      <Dialog open={popupDialogOpen} onClose={() => setPopupDialogOpen(false)}>
+        <DialogTitle>Enable Pop-up Windows</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            We couldn't open the Recharge page because your browser
+            blocked the pop-up. <br />
+            Please enable pop-ups for this site and try again.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setPopupDialogOpen(false);
+              if (storedBuyUrl) {
+                const popup = window.open(storedBuyUrl, "_blank");
+                if (
+                  !popup ||
+                  popup.closed ||
+                  typeof popup.closed === "undefined"
+                ) {
+                  alert("Still blocked. Please check popup settings.");
+                }
+              }
+            }}
+            color="primary"
+            autoFocus
+          >
+            Try Again
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

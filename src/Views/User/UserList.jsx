@@ -226,7 +226,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         {record?.roleName === "Player" && (
           <MenuItem
             onClick={handleRecharge}
-            disabled={identity?.rechargeDisabled || !record?.kycVerified}
+            disabled={identity?.rechargeDisabled || !record?.kycVerified || true}
           >
             Recharge
           </MenuItem>
@@ -253,6 +253,32 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleViewKey}>View Key 🔑</MenuItem>
         )}
+        {record?.roleName === "Player" && record?.walletAddr && (
+          <MenuItem
+            onClick={() =>
+              window.open(
+                `https://basescan.org/address/${record.walletAddr}`,
+                "_blank"
+              )
+            }
+          >
+            Go to BaseScan
+          </MenuItem>
+        )}
+
+        {record?.roleName === "Player" && record?.walletAddr && (
+          <MenuItem
+            onClick={() =>
+              window.open(
+                `https://etherscan.io/address/${record.walletAddr}`,
+                "_blank"
+              )
+            }
+          >
+            Go to EtherScan
+          </MenuItem>
+        )}
+
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
         {record?.roleName === "Player" && role === "Super-User" && (
@@ -633,7 +659,9 @@ export const UserList = (props) => {
             sx={{
               cursor: "pointer",
               display:
-              role === "Agent" && !identity?.allowUserCreation ? "none" : "flex",
+                role === "Agent" && !identity?.allowUserCreation
+                  ? "none"
+                  : "flex",
               alignItems: "center",
               justifyContent: "center",
               bgcolor: "var(--primary-color)",

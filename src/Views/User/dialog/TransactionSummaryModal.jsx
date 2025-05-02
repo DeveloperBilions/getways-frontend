@@ -11,9 +11,9 @@ import {
   Typography,
   Box,
   CircularProgress,
-  Alert
+  Alert,
 } from "@mui/material";
-import { fetchTransactionSummary , addPayHistory} from "../../../Utils/utils";
+import { fetchTransactionSummary, addPayHistory } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
 import DrawerAgentHistoryModal from "./DrawerAgentHistoryModal"; // Import History Modal
 
@@ -22,7 +22,7 @@ const PayModal = ({ open, onClose, userId }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false); // State for showing success message
-  const { identity } = useGetIdentity()
+  const { identity } = useGetIdentity();
   const handleSubmit = async () => {
     const parsedAmount = parseFloat(amount);
 
@@ -35,7 +35,11 @@ const PayModal = ({ open, onClose, userId }) => {
     setLoading(true);
 
     try {
-      const response = await addPayHistory(userId, parsedAmount, identity?.objectId);
+      const response = await addPayHistory(
+        userId,
+        parsedAmount,
+        identity?.objectId
+      );
 
       if (response.success) {
         setSuccessMessage(true); // Show success message
@@ -53,9 +57,9 @@ const PayModal = ({ open, onClose, userId }) => {
       setLoading(false);
     }
   };
-  useEffect(() =>{
-    setAmount("")
-  },[open,userId])
+  useEffect(() => {
+    setAmount("");
+  }, [open, userId]);
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Enter Payment Amount</DialogTitle>
@@ -76,15 +80,18 @@ const PayModal = ({ open, onClose, userId }) => {
         <Button onClick={onClose} color="secondary" disabled={loading}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary" variant="contained" disabled={loading}>
+        <Button
+          onClick={handleSubmit}
+          color="primary"
+          variant="contained"
+          disabled={loading}
+        >
           {loading ? "Processing..." : "Submit"}
         </Button>
       </DialogActions>
 
       {/* Success Message Snackbar */}
-    {successMessage && 
-        <Alert severity="success">Payment successful!</Alert>
-     }
+      {successMessage && <Alert severity="success">Payment successful!</Alert>}
     </Dialog>
   );
 };
@@ -92,11 +99,11 @@ const PayModal = ({ open, onClose, userId }) => {
 const TransactionSummaryModal = ({ open, onClose, record }) => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
-  const conversionFeePercent = 5;
-  const redeemServiceFeePercent= 3;
+  const redeemServiceFeePercent = 3;
   const [redeemFeeEnabled, setRedeemFeeEnabled] = useState(true);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false); // State for history modal
+  const [conversionFeePercent, setConversionFeePercent] = useState(10); // default 10%
 
   useEffect(() => {
     fetchSummary();
@@ -120,7 +127,14 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle>Transaction Summary</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 100 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: 100,
+            }}
+          >
             <CircularProgress />
           </Box>
         </DialogContent>
@@ -132,11 +146,17 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
     return null;
   }
 
-  const { totalRechargeAmount, totalRedeemAmount, drawerAgentResults } = summary;
-  const conversionFee = (totalRechargeAmount * conversionFeePercent) / 100;
+  const { totalRechargeAmount, totalRedeemAmount, drawerAgentResults } =
+    summary;
+  const conversionFee =
+    (totalRechargeAmount * (Number(conversionFeePercent) || 0)) / 100;
   const redeemServiceFee = (totalRedeemAmount * redeemServiceFeePercent) / 100;
   const totalAgentTicketPaid =
-    totalRechargeAmount - totalRedeemAmount - conversionFee - (redeemFeeEnabled ? redeemServiceFee : 0) - drawerAgentResults ;
+    totalRechargeAmount -
+    totalRedeemAmount -
+    conversionFee -
+    (redeemFeeEnabled ? redeemServiceFee : 0) -
+    drawerAgentResults;
 
   return (
     <>
@@ -144,10 +164,28 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
         <DialogTitle>Transaction Summary</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Typography><strong>Total Recharge:</strong> {totalRechargeAmount.toFixed(2)}</Typography>
-            <Typography><strong>Total Redeem:</strong> {totalRedeemAmount.toFixed(2)}</Typography>
-            <Typography><strong>Conversion Fees:</strong> {conversionFee.toFixed(2)}</Typography>
-            <Typography><strong>Redeem Service Fees:</strong> {redeemServiceFee.toFixed(2)}</Typography>
+            <Typography>
+              <strong>Total Recharge:</strong> {totalRechargeAmount.toFixed(2)}
+            </Typography>
+            <Typography>
+              <strong>Total Redeem:</strong> {totalRedeemAmount.toFixed(2)}
+            </Typography>
+            <TextField
+              label="Conversion Fee (%)"
+              type="number"
+              value={conversionFeePercent}
+              onChange={(e) => setConversionFeePercent(Number(e.target.value))}
+              InputProps={{ inputProps: { min: 0, step: 0.1 } }}
+              fullWidth
+              size="small"
+            />
+            <Typography>
+              <strong>Conversion Fee Amount:</strong> {conversionFee.toFixed(2)}
+            </Typography>
+            <Typography>
+              <strong>Redeem Service Fees:</strong>{" "}
+              {redeemServiceFee.toFixed(2)}
+            </Typography>
             <FormControlLabel
               control={
                 <Switch
@@ -157,30 +195,52 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
               }
               label="Include Redeem Service Fee in Ticket Balance"
             />
-                        <Typography><strong>Total Agent Ticket Paid:</strong> {drawerAgentResults.toFixed(2)}</Typography>
-            <Typography><strong>Total Agent Ticket To be Paid:</strong> {totalAgentTicketPaid.toFixed(2)}</Typography>
+            <Typography>
+              <strong>Total Agent Ticket Paid:</strong>{" "}
+              {drawerAgentResults.toFixed(2)}
+            </Typography>
+            <Typography>
+              <strong>Total Agent Ticket To be Paid:</strong>{" "}
+              {totalAgentTicketPaid.toFixed(2)}
+            </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-        <Button onClick={onClose} color="secondary">Close</Button>
-          <Button onClick={() => setShowHistoryModal(true)} color="info" variant="outlined">View History</Button>
-          <Button onClick={() => setPayModalOpen(true)} color="primary" variant="contained">Pay</Button>
-       </DialogActions>
+          <Button onClick={onClose} color="secondary">
+            Close
+          </Button>
+          <Button
+            onClick={() => setShowHistoryModal(true)}
+            color="info"
+            variant="outlined"
+          >
+            View History
+          </Button>
+          <Button
+            onClick={() => setPayModalOpen(true)}
+            color="primary"
+            variant="contained"
+          >
+            Pay
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <DrawerAgentHistoryModal
         open={showHistoryModal}
         onClose={() => {
-          fetchSummary()
-          setShowHistoryModal(false)}}
+          fetchSummary();
+          setShowHistoryModal(false);
+        }}
         record={record}
       />
       {/* Pay Modal */}
       <PayModal
         open={payModalOpen}
         onClose={() => {
-          fetchSummary()
-          setPayModalOpen(false)}}
+          fetchSummary();
+          setPayModalOpen(false);
+        }}
         userId={record?.id}
       />
     </>

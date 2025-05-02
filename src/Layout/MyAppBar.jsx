@@ -138,14 +138,16 @@ const getBalance = async () => {
         key: "redeemRecords",
         label: "Redeem Records",
         onClick: () => navigate("/redeemRecords"),
-      },
-      {
+      }
+    );
+    if(identity?.email != "cvgetways@get.com"){
+      menuItems.push({
         key: "summary",
         label: "Summary",
         onClick: () => navigate("/summary"),
-      }
-    );
-    if (role === "Super-User") {
+      });
+    }
+    if (role === "Super-User" && identity?.email != "cvgetways@get.com") {
       menuItems.push({
         key: "Reports",
         label: "Reports",

@@ -885,7 +885,80 @@ export const RechargeRecordsList = (props) => {
                   ); // Show dash if no message found
                 }}
               />
+              {role === "Super-User" && (
+                <FunctionField
+                  label="Transaction Confirmation Link"
+                  render={(record) => {
+                    // Check if the status is 2 (Confirmed) or 3 (Coins Credited)
+                    if (
+                      ![2, 3].includes(record?.status) ||
+                      (!record?.referralLink
+                        ?.toLowerCase()
+                        .includes("crypto.link.com") &&
+                        !record?.referralLink
+                          ?.toLowerCase()
+                          .includes("pay.coinbase.com"))
+                    ) {
+                      return "N/A"; // Don't show the button if status is not 2 or 3, and referral link doesn't match
+                    }
 
+                    let link = "#"; // Default value if no link available
+                    let linkText = "Check Transaction";
+
+                    // Check for crypto.com transaction (Link)
+                    if (
+                      record?.referralLink
+                        ?.toLowerCase()
+                        .includes("crypto.link.com")
+                    ) {
+                      link = `https://etherscan.io/tx/${record?.transactionHash}`;
+                    }
+                    // Check for Coinbase transaction (Coinbase)
+                    else if (
+                      record?.referralLink
+                        ?.toLowerCase()
+                        .includes("pay.coinbase.com")
+                    ) {
+                      link = `https://basescan.org/tx/${record?.transactionHash}`;
+                    } else {
+                      linkText = "Not Available"; // Fallback text for unsupported types
+                    }
+
+                    return (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          color: link === "#" ? "gray" : "#1976D2", // Button color for valid link
+                          textDecoration: link === "#" ? "none" : "underline",
+                          fontWeight: 500,
+                          fontSize: "12px", // Smaller font size
+                          padding: "4px 10px", // Reduced padding for a smaller button
+                          borderRadius: "6px",
+                          border:
+                            link === "#"
+                              ? "1px solid #C4C4C4"
+                              : "1px solid #1976D2", // Border color
+                          backgroundColor: link === "#" ? "#f5f5f5" : "#E3F2FD", // Background color
+                          "&:hover": {
+                            backgroundColor:
+                              link === "#" ? "#f5f5f5" : "#BBDEFB", // Hover effect for better user experience
+                          },
+                          minWidth: "120px", // Minimum width for uniform button size
+                        }}
+                        onClick={() => {
+                          if (link !== "#") {
+                            window.open(link, "_blank");
+                          }
+                        }}
+                        disabled={link === "#"} // Disable button if no link is available
+                      >
+                        {linkText}
+                      </Button>
+                    );
+                  }}
+                />
+              )}
               <FunctionField
                 label="Parent"
                 render={(record) => {

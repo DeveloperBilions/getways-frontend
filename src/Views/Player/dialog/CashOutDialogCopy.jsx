@@ -240,7 +240,7 @@ const CashOutModal = ({
                 >
                   Next
                 </Button>
-                <Button
+                {/* <Button
                   className="custom-button"
                   style={{
                     backgroundColor: "#2E5BFF",
@@ -253,7 +253,7 @@ const CashOutModal = ({
                   disabled={cashoutDisabled}
                 >
                  CheckBook
-                </Button>
+                </Button> */}
               </Box>
             </Col>
           </ModalFooter>
