@@ -79,73 +79,23 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
     const number = generateUniqueCheckNumber(user.id);
 
     try {
-      const response = await fetch(
-        "https://api.checkbook.io/v3/check/digital",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization:
-              "a5e3acd961a04d5aaba30475f84f5c20:roRCkg6IkwuVhj2an2LQrzKppn93iw",
-          },
-          body: JSON.stringify({
-            amount,
-            deposit_options: ["PRINT"],
-            description,
-            name,
-            number,
-            recipient: email,
-          }),
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        setSuccess(true);
-        const Transaction = Parse.Object.extend("TransactionRecords");
-        const txn = new Transaction();
-
-        txn.set("status", 12);
-        txn.set("userId", user.id);
-        txn.set("username", user.get("username"));
-        txn.set("userParentId", user.get("userParentId") || "");
-        txn.set("type", "redeem");
-        txn.set("transactionAmount", parseFloat(amount));
-        txn.set("gameId", "786");
-        txn.set("transactionDate", new Date());
-        txn.set("transactionIdFromStripe", number);
-        txn.set("checkbookResponse", data);
-        txn.set("recipientName", name);
-        txn.set("paymentDescription", description);
-        txn.set("isCashOut", true);
-
-        await txn.save(null);
-
-        const Wallet = Parse.Object.extend("Wallet");
-        const walletQuery = new Parse.Query(Wallet);
-        walletQuery.equalTo("userID", user.id);
-        const wallet = await walletQuery.first();
-
-        if (wallet) {
-          const currentBalance = wallet.get("balance") || 0;
-          const newBalance = currentBalance - parseFloat(amount);
-
-          if (newBalance < 0) throw new Error("Insufficient wallet balance");
-
-          wallet.set("balance", newBalance);
-          await wallet.save(null);
-        } else {
-          throw new Error("Wallet not found for user.");
-        }
-
+      const  res = await Parse.Cloud.run("sendCheckbookPayment", {
+        amount,
+        email,
+        name,
+        description,
+      });
+      if (res.success) {
+        setSuccess(true); // Or any success state/action
         setTimeout(() => {
           handleClose();
           refresh();
           handleRefresh();
         }, 3000);
       } else {
-        setErrorMessage(data?.error || "Payment failed. Please try again.");
+        setErrorMessage(res.message || "Payment failed. Please try again.");
       }
+      
     } catch (err) {
       console.error("Error sending check", err);
       setErrorMessage("Something went wrong. Please try again.");
