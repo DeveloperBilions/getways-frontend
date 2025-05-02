@@ -9,40 +9,52 @@ import {
   CircularProgress,
   Alert,
   Typography,
+  Box,
+  Divider,
 } from "@mui/material";
 import Parse from "parse";
 import { useRefresh } from "react-admin";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const generateUniqueCheckNumber = (userId) => {
-  const timestamp = Date.now(); // milliseconds since epoch
-  return `${timestamp}`;
-};
+
+const generateUniqueCheckNumber = (userId) => `${Date.now()}`;
 
 const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("Cashout Request");
+
   const [userEmailExists, setUserEmailExists] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [savingDetails, setSavingDetails] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const refresh = useRefresh();
 
-  let currentUser = null;
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const isValidInput = (value) => value.trim() !== "";
+
+  const allFieldsValid =
+    isValidEmail(email) && isValidInput(name) && isValidInput(description);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        currentUser = await Parse.User.currentAsync();
+        const currentUser = await Parse.User.currentAsync();
         if (currentUser) {
           const checkbookEmail = currentUser.get("checkbookEmail") || "";
-          if (checkbookEmail) {
-            setEmail(checkbookEmail);
-            setUserEmailExists(true);
-          } else {
-            setEmail("");
-            setUserEmailExists(false);
-          }
+          const checkbookName = currentUser.get("checkbookName");
+          const checkbookDescription = currentUser.get("checkbookDescription");
+
+          setEmail(checkbookEmail);
+          setName(checkbookName);
+          setDescription(checkbookDescription);
+          setUserEmailExists(!!checkbookEmail);
         } else {
           setErrorMessage("User not logged in.");
         }
@@ -52,16 +64,20 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
       }
     };
 
-    if (open) {
-      fetchCurrentUser();
-    }
+    if (open) fetchCurrentUser();
   }, [open]);
 
   const handleSubmit = async () => {
+    if (!allFieldsValid) {
+      setErrorMessage("Please fill in all fields correctly.");
+      return;
+    }
+
     setLoading(true);
     setErrorMessage("");
     const user = await Parse.User.currentAsync();
     const number = generateUniqueCheckNumber(user.id);
+
     try {
       const response = await fetch(
         "https://sandbox.checkbook.io/v3/check/digital",
@@ -73,15 +89,11 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
               "57834abba5ef49dea102b57561a56524:zuVmx7yC0rzx7edpgSNnzL1MpbOP7i",
           },
           body: JSON.stringify({
-            amount: amount,
-            deposit_options: ["MAIL"],
-            description: "Cashout Rquest",
-            name: user.get("username"),
-            number: number,
-            pin: {
-              description: "Please enter your payments pin #",
-              value: "1234",
-            },
+            amount,
+            deposit_options: ["PRINT"],
+            description,
+            name,
+            number,
             recipient: email,
           }),
         }
@@ -90,14 +102,10 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
       const data = await response.json();
       if (response.ok) {
         setSuccess(true);
-        console.log("Payment successful", data);
-
-        // ✅ Create transaction entry in TransactionRecords
-        const user = await Parse.User.currentAsync();
         const Transaction = Parse.Object.extend("TransactionRecords");
         const txn = new Transaction();
 
-        txn.set("status", 11); // cashout status
+        txn.set("status", 12);
         txn.set("userId", user.id);
         txn.set("username", user.get("username"));
         txn.set("userParentId", user.get("userParentId") || "");
@@ -106,38 +114,37 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
         txn.set("gameId", "786");
         txn.set("transactionDate", new Date());
         txn.set("transactionIdFromStripe", number);
+        txn.set("checkbookResponse", data);
+        txn.set("recipientName", name);
+        txn.set("paymentDescription", description);
+        txn.set("isCashOut", true);
 
-        await txn.save(null, { useMasterKey: true });
+        await txn.save(null);
+
         const Wallet = Parse.Object.extend("Wallet");
         const walletQuery = new Parse.Query(Wallet);
         walletQuery.equalTo("userID", user.id);
-
-        const wallet = await walletQuery.first({ useMasterKey: true });
+        const wallet = await walletQuery.first();
 
         if (wallet) {
           const currentBalance = wallet.get("balance") || 0;
           const newBalance = currentBalance - parseFloat(amount);
 
-          if (newBalance < 0) {
-            throw new Error("Insufficient wallet balance");
-          }
+          if (newBalance < 0) throw new Error("Insufficient wallet balance");
 
           wallet.set("balance", newBalance);
-          await wallet.save(null, { useMasterKey: true });
-
-          console.log("Wallet balance updated:", newBalance);
+          await wallet.save(null);
         } else {
-          console.error("Wallet not found for user");
           throw new Error("Wallet not found for user.");
         }
+
         setTimeout(() => {
           handleClose();
-          refresh(); // Triggers react-admin to refetch data
-          handleRefresh()
-        }, 3000);        
+          refresh();
+          handleRefresh();
+        }, 3000);
       } else {
         setErrorMessage(data?.error || "Payment failed. Please try again.");
-        console.error("Payment failed", data);
       }
     } catch (err) {
       console.error("Error sending check", err);
@@ -149,39 +156,150 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
 
   const handleClose = () => {
     setEmail("");
+    setName("");
+    setDescription("Cashout Request");
     setSuccess(false);
     setErrorMessage("");
+    setIsEditMode(false);
     onClose();
+  };
+
+  const handleSaveDetails = async () => {
+    if (!allFieldsValid) {
+      setErrorMessage("Please fill all fields correctly.");
+      return;
+    }
+
+    setSavingDetails(true);
+    setErrorMessage("");
+    try {
+      const user = await Parse.User.currentAsync();
+      if (user) {
+        user.set("checkbookEmail", email.trim());
+        user.set("checkbookName", name.trim());
+        user.set("checkbookDescription", description.trim());
+        await user.save(null);
+        setUserEmailExists(true);
+        setIsEditMode(false);
+      }
+    } catch (err) {
+      console.error("Error saving user details:", err);
+      setErrorMessage("Failed to save user details");
+    } finally {
+      setSavingDetails(false);
+    }
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>Send Payment</DialogTitle>
       <DialogContent>
-        <Typography mb={1}>
-          Amount: <strong>${amount}</strong>
+        <Alert severity="warning">
+          Please enter a valid email address, as the payment will be sent to
+          your email.
+        </Alert>
+        <Typography sx={{ mt: 2, mb: 2, fontSize: "14px" }}>
+          <strong>Amount:</strong> ${amount}
         </Typography>
 
-        {userEmailExists ? (
-          <Typography mb={2}>
-            Payment will be sent to: <strong>{email}</strong>
-          </Typography>
+        {isEditMode ? (
+          <Box display="flex" flexDirection="column" gap={2}>
+            <TextField
+              label="Recipient Email"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={!isValidEmail(email)}
+              helperText={
+                !isValidEmail(email) ? "Enter a valid email address." : ""
+              }
+            />
+            <TextField
+              label="Recipient Name"
+              fullWidth
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              error={!isValidInput(name)}
+              helperText={!isValidInput(name) ? "Name is required." : ""}
+            />
+            <TextField
+              label="Payment Description"
+              fullWidth
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              error={!isValidInput(description)}
+              helperText={
+                !isValidInput(description) ? "Description is required." : ""
+              }
+            />
+            <Button
+              variant="contained"
+              onClick={handleSaveDetails}
+              disabled={savingDetails || !allFieldsValid}
+              sx={{ alignSelf: "flex-start", mt: 1 }}
+            >
+              {savingDetails ? <CircularProgress size={20} /> : "Save Details"}
+            </Button>
+          </Box>
+        ) : email && name && description ? (
+          <Box>
+            <Typography mb={1} sx={{ fontSize: "13px" }}>
+              <strong>Email:</strong> {email}
+            </Typography>
+            <Typography mb={1} sx={{ fontSize: "13px" }}>
+              <strong>Name:</strong> {name}
+            </Typography>
+            <Typography mb={2} sx={{ fontSize: "13px" }}>
+              <strong>Description:</strong> {description}
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => setIsEditMode(true)}
+              sx={{
+                borderColor: "#1976d2",
+                color: "#1976d2",
+                fontWeight: 600,
+                ":hover": {
+                  backgroundColor: "#E3F2FD",
+                },
+              }}
+            >
+              Edit Details
+            </Button>
+          </Box>
         ) : (
-          <TextField
-            fullWidth
-            label="Recipient Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            margin="dense"
-          />
-        )}
+          <>
+          <Box
+>
+  <Typography sx={{fontSize:"15px"}} gutterBottom>
+    Please add your details to continue
+  </Typography>
 
+  <Button
+              variant="outlined"
+              onClick={() => setIsEditMode(true)}
+    sx={{
+      mt: 1,
+      fontWeight: 600,
+      borderColor: "#1976d2",
+      color: "#1976d2",
+      fontWeight: 600,
+      ":hover": {
+        backgroundColor: "#E3F2FD",
+      },
+    }}
+  >
+    Add Details
+  </Button>
+</Box>
+
+          </>
+        )}
         {errorMessage && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {errorMessage}
           </Alert>
         )}
-
         {success && (
           <Alert severity="success" sx={{ mt: 2 }}>
             Payment sent successfully!
@@ -196,7 +314,7 @@ const CheckbookPaymentDialog = ({ open, onClose, amount, handleRefresh }) => {
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={loading || !email}
+          disabled={loading || !allFieldsValid}
         >
           {loading ? <CircularProgress size={24} /> : "Send"}
         </Button>

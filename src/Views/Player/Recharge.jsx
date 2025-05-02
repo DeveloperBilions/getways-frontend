@@ -61,6 +61,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [popupDialogOpen, setPopupDialogOpen] = useState(false);
   const [storedBuyUrl, setStoredBuyUrl] = useState("");
+  const [showSafariHelp, setShowSafariHelp] = useState(false);
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -504,9 +505,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }}
             onClick={debounce(async () => {
               try {
-
                 const testPopup = window.open("", "_blank", "width=1,height=1");
-                if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
+                if (
+                  !testPopup ||
+                  testPopup.closed ||
+                  typeof testPopup.closed === "undefined"
+                ) {
                   setPopupBlocked(true);
                   setPopupDialogOpen(true);
                   return;
@@ -577,6 +581,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 await transactionDetails.save(null, { useMasterKey: true });
                 setStoredBuyUrl(buyUrl); // Store for retry
                 const popup = window.open(buyUrl, "_blank");
+                console.log(popup, "popuppopuppopup");
                 if (
                   !popup ||
                   popup.closed ||
@@ -937,9 +942,21 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
         <DialogTitle>Enable Pop-up Windows</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            We couldn't open the Recharge page because your browser
-            blocked the pop-up. <br />
-            Please enable pop-ups for this site and try again.
+            Popups have been blocked in your browser. Please unblock popup
+            blocker for <a href="https://getways.us/">getways.us</a> for a
+            better and smoother experience.
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowSafariHelp(true);
+              }}
+              style={{ color: "#1976d2", cursor: "pointer", marginLeft: 4 }}
+            >
+              How?
+            </a>
+            <br /> <br />
+            Click proceed to continue.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -960,7 +977,54 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             color="primary"
             autoFocus
           >
-            Try Again
+            Proceed
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showSafariHelp} onClose={() => setShowSafariHelp(false)}>
+        <DialogTitle>Enable Popups in Safari</DialogTitle>
+        <DialogContent>
+          <DialogContentText component="div">
+            <Typography variant="body1" gutterBottom>
+              Follow these steps to allow pop-ups in Safari on iPhone or Mac:
+            </Typography>
+            <Typography variant="body2" component="ol">
+              <li>
+              Update to the latest version of iOS
+              </li>
+              <li>
+                Go to <strong>Settings</strong> on your iPhone or iPad.
+                Scroll down and tap  <strong>Apps</strong>
+
+              </li>
+              <li>
+                Scroll down and tap <strong>Safari</strong>.
+              </li>
+              <li>
+                Find the option <strong>"Block Pop-ups"</strong>.
+              </li>
+              <li>
+                Make sure it's <strong>turned OFF</strong>.
+              </li>
+              <li>
+                Return to the &nbsp; <img
+              src="/assets/company_logo_black.svg"
+              alt="Company Logo"
+              loading="lazy"
+              style={{
+                maxHeight: "2em",
+                width: "auto",
+              }}
+            />
+                 &nbsp;&nbsp; and click <strong>Proceed</strong> again.
+              </li>
+            </Typography>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSafariHelp(false)} autoFocus>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

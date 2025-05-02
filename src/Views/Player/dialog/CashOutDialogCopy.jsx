@@ -227,7 +227,7 @@ const CashOutModal = ({
                 >
                   Cancel
                 </Button>
-                <Button
+                {/* <Button
                   className="custom-button"
                   style={{
                     backgroundColor: "#2E5BFF",
@@ -239,8 +239,8 @@ const CashOutModal = ({
                   disabled={cashoutDisabled}
                 >
                   Next
-                </Button>
-                {/* <Button
+                </Button> */}
+                <Button
                   className="custom-button"
                   style={{
                     backgroundColor: "#2E5BFF",
@@ -248,12 +248,36 @@ const CashOutModal = ({
                     fontWeight: 500,
                     fontFamily: "Inter",
                   }}
-                  onClick={()=> {setIsOpen(true)
-                    onClose()}}
+                  onClick={()=> {
+                    if (!balance) {
+                      setErrorMessage(
+                        "Cashout amount cannot be empty. Please enter a valid amount."
+                      );
+                      return;
+                    }
+                    if (balance <= 0) {
+                      setErrorMessage(
+                        "Cashout amount cannot be negative or 0. Please enter a valid amount."
+                      );
+                      return;
+                    }
+                    if (balance < 15) {
+                      setErrorMessage("Cashout request should not be less than $15.");
+                      return;
+                    }
+                    if (balance > initialBalance) {
+                      setErrorMessage(
+                        "Cashout amount cannot be greater than your current balance."
+                      );
+                      return;
+                    }
+                    setIsOpen(true)
+                    onClose()}
+                  }
                   disabled={cashoutDisabled}
                 >
-                 CheckBook
-                </Button> */}
+                 Next
+                </Button>
               </Box>
             </Col>
           </ModalFooter>
