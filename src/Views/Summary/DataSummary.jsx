@@ -31,22 +31,27 @@ import { saveAs } from "file-saver";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import EmergencyNotices from "../../Layout/EmergencyNotices";
-import TotalUser from "../../Assets/icons/TotalUser.svg"
-import TotalAgent from "../../Assets/icons/TotalAgent.svg"
-import TotalRecharge from "../../Assets/icons/TotalRecharge.svg"
-import TotalRedeem from "../../Assets/icons/TotalRedeem.svg"
-import PendingRecharge from "../../Assets/icons/PendingRecharge.svg"
-import FailedRedeem from "../../Assets/icons/FailedRedeem.svg"
-import TotalCashoutRedeemSuccessfull from "../../Assets/icons/TotalCashoutRedeemSuccessfull.svg"
-import TotalCashoutRedeemPending from "../../Assets/icons/TotalCashoutRedeemPending.svg"
-import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg"
-import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg"
-import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg"
+import TotalUser from "../../Assets/icons/TotalUser.svg";
+import TotalAgent from "../../Assets/icons/TotalAgent.svg";
+import TotalRecharge from "../../Assets/icons/TotalRecharge.svg";
+import TotalRedeem from "../../Assets/icons/TotalRedeem.svg";
+import PendingRecharge from "../../Assets/icons/PendingRecharge.svg";
+import FailedRedeem from "../../Assets/icons/FailedRedeem.svg";
+import TotalCashoutRedeemSuccessfull from "../../Assets/icons/TotalCashoutRedeemSuccessfull.svg";
+import TotalCashoutRedeemPending from "../../Assets/icons/TotalCashoutRedeemPending.svg";
+import TotalFeesCharged from "../../Assets/icons/TotalFeesCharged.svg";
+import TotalWalletBalance from "../../Assets/icons/TotalWalletBalance.svg";
+import TotalRecharge_Filtered from "../../Assets/icons/TotalRecharge_Filtered.svg";
 import pdfIcon from "../../Assets/icons/pdfIcon.svg";
 import excelIcon from "../../Assets/icons/excelIcon.svg";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
 import { TextField as MonthPickerField } from "@mui/material";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 
 const Summary = ({ selectedUser, startDate, endDate }) => {
   const shouldFetch = startDate && endDate;
@@ -132,22 +137,9 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
     ...(role === "Super-User"
       ? [
           {
-            id: 3,
+            id: 35,
             name: "Total Recharge (Filtered)",
-            value: (
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="flex-start"
-              >
-                {/* <img
-                  src={AOGSymbol}
-                  alt="AOG Symbol"
-                  style={{ width: "20px", height: "20px", marginRight: "8px" }}
-                /> */}
-                <span>{filteredRechargeValue}</span>
-              </Box>
-            ),
+            value: filteredRechargeValue,
             bgColor: "#EBF7FF",
             borderColor: "#FF9C9C",
             color: "#287AB1",
@@ -523,7 +515,7 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                   lineHeight: "100%",
                   letterSpacing: "0%",
                   verticalAlign: "middle",
-                color: item?.color || "inherit",
+                  color: item?.color || "inherit",
                 }}
               >
                 {item?.value}
@@ -600,12 +592,12 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
             >
               <Box
                 display="flex"
-                alignItems={{ xs: "center", sm: "flex-start" }}
+                alignItems={{ sm: "flex-start" }}
                 flexDirection="column"
               >
                 <Typography
                   variant="subtitle1"
-                  display={{ xs: "none", sm: "flex" }}
+                  display={{ sm: "flex" }}
                   alignItems="center"
                   sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
                 >
@@ -619,7 +611,6 @@ const Summary = ({ selectedUser, startDate, endDate }) => {
                     fontSize: "32px", // Large font size
                     lineHeight: "100%",
                     letterSpacing: "0%",
-                    verticalAlign: "middle",
                     color: item?.color || "inherit",
                   }}
                 >
@@ -645,7 +636,7 @@ export const DataSummary = () => {
   const role = localStorage.getItem("role");
   const { identity } = useGetIdentity();
   const [menuAnchor, setMenuAnchor] = React.useState(null);
-  const [isExporting, setIsExporting] = useState(false);// Loading state for data fetch
+  const [isExporting, setIsExporting] = useState(false); // Loading state for data fetch
 
   const [choices, setChoices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -658,7 +649,7 @@ export const DataSummary = () => {
   const [selectedUsertemp, setSelectedUsertemp] = useState(null); // Store selected user
   const [formResetKey, setFormResetKey] = useState(0);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
-const [exportMonth, setExportMonth] = useState(null);
+  const [exportMonth, setExportMonth] = useState(null);
   const handleUserChange = (selectedId) => {
     setSelectedUsertemp(selectedId);
   };
@@ -699,7 +690,6 @@ const [exportMonth, setExportMonth] = useState(null);
   useEffect(() => {
     // const queryParams = new URLSearchParams(window.location.search);
     // const rawFilter = queryParams.get("filter");
-  
     // if (rawFilter) {
     //   try {
     //     const filterObj = JSON.parse(rawFilter);
@@ -707,10 +697,8 @@ const [exportMonth, setExportMonth] = useState(null);
     //     const end = filterObj.enddate;
     //     const userId = filterObj.username;
     //     const usernameLabel = filterObj.usernameLabel;
-  
     //     if (start) setTempStartDate(start);
     //     if (end) setTempEndDate(end);
-  
     //     if (userId && usernameLabel) {
     //       const matchedUser = {
     //         id: userId,
@@ -723,7 +711,6 @@ const [exportMonth, setExportMonth] = useState(null);
     //     console.error("Invalid filter JSON:", err);
     //   }
     // }
-
   }, []);
 
   useEffect(() => {
@@ -735,29 +722,29 @@ const [exportMonth, setExportMonth] = useState(null);
     setSelectedUsertemp(null);
     setFormResetKey((prev) => prev + 1); // 🧠 force rerender of FilterForm
   }, []);
-  
-  
-  
+
   useEffect(() => {
     fetchUsers(); // Initial load
   }, []);
 
   const loadAndExportData = async () => {
-    let startDate = document.querySelector('input[name="startdate"]')?.value || null;
-  let endDate = document.querySelector('input[name="enddate"]')?.value || null;
+    let startDate =
+      document.querySelector('input[name="startdate"]')?.value || null;
+    let endDate =
+      document.querySelector('input[name="enddate"]')?.value || null;
 
-  if (exportMonth) {
-    const [year, month] = exportMonth.split("-");
-    startDate = `${year}-${month}-01`;
-    const lastDay = new Date(year, parseInt(month), 0).getDate();
-    endDate = `${year}-${month}-${lastDay}`;
-  }
+    if (exportMonth) {
+      const [year, month] = exportMonth.split("-");
+      startDate = `${year}-${month}-01`;
+      const lastDay = new Date(year, parseInt(month), 0).getDate();
+      endDate = `${year}-${month}-${lastDay}`;
+    }
 
-  const filters = {
-    startDate,
-    endDate,
-    username: selectedUser?.username
-  };
+    const filters = {
+      startDate,
+      endDate,
+      username: selectedUser?.username,
+    };
     setIsExporting(true); // Set exporting state
 
     try {
@@ -1127,30 +1114,30 @@ const [exportMonth, setExportMonth] = useState(null);
     <Autocomplete
       label="Username" // Add label property if supported
       source="username"
-      sx={{ 
+      sx={{
         width: { xs: "100%", md: 300 },
-        '& .MuiFormLabel-root': { 
-          position: 'relative',
-          transform: 'none',
-          fontSize: '14px',
+        "& .MuiFormLabel-root": {
+          position: "relative",
+          transform: "none",
+          fontSize: "14px",
           fontWeight: 600,
-          marginBottom: '4px'
+          marginBottom: "4px",
         },
-        '& .MuiInputLabel-shrink': {
-          transform: 'none',
+        "& .MuiInputLabel-shrink": {
+          transform: "none",
         },
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '4px',
-          '& fieldset': {
-            borderColor: '#CFD4DB',
+        "& .MuiOutlinedInput-root": {
+          borderRadius: "4px",
+          "& fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&:hover fieldset': {
-            borderColor: '#CFD4DB',
+          "&:hover fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&.Mui-focused fieldset': {
-            borderColor: '#CFD4DB',
-          }
-        }
+          "&.Mui-focused fieldset": {
+            borderColor: "#CFD4DB",
+          },
+        },
       }}
       options={choices}
       getOptionLabel={(option) => option.optionName}
@@ -1173,7 +1160,11 @@ const [exportMonth, setExportMonth] = useState(null);
           variant="outlined"
           InputLabelProps={{
             shrink: true,
-            style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+            style: {
+              position: "relative",
+              transform: "none",
+              marginBottom: "4px",
+            },
           }}
           label="Username"
           InputProps={{
@@ -1185,10 +1176,10 @@ const [exportMonth, setExportMonth] = useState(null);
               </>
             ),
             sx: {
-              '& fieldset': {
-                borderColor: '#CFD4DB',
-              }
-            }
+              "& fieldset": {
+                borderColor: "#CFD4DB",
+              },
+            },
           }}
         />
       )}
@@ -1198,36 +1189,36 @@ const [exportMonth, setExportMonth] = useState(null);
     <DateInput
       label="Start Date"
       source="startdate"
-      sx={{ 
+      sx={{
         width: { xs: "100%", md: "auto" },
-        '& .MuiFormLabel-root': { 
-          position: 'relative',
-          transform: 'none',
-          fontSize: '14px',
+        "& .MuiFormLabel-root": {
+          position: "relative",
+          transform: "none",
+          fontSize: "14px",
           fontWeight: 600,
-          marginBottom: '4px'
+          marginBottom: "4px",
         },
-        '& .MuiInputLabel-shrink': {
-          transform: 'none',
+        "& .MuiInputLabel-shrink": {
+          transform: "none",
         },
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '4px',
-          '& fieldset': {
-            borderColor: '#CFD4DB',
+        "& .MuiOutlinedInput-root": {
+          borderRadius: "4px",
+          "& fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&:hover fieldset': {
-            borderColor: '#CFD4DB',
+          "&:hover fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&.Mui-focused fieldset': {
-            borderColor: '#CFD4DB',
-          }
-        }
+          "&.Mui-focused fieldset": {
+            borderColor: "#CFD4DB",
+          },
+        },
       }}
       alwaysOn
       resettable
       InputLabelProps={{
         shrink: true,
-        style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+        style: { position: "relative", transform: "none", marginBottom: "4px" },
       }}
       // validate={maxValue(currentDate)}
       InputProps={{
@@ -1235,43 +1226,43 @@ const [exportMonth, setExportMonth] = useState(null);
           min: startDateLimit, // Minimum allowed date
           max: tempEndDate || today, // Maximum allowed date
         },
-        value:tempStartDate
+        value: tempStartDate,
       }}
       onChange={(event) => setTempStartDate(event.target.value)}
     />,
     <DateInput
       label="End Date"
       source="enddate"
-      sx={{ 
+      sx={{
         width: { xs: "100%", md: "auto" },
-        '& .MuiFormLabel-root': { 
-          position: 'relative',
-          transform: 'none',
-          fontSize: '14px',
+        "& .MuiFormLabel-root": {
+          position: "relative",
+          transform: "none",
+          fontSize: "14px",
           fontWeight: 600,
-          marginBottom: '4px'
+          marginBottom: "4px",
         },
-        '& .MuiInputLabel-shrink': {
-          transform: 'none',
+        "& .MuiInputLabel-shrink": {
+          transform: "none",
         },
-        '& .MuiOutlinedInput-root': {
-          borderRadius: '4px',
-          '& fieldset': {
-            borderColor: '#CFD4DB',
+        "& .MuiOutlinedInput-root": {
+          borderRadius: "4px",
+          "& fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&:hover fieldset': {
-            borderColor: '#CFD4DB',
+          "&:hover fieldset": {
+            borderColor: "#CFD4DB",
           },
-          '&.Mui-focused fieldset': {
-            borderColor: '#CFD4DB',
-          }
-        }
+          "&.Mui-focused fieldset": {
+            borderColor: "#CFD4DB",
+          },
+        },
       }}
       alwaysOn
       resettable
       InputLabelProps={{
         shrink: true,
-        style: { position: 'relative', transform: 'none', marginBottom: '4px' }
+        style: { position: "relative", transform: "none", marginBottom: "4px" },
       }}
       // validate={maxValue(currentDate)}
       onChange={(event) => setTempEndDate(event.target.value)}
@@ -1280,34 +1271,34 @@ const [exportMonth, setExportMonth] = useState(null);
           min: tempStartDate || startDateLimit, // Minimum allowed date
           max: today, // Maximum allowed date
         },
-        value:tempEndDate
+        value: tempEndDate,
       }}
     />,
-  
+
     // <SearchSelectUsersFilter />,
   ];
   const handleFilterSubmit = () => {
     setStartDate(tempStartDate);
     setEndDate(tempEndDate);
     setSelectedUser(selectedUsertemp);
-  
+
     // const queryParams = new URLSearchParams();
     // const filterObj = {};
-  
+
     // if (tempStartDate) filterObj.startdate = tempStartDate;
     // if (tempEndDate) filterObj.enddate = tempEndDate;
-  
+
     // if (selectedUsertemp?.id) {
     //   filterObj.username = selectedUsertemp.id; // for backend use
     //   filterObj.usernameLabel = selectedUsertemp.optionName; // for restoring UI
     // }
-  
+
     // queryParams.set("filter", JSON.stringify(filterObj));
-  
+
     // const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
     // window.history.replaceState(null, "", newUrl);
   };
-  console.log(formResetKey,"formResetKeyformResetKey")
+  console.log(formResetKey, "formResetKeyformResetKey");
   return (
     <>
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
@@ -1317,7 +1308,7 @@ const [exportMonth, setExportMonth] = useState(null);
           justifyContent: "space-between",
           alignItems: "center",
           mt: "8px",
-          px: { xs: 1, sm: 2 }
+          px: { xs: 1, sm: 2 },
         }}
       >
         <Typography
@@ -1339,67 +1330,37 @@ const [exportMonth, setExportMonth] = useState(null);
             alignItems={{ xs: "stretch", sm: "end" }}
             gap={{ xs: 1, md: 2 }}
           >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              // gap: 1,
-              alignItems: { xs: "stretch", sm: "end" },
-            }}
-          >
-            <FilterForm
-filters={dataFilters}
-key={`filter-reset-${formResetKey}`} // 🔁 this causes full internal reset
-             sx={{
-                // flex: "1 1 auto",
-                padding: "0 !important",
+            <Box
+              sx={{
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
                 // gap: 1,
-                alignItems: { xs: "stretch", sm: "flex-start" },
+                alignItems: { xs: "stretch", sm: "end" },
               }}
-            />
-            <Button
-              source="date"
-              variant="contained"
-              onClick={handleFilterSubmit}
-              sx={{
-                mt: 1,
-                padding: "2 !important",
-                height: "40px",
-                width: "127px",
-                whiteSpace: "nowrap",
-              }} // Adds left margin for spacing
             >
-              <Typography
+              <FilterForm
+                filters={dataFilters}
+                key={`filter-reset-${formResetKey}`} // 🔁 this causes full internal reset
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  color: "var(--white-color)",
-                  textTransform: "none",
-                  fontFamily: "Inter",
-                }}>
-                Apply Filter
-              </Typography>
-            </Button>
-          </Box>
-          {role === "Super-User" && (
-            <Box
-              display="flex"
-              flexDirection={{ xs: "column", sm: "row" }}
-              gap={1}
-              mt={1}
-            >
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<img src={downloadDark} alt="Export" />}
-                onClick={handleMenuOpen}
-                sx={{
-                  width: { xs: "100%", md: "auto" },
-                  whiteSpace: "nowrap",
-                  height: "40px",
+                  // flex: "1 1 auto",
+                  padding: "0 !important",
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  // gap: 1,
+                  alignItems: { xs: "stretch", sm: "flex-start" },
                 }}
+              />
+              <Button
+                source="date"
+                variant="contained"
+                onClick={handleFilterSubmit}
+                sx={{
+                  mt: 1,
+                  padding: "2 !important",
+                  height: "40px",
+                  width: "127px",
+                  whiteSpace: "nowrap",
+                }} // Adds left margin for spacing
               >
                 <Typography
                   sx={{
@@ -1408,94 +1369,126 @@ key={`filter-reset-${formResetKey}`} // 🔁 this causes full internal reset
                     color: "var(--white-color)",
                     textTransform: "none",
                     fontFamily: "Inter",
-                  }}>
-                  Export
+                  }}
+                >
+                  Apply Filter
                 </Typography>
               </Button>
-              <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={handleMenuClose}
-                sx={{
-                  marginTop: "8px",
-                }}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-              >
-                <MenuItem
-                  onClick={() => {
-                    handleExportRechargePDF();
-                    // handleMenuClose();
-                  }}
-                  disabled={isExporting}
-                >
-                  <ListItemIcon>
-                    {isExporting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <img src={pdfIcon} alt="PDF" width={20} height={20} />
-                    )}
-                  </ListItemIcon>
-                  .pdf Recharge Export
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleExportRedeemPDF();
-                    //handleMenuRedeemClose();
-                  }}
-                  disabled={isExporting}
-                >
-                  <ListItemIcon>
-                    {isExporting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <img src={pdfIcon} alt="PDF" width={20} height={20} />
-                    )}
-                  </ListItemIcon>
-                  .pdf Redeem Export
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleExportRechargeXLS();
-                    //  handleMenuClose();
-                  }}
-                  disabled={isExporting}
-                >
-                  <ListItemIcon>
-                    {isExporting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <img src={excelIcon} alt="EXCEL"/>
-                    )}
-                  </ListItemIcon>
-                  .xls Recharge Export
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleExportRedeemXLS();
-                    //  handleMenuRedeemClose();
-                  }}
-                  disabled={isExporting}
-                >
-                  <ListItemIcon>
-                    {isExporting ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <img src={excelIcon} alt="EXCEL"/>
-                    )}
-                  </ListItemIcon>
-                  .xls Redeem Export
-                </MenuItem>
-              </Menu>
             </Box>
-          )}
-        </Box>
+            {role === "Super-User" && (
+              <Box
+                display="flex"
+                flexDirection={{ xs: "column", sm: "row" }}
+                gap={1}
+                mt={1}
+              >
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<img src={downloadDark} alt="Export" />}
+                  onClick={handleMenuOpen}
+                  sx={{
+                    width: { xs: "100%", md: "auto" },
+                    whiteSpace: "nowrap",
+                    height: "40px",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: 500,
+                      color: "var(--white-color)",
+                      textTransform: "none",
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    Export
+                  </Typography>
+                </Button>
+                <Menu
+                  anchorEl={menuAnchor}
+                  open={Boolean(menuAnchor)}
+                  onClose={handleMenuClose}
+                  sx={{
+                    marginTop: "8px",
+                  }}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRechargePDF();
+                      // handleMenuClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <img src={pdfIcon} alt="PDF" width={20} height={20} />
+                      )}
+                    </ListItemIcon>
+                    .pdf Recharge Export
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRedeemPDF();
+                      //handleMenuRedeemClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <img src={pdfIcon} alt="PDF" width={20} height={20} />
+                      )}
+                    </ListItemIcon>
+                    .pdf Redeem Export
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRechargeXLS();
+                      //  handleMenuClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <img src={excelIcon} alt="EXCEL" />
+                      )}
+                    </ListItemIcon>
+                    .xls Recharge Export
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleExportRedeemXLS();
+                      //  handleMenuRedeemClose();
+                    }}
+                    disabled={isExporting}
+                  >
+                    <ListItemIcon>
+                      {isExporting ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <img src={excelIcon} alt="EXCEL" />
+                      )}
+                    </ListItemIcon>
+                    .xls Redeem Export
+                  </MenuItem>
+                </Menu>
+              </Box>
+            )}
+          </Box>
         </Box>
         <Summary
           selectedUser={selectedUser}
@@ -1503,337 +1496,396 @@ key={`filter-reset-${formResetKey}`} // 🔁 this causes full internal reset
           endDate={endDate}
         />
       </ListBase>
-      <Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
-  <DialogTitle>Select Month to Export</DialogTitle>
-  <DialogContent>
-    <MonthPickerField
-      label="Month"
-      type="month"
-      value={exportMonth}
-      onChange={(e) => {
-        const value = e.target.value;
-        setExportMonth(value);
-      }}
-      InputLabelProps={{ shrink: true }}
-      fullWidth
-      sx={{ mt: 1 }}
-    />
+      <Dialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+      >
+        <DialogTitle>Select Month to Export</DialogTitle>
+        <DialogContent>
+          <MonthPickerField
+            label="Month"
+            type="month"
+            value={exportMonth}
+            onChange={(e) => {
+              const value = e.target.value;
+              setExportMonth(value);
+            }}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            sx={{ mt: 1 }}
+          />
 
-    {isExporting && (
-      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-        <CircularProgress size={24} sx={{ mr: 2 }} />
-        <Typography variant="body2">Exporting...</Typography>
-      </Box>
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
-      Cancel
-    </Button>
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
-        setIsExporting(true);
+          {isExporting && (
+            <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+              <CircularProgress size={24} sx={{ mr: 2 }} />
+              <Typography variant="body2">Exporting...</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" }, // ⬅️ Column on mobile, row on desktop
+              gap: 2,
+              width: "100%", // Make sure buttons can stretch
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => setExportDialogOpen(false)}
+              disabled={isExporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!exportMonth) return;
+                setIsExporting(true);
 
-        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+                const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
-        // Combine wallet and others data for Excel
-        const combinedData = [
-          ...exportData[0]?.totalRechargeByTypeData?.wallet?.map((item) => ({
-            "Transaction ID": item.transactionId,
-            Amount: item.amount,
-            "Transaction Date": formatDateForExcel(item.transactionDate),
-            Status: item.status,
-            paymentType: item?.paymentType,
-            "Stripe Transaction ID": item.transactionIdFromStripe,
-            "Payment Type": item.paymentType,
-            "Agent Name": item?.agentName,
-            "User Name": item?.userName,
-          })),
-          ...exportData[0]?.totalRechargeByTypeData?.others.map((item) => ({
-            "Transaction ID": item.transactionId,
-            Amount: item.amount,
-            "Transaction Date": formatDateForExcel(item.transactionDate),
-            Status: item.status,
-            paymentType: item?.paymentType,
-            "Stripe Transaction ID": item.transactionIdFromStripe,
-            "Payment Type": item.paymentType,
-            "Agent Name": item?.agentName,
-            "User Name": item?.userName,
-          })),
-        ];
-    
-        // Create worksheet and workbook
-        const worksheet = XLSX.utils.json_to_sheet(combinedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
-    
-        // Write Excel file
-        const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-        saveAs(
-          new Blob([xlsData], { type: "application/octet-stream" }),
-          "TotalRechargeData.xlsx"
-        );
+                // Combine wallet and others data for Excel
+                const combinedData = [
+                  ...exportData[0]?.totalRechargeByTypeData?.wallet?.map(
+                    (item) => ({
+                      "Transaction ID": item.transactionId,
+                      Amount: item.amount,
+                      "Transaction Date": formatDateForExcel(
+                        item.transactionDate
+                      ),
+                      Status: item.status,
+                      paymentType: item?.paymentType,
+                      "Stripe Transaction ID": item.transactionIdFromStripe,
+                      "Payment Type": item.paymentType,
+                      "Agent Name": item?.agentName,
+                      "User Name": item?.userName,
+                    })
+                  ),
+                  ...exportData[0]?.totalRechargeByTypeData?.others.map(
+                    (item) => ({
+                      "Transaction ID": item.transactionId,
+                      Amount: item.amount,
+                      "Transaction Date": formatDateForExcel(
+                        item.transactionDate
+                      ),
+                      Status: item.status,
+                      paymentType: item?.paymentType,
+                      "Stripe Transaction ID": item.transactionIdFromStripe,
+                      "Payment Type": item.paymentType,
+                      "Agent Name": item?.agentName,
+                      "User Name": item?.userName,
+                    })
+                  ),
+                ];
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-      <img src={excelIcon} alt="PDF" width={20} height={20} />  Recharge 
-    </Button>
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
+                // Create worksheet and workbook
+                const worksheet = XLSX.utils.json_to_sheet(combinedData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(
+                  workbook,
+                  worksheet,
+                  "Total Recharge Data"
+                );
 
-        setIsExporting(true);
-        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+                // Write Excel file
+                const xlsData = XLSX.write(workbook, {
+                  bookType: "xlsx",
+                  type: "array",
+                });
+                saveAs(
+                  new Blob([xlsData], { type: "application/octet-stream" }),
+                  "TotalRechargeData.xlsx"
+                );
 
-    const doc = new jsPDF();
+                setIsExporting(false);
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              <img src={excelIcon} alt="PDF" width={20} height={20} /> &nbsp;
+              Recharge
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!exportMonth) return;
 
-    // Add title
-    doc.text("Total Recharge Data", 10, 10);
+                setIsExporting(true);
+                const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
-    // Prepare wallet data for PDF
-    const walletTableData = exportData[0]?.totalRechargeByTypeData?.wallet?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.paymentType,
-        item?.agentName,
-        item?.userName,
-      ]
-    );
+                const doc = new jsPDF();
 
-    // Prepare others data for PDF
-    const othersTableData = exportData[0]?.totalRechargeByTypeData?.others?.map(
-      (item, index) => [
-        item.transactionId,
-        item.amount,
-        new Date(item.transactionDate).toLocaleString(),
-        item.status,
-        item.transactionIdFromStripe,
-        item.paymentType,
-        item?.agentName,
-        item?.userName,
-      ]
-    );
+                // Add title
+                doc.text("Total Recharge Data", 10, 10);
 
-    // Add Wallet Transactions
-    doc.text("Wallet Transactions", 10, 20);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Stripe ID",
-          "Payment Type",
-          "Agent Name",
-          "User Name",
-        ],
-      ],
-      body: walletTableData,
-      startY: 25,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
+                // Prepare wallet data for PDF
+                const walletTableData =
+                  exportData[0]?.totalRechargeByTypeData?.wallet?.map(
+                    (item, index) => [
+                      item.transactionId,
+                      item.amount,
+                      new Date(item.transactionDate).toLocaleString(),
+                      item.status,
+                      item.transactionIdFromStripe,
+                      item.paymentType,
+                      item?.agentName,
+                      item?.userName,
+                    ]
+                  );
 
-    // Add Others Transactions
-    doc.text("Others Transactions", 10, doc.lastAutoTable.finalY + 10);
-    doc.autoTable({
-      head: [
-        [
-          "ID",
-          "Amount",
-          "Transaction Date",
-          "Status",
-          "Stripe ID",
-          "Payment Type",
-          "Agent Name",
-          "User Name",
-        ],
-      ],
-      body: othersTableData,
-      startY: doc.lastAutoTable.finalY + 15,
-      columnStyles: {
-        4: { cellWidth: 50 }, // Stripe ID column
-      },
-      styles: {
-        overflow: "linebreak", // Ensure long text wraps
-        fontSize: 10, // Adjust font size for readability
-      },
-    });
+                // Prepare others data for PDF
+                const othersTableData =
+                  exportData[0]?.totalRechargeByTypeData?.others?.map(
+                    (item, index) => [
+                      item.transactionId,
+                      item.amount,
+                      new Date(item.transactionDate).toLocaleString(),
+                      item.status,
+                      item.transactionIdFromStripe,
+                      item.paymentType,
+                      item?.agentName,
+                      item?.userName,
+                    ]
+                  );
 
-    // Save PDF
-    doc.save("TotalRechargeData.pdf");
+                // Add Wallet Transactions
+                doc.text("Wallet Transactions", 10, 20);
+                doc.autoTable({
+                  head: [
+                    [
+                      "ID",
+                      "Amount",
+                      "Transaction Date",
+                      "Status",
+                      "Stripe ID",
+                      "Payment Type",
+                      "Agent Name",
+                      "User Name",
+                    ],
+                  ],
+                  body: walletTableData,
+                  startY: 25,
+                  columnStyles: {
+                    4: { cellWidth: 50 }, // Stripe ID column
+                  },
+                  styles: {
+                    overflow: "linebreak", // Ensure long text wraps
+                    fontSize: 10, // Adjust font size for readability
+                  },
+                });
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-      <img src={pdfIcon} alt="PDF" width={20} height={20} />  Recharge 
-    </Button>
+                // Add Others Transactions
+                doc.text(
+                  "Others Transactions",
+                  10,
+                  doc.lastAutoTable.finalY + 10
+                );
+                doc.autoTable({
+                  head: [
+                    [
+                      "ID",
+                      "Amount",
+                      "Transaction Date",
+                      "Status",
+                      "Stripe ID",
+                      "Payment Type",
+                      "Agent Name",
+                      "User Name",
+                    ],
+                  ],
+                  body: othersTableData,
+                  startY: doc.lastAutoTable.finalY + 15,
+                  columnStyles: {
+                    4: { cellWidth: 50 }, // Stripe ID column
+                  },
+                  styles: {
+                    overflow: "linebreak", // Ensure long text wraps
+                    fontSize: 10, // Adjust font size for readability
+                  },
+                });
 
+                // Save PDF
+                doc.save("TotalRechargeData.pdf");
 
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
-        setIsExporting(true);
+                setIsExporting(false);
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              <img src={pdfIcon} alt="PDF" width={20} height={20} /> &nbsp;
+              Recharge
+            </Button>
 
+            <Button
+              onClick={async () => {
+                if (!exportMonth) return;
+                setIsExporting(true);
 
-        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+                const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
-    // Combine wallet and others data for Excel
-    const combinedData = [
-      ...exportData[0]?.totalRedeemByTypeData?.wallet?.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": formatDateForExcel(item.transactionDate),
-        Status: item.status,
-        paymentType: item?.paymentType,
-        "Redeem Service Fee": item.redeemServiceFee,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName,
-      })),
-      ...exportData[0]?.totalRedeemByTypeData?.others.map((item) => ({
-        "Transaction ID": item.transactionId,
-        Amount: item.amount,
-        "Transaction Date": formatDateForExcel(item.transactionDate),
-        Status: item.status,
-        paymentType: item?.paymentType,
-        "Redeem Service Fee": 0,
-        "Agent Name": item?.agentName,
-        "User Name": item?.userName,
-      })),
-    ];
+                // Combine wallet and others data for Excel
+                const combinedData = [
+                  ...exportData[0]?.totalRedeemByTypeData?.wallet?.map(
+                    (item) => ({
+                      "Transaction ID": item.transactionId,
+                      Amount: item.amount,
+                      "Transaction Date": formatDateForExcel(
+                        item.transactionDate
+                      ),
+                      Status: item.status,
+                      paymentType: item?.paymentType,
+                      "Redeem Service Fee": item.redeemServiceFee,
+                      "Agent Name": item?.agentName,
+                      "User Name": item?.userName,
+                    })
+                  ),
+                  ...exportData[0]?.totalRedeemByTypeData?.others.map(
+                    (item) => ({
+                      "Transaction ID": item.transactionId,
+                      Amount: item.amount,
+                      "Transaction Date": formatDateForExcel(
+                        item.transactionDate
+                      ),
+                      Status: item.status,
+                      paymentType: item?.paymentType,
+                      "Redeem Service Fee": 0,
+                      "Agent Name": item?.agentName,
+                      "User Name": item?.userName,
+                    })
+                  ),
+                ];
 
-    // Create worksheet and workbook
-    const worksheet = XLSX.utils.json_to_sheet(combinedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Recharge Data");
+                // Create worksheet and workbook
+                const worksheet = XLSX.utils.json_to_sheet(combinedData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(
+                  workbook,
+                  worksheet,
+                  "Total Recharge Data"
+                );
 
-    // Write Excel file
-    const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    saveAs(
-      new Blob([xlsData], { type: "application/octet-stream" }),
-      "TotalReedeemData.xlsx"
-    );
+                // Write Excel file
+                const xlsData = XLSX.write(workbook, {
+                  bookType: "xlsx",
+                  type: "array",
+                });
+                saveAs(
+                  new Blob([xlsData], { type: "application/octet-stream" }),
+                  "TotalReedeemData.xlsx"
+                );
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-      <img src={excelIcon} alt="PDF" width={20} height={20} />  Redeem 
-    </Button>
-    <Button
-      onClick={async () => {
-        if (!exportMonth) return;
+                setIsExporting(false);
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              <img src={excelIcon} alt="PDF" width={20} height={20} /> &nbsp;
+              Redeem
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!exportMonth) return;
 
-        setIsExporting(true);
-        const exportData = await loadAndExportData(); // Use existing data or fetch if null
+                setIsExporting(true);
+                const exportData = await loadAndExportData(); // Use existing data or fetch if null
 
-        const doc = new jsPDF();
-    
-        // Add title
-        doc.text("Total Redeem Data", 10, 10);
-    
-        // Prepare wallet data for PDF
-        const walletTableData = exportData[0]?.totalRedeemByTypeData?.wallet?.map(
-          (item, index) => [
-            item.amount,
-            new Date(item.transactionDate).toLocaleString(),
-            item.status,
-            item.redeemServiceFee,
-            item?.agentName,
-            item?.userName,
-          ]
-        );
-    
-        // Prepare others data for PDF
-        const othersTableData = exportData[0]?.totalRedeemByTypeData?.others?.map(
-          (item, index) => [
-            item.amount,
-            new Date(item.transactionDate).toLocaleString(),
-            item.status,
-            item.redeemServiceFee,
-            item?.agentName,
-            item?.userName,
-          ]
-        );
-    
-        // Add Wallet Transactions
-        doc.text("Redeem Transactions", 10, 20);
-        doc.autoTable({
-          head: [
-            [
-              "Amount",
-              "Transaction Date",
-              "Status",
-              "Redeem Service Fee",
-              "Agent Name",
-              "User Name",
-            ],
-          ],
-          body: walletTableData,
-          startY: 25,
-          columnStyles: {
-            4: { cellWidth: 50 }, // Stripe ID column
-          },
-          styles: {
-            overflow: "linebreak", // Ensure long text wraps
-            fontSize: 10, // Adjust font size for readability
-          },
-        });
-    
-        // Add Others Transactions
-        doc.text("Cashout Transactions", 10, doc.lastAutoTable.finalY + 10);
-        doc.autoTable({
-          head: [
-            [
-              "Amount",
-              "Transaction Date",
-              "Status",
-              "Redeem Service Fee",
-              "Agent Name",
-              "User Name",
-            ],
-          ],
-          body: othersTableData,
-          startY: doc.lastAutoTable.finalY + 15,
-          columnStyles: {
-            4: { cellWidth: 50 }, // Stripe ID column
-          },
-          styles: {
-            overflow: "linebreak", // Ensure long text wraps
-            fontSize: 10, // Adjust font size for readability
-          },
-        });
-    
-        // Save PDF
-        doc.save("TotalRedeemData.pdf");
+                const doc = new jsPDF();
 
-        setIsExporting(false);
-        setExportDialogOpen(false);
-      }}
-      disabled={!exportMonth || isExporting}
-    >
-     <img src={pdfIcon} alt="PDF" width={20} height={20} />  Redeem 
-    </Button>
-  </DialogActions>
-</Dialog>
+                // Add title
+                doc.text("Total Redeem Data", 10, 10);
 
+                // Prepare wallet data for PDF
+                const walletTableData =
+                  exportData[0]?.totalRedeemByTypeData?.wallet?.map(
+                    (item, index) => [
+                      item.amount,
+                      new Date(item.transactionDate).toLocaleString(),
+                      item.status,
+                      item.redeemServiceFee,
+                      item?.agentName,
+                      item?.userName,
+                    ]
+                  );
+
+                // Prepare others data for PDF
+                const othersTableData =
+                  exportData[0]?.totalRedeemByTypeData?.others?.map(
+                    (item, index) => [
+                      item.amount,
+                      new Date(item.transactionDate).toLocaleString(),
+                      item.status,
+                      item.redeemServiceFee,
+                      item?.agentName,
+                      item?.userName,
+                    ]
+                  );
+
+                // Add Wallet Transactions
+                doc.text("Redeem Transactions", 10, 20);
+                doc.autoTable({
+                  head: [
+                    [
+                      "Amount",
+                      "Transaction Date",
+                      "Status",
+                      "Redeem Service Fee",
+                      "Agent Name",
+                      "User Name",
+                    ],
+                  ],
+                  body: walletTableData,
+                  startY: 25,
+                  columnStyles: {
+                    4: { cellWidth: 50 }, // Stripe ID column
+                  },
+                  styles: {
+                    overflow: "linebreak", // Ensure long text wraps
+                    fontSize: 10, // Adjust font size for readability
+                  },
+                });
+
+                // Add Others Transactions
+                doc.text(
+                  "Cashout Transactions",
+                  10,
+                  doc.lastAutoTable.finalY + 10
+                );
+                doc.autoTable({
+                  head: [
+                    [
+                      "Amount",
+                      "Transaction Date",
+                      "Status",
+                      "Redeem Service Fee",
+                      "Agent Name",
+                      "User Name",
+                    ],
+                  ],
+                  body: othersTableData,
+                  startY: doc.lastAutoTable.finalY + 15,
+                  columnStyles: {
+                    4: { cellWidth: 50 }, // Stripe ID column
+                  },
+                  styles: {
+                    overflow: "linebreak", // Ensure long text wraps
+                    fontSize: 10, // Adjust font size for readability
+                  },
+                });
+
+                // Save PDF
+                doc.save("TotalRedeemData.pdf");
+
+                setIsExporting(false);
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              <img src={pdfIcon} alt="PDF" width={20} height={20} />
+              &nbsp; Redeem
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

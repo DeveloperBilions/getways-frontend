@@ -581,7 +581,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 await transactionDetails.save(null, { useMasterKey: true });
                 setStoredBuyUrl(buyUrl); // Store for retry
                 const popup = window.open(buyUrl, "_blank");
-                console.log(popup, "popuppopuppopup");
                 if (
                   !popup ||
                   popup.closed ||
@@ -850,8 +849,16 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   transactionDetails.set("walletAddr", identity?.walletAddr);
 
                   await transactionDetails.save(null, { useMasterKey: true });
-
-                  window.open(rechargeUrl, "_blank");
+                  setStoredBuyUrl(rechargeUrl); // Store for retry
+                  const popup = window.open(rechargeUrl, "_blank");
+                  if (
+                    !popup ||
+                    popup.closed ||
+                    typeof popup.closed === "undefined"
+                  ) {
+                    setPopupBlocked(true);
+                    setPopupDialogOpen(true);
+                  }
                   //setRechargeLinkDialogOpen(false); // optional: close dialog
                 } catch (err) {
                   console.error("Failed to save transaction:", err);
@@ -990,13 +997,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Follow these steps to allow pop-ups in Safari on iPhone or Mac:
             </Typography>
             <Typography variant="body2" component="ol">
+              <li>Update to the latest version of iOS</li>
               <li>
-              Update to the latest version of iOS
-              </li>
-              <li>
-                Go to <strong>Settings</strong> on your iPhone or iPad.
-                Scroll down and tap  <strong>Apps</strong>
-
+                Go to <strong>Settings</strong> on your iPhone or iPad. Scroll
+                down and tap <strong>Apps</strong>
               </li>
               <li>
                 Scroll down and tap <strong>Safari</strong>.
@@ -1008,16 +1012,17 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 Make sure it's <strong>turned OFF</strong>.
               </li>
               <li>
-                Return to the &nbsp; <img
-              src="/assets/company_logo_black.svg"
-              alt="Company Logo"
-              loading="lazy"
-              style={{
-                maxHeight: "2em",
-                width: "auto",
-              }}
-            />
-                 &nbsp;&nbsp; and click <strong>Proceed</strong> again.
+                Return to the &nbsp;{" "}
+                <img
+                  src="/assets/company_logo_black.svg"
+                  alt="Company Logo"
+                  loading="lazy"
+                  style={{
+                    maxHeight: "2em",
+                    width: "auto",
+                  }}
+                />
+                &nbsp;&nbsp; and click <strong>Proceed</strong> again.
               </li>
             </Typography>
           </DialogContentText>

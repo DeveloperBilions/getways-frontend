@@ -725,6 +725,7 @@ export const RechargeRecordsList = (props) => {
                         color: "black",
                         backgroundColor: "#FFFDEB",
                         border: "1px solid #FFF260",
+                        whiteSpace: "nowrap"
                       }}
                     >
                       Coins Credit

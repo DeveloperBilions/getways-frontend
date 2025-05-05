@@ -332,7 +332,7 @@ const getBalance = async () => {
                 <span
                   style={{ fontWeight: 600, color: "var(--secondery-color)" }}
                 >
-                  Balance: {identity.balance || 0}
+                  Balance: {(identity.balance ?? 0).toFixed(2)}
                 </span>
               </Box>
             )}
@@ -343,7 +343,7 @@ const getBalance = async () => {
                   <span
                     style={{ fontWeight: 600, color: "var(--secondery-color)" }}
                   >
-                    Balance: {identity.totalPotBalanceOfChildren}
+                    Balance: {identity.totalPotBalanceOfChildren.toFixed(2)}
                   </span>
                 </Box>
               )}

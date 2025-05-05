@@ -44,10 +44,14 @@ import { KycRecordsList } from "./Views/KYCRecords/KycRecordsList";
 import { BrowserRouter } from "react-router-dom";
 import NotFoundPage from "./Views/PageNotFound/NotFoundPage";
 import AutoWertWidget from "./Views/AutoWertWidget";
+import clarity from "@microsoft/clarity";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+  useEffect(() => {
+    clarity.init("remtta6418"); // Replace with your actual Clarity ID
+  }, []);
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
