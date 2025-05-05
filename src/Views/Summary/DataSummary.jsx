@@ -1527,7 +1527,6 @@ export const DataSummary = () => {
             sx={{
               display: "flex",
               flexDirection: { xs: "column", sm: "row" }, // ⬅️ Column on mobile, row on desktop
-              gap: 2,
               width: "100%", // Make sure buttons can stretch
             }}
           >
