@@ -129,6 +129,11 @@ const ReferralLinkForm = () => {
       setDisableButtonState(false);
       return;
     }
+    if (email.toLowerCase().endsWith("@get.com")) {
+      setErrorMessage("Email addresses ending with @get.com are not allowed.");
+      setDisableButtonState(false);
+      return;
+    }
     if (!validatePassword(password, setPasswordErrors)) {
       setErrorMessage("Please fix all password requirements.");
       setDisableButtonState(false);

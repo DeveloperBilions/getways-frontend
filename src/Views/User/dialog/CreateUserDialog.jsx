@@ -152,6 +152,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
       return;
     }
 
+    if (userType === "Player" && email.toLowerCase().endsWith("@get.com")) {
+      setErrorMessage("Players are not allowed to use @get.com email addresses.");
+      return;
+    }
+    
     setLoading(true);
     try {
       let response;
