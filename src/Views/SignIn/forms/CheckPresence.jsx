@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../../Assets/icons/Logo.svg";
 import { Label } from "reactstrap";
 import "../../../Assets/css/style.css"
-// import ReCAPTCHA from "react-google-recaptcha";
+import ReCAPTCHA from "react-google-recaptcha";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -40,19 +40,19 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm();
 
-  // const [captchaValue, setCaptchaValue] = useState(null);
-  // const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
-  // const [isCaptchaReady, setIsCaptchaReady] = useState(false);
+  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captchaVerified, setCaptchaVerified] = useState(false); // Track captcha verification
+  const [isCaptchaReady, setIsCaptchaReady] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  //  useEffect(() => {
-  //     // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
-  //     if (recaptchaRef.current) {
-  //       setIsCaptchaReady(true);  // Set ready status to true when ref is available
-  //     }
-  //   }, [recaptchaRef.current]);
+   useEffect(() => {
+      // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
+      if (recaptchaRef.current) {
+        setIsCaptchaReady(true);  // Set ready status to true when ref is available
+      }
+    }, [recaptchaRef.current]);
 
 
   useEffect(() => {
@@ -74,10 +74,10 @@ const LoginPage = () => {
   }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
   const onSubmit = async (data) => {
-    // if (!captchaValue) {
-    //   notify("Please verify the reCAPTCHA");
-    //   return;
-    // }
+    if (!captchaValue) {
+      notify("Please verify the reCAPTCHA");
+      return;
+    }
     try {
       setLoading(true);
       if (data?.emailPhone === "") {
@@ -85,7 +85,7 @@ const LoginPage = () => {
         return;
       }
       const response = await Parse.Cloud.run("checkpresence", data);
-      // setCaptchaVerified(true); 
+      setCaptchaVerified(true); 
 
       if (response?.fromAgentExcel) {
         redirect(
@@ -241,7 +241,7 @@ const LoginPage = () => {
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
               )}
-              {/* {!captchaVerified && (
+              {!captchaVerified && (
                 <Box mt={"10px"}>
                   <div className="recaptcha-container">
                     <ReCAPTCHA
@@ -251,7 +251,7 @@ const LoginPage = () => {
                     />
                   </div>
                 </Box>
-              )} */}
+              )}
               <Button
                 type="submit"
                 fullWidth
