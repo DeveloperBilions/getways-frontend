@@ -88,12 +88,11 @@ const LoginPage = () => {
       setCaptchaVerified(true); 
 
       if (response?.fromAgentExcel) {
-        redirect(
-          `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`
-        );
+        window.location.href = `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`;
       } else {
-        redirect(`/loginEmail?emailPhone=${data?.emailPhone}`);
+        window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
       }
+      
       let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
       const existingAccount = savedAccounts.find(
         (acc) => acc.email === data.emailPhone
@@ -106,6 +105,7 @@ const LoginPage = () => {
       notify(error?.message || "User Checking failed. Please try again.");
     } finally {
       setLoading(false);
+      recaptchaRef.current?.reset(); // ✅ reset here if failed
     }
   };
 
@@ -247,6 +247,10 @@ const LoginPage = () => {
                     <ReCAPTCHA
                       sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
                       onChange={(value) => setCaptchaValue(value)}
+                      onExpired={() => {
+                        setCaptchaValue(null);
+                        recaptchaRef.current?.reset(); // ✅ reset only when expired
+                      }}
                       ref={recaptchaRef}
                     />
                   </div>
