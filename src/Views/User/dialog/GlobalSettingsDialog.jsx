@@ -233,7 +233,16 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
           py: 1,
         }}
       >
-        <Typography sx={{ flex: 1 }}>{agent.username}</Typography>
+<Typography
+  sx={{
+    flex: 1,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  }}
+>
+  {agent.username}
+</Typography>
         <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
           <FormControlLabel
             control={
@@ -534,7 +543,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
         <Button
           onClick={onClose}
           variant="outlined"
-          sx={{ px: 4, borderColor: "#e0e0e0", color: "#000" }}
+          sx={{ px: 4,paddingBottom:"10px",paddingTop:"10px",borderColor: "#e0e0e0", color: "#000",width:"50%" }}
         >
           Cancel
         </Button>
@@ -542,7 +551,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
           onClick={handleSave}
           variant="contained"
           disabled={loading}
-          sx={{ px: 4, bgcolor: "black", "&:hover": { bgcolor: "#333" } }}
+          sx={{ width:"50%" ,px: 4,paddingBottom:"10px",paddingTop:"10px", bgcolor: "black", "&:hover": { bgcolor: "#333" } }}
           startIcon={loading && <CircularProgress size={18} color="inherit" />}
         >
           {loading ? "Saving..." : "Save"}
