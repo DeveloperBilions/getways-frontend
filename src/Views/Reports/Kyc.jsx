@@ -22,10 +22,10 @@ const Kyc = () => {
     kyc_initiated: true,
     kyc_pending: true,
     kyc_success: true,
-    kyc_manual_review: true
+    kyc_manual_review: true,
   });
- // Calculate total of selected statuses
- const [total ,setTotal] = useState(0);
+  // Calculate total of selected statuses
+  const [total, setTotal] = useState(0);
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState(null);
@@ -80,7 +80,7 @@ const Kyc = () => {
     setLoading(true);
     const kycCalc = await KYCReport([]);
     setRawData(kycCalc.data);
-    setTotal(kycCalc.total)
+    setTotal(kycCalc.total);
     setLoading(false);
   };
 
@@ -278,7 +278,6 @@ const Kyc = () => {
               },
             ]}
             height={400}
-            width={500}
             margin={{
               top: 0,
               bottom: 100,

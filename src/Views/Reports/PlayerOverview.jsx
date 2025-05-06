@@ -252,7 +252,12 @@ export const PlayerOverview = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems="end">
+          <Box   display="flex"
+  flexDirection={{ xs: "column", sm: "row" }}
+  flexWrap="wrap"
+  gap={2}
+  alignItems={{ xs: "stretch", sm: "flex-end" }}
+  sx={{ mb: 2 }}>
             <Box display="flex" flexDirection="column">
               <Typography
                 variant="body2"
@@ -385,7 +390,7 @@ export const PlayerOverview = () => {
                 {/* PieChart for Totals */}
                 <Box sx={{ mt: 4 }}>
                   <CardContent sx={{ p: 0 }}>
-                    <Grid container spacing={2}>
+                    <Grid>
                       {/* Left Side - Pie Chart */}
                       <Grid item xs={12} md={4}>
                         <Box
@@ -455,7 +460,6 @@ export const PlayerOverview = () => {
                                   },
                                 ]}
                                 height={300}
-                                width={300}
                                 margin={{
                                   top: 0,
                                   bottom: 100,
@@ -644,68 +648,85 @@ export const PlayerOverview = () => {
                 </Box>
 
                 <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    margin: "18px 0px",
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 400, fontSize: "1.25rem" }}
-                  >
-                    Player Transaction Report
-                  </Typography>
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: "16px" }}
-                  >
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      placeholder="Search"
-                      value={searchTerm}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          height: "40px",
-                        },
-                        maxWidth: "256px",
-                      }}
-                      onChange={handleSearch}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<img src={downloadDark} alt="Export" />}
-                      onClick={handleExportPDF}
-                      sx={{
-                        width: { xs: "100%", md: "auto" },
-                        whiteSpace: "nowrap",
-                        height: "40px",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "16px",
-                          fontWeight: 500,
-                          color: "var(--white-color)",
-                          textTransform: "none",
-                          fontFamily: "Inter",
-                        }}
-                      >
-                        Export
-                      </Typography>
-                    </Button>
-                  </Box>
-                </Box>
-                <TableContainer component={Paper}>
+  sx={{
+    display: "flex",
+    flexDirection: { xs: "column", sm: "row" }, // ⬅️ stack on small, row on larger
+    justifyContent: "space-between",
+    alignItems: { xs: "stretch", sm: "center" },
+    gap: 2,
+    mt: 2,
+    mb: 2,
+  }}
+>
+  <Typography
+    variant="h6"
+    sx={{ fontWeight: 400, fontSize: "1.25rem" }}
+  >
+    Player Transaction Report
+  </Typography>
+
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: { xs: "column", sm: "row" },
+      alignItems: { xs: "stretch", sm: "center" },
+      gap: 2,
+      width: { xs: "100%", sm: "auto" },
+    }}
+  >
+    <TextField
+      fullWidth
+      variant="outlined"
+      placeholder="Search"
+      value={searchTerm}
+      onChange={handleSearch}
+      sx={{
+        maxWidth: { xs: "100%", sm: 256 },
+        "& .MuiOutlinedInput-root": {
+          height: "40px",
+        },
+      }}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <SearchIcon />
+          </InputAdornment>
+        ),
+      }}
+    />
+
+    <Button
+      fullWidth
+      variant="contained"
+      color="secondary"
+      startIcon={<img src={downloadDark} alt="Export" />}
+      onClick={handleExportPDF}
+      sx={{
+        height: "40px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: "16px",
+          fontWeight: 500,
+          color: "var(--white-color)",
+          textTransform: "none",
+          fontFamily: "Inter",
+        }}
+      >
+        Export
+      </Typography>
+    </Button>
+  </Box>
+</Box>
+
+                <TableContainer   sx={{
+                    width: { xs: "94%", sm: "100%" }, // mobile: 95% of screen, desktop: 100%
+                    maxWidth: { xs: "90vw", sm: "100%" }, // cap width to 95% of viewport on mobile
+                    overflowX: "auto", // enable horizontal scroll if needed
+                    boxShadow: "none",
+                  }} component={Paper}>
                   <Table>
                     <TableHead>
                       <TableRow>

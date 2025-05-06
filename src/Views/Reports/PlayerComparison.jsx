@@ -230,7 +230,12 @@ export const PlayerComparison = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+          <Box  display="flex"
+  flexDirection={{ xs: "column", sm: "row" }}
+  flexWrap="wrap"
+  gap={2}
+  alignItems={{ xs: "stretch", sm: "flex-end" }}
+  sx={{ mb: 2 }}>
             <Box display="flex" flexDirection="column">
               <Typography
                 variant="body2"
@@ -570,7 +575,6 @@ export const PlayerComparison = () => {
                                 ]}
                                 series={rechargeComparisonData.series}
                                 height={400}
-                                width={1200}
                                 margin={{ left: 100, right: 50, bottom: 50 }}
                               />
                             </>
@@ -621,7 +625,6 @@ export const PlayerComparison = () => {
                                 ]}
                                 series={redeemComparisonData.series}
                                 height={400}
-                                width={1200}
                                 margin={{ left: 100, right: 50, bottom: 50 }}
                               />
                             </>
@@ -672,7 +675,6 @@ export const PlayerComparison = () => {
                                 ]}
                                 series={cashoutComparisonData.series}
                                 height={400}
-                                width={1200}
                                 margin={{ left: 100, right: 50, bottom: 50 }}
                               />
                             </>

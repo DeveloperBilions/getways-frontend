@@ -110,7 +110,14 @@ export const TransactionData = (props) => {
       {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
       <ListBase resource="users">
         <Box display="flex" flexDirection="column">
-          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", sm: "row" }}
+            flexWrap="wrap"
+            gap={2}
+            alignItems={{ xs: "stretch", sm: "flex-end" }}
+            sx={{ mb: 2 }}
+          >
             <Box display="flex" flexDirection="column" key="start-date">
               <Typography
                 variant="body2"

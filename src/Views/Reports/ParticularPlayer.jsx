@@ -139,7 +139,14 @@ export const ParticularPlayer = () => {
     <>
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", sm: "row" }}
+            flexWrap="wrap"
+            gap={2}
+            alignItems={{ xs: "stretch", sm: "flex-end" }}
+            sx={{ mb: 2 }}
+          >
             <Box display="flex" flexDirection="column">
               <Typography
                 variant="body2"
@@ -153,7 +160,7 @@ export const ParticularPlayer = () => {
                 Player<span style={{ color: "red" }}> *</span>
               </Typography>
               <Autocomplete
-                sx={{ width: 230 }}
+                sx={{ width: { xs: "100%", sm: 230 } }}
                 options={choices}
                 getOptionLabel={(option) => option.optionName}
                 isOptionEqualToValue={(option, value) =>
@@ -327,8 +334,8 @@ export const ParticularPlayer = () => {
                               cy: 150,
                             },
                           ]}
-                          width={400}
-                          height={300}
+                          // width={400}
+                        //  height={300}
                           slotProps={{
                             legend: {
                               direction: "row",
@@ -398,7 +405,7 @@ export const ParticularPlayer = () => {
                         ]}
                         // width={1200}
                         height={400}
-                        margin={{ left: 70, right: 40, top: 40, bottom: 70 }}
+                        margin={{ left: 70, right: 40, top: 75, bottom: 40}}
                       />
                     </Box>{" "}
                     {/* Closing Box tag moved here */}

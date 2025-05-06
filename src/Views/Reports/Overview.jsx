@@ -48,30 +48,29 @@ export const Overview = () => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentRechargeData, setCurrentRechargeData] = useState([]);
-  
-    useEffect(() => {
-      const startIndex = (page - 1) * rowsPerPage;
-      const endIndex = startIndex + rowsPerPage;
-  
-      setCurrentRechargeData(filteredRechargeData.slice(startIndex, endIndex));
-    }, [page, rowsPerPage, filteredRechargeData]);
-  
-    useEffect(() => {
-      setPage(1);
-    }, [filteredRechargeData]);
 
-     useEffect(() => {
-       // Filter data based on search term whenever rechargeData or searchTerm changes
-       if (searchTerm.trim() === "") {
-         setFilteredRechargeData(rechargeData);
-       } else {
-         const filtered = rechargeData.filter((item) =>
-           item.agentName.toLowerCase().includes(searchTerm.toLowerCase())
-         );
-         setFilteredRechargeData(filtered);
-       }
-     }, [searchTerm, rechargeData]);
+  useEffect(() => {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
 
+    setCurrentRechargeData(filteredRechargeData.slice(startIndex, endIndex));
+  }, [page, rowsPerPage, filteredRechargeData]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filteredRechargeData]);
+
+  useEffect(() => {
+    // Filter data based on search term whenever rechargeData or searchTerm changes
+    if (searchTerm.trim() === "") {
+      setFilteredRechargeData(rechargeData);
+    } else {
+      const filtered = rechargeData.filter((item) =>
+        item.agentName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredRechargeData(filtered);
+    }
+  }, [searchTerm, rechargeData]);
 
   const fetchData = async () => {
     try {
@@ -118,30 +117,32 @@ export const Overview = () => {
     fetchData();
   };
 
-   const handleSearch = (e) => {
-     setSearchTerm(e.target.value);
-     setPage(1);
-   };
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
-   const handleExportPDF = async () => {
-      if (!filteredRechargeData || filteredRechargeData.length === 0) {
-        console.warn("No data to export.");
-        return;
-      }
-       const doc = new jsPDF();
-       doc.text("Agent overall Report", 10, 10);
-       doc.autoTable({
-         head: [["No", "Agent Name", "Total Recharge", "Total Redeem", "Total Cashout"]],
-         body: filteredRechargeData.map((row, index) => [
-           index + 1,
-           row.agentName,
-           row.totalRecharge,
-           row.totalRedeem,
-           row.totalCashout
-         ]),
-       });
-       doc.save("AgentOverallReport.pdf");
-    };
+  const handleExportPDF = async () => {
+    if (!filteredRechargeData || filteredRechargeData.length === 0) {
+      console.warn("No data to export.");
+      return;
+    }
+    const doc = new jsPDF();
+    doc.text("Agent overall Report", 10, 10);
+    doc.autoTable({
+      head: [
+        ["No", "Agent Name", "Total Recharge", "Total Redeem", "Total Cashout"],
+      ],
+      body: filteredRechargeData.map((row, index) => [
+        index + 1,
+        row.agentName,
+        row.totalRecharge,
+        row.totalRedeem,
+        row.totalCashout,
+      ]),
+    });
+    doc.save("AgentOverallReport.pdf");
+  };
 
   const finalData = [
     {
@@ -221,8 +222,10 @@ export const Overview = () => {
         <>
           <Box
             display="flex"
-            sx={{ mb: 1, gap: 2, height: "auto" }}
-            alignItems={"end"}
+            flexDirection={{ xs: "column", sm: "row" }}
+            gap={2}
+            sx={{ mb: 2 }}
+            alignItems={{ xs: "stretch", sm: "flex-end" }}
           >
             <Box display="flex" flexDirection="column">
               <Typography
@@ -450,7 +453,6 @@ export const Overview = () => {
                                   },
                                 ]}
                                 height={300}
-                                width={300}
                                 margin={{
                                   top: 0,
                                   bottom: 100,
@@ -594,7 +596,6 @@ export const Overview = () => {
                                     bottom: rechargeData.length > 5 ? 100 : 70,
                                   }}
                                   sx={{
-                                    width: "100%",
                                     "& .MuiChartsAxis-tickLabel": {
                                       fontSize: "0.75rem",
                                     },
@@ -613,32 +614,44 @@ export const Overview = () => {
                 <Box
                   sx={{
                     display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    alignItems: { xs: "flex-start", sm: "center" },
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    margin: "18px 0px",
+                    flexWrap: "wrap",
+                    mb: 2,
                   }}
                 >
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 400, fontSize: "1.25rem" }}
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "1.25rem",
+                      width: { xs: "100%", sm: "auto" },
+                    }}
                   >
                     Agent overall Report
                   </Typography>
+
                   <Box
-                    sx={{ display: "flex", alignItems: "center", gap: "16px" }}
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: { xs: "stretch", sm: "center" },
+                      gap: 2,
+                      width: { xs: "100%", sm: "auto" },
+                    }}
                   >
                     <TextField
                       fullWidth
                       variant="outlined"
                       placeholder="Search"
                       value={searchTerm}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          height: "40px",
-                        },
-                        maxWidth: "256px",
-                      }}
                       onChange={handleSearch}
+                      sx={{
+                        "& .MuiOutlinedInput-root": { height: "40px" },
+                        maxWidth: { xs: "100%", sm: 256 },
+                      }}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -647,13 +660,14 @@ export const Overview = () => {
                         ),
                       }}
                     />
+
                     <Button
                       variant="contained"
                       color="secondary"
                       startIcon={<img src={downloadDark} alt="Export" />}
                       onClick={handleExportPDF}
                       sx={{
-                        width: { xs: "100%", md: "auto" },
+                        width: { xs: "100%", sm: "auto" },
                         whiteSpace: "nowrap",
                         height: "40px",
                       }}
@@ -672,7 +686,16 @@ export const Overview = () => {
                     </Button>
                   </Box>
                 </Box>
-                <TableContainer component={Paper}>
+
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    width: { xs: "94%", sm: "100%" }, // mobile: 95% of screen, desktop: 100%
+                    maxWidth: { xs: "90vw", sm: "100%" }, // cap width to 95% of viewport on mobile
+                    overflowX: "auto", // enable horizontal scroll if needed
+                    boxShadow: "none",
+                  }}
+                >
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -725,12 +748,14 @@ export const Overview = () => {
                       ))}
                     </TableBody>
                   </Table>
+
+                  {/* Pagination */}
                   <Box
                     sx={{
                       display: "flex",
                       justifyContent: "center",
-                      width: "100% !important",
-                      mt: 1,
+                      mt: 2,
+                      px: 1,
                     }}
                   >
                     <CustomPagination

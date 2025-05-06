@@ -135,7 +135,14 @@ export const Comparison = () => {
       {/* Date Filters */}
       {identity?.email === "zen@zen.com" && (
         <>
-          <Box display="flex" sx={{ mb: 1, gap: 2 }} alignItems={"end"}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", sm: "row" }}
+            flexWrap="wrap"
+            gap={2}
+            alignItems={{ xs: "stretch", sm: "flex-end" }}
+            sx={{ mb: 2 }}
+          >
             {type === "date" && (
               <>
                 <Box display="flex" flexDirection="column">
@@ -347,7 +354,10 @@ export const Comparison = () => {
               <Select
                 value={type}
                 onChange={(e) => handleSetType(e.target.value)}
-                sx={{ height: 40 }}
+                sx={{
+                  height: 40,
+                  width: { xs: "100%", sm: "auto" },
+                }}
               >
                 <MenuItem value="date">Date</MenuItem>
                 <MenuItem value="month">Month</MenuItem>
@@ -377,76 +387,84 @@ export const Comparison = () => {
                     <Card>
                       <CardContent>
                         <div style={{ overflowX: "auto", width: "100%" }}>
-                          {/* Recharge Date Comparison Chart */}
-                          {rechargeComparisonData && (
-                            <>
-                              <Typography variant="h6" gutterBottom>
-                                Date Comparison - Recharge
-                              </Typography>
-                              <BarChart
-                                xAxis={[
-                                  {
-                                    data: rechargeComparisonData.agents,
-                                    scaleType: "band",
-                                  },
-                                ]}
-                                series={rechargeComparisonData.series}
-                                height={400}
-                                width={1200}
-                                margin={{ left: 100, right: 50, bottom: 50 }}
-                              />
-                            </>
-                          )}
-
-                          {/* Redeem Date Comparison Chart */}
-                          {redeemComparisonData && (
-                            <>
-                              <Typography
-                                variant="h6"
-                                gutterBottom
-                                sx={{ mt: 4 }}
-                              >
-                                Date Comparison - Redeem
-                              </Typography>
-                              <BarChart
-                                xAxis={[
-                                  {
-                                    data: redeemComparisonData.agents,
-                                    scaleType: "band",
-                                  },
-                                ]}
-                                series={redeemComparisonData.series}
-                                height={400}
-                                width={1200}
-                                margin={{ left: 100, right: 50, bottom: 50 }}
-                              />
-                            </>
-                          )}
-
-                          {/* Cashout Date Comparison Chart */}
-                          {cashoutComparisonData && (
-                            <>
-                              <Typography
-                                variant="h6"
-                                gutterBottom
-                                sx={{ mt: 4 }}
-                              >
-                                Date Comparison - Cashout
-                              </Typography>
-                              <BarChart
-                                xAxis={[
-                                  {
-                                    data: cashoutComparisonData.agents,
-                                    scaleType: "band",
-                                  },
-                                ]}
-                                series={cashoutComparisonData.series}
-                                height={400}
-                                width={1200}
-                                margin={{ left: 100, right: 50, bottom: 50 }}
-                              />
-                            </>
-                          )}
+                        
+                              {/* Recharge Date Comparison Chart */}
+                              {rechargeComparisonData && (
+                                <>
+                                  <Typography variant="h6" gutterBottom>
+                                    Date Comparison - Recharge
+                                  </Typography>
+                                  <BarChart
+                                    xAxis={[
+                                      {
+                                        data: rechargeComparisonData.agents,
+                                        scaleType: "band",
+                                      },
+                                    ]}
+                                    series={rechargeComparisonData.series}
+                                    height={400}
+                                    margin={{
+                                      left: 100,
+                                      right: 50,
+                                      bottom: 50,
+                                    }}
+                                  />
+                                </>
+                              )}
+                              {/* Redeem Date Comparison Chart */}
+                              {redeemComparisonData && (
+                                <>
+                                  <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    sx={{ mt: 4 }}
+                                  >
+                                    Date Comparison - Redeem
+                                  </Typography>
+                                  <BarChart
+                                    xAxis={[
+                                      {
+                                        data: redeemComparisonData.agents,
+                                        scaleType: "band",
+                                      },
+                                    ]}
+                                    series={redeemComparisonData.series}
+                                    height={400}
+                                    margin={{
+                                      left: 100,
+                                      right: 50,
+                                      bottom: 50,
+                                    }}
+                                  />
+                                </>
+                              )}
+                              {/* Cashout Date Comparison Chart */}
+                              {cashoutComparisonData && (
+                                <>
+                                  <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    sx={{ mt: 4 }}
+                                  >
+                                    Date Comparison - Cashout
+                                  </Typography>
+                                  <BarChart
+                                    xAxis={[
+                                      {
+                                        data: cashoutComparisonData.agents,
+                                        scaleType: "band",
+                                      },
+                                    ]}
+                                    series={cashoutComparisonData.series}
+                                    height={400}
+                                    margin={{
+                                      left: 100,
+                                      right: 50,
+                                      bottom: 50,
+                                    }}
+                                  />
+                                </>
+                              )}
                         </div>
                       </CardContent>
                     </Card>
