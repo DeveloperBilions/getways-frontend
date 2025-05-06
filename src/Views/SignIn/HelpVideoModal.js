@@ -28,12 +28,16 @@ const HelpVideoModal = ({ open, handleClose }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            // width: "90%",
-            width: "630px",
+            width: {
+              xs: "90%", // Mobile
+              sm: "600px", // Small+ screens
+            },
             bgcolor: "background.paper",
             boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.2)",
-            padding: 3,
+            p: { xs: 2, sm: 3 },
             borderRadius: 3,
+            maxHeight: "90vh",
+            overflowY: "auto",
           }}
         >
           <Box
@@ -87,7 +91,8 @@ const HelpVideoModal = ({ open, handleClose }) => {
                     borderRadius: "8px",
                     boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
                     objectFit: "cover",
-                    height: "150px",
+                    height: "auto",
+                    maxHeight: "180px",
                   }}
                 >
                   <source src={video1} type="video/mp4" />
@@ -137,7 +142,8 @@ const HelpVideoModal = ({ open, handleClose }) => {
                     borderRadius: "8px",
                     boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.1)",
                     objectFit: "cover",
-                    height: "150px",
+                    height: "auto",
+                    maxHeight: "180px",
                   }}
                 >
                   <source src={video2} type="video/mp4" />
