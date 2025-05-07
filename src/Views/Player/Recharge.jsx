@@ -286,6 +286,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           border: "1px solid #E7E7E7",
           mb: 2,
           bgcolor: "white",
+          minWidth:{ xs: "100%", md: "800px" },
         }}
       >
         <Typography

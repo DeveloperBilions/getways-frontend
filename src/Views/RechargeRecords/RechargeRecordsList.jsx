@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
 } from "@mui/material";
 
 // mui
@@ -726,7 +727,7 @@ export const RechargeRecordsList = (props) => {
                         color: "black",
                         backgroundColor: "#FFFDEB",
                         border: "1px solid #FFF260",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
                       }}
                     >
                       Coins Credit
@@ -815,7 +816,40 @@ export const RechargeRecordsList = (props) => {
                 label="Recharged"
                 textAlign="left"
               />
-              <TextField source="remark" label="Remark" />
+              <FunctionField
+                source="remark"
+                label="Remark"
+                render={(record) => {
+                  const text = record.remark || "-";
+                  // Only show tooltip if text is long
+                  const maxLength = 30;
+                  const displayText =
+                    text.length > maxLength
+                      ? `${text.substring(0, maxLength)}...`
+                      : text;
+
+                  return (
+                    <Tooltip
+                      title={text !== "-" ? text : ""}
+                      arrow
+                      placement="top"
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "default",
+                        }}
+                      >
+                        {displayText}
+                      </Typography>
+                    </Tooltip>
+                  );
+                }}
+              />
               {/* {role === "Player" && 
               <FunctionField
               label="Failed reason"
@@ -878,13 +912,35 @@ export const RechargeRecordsList = (props) => {
                 render={(record) => {
                   const errorCode = parseInt(record.fail_reason); // Ensure it's a number
                   const message = failedReasonMessages[errorCode];
-                  return message ? (
-                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                      {record.fail_reason} - {message}
-                    </Typography>
+                  const fullText = message
+                    ? `${record.fail_reason} - ${message}`
+                    : "-";
+
+                  // Only show tooltip if text is long
+                  const maxLength = 30;
+                  const isLongText = fullText.length > maxLength;
+                  const displayText = isLongText
+                    ? `${fullText.substring(0, maxLength)}...`
+                    : fullText;
+
+                  return fullText !== "-" ? (
+                    <Tooltip title={fullText} arrow placement="top">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "default",
+                        }}
+                      >
+                        {displayText}
+                      </Typography>
+                    </Tooltip>
                   ) : (
                     "-"
-                  ); // Show dash if no message found
+                  );
                 }}
               />
               {role === "Super-User" && (
