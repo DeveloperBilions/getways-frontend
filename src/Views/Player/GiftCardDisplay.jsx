@@ -42,6 +42,7 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
         padding: "24px",
         borderRadius: "8px",
         border: "1px solid #E7E7E7",
+        minWidth:{ xs: "100%", md: "800px" },
       }}
     >
       <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>

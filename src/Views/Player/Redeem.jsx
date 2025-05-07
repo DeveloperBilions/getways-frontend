@@ -272,7 +272,7 @@ const Redeem = ({
           border: "1px solid #E7E7E7",
           boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.05)",
           mb: 2,
-          maxWidth: "100%",
+          minWidth:{ xs: "100%", md: "800px" },
         }}
       >
         <Typography

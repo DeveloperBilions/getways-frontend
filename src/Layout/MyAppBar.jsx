@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Toolbar, Typography, Box, IconButton, MenuItem, Backdrop } from "@mui/material";
+import {
+  Toolbar,
+  Typography,
+  Box,
+  IconButton,
+  MenuItem,
+  Backdrop,
+} from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -35,68 +42,74 @@ import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
 import { Loader } from "../Views/Loader";
 import { Parse } from "parse";
 import passwordChange from "../Assets/icons/passwordChange.svg";
-import FlashOnIcon from '@mui/icons-material/FlashOn';
+import FlashOnIcon from "@mui/icons-material/FlashOn";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
   const [openModal, setOpenModal] = React.useState(false);
   const refresh = useRefresh();
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false);
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
-  const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] = React.useState(false);
+  const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
+    React.useState(false);
 
-  const isMobile = useMediaQuery("(max-width:1023px)");
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
   const [balance, setBalance] = useState(0);
+  const isSidebarOpen = role !== "Player";
+  const isMobile = useMediaQuery(
+    isSidebarOpen ? "(max-width:1023px)" : "(max-width: 900px)"
+  );
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
   const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
-  const handleOpenGlobalSettingsDialog = () => setOpenGlobalSettingsDialog(true);
+  const handleOpenGlobalSettingsDialog = () =>
+    setOpenGlobalSettingsDialog(true);
   const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
   const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
-  const handleCloseGlobalSettingsDialog = () => setOpenGlobalSettingsDialog(false);
+  const handleCloseGlobalSettingsDialog = () =>
+    setOpenGlobalSettingsDialog(false);
 
   const [activeTab, setActiveTab] = useState("users");
 
-const getBalance = async () => {
-  try {
-    // Initial fetch
-    const wallet = await walletService.getMyWalletData();
-    const walletObject = wallet?.wallet;
+  const getBalance = async () => {
+    try {
+      // Initial fetch
+      const wallet = await walletService.getMyWalletData();
+      const walletObject = wallet?.wallet;
 
-    if (!walletObject) return;
+      if (!walletObject) return;
 
-    setBalance(walletObject?.balance || 0);
+      setBalance(walletObject?.balance || 0);
 
-    // Set up LiveQuery to listen for balance changes
-    const Wallet = Parse.Object.extend("Wallet");
-    const query = new Parse.Query(Wallet);
-    query.equalTo("objectId", walletObject.objectId);
+      // Set up LiveQuery to listen for balance changes
+      const Wallet = Parse.Object.extend("Wallet");
+      const query = new Parse.Query(Wallet);
+      query.equalTo("objectId", walletObject.objectId);
 
-    const subscription = await query.subscribe();
+      const subscription = await query.subscribe();
 
-    subscription.on("update", (updatedWallet) => {
-      const newBalance = updatedWallet.get("balance");
-      console.log(newBalance);
-      setBalance(newBalance);
-    });
+      subscription.on("update", (updatedWallet) => {
+        const newBalance = updatedWallet.get("balance");
+        console.log(newBalance);
+        setBalance(newBalance);
+      });
 
-    // Optional: unsubscribe on component unmount
-    return () => {
-      subscription.unsubscribe();
-    };
-  } catch (error) {
-    console.log("Error fetching or subscribing to wallet:", error);
-  }
-};
+      // Optional: unsubscribe on component unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.log("Error fetching or subscribing to wallet:", error);
+    }
+  };
 
   const handleRefresh = () => {
     setIsLoading(true);
@@ -112,7 +125,6 @@ const getBalance = async () => {
     setActiveTab(pathSegments[pathSegments.length - 1] || "users");
     getBalance();
   }, []);
-  
 
   // Toggle sidebar state
   const toggleSidebar = () => {
@@ -141,7 +153,7 @@ const getBalance = async () => {
         onClick: () => navigate("/redeemRecords"),
       }
     );
-    if(identity?.email != "cvgetways@get.com"){
+    if (identity?.email != "cvgetways@get.com") {
       menuItems.push({
         key: "summary",
         label: "Summary",
@@ -413,8 +425,7 @@ const getBalance = async () => {
                       fontSize: "16px",
                     }}
                   >
-                      <FlashOnIcon sx={{ mr: 1,fontSize: "20px" }} />
-
+                    <FlashOnIcon sx={{ mr: 1, fontSize: "20px" }} />
                     Recharge Limit
                   </MenuItem>
                 )}
