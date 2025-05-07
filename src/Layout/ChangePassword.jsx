@@ -178,10 +178,10 @@ const ChangePassword = ({ open, onClose }) => {
             mt: 3,
           }}
         >
-          <Button onClick={onClose} variant="outlined" disabled={loading}>
+          <Button onClick={onClose} variant="outlined" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disabled={loading}>
+          <Button onClick={handleSave} variant="contained" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
           {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
           </Button>
         </Box>

@@ -35,6 +35,7 @@ import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
 import { Loader } from "../Views/Loader";
 import { Parse } from "parse";
 import passwordChange from "../Assets/icons/passwordChange.svg";
+import FlashOnIcon from '@mui/icons-material/FlashOn';
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -412,6 +413,8 @@ const getBalance = async () => {
                       fontSize: "16px",
                     }}
                   >
+                      <FlashOnIcon sx={{ mr: 1,fontSize: "20px" }} />
+
                     Recharge Limit
                   </MenuItem>
                 )}

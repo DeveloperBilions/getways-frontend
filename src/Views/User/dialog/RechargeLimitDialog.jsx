@@ -232,7 +232,7 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
       </DialogContent>
 
       <DialogActions sx={{ padding: 2 }}>
-        <Button onClick={onClose} variant="outlined" color="secondary" disabled={loading}>
+        <Button onClick={onClose} variant="outlined" color="secondary" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
           Cancel
         </Button>
         <Button 
@@ -240,6 +240,7 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
           variant="contained" 
           color="primary" 
           disabled={loading}
+          sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}
         >
           {loading ? <CircularProgress size={24} /> : "Save"}
         </Button>
