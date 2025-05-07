@@ -840,7 +840,7 @@ export const RechargeRecordsList = (props) => {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          cursor: text !== "-" ? "help" : "default",
+                          cursor: "default",
                         }}
                       >
                         {displayText}
@@ -931,7 +931,7 @@ export const RechargeRecordsList = (props) => {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          cursor: "help",
+                          cursor: "default",
                         }}
                       >
                         {displayText}
