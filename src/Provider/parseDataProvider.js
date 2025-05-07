@@ -391,7 +391,26 @@ export const dataProvider = {
                 } else {
                   query.containedIn("userId", []);
                 }
-              } else if (f === "searchBy") {
+              }else if (f === "mode") {
+                const modeValue = filter[f].toLowerCase();
+              
+                if (modeValue === "wert") {
+                  query.matches("transactionIdFromStripe", /^txn/i);
+                } else if (modeValue === "link") {
+                  query.matches("referralLink", /crypto\.link\.com/i);
+                } else if (modeValue === "coinbase") {
+                  query.matches("referralLink", /pay\.coinbase\.com/i);
+                } else if (modeValue === "aog") {
+                  query.matches("referralLink", /aog/i);
+                } else if (modeValue === "transfi") {
+                  query.matches("referralLink", /transfi/i);
+                } else if (modeValue === "wallet") {
+                  query.equalTo("useWallet", true);
+                } else if (modeValue === "stripe") {
+                  query.equalTo("useWallet", false);
+                }
+              }
+               else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
               } else {
                 query.equalTo(f, filter[f]);

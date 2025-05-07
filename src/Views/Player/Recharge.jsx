@@ -31,6 +31,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
+import { initOnRamp } from '@coinbase/cbpay-js';
 
 const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
 
@@ -85,7 +86,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       setDisplayMethod("Payment Portal");
     }
   };
-
   const handleCopy = () => {
     if (identity?.walletAddr) {
       navigator.clipboard.writeText(identity.walletAddr).then(() => {
@@ -185,6 +185,97 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       func(...args);
     };
   };
+
+  const handleCoinbaseOnramp = async () => {
+    try {
+      // Optional popup check (safe to remove if you trust the user env)
+      // If removed, widget.open() will still work fine unless popups are restricted.
+      
+      // Assign wallet if needed
+      if (!identity?.walletAddr) {
+        setWalletLoading(true);
+        const walletResp = await Parse.Cloud.run("assignRandomWalletAddrIfMissing", {
+          userId: identity?.objectId,
+        });
+  
+        if (walletResp?.walletAddr) {
+          identity.walletAddr = walletResp.walletAddr;
+          setSnackbarOpen(true);
+        } else {
+          alert("Failed to assign wallet address.");
+          return;
+        }
+      }
+      let savedTransaction = null; // <-- this will hold reference to the current transaction
+
+      // Launch Coinbase widget
+      const options = {
+        appId: projectId,
+        experienceLoggedIn: "popup",
+        experienceLoggedOut: "popup",
+        widgetParameters: {
+          addresses: { [identity.walletAddr]: ["base"] },
+          assets: ["USDC"],
+          presetCryptoAmount: rechargeAmount,
+        },
+        onSuccess: async () => {
+          console.log("✅ Coinbase payment completed.");
+          if (savedTransaction) {
+            savedTransaction.set("status", 2); // completed
+            await savedTransaction.save(null, { useMasterKey: true });
+          }
+        },
+        onExit: async () => {
+          console.log("❌ User exited the Coinbase widget.");
+          if (savedTransaction) {
+            savedTransaction.set("status", 10); // exited/cancelled
+            await savedTransaction.save(null, { useMasterKey: true });
+          }
+        },
+        onEvent: (event) => {
+          console.log("📦 Coinbase event received:", event);
+        },
+      };
+      
+  
+      initOnRamp(options, async (error, instance) => {
+        if (error) {
+          console.error("Coinbase init error:", error);
+          alert("Coinbase widget failed to launch");
+          return;
+        }
+  
+        instance.open();
+  
+        // Save transaction as PENDING
+        const TransactionDetails = Parse.Object.extend("TransactionRecords");
+        const transactionDetails = new TransactionDetails();
+        const user = await Parse.User.current()?.fetch();
+  
+        transactionDetails.set("type", "recharge");
+        transactionDetails.set("gameId", "786");
+        transactionDetails.set("username", identity?.username || "");
+        transactionDetails.set("userId", identity?.objectId);
+        transactionDetails.set("transactionDate", new Date());
+        transactionDetails.set("transactionAmount", rechargeAmount);
+        transactionDetails.set("remark", "Debit Recharge");
+        transactionDetails.set("useWallet", false);
+        transactionDetails.set("userParentId", user?.get("userParentId") || "");
+        transactionDetails.set("status", 1); // pending
+        transactionDetails.set("portal", "Coinbase");
+        transactionDetails.set("referralLink", "Coinbase Widget");
+        transactionDetails.set("walletAddr", identity?.walletAddr);
+  
+        savedTransaction = await transactionDetails.save(null, { useMasterKey: true });
+      });
+    } catch (error) {
+      console.error("Coinbase Onramp Error:", error);
+      alert("Something went wrong with Coinbase Recharge.");
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+  
 
   return (
     <>
@@ -503,99 +594,101 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 backgroundColor: "#004D40", // deeper teal-green on hover
               },
             }}
-            onClick={debounce(async () => {
-              try {
-                const testPopup = window.open("", "_blank", "width=1,height=1");
-                if (
-                  !testPopup ||
-                  testPopup.closed ||
-                  typeof testPopup.closed === "undefined"
-                ) {
-                  setPopupBlocked(true);
-                  setPopupDialogOpen(true);
-                  return;
-                }
-                testPopup.close();
-                // Assign wallet if missing
-                if (!identity?.walletAddr) {
-                  setWalletLoading(true);
-                  const walletResp = await Parse.Cloud.run(
-                    "assignRandomWalletAddrIfMissing",
-                    {
-                      userId: identity?.objectId,
-                    }
-                  );
+            onClick={handleCoinbaseOnramp}
 
-                  if (walletResp?.walletAddr) {
-                    identity.walletAddr = walletResp.walletAddr;
-                    setSnackbarOpen(true);
-                  } else {
-                    alert("Failed to assign wallet address. Please try again.");
-                    return;
-                  }
-                }
+            // onClick={debounce(async () => {
+            //   try {
+            //     const testPopup = window.open("", "_blank", "width=1,height=1");
+            //     if (
+            //       !testPopup ||
+            //       testPopup.closed ||
+            //       typeof testPopup.closed === "undefined"
+            //     ) {
+            //       setPopupBlocked(true);
+            //       setPopupDialogOpen(true);
+            //       return;
+            //     }
+            //     testPopup.close();
+            //     // Assign wallet if missing
+            //     if (!identity?.walletAddr) {
+            //       setWalletLoading(true);
+            //       const walletResp = await Parse.Cloud.run(
+            //         "assignRandomWalletAddrIfMissing",
+            //         {
+            //           userId: identity?.objectId,
+            //         }
+            //       );
 
-                // Generate Onramp URL
-                // const buyUrl = getOnrampBuyUrl({
-                //   projectId,
-                //   addresses: { "0x1": [identity.walletAddr] }, // Ethereum mainnet
-                //   assets: ["USDC"],
-                //   presetFiatAmount: rechargeAmount,
-                //   fiatCurrency: "USD",
-                //   redirectUrl: "https://yourapp.com/onramp-return",
-                // });
+            //       if (walletResp?.walletAddr) {
+            //         identity.walletAddr = walletResp.walletAddr;
+            //         setSnackbarOpen(true);
+            //       } else {
+            //         alert("Failed to assign wallet address. Please try again.");
+            //         return;
+            //       }
+            //     }
 
-                //const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&destinationWallets=[{"address":"0xb69b947183c5a4434bb028e295947a3496e12298","blockchains":["ethereum"]}]&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
-                const encodedAddresses = encodeURIComponent(
-                  JSON.stringify({ [identity.walletAddr]: ["base"] })
-                );
+            //     // Generate Onramp URL
+            //     // const buyUrl = getOnrampBuyUrl({
+            //     //   projectId,
+            //     //   addresses: { "0x1": [identity.walletAddr] }, // Ethereum mainnet
+            //     //   assets: ["USDC"],
+            //     //   presetFiatAmount: rechargeAmount,
+            //     //   fiatCurrency: "USD",
+            //     //   redirectUrl: "https://yourapp.com/onramp-return",
+            //     // });
 
-                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+            //     //const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&destinationWallets=[{"address":"0xb69b947183c5a4434bb028e295947a3496e12298","blockchains":["ethereum"]}]&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+            //     const encodedAddresses = encodeURIComponent(
+            //       JSON.stringify({ [identity.walletAddr]: ["base"] })
+            //     );
 
-                /// const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+            //     const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
-                // Save the transaction
-                const TransactionDetails =
-                  Parse.Object.extend("TransactionRecords");
-                const transactionDetails = new TransactionDetails();
-                const user = await Parse.User.current()?.fetch();
+            //     /// const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
-                transactionDetails.set("type", "recharge");
-                transactionDetails.set("gameId", "786");
-                transactionDetails.set("username", identity?.username || "");
-                transactionDetails.set("userId", identity?.objectId);
-                transactionDetails.set("transactionDate", new Date());
-                transactionDetails.set("transactionAmount", rechargeAmount);
-                transactionDetails.set("remark", "Debit Recharge");
-                transactionDetails.set("useWallet", false);
-                transactionDetails.set(
-                  "userParentId",
-                  user?.get("userParentId") || ""
-                );
-                transactionDetails.set("status", 1); // pending
-                transactionDetails.set("portal", "Coinbase");
-                transactionDetails.set("referralLink", buyUrl);
-                transactionDetails.set("transactionIdFromStripe", buyUrl);
-                transactionDetails.set("walletAddr", identity?.walletAddr);
+            //     // Save the transaction
+            //     const TransactionDetails =
+            //       Parse.Object.extend("TransactionRecords");
+            //     const transactionDetails = new TransactionDetails();
+            //     const user = await Parse.User.current()?.fetch();
 
-                await transactionDetails.save(null, { useMasterKey: true });
-                setStoredBuyUrl(buyUrl); // Store for retry
-                const popup = window.open(buyUrl, "_blank");
-                if (
-                  !popup ||
-                  popup.closed ||
-                  typeof popup.closed === "undefined"
-                ) {
-                  setPopupBlocked(true);
-                  setPopupDialogOpen(true);
-                }
-              } catch (error) {
-                console.error("Coinbase Onramp Error:", error);
-                alert("Something went wrong with Coinbase Recharge.");
-              } finally {
-                setWalletLoading(false);
-              }
-            })}
+            //     transactionDetails.set("type", "recharge");
+            //     transactionDetails.set("gameId", "786");
+            //     transactionDetails.set("username", identity?.username || "");
+            //     transactionDetails.set("userId", identity?.objectId);
+            //     transactionDetails.set("transactionDate", new Date());
+            //     transactionDetails.set("transactionAmount", rechargeAmount);
+            //     transactionDetails.set("remark", "Debit Recharge");
+            //     transactionDetails.set("useWallet", false);
+            //     transactionDetails.set(
+            //       "userParentId",
+            //       user?.get("userParentId") || ""
+            //     );
+            //     transactionDetails.set("status", 1); // pending
+            //     transactionDetails.set("portal", "Coinbase");
+            //     transactionDetails.set("referralLink", buyUrl);
+            //     transactionDetails.set("transactionIdFromStripe", buyUrl);
+            //     transactionDetails.set("walletAddr", identity?.walletAddr);
+
+            //     await transactionDetails.save(null, { useMasterKey: true });
+            //     setStoredBuyUrl(buyUrl); // Store for retry
+            //     const popup = window.open(buyUrl, "_blank");
+            //     if (
+            //       !popup ||
+            //       popup.closed ||
+            //       typeof popup.closed === "undefined"
+            //     ) {
+            //       setPopupBlocked(true);
+            //       setPopupDialogOpen(true);
+            //     }
+            //   } catch (error) {
+            //     console.error("Coinbase Onramp Error:", error);
+            //     alert("Something went wrong with Coinbase Recharge.");
+            //   } finally {
+            //     setWalletLoading(false);
+            //   }
+            // })}
             disabled={
               identity?.isBlackListed || rechargeDisabled || walletLoading
             }
