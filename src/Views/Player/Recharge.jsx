@@ -33,7 +33,7 @@ import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from '@coinbase/cbpay-js';
 
-const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
+const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
