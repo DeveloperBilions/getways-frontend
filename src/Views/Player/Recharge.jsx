@@ -680,7 +680,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("referralLink", buyUrl);
                 transactionDetails.set("transactionIdFromStripe", buyUrl);
                 transactionDetails.set("walletAddr", identity?.walletAddr);
-                  transactionDetails.set("partnerUserRef",partnerUserRef)
+                  //transactionDetails.set("partnerUserRef",partnerUserRef)
                 await transactionDetails.save(null, { useMasterKey: true });
                 setStoredBuyUrl(buyUrl); // Store for retry
                 const popup = window.open(buyUrl, "_blank");
