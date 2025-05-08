@@ -68,6 +68,7 @@ import { isRechargeEnabledForAgent } from "../../Utils/utils";
 import { Alert } from "@mui/material";
 import { TextField as MonthPickerField } from "@mui/material";
 import { SelectInput } from "react-admin";
+import { get } from "react-hook-form";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -183,6 +184,22 @@ export const RechargeRecordsList = (props) => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const getMode = (data) => {
+    return data?.transactionIdFromStripe?.toLowerCase().includes("txn")
+      ? "WERT"
+      : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")
+      ? "Link"
+      : data?.referralLink?.toLowerCase().includes("pay.coinbase.com")
+      ? "CoinBase"
+      : data?.referralLink?.toLowerCase().includes("aog")
+      ? "AOG"
+      : data?.referralLink?.toLowerCase().includes("transfi")
+      ? "TransFi"
+      : data?.useWallet
+      ? "Wallet"
+      : "Stripe";
   };
 
   const mapStatus = (status) => {
@@ -1173,13 +1190,14 @@ export const RechargeRecordsList = (props) => {
               const doc = new jsPDF();
               doc.text("Recharge Records", 10, 10);
               doc.autoTable({
-                head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+                head: [["No", "Name", "Amount($)", "Remark", "Status","Mode", "Date"]],
                 body: exportData.map((row, index) => [
                   index + 1,
                   row.username,
                   row.transactionAmount,
                   row.remark,
                   mapStatus(row.status),
+                  getMode(row),
                   new Date(row.transactionDate).toLocaleDateString(),
                 ]),
               });
@@ -1211,6 +1229,7 @@ export const RechargeRecordsList = (props) => {
                 "Amount($)": item.transactionAmount,
                 Remark: item.remark,
                 Status: mapStatus(item.status),
+                Mode: getMode(item),
                 Date: new Date(item.transactionDate).toLocaleDateString(),
               }));
 
