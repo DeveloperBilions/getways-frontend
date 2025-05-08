@@ -9,8 +9,11 @@ import {
   Alert,
 } from "@mui/material";
 import { Parse } from "parse";
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton } from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
+
 export const AllowUserCreationDialog = ({
   open,
   onClose,
@@ -60,7 +63,19 @@ export const AllowUserCreationDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Confirm Change</DialogTitle>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          pr: 1,
+        }}
+      >
+        Confirm Change
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ mb: 2 }}>
           {record?.allowUserCreation ? (
@@ -84,12 +99,23 @@ export const AllowUserCreationDialog = ({
           </Alert>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Close
+      <DialogActions sx={{ padding: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={handleClose}
+          disabled={loading}
+          sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+        >
+          Cancel
         </Button>
-        <Button variant="contained" onClick={handleConfirm} disabled={loading}>
-          {loading ? "Updating..." : "Confirm"}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleConfirm}
+          disabled={loading}
+          sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+        >
+          {loading ? "Updating..." : "Confirm"}{" "}
         </Button>
       </DialogActions>
     </Dialog>

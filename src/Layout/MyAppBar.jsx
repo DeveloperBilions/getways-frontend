@@ -43,6 +43,7 @@ import { Loader } from "../Views/Loader";
 import { Parse } from "parse";
 import passwordChange from "../Assets/icons/passwordChange.svg";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
+import CustomUserMenu from "./CustomUserMenu";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -57,6 +58,7 @@ export default function MyAppBar(props) {
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
     React.useState(false);
+    const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -67,7 +69,9 @@ export default function MyAppBar(props) {
     isSidebarOpen ? "(max-width:1023px)" : "(max-width: 900px)"
   );
 
-  const handleOpenModal = () => setOpenModal(true);
+  const handleOpenModal = () => {
+    setUserMenuOpen(false); // Close user menu
+    setOpenModal(true)}
   const handleCloseModal = () => setOpenModal(false);
   const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
   const handleOpenGlobalSettingsDialog = () =>
@@ -383,16 +387,8 @@ export default function MyAppBar(props) {
                 }}
               />
             )}
-            <UserMenu
-              icon={
-                <img
-                  src={Account}
-                  alt="Account"
-                  style={{ width: 19, height: 19 }}
-                />
-              }
-              sx={{ ml: 1 }}
-            >
+            <CustomUserMenu icon={<img src={Account} alt="Account" style={{ width: 19, height: 19 }} />}>
+
               <Box sx={{ width: "248px", height: "auto" }}>
                 {(role === "Agent" ||
                   role === "Player" ||
@@ -506,7 +502,9 @@ export default function MyAppBar(props) {
                 )}
                 <Box sx={{ mb: 1 }}>
                   <MenuItem
-                    onClick={() => setOpenHelpVideo(true)}
+                    onClick={() => {
+                      setUserMenuOpen(false); // Close user menu
+                      setOpenHelpVideo(true)}}
                     style={{
                       color: "#000000",
                       gap: "8px",
@@ -531,7 +529,7 @@ export default function MyAppBar(props) {
                   </Typography>
                 </MenuItem>{" "}
               </Box>
-            </UserMenu>
+            </CustomUserMenu>
             {role !== "Player" && !isMobile && (
               <Box sx={{ mr: 2, minWidth: 0 }}>
                 <Typography

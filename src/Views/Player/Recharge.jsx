@@ -265,11 +265,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     }
   };
   
-  const fetchCoinbaseSessionToken = async (walletAddr, rechargeAmount) => {
+  const fetchCoinbaseSessionToken = async (walletAddr, rechargeAmount,partnerUserRef) => {
     try {
       const result = await Parse.Cloud.run("generateCoinbaseSessionToken", {
         walletAddr,
         rechargeAmount,
+        partnerUserRef
       });
       return result?.token;
     } catch (err) {
@@ -645,15 +646,16 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 const encodedAddresses = encodeURIComponent(
                   JSON.stringify({ [identity.walletAddr]: ["base"] })
                 );
+      //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
 
-                const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount);
-      if (!sessionToken) {
-        alert("Could not generate session token for Coinbase.");
-        return;
-      }
-                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&sessionToken=${sessionToken}`;
+      //           const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount,partnerUserRef);
+      // if (!sessionToken) {
+      //   alert("Could not generate session token for Coinbase.");
+      //   return;
+      // }
+                ///const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&sessionToken=${sessionToken}`;
       
-                /// const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
                 // Save the transaction
                 const TransactionDetails =
@@ -678,7 +680,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("referralLink", buyUrl);
                 transactionDetails.set("transactionIdFromStripe", buyUrl);
                 transactionDetails.set("walletAddr", identity?.walletAddr);
-
+                  transactionDetails.set("partnerUserRef",partnerUserRef)
                 await transactionDetails.save(null, { useMasterKey: true });
                 setStoredBuyUrl(buyUrl); // Store for retry
                 const popup = window.open(buyUrl, "_blank");
