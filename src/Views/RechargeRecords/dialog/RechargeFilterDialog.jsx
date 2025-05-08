@@ -24,6 +24,7 @@ export const RechargeFilterDialog = ({
   const [localStatus, setLocalStatus] = React.useState(
     filterValues.status || ""
   );
+  const [localMode, setLocalMode] = React.useState(filterValues.mode || "");
 
   const searchByChoices =
     role === "Super-User"
@@ -60,6 +61,10 @@ export const RechargeFilterDialog = ({
 
     if (localStatus !== "") {
       newFilters.status = localStatus;
+    }
+
+    if (localMode !== "") {
+      newFilters.mode = localMode;
     }
 
     setFilters(newFilters, false);
@@ -112,6 +117,23 @@ export const RechargeFilterDialog = ({
             </Select>
           </FormControl>
         )}
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel>Mode</InputLabel>
+          <Select
+            value={localMode}
+            label="Mode"
+            onChange={(e) => setLocalMode(e.target.value)}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="WERT">WERT</MenuItem>
+            <MenuItem value="Link">Link</MenuItem>
+            <MenuItem value="CoinBase">CoinBase</MenuItem>
+            <MenuItem value="AOG">AOG</MenuItem>
+            <MenuItem value="TransFi">TransFi</MenuItem>
+            <MenuItem value="Wallet">Wallet</MenuItem>
+            <MenuItem value="Stripe">Stripe</MenuItem>
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions
         className="p-16 d-flex w-100 justify-content-between"
