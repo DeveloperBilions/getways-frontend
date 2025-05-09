@@ -20,6 +20,7 @@ import SendIcon from "@mui/icons-material/Send";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Parse from "parse";
+import { getRoleBasedOptions } from "../utils";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +30,31 @@ const ChatbotWidget = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [currentStep, setCurrentStep] = useState("main"); // main -> sub -> final
+  const [selectedMainOption, setSelectedMainOption] = useState(null);
+  const [selectedSubOption, setSelectedSubOption] = useState(null);
+  const [isTextFieldEnabled, setIsTextFieldEnabled] = useState(false);
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const role = localStorage.getItem("role");
+
+  const { mainOptions, subOptions, finalOptions } = getRoleBasedOptions(role);
+
+  // Show initial options when chat opens
+  useEffect(() => {
+    if (isOpen && chat.length === 0) {
+      setChat([
+        {
+          role: "assistant",
+          text: "Hello! How can I assist you today? Please select a category:",
+        },
+      ]);
+      setCurrentStep("main");
+      setShowOptions(true);
+      setIsTextFieldEnabled(false);
+    }
+  }, [isOpen]);
 
   // Automatically scroll to bottom when new messages arrive
   useEffect(() => {
@@ -87,22 +111,78 @@ const ChatbotWidget = () => {
   };
 
   const clearChat = () => {
-    setChat([]);
+    setChat([
+      {
+        role: "assistant",
+        text: "Hello! How can I assist you today? Please select a category:",
+      },
+    ]);
+    setCurrentStep("main");
+    setSelectedMainOption(null);
+    setSelectedSubOption(null);
+    setShowOptions(true);
+    setShowScrollButton(false);
+    setIsTextFieldEnabled(false);
+    setUnreadCount(0);
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleMainOptionSelect = (option) => {
+    setShowOptions(false);
+    
+    if (option.id === "other") {
+      setIsTextFieldEnabled(true);
+      setCurrentStep("other");
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    } else {
+      setSelectedMainOption(option.id);
+      setCurrentStep("sub");
+      setChat((prev) => [
+        ...prev,
+        { role: "user", text: option.label },
+        {
+          role: "assistant",
+          text: `You've selected ${option.label}. Please choose a specific topic:`,
+        },
+      ]);
+      setShowOptions(true);
+    }
+  };
 
-    const userMsg = { role: "user", text: input };
-    setChat((prev) => [...prev, userMsg]);
-    setInput("");
+  const handleSubOptionSelect = (option) => {
+    setShowOptions(false);
+    setChat((prev) => [...prev, { role: "user", text: option.label }]);
+    setSelectedSubOption(option.id);
+    setCurrentStep("final");
+    setChat((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        text: `Let's narrow it down further. What would you like to know about ${option.label}?`,
+      },
+    ]);
+    setShowOptions(true);
+  };
+
+  const handleFinalOptionSelect = async (option) => {
+    setShowOptions(false);
+    setChat((prev) => [...prev, { role: "user", text: option }]);
+    await sendMessageToBackend(option);
+    setCurrentStep("main");
+    setSelectedMainOption(null);
+    setSelectedSubOption(null);
+    setShowOptions(true);
+  };
+
+  const sendMessageToBackend = async (message) => {
     setIsLoading(true);
     scrollToBottom();
 
     try {
-      // Send the entire chat history with the request
       const res = await Parse.Cloud.run("chatbot", {
-        message: input,
+        role: role,
+        message: message,
         conversationHistory: chat,
       });
 
@@ -121,7 +201,7 @@ const ChatbotWidget = () => {
           ]);
         }
         setIsLoading(false);
-      }, 500); // Small delay for better UX
+      }, 500);
     } catch (e) {
       setTimeout(() => {
         setChat((prev) => [
@@ -136,14 +216,27 @@ const ChatbotWidget = () => {
     }
   };
 
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMsg = { role: "user", text: input };
+    setChat((prev) => [...prev, userMsg]);
+    setInput("");
+    await sendMessageToBackend(input);
+    setCurrentStep("main");
+    setSelectedMainOption(null);
+    setSelectedSubOption(null);
+    setShowOptions(true);
+  };
+
   // Typing indicator animation component
   const TypingIndicator = () => (
-    <Box sx={{ display: "flex", gap: 0.5, p: 1 }}>
+    <Box sx={{ display: "flex", gap: 0.5, p: 0.5 }}>
       <Zoom in={true} style={{ transitionDelay: "0ms" }}>
         <Box
           sx={{
-            width: 6,
-            height: 6,
+            width: 4,
+            height: 4,
             bgcolor: "primary.main",
             borderRadius: "50%",
           }}
@@ -153,8 +246,8 @@ const ChatbotWidget = () => {
       <Zoom in={true} style={{ transitionDelay: "200ms" }}>
         <Box
           sx={{
-            width: 6,
-            height: 6,
+            width: 4,
+            height: 4,
             bgcolor: "primary.main",
             borderRadius: "50%",
           }}
@@ -164,8 +257,8 @@ const ChatbotWidget = () => {
       <Zoom in={true} style={{ transitionDelay: "400ms" }}>
         <Box
           sx={{
-            width: 6,
-            height: 6,
+            width: 4,
+            height: 4,
             bgcolor: "primary.main",
             borderRadius: "50%",
           }}
@@ -192,8 +285,8 @@ const ChatbotWidget = () => {
           <Paper
             elevation={8}
             sx={{
-              width: { xs: "95vw", sm: 450 },
-              height: { xs: "80vh", sm: 600 },
+              width: { xs: "95vw", sm: 400 },
+              height: { xs: "80vh", sm: 500 },
               display: "flex",
               flexDirection: "column",
               borderRadius: 3,
@@ -219,7 +312,7 @@ const ChatbotWidget = () => {
                   <ChatIcon sx={{ mr: 1.5 }} />
                 </Zoom>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Website Support
+                  Gateways Support
                 </Typography>
               </Box>
               <Box>
@@ -270,42 +363,6 @@ const ChatbotWidget = () => {
                 scrollBehavior: "smooth",
               }}
             >
-              {chat.length === 0 && (
-                <Fade in={true} timeout={800}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                      gap: 2,
-                    }}
-                  >
-                    <Zoom in={true} style={{ transitionDelay: "300ms" }}>
-                      <ChatIcon
-                        sx={{
-                          fontSize: 48,
-                          color: "primary.main",
-                          opacity: 0.7,
-                        }}
-                      />
-                    </Zoom>
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={{
-                        textAlign: "center",
-                        maxWidth: "80%",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Hello! How can I help you with our website today?
-                    </Typography>
-                  </Box>
-                </Fade>
-              )}
-
               {chat.map((msg, index) => (
                 <Fade key={index} in={true} timeout={500}>
                   <Box
@@ -318,7 +375,7 @@ const ChatbotWidget = () => {
                   >
                     <Box
                       sx={{
-                        maxWidth: "80%",
+                        maxWidth: "90%",
                         p: 2,
                         borderRadius:
                           msg.role === "user"
@@ -335,20 +392,101 @@ const ChatbotWidget = () => {
                         },
                       }}
                     >
-                      <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ lineHeight: 1.6, fontSize: 12 }}
+                      >
                         {msg.text}
                       </Typography>
                     </Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mt: 0.5, mx: 1, opacity: 0.7 }}
-                    >
-                      {msg.role === "user" ? "You" : "Support"}
-                    </Typography>
                   </Box>
                 </Fade>
               ))}
+
+              {showOptions && (
+                <Fade in={true}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    {currentStep === "main" &&
+                      mainOptions.map((option) => (
+                        <Button
+                          key={option.id}
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleMainOptionSelect(option)}
+                          sx={{
+                            borderRadius: 2,
+                            fontSize: 12,
+                            textTransform: "none",
+                            bgcolor: "white",
+                            color: "primary.main",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                            "&:hover": {
+                              bgcolor: "primary.light",
+                              color: "white",
+                            },
+                          }}
+                        >
+                          {option.icon} {option.label}
+                        </Button>
+                      ))}
+                    {currentStep === "sub" &&
+                      subOptions[selectedMainOption].map((option) => (
+                        <Button
+                          key={option.id}
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleSubOptionSelect(option)}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                            bgcolor: "white",
+                            color: "primary.main",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                            "&:hover": {
+                              bgcolor: "primary.light",
+                              color: "white",
+                            },
+                          }}
+                        >
+                          {option.icon} {option.label}
+                        </Button>
+                      ))}
+                    {currentStep === "final" &&
+                      finalOptions[selectedSubOption].map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleFinalOptionSelect(option)}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                            bgcolor: "white",
+                            color: "primary.main",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                            "&:hover": {
+                              bgcolor: "primary.light",
+                              color: "white",
+                            },
+                            width: "100%",
+                            justifyContent: "flex-start",
+                            textAlign: "left",
+                            py: 1,
+                          }}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                  </Box>
+                </Fade>
+              )}
 
               {isLoading && (
                 <Fade in={true}>
@@ -414,72 +552,76 @@ const ChatbotWidget = () => {
 
             <Divider />
 
-            <Box sx={{ p: 2, bgcolor: "white" }}>
-              <Box
-                component="form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendMessage();
-                }}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  bgcolor: "#f0f2f5",
-                  borderRadius: 3,
-                  px: 2,
-                  py: 0.5,
-                }}
-              >
-                <TextField
-                  fullWidth
-                  size="small"
-                  variant="standard"
-                  inputRef={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !e.shiftKey && sendMessage()
-                  }
-                  placeholder="Type a message..."
-                  disabled={isLoading}
-                  InputProps={{
-                    disableUnderline: true,
+            {isTextFieldEnabled && (
+              <Box sx={{ p: 1.5, bgcolor: "white" }}>
+                <Box
+                  component="form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    sendMessage();
                   }}
                   sx={{
-                    "& .MuiInputBase-root": {
-                      p: 1,
-                    },
+                    display: "flex",
+                    alignItems: "center",
+                    bgcolor: "#f0f2f5",
+                    borderRadius: 3,
+                    px: 1,
                   }}
-                />
-                <Tooltip title="Send message">
-                  <span>
-                    <IconButton
-                      color="primary"
-                      onClick={sendMessage}
-                      disabled={isLoading || !input.trim()}
-                      sx={{
-                        ml: 1,
-                        transition: "all 0.2s",
-                        "&:hover": {
-                          transform: "scale(1.1)",
-                          bgcolor: "primary.light",
-                          color: "white",
-                        },
-                        "&.Mui-disabled": {
-                          color: "text.disabled",
-                        },
-                      }}
-                    >
-                      {isLoading ? (
-                        <CircularProgress size={24} thickness={4} />
-                      ) : (
-                        <SendIcon />
-                      )}
-                    </IconButton>
-                  </span>
-                </Tooltip>
+                >
+                  <TextField
+                    fullWidth
+                    size="small"
+                    variant="standard"
+                    inputRef={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && !e.shiftKey && sendMessage()
+                    }
+                    placeholder="Type a message..."
+                    disabled={isLoading}
+                    InputProps={{
+                      disableUnderline: true,
+                    }}
+                    sx={{
+                      "& .MuiInputBase-input": {
+                        fontSize: 12,
+                      },
+                      "& .MuiInputBase-root": {
+                        p: 1,
+                      },
+                    }}
+                  />
+                  <Tooltip title="Send message">
+                    <span>
+                      <IconButton
+                        color="primary"
+                        onClick={sendMessage}
+                        disabled={isLoading || !input.trim()}
+                        sx={{
+                          ml: 1,
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            transform: "scale(1.1)",
+                            bgcolor: "primary.light",
+                            color: "white",
+                          },
+                          "&.Mui-disabled": {
+                            color: "text.disabled",
+                          },
+                        }}
+                      >
+                        {isLoading ? (
+                          <CircularProgress size={24} thickness={4} />
+                        ) : (
+                          <SendIcon sx={{ fontSize: 16 }} />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Box>
               </Box>
-            </Box>
+            )}
           </Paper>
         </Slide>
       ) : (
@@ -497,8 +639,8 @@ const ChatbotWidget = () => {
                   bgcolor: "white",
                   borderRadius: "50%",
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-                  width: 60,
-                  height: 60,
+                  width: 45,
+                  height: 45,
                   transition: "all 0.3s ease",
                   "&:hover": {
                     transform: "scale(1.1) rotate(10deg)",
@@ -519,7 +661,7 @@ const ChatbotWidget = () => {
                 }}
                 onClick={toggleChat}
               >
-                <ChatIcon fontSize="large" />
+                <ChatIcon fontSize="medium" />
               </IconButton>
             </Badge>
           </Box>
