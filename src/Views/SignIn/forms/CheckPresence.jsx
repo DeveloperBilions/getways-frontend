@@ -20,8 +20,9 @@ import HelpVideoModal from "../HelpVideoModal";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../Assets/icons/Logo.svg";
 import { Label } from "reactstrap";
-import "../../../Assets/css/style.css"
+import "../../../Assets/css/style.css";
 import ReCAPTCHA from "react-google-recaptcha";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -47,13 +48,12 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-   useEffect(() => {
-      // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
-      if (recaptchaRef.current) {
-        setIsCaptchaReady(true);  // Set ready status to true when ref is available
-      }
-    }, [recaptchaRef.current]);
-
+  useEffect(() => {
+    // This ensures that reCAPTCHA is fully loaded and ready before we attempt to reset
+    if (recaptchaRef.current) {
+      setIsCaptchaReady(true); // Set ready status to true when ref is available
+    }
+  }, [recaptchaRef.current]);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -85,14 +85,8 @@ const LoginPage = () => {
         return;
       }
       const response = await Parse.Cloud.run("checkpresence", data);
-      setCaptchaVerified(true); 
+      setCaptchaVerified(true);
 
-      if (response?.fromAgentExcel) {
-        window.location.href = `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`;
-      } else {
-        window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
-      }
-      
       let savedAccounts = JSON.parse(localStorage.getItem("accounts")) || [];
       const existingAccount = savedAccounts.find(
         (acc) => acc.email === data.emailPhone
@@ -101,17 +95,23 @@ const LoginPage = () => {
         savedAccounts.push({ email: data.emailPhone });
       }
       localStorage.setItem("accounts", JSON.stringify(savedAccounts));
+
+      if (response?.fromAgentExcel) {
+        setLoading(false);
+        window.location.href = `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`;
+      } else {
+        setLoading(false);
+        window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
+      }
     } catch (error) {
       notify(error?.message || "User Checking failed. Please try again.");
     } finally {
-      setLoading(false);
-      recaptchaRef.current?.reset(); // ✅ reset here if failed
     }
   };
 
-  if (loading) {
-    return <Loader />;
-  }
+  // if (loading) {
+  //   return <Loader />;
+  // }
 
   return (
     <React.Fragment>
@@ -197,46 +197,47 @@ const LoginPage = () => {
                 autoFocus
                 {...register("emailPhone")}
               /> */}
-              <Box sx={{ position: 'relative', width: '100%' }}>
-              {/* <Label className="custom-label">Email / Phone</Label> */}
-              <OutlinedInput
-                required
-                fullWidth
-                id="emailPhone"
-                type="text"
-                name="emailPhone"
-                autoComplete="tel"
-                sx={{
-                  mb: 2,
-                  height: "40px",
-                  // Complete border override
-                  '& fieldset': {
-                    border: '1px solid black !important',
-                    borderWidth: '1px !important',
-                  },
-                  '&:hover fieldset': {
-                    border: '1px solid black !important',
-                  },
-                  '&.Mui-focused fieldset': {
-                    border: '1px solid black !important',
-                    borderWidth: '1px !important',
-                  },
-                  // Remove all animations
-                  transition: 'none !important',
-                  // Fix for text color
-                  '& input': {
-                    color: 'black !important',
-                  },
-                  // Fix for autofill
-                  '& input:-webkit-autofill': {
-                    '-webkit-text-fill-color': 'black !important',
-                    '-webkit-box-shadow': '0 0 0 1000px white inset !important',
-                  },
-                }}
-                autoFocus
-                {...register("emailPhone")}
-              />
-            </Box>
+              <Box sx={{ position: "relative", width: "100%" }}>
+                {/* <Label className="custom-label">Email / Phone</Label> */}
+                <OutlinedInput
+                  required
+                  fullWidth
+                  id="emailPhone"
+                  type="text"
+                  name="emailPhone"
+                  autoComplete="tel"
+                  sx={{
+                    mb: 2,
+                    height: "40px",
+                    // Complete border override
+                    "& fieldset": {
+                      border: "1px solid black !important",
+                      borderWidth: "1px !important",
+                    },
+                    "&:hover fieldset": {
+                      border: "1px solid black !important",
+                    },
+                    "&.Mui-focused fieldset": {
+                      border: "1px solid black !important",
+                      borderWidth: "1px !important",
+                    },
+                    // Remove all animations
+                    transition: "none !important",
+                    // Fix for text color
+                    "& input": {
+                      color: "black !important",
+                    },
+                    // Fix for autofill
+                    "& input:-webkit-autofill": {
+                      "-webkit-text-fill-color": "black !important",
+                      "-webkit-box-shadow":
+                        "0 0 0 1000px white inset !important",
+                    },
+                  }}
+                  autoFocus
+                  {...register("emailPhone")}
+                />
+              </Box>
 
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
@@ -269,8 +270,16 @@ const LoginPage = () => {
                     backgroundColor: "var(--primary-color)",
                   },
                 }}
+                disabled={loading}
               >
-                Next
+                {loading ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CircularProgress size={20} color="inherit" />
+                    Signing in...
+                  </Box>
+                ) : (
+                  "Next"
+                )}
               </Button>
             </Form>
             {/* <Button

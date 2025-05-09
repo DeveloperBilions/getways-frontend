@@ -16,6 +16,8 @@ import {
 import { fetchTransactionSummary, addPayHistory } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
 import DrawerAgentHistoryModal from "./DrawerAgentHistoryModal"; // Import History Modal
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton } from "@mui/material";
 
 const PayModal = ({ open, onClose, userId }) => {
   const [amount, setAmount] = useState("");
@@ -125,7 +127,20 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   if (loading) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Transaction Summary</DialogTitle>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pr: 1,
+          }}
+        >
+          Transaction Summary
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
         <DialogContent>
           <Box
             sx={{
@@ -161,7 +176,20 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Transaction Summary</DialogTitle>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pr: 1,
+          }}
+        >
+          Transaction Summary
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Typography>
@@ -205,18 +233,18 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
             </Typography>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="secondary">
-            Close
-          </Button>
+        <DialogActions sx={{ padding: 2 ,width:"100%"}}>
           <Button
             onClick={() => setShowHistoryModal(true)}
             color="info"
             variant="outlined"
+            sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
           >
             View History
           </Button>
           <Button
+                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+
             onClick={() => setPayModalOpen(true)}
             color="primary"
             variant="contained"

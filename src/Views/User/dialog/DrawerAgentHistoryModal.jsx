@@ -17,6 +17,8 @@ import {
   Typography,
 } from "@mui/material";
 import { fetchDrawerAgentHistory } from "../../../Utils/utils";
+import CloseIcon from "@mui/icons-material/Close";
+import { IconButton } from "@mui/material";
 
 const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
   const [history, setHistory] = useState([]);
@@ -30,7 +32,11 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
       if (open && record) {
         setLoading(true);
         try {
-          const { data, total } = await fetchDrawerAgentHistory(record?.id, page, rowsPerPage);
+          const { data, total } = await fetchDrawerAgentHistory(
+            record?.id,
+            page,
+            rowsPerPage
+          );
           setHistory(data || []);
           setTotalRecords(total);
         } catch (error) {
@@ -55,7 +61,19 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Drawer Agent ({record?.username}) History</DialogTitle>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          pr: 1,
+        }}
+      >
+        Drawer Agent ({record?.username}) History
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
       <DialogContent>
         {loading ? (
           <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />
@@ -65,10 +83,18 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell><strong>Before Balance</strong></TableCell>
-                    <TableCell><strong>Amount</strong></TableCell>
-                    <TableCell><strong>After Balance</strong></TableCell>
-                    <TableCell><strong>Date</strong></TableCell>
+                    <TableCell>
+                      <strong>Before Balance</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Amount</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>After Balance</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Date</strong>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -77,7 +103,9 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
                       <TableCell>{item.beforeBalance.toFixed(2)}</TableCell>
                       <TableCell>{item.amount.toFixed(2)}</TableCell>
                       <TableCell>{item.afterBalance.toFixed(2)}</TableCell>
-                      <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+                      <TableCell>
+                        {new Date(item.createdAt).toLocaleString()}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -94,11 +122,15 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
             />
           </>
         ) : (
-          <Typography sx={{ textAlign: "center", mt: 2 }}>No history found.</Typography>
+          <Typography sx={{ textAlign: "center", mt: 2 }}>
+            No history found.
+          </Typography>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary">Close</Button>
+        <Button onClick={onClose} color="secondary">
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );
