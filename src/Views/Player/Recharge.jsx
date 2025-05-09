@@ -33,8 +33,11 @@ import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from '@coinbase/cbpay-js';
 
-const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
-
+//const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
+//Live
+//const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
+///New Live
+const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e"
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -646,6 +649,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 const encodedAddresses = encodeURIComponent(
                   JSON.stringify({ [identity.walletAddr]: ["base"] })
                 );
+
+                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
       //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
 
       //           const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount,partnerUserRef);
@@ -655,7 +661,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       // }
                 ///const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&sessionToken=${sessionToken}`;
       
-                const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+              //  const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
                 // Save the transaction
                 const TransactionDetails =

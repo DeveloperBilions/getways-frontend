@@ -233,18 +233,18 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
             </Typography>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="secondary">
-            Close
-          </Button>
+        <DialogActions sx={{ padding: 2 ,width:"100%"}}>
           <Button
             onClick={() => setShowHistoryModal(true)}
             color="info"
             variant="outlined"
+            sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
           >
             View History
           </Button>
           <Button
+                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+
             onClick={() => setPayModalOpen(true)}
             color="primary"
             variant="contained"
