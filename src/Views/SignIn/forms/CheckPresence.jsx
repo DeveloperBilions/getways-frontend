@@ -104,6 +104,7 @@ const LoginPage = () => {
         window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
       }
     } catch (error) {
+      setLoading(false);
       notify(error?.message || "User Checking failed. Please try again.");
     } finally {
     }

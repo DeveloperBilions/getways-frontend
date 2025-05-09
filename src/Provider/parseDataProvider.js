@@ -247,6 +247,7 @@ export const dataProvider = {
             kycStatus: kyc.kycStatus || "unknown",
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
+            rechargeDisabled:user.get("rechargeDisabled")
           };
         });
 
