@@ -232,7 +232,7 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
       </DialogContent>
 
       <DialogActions sx={{ padding: 2 }}>
-        <Button onClick={onClose} variant="outlined" color="secondary" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
+        <Button onClick={onClose} variant="outlined" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
           Cancel
         </Button>
         <Button 
