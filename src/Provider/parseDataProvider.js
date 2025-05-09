@@ -666,33 +666,39 @@ export const dataProvider = {
               ],
               totalRechargeByType: [
                 {
-                  $group: {
-                    _id: {
-                      type: "$type",
-                      useWallet: "$useWallet",
-                    },
-                    total: { $sum: "$transactionAmount" },
-                  },
+                   $match: { status: { $in: [2, 3] },useWallet:true } ,
                 },
                 {
-                  $group: {
-                    _id: null,
-                    wallet: {
-                      $sum: {
-                        $cond: {
-                          if: {
-                            $and: [
-                              { $eq: ["$_id.type", "recharge"] },
-                              { $eq: ["$_id.useWallet", true] },
-                            ],
-                          },
-                          then: "$total",
-                          else: 0,
-                        },
-                      },
-                    },
-                  },
+                  $group: { _id: null, total: { $sum: "$transactionAmount" } },
                 },
+                // {
+                //   $group: {
+                //     _id: {
+                //       type: "$type",
+                //       useWallet: "$useWallet",
+                //     },
+                //     total: { $sum: "$transactionAmount" },
+                //   },
+                // },
+                // {
+                //   $group: {
+                //     _id: null,
+                //     wallet: {
+                //       $sum: {
+                //         $cond: {
+                //           if: {
+                //             $and: [
+                //               { $eq: ["$_id.type", "recharge"] },
+                //               { $eq: ["$_id.useWallet", true] },
+                //             ],
+                //           },
+                //           then: "$total",
+                //           else: 0,
+                //         },
+                //       },
+                //     },
+                //   },
+                // },
               ],
             },
           },
@@ -744,12 +750,6 @@ export const dataProvider = {
               merged[key] = [
                 {
                   count: (activeVal.count || 0) + (archiveVal.count || 0),
-                },
-              ];
-            } else if (key === "totalRechargeByType") {
-              merged[key] = [
-                {
-                  wallet: (activeVal.wallet || 0) + (archiveVal.wallet || 0),
                 },
               ];
             } else {
@@ -853,12 +853,12 @@ export const dataProvider = {
           totalAgents: Number(totalAgents || 0 || 0),
           totalRechargeByType: {
             wallet: Number(
-              (newResults[0]?.totalRechargeByType?.[0]?.wallet || 0).toFixed(2)
+              (newResults[0]?.totalRechargeByType?.[0]?.total || 0).toFixed(2)
             ),
             others: Number(
               (
                 (newResults[0]?.totalRechargeAmount?.[0]?.total || 0) -
-                (newResults[0]?.totalRechargeByType?.[0]?.wallet || 0)
+                (newResults[0]?.totalRechargeByType?.[0]?.total || 0)
               ).toFixed(2)
             ),
           },
