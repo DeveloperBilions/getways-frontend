@@ -248,7 +248,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       transactionDetails.set("userId", identity?.objectId);
       transactionDetails.set("transactionDate", new Date());
       transactionDetails.set("transactionAmount", rechargeAmount);
-      transactionDetails.set("remark", "Debit Recharge");
+      transactionDetails.set("remark", remark);
       transactionDetails.set("useWallet", false);
       transactionDetails.set("userParentId", user?.get("userParentId") || "");
       transactionDetails.set("status", 1); // pending
@@ -669,7 +669,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("userId", identity?.objectId);
                 transactionDetails.set("transactionDate", new Date());
                 transactionDetails.set("transactionAmount", rechargeAmount);
-                transactionDetails.set("remark", "Debit Recharge");
+                transactionDetails.set("remark", remark);
                 transactionDetails.set("useWallet", false);
                 transactionDetails.set(
                   "userParentId",
