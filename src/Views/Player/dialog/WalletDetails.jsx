@@ -69,7 +69,6 @@ export const WalletDetails = ({
           borderRadius: "8px",
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
           border: "1px solid #E0E0E0",
-          minWidth:{ xs: "100%", md: "800px" },
         }}
       >
         <Box
