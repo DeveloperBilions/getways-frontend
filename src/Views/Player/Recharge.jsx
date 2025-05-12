@@ -304,7 +304,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           border: "1px solid #E7E7E7",
           mb: 2,
           bgcolor: "white",
-          minWidth: { xs: "100%", md: "800px" },
         }}
       >
         <Typography
@@ -525,12 +524,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           <Box
             sx={{
               display: "flex",
-              gap: "6px",
+              gap: { xs: "8px", sm: "10px", md: "12px" },
               justifyContent: "center",
               alignItems: "center",
               mt: 2,
               mb: 2,
-              flexWrap: { xs: "wrap", md: "nowrap" },
+              flexWrap: "wrap", // Always wrap on all screen sizes
+              maxWidth: "100%", // Ensure box doesn't overflow container
             }}
           >
             {[10, 15, 20, 30, 40, 50, 75, 100].map((amount) => (
@@ -539,7 +539,14 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 variant="outlined"
                 sx={{
                   borderRadius: "40px",
-                  width: { xs: "45%", sm: "30%", md: "100%" },
+                  // Adjusted widths for different breakpoints to create better wrapping behavior
+                  width: {
+                    xs: "calc(50% - 8px)", // 2 buttons per row on extra small screens
+                    sm: "calc(33.33% - 10px)", // 3 buttons per row on small screens
+                    md: "calc(25% - 12px)", // 4 buttons per row on medium screens
+                    lg: "auto", // Flexible width on large screens
+                  },
+                  minWidth: { xs: "80px", sm: "90px", md: "100px" }, // Minimum width to prevent squishing
                   padding: { xs: "6px 12px", md: "8px 16px" },
                   border:
                     amount !== rechargeAmount ? "1px dashed #93B1D2" : "none",
@@ -558,10 +565,16 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 <img
                   src={AOG_Symbol}
                   alt="AOG Symbol"
-                  style={{ width: "24px", height: "24px" }}
+                  style={{
+                    width: { xs: "20px", md: "24px" },
+                    height: { xs: "20px", md: "24px" },
+                  }}
                 />
                 <Typography
-                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }}
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: { xs: "14px", sm: "16px", md: "18px" },
+                  }}
                 >
                   {amount}
                 </Typography>
