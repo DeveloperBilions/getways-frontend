@@ -733,7 +733,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               </>
             )}
           </Button>
-          <Button
+          {/* <Button
             variant="contained"
             fullWidth
             sx={{
@@ -882,7 +882,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <ArrowForwardIcon
               style={{ width: 24, height: 24, marginLeft: 10 }}
             />
-          </Button>
+          </Button> */}
 
           <Button
             variant="contained"
