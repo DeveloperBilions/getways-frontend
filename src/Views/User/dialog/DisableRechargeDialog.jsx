@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogActions,
@@ -17,6 +17,11 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCurrentlyDisabled, setIsRechargeDisabled] = useState(record?.rechargeDisabled);
+  useEffect(() => {
+    setIsRechargeDisabled(record?.rechargeDisabled);
+  }, [record]);
+  
   const handleRechargeToggle = async (disable) => {
     setLoading(true);
     setSuccessMessage("");
@@ -33,7 +38,10 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
       user.set("rechargeDisabled", disable);
       await user.save(null, { useMasterKey: true });
 
-      setSuccessMessage(`Recharge ${disable ? "disabled" : "enabled"} successfully!`);
+      setSuccessMessage(
+        `Recharge ${disable ? "disabled" : "enabled"} successfully!`
+      );
+      setIsRechargeDisabled(disable); // ✅ Update local state
 
       if (handleRefresh) {
         handleRefresh();
@@ -45,7 +53,9 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
       }, 3000);
     } catch (error) {
       console.error("Error updating recharge permission:", error.message);
-      setErrorMessage("Failed to update recharge permission. Please try again.");
+      setErrorMessage(
+        "Failed to update recharge permission. Please try again."
+      );
       setTimeout(() => {
         setErrorMessage("");
       }, 3000);
@@ -54,11 +64,12 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
 
-  const isCurrentlyDisabled = record?.rechargeDisabled;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{isCurrentlyDisabled ? "Enable Recharge" : "Disable Recharge"}</DialogTitle>
+      <DialogTitle>
+        {isCurrentlyDisabled ? "Enable Recharge" : "Disable Recharge"}
+      </DialogTitle>
       <DialogContent>
         <Typography mb={2}>
           Are you sure you want to{" "}
@@ -77,19 +88,23 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
           </Alert>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+      <DialogActions sx={{ padding: 2, width: "100%" }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          color="info"
+          variant="outlined"
+          sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+        >
           Cancel
         </Button>
-        <Box position="relative">
-          <Button
-            color={isCurrentlyDisabled ? "primary" : "error"}
-            onClick={() => handleRechargeToggle(!isCurrentlyDisabled)}
-            disabled={loading}
-            variant="contained"
-          >
-            {isCurrentlyDisabled ? "Enable" : "Disable"}
-          </Button>
+        <Button
+          onClick={() => handleRechargeToggle(!isCurrentlyDisabled)}
+          disabled={loading}
+          color="primary"
+          variant="contained"
+          sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+        >
           {loading && (
             <CircularProgress
               size={24}
@@ -102,7 +117,8 @@ const DisableRechargeDialog = ({ open, onClose, record, handleRefresh }) => {
               }}
             />
           )}
-        </Box>
+          {isCurrentlyDisabled ? "Enable" : "Disable"}
+        </Button>
       </DialogActions>
     </Dialog>
   );
