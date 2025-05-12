@@ -288,6 +288,7 @@ const CashOutModal = ({
         onClose={() => {
           setIsGiftCardOpen(false);
           handleClose();
+          handleRefresh()
         }}
         onBack={() => {
           setIsGiftCardOpen(false);

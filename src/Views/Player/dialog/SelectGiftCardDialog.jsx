@@ -118,16 +118,16 @@ const SelectGiftCardDialog = ({
     const savedLast = user?.get("gift_lastName");
     const savedEmail = user?.get("gift_email");
 
-    if (!savedFirst || !savedLast || !savedEmail) {
+   // if (!savedFirst || !savedLast || !savedEmail) {
       setShowInfoDialog(true); // Open dialog to collect info
-      return;
-    }
+    //   return;
+    // }
 
     setFirstName(savedFirst);
     setLastName(savedLast);
     setEmail(savedEmail);
 
-    handleSubmit(savedFirst, savedLast, savedEmail);
+  //  handleSubmit(savedFirst, savedLast, savedEmail);
   };
 
   const handleSubmit = async (
@@ -435,16 +435,18 @@ const SelectGiftCardDialog = ({
         )}
       </Modal>
       <UserGiftInfoDialog
-        open={showInfoDialog}
-        onClose={() => setShowInfoDialog(false)}
-        onSubmit={({ firstName, lastName, email }) => {
-          setShowInfoDialog(false);
-          setFirstName(firstName);
-          setLastName(lastName);
-          setEmail(email);
-          handleSubmit(firstName, lastName, email);
-        }}
-      />
+  open={showInfoDialog}
+  onClose={() => setShowInfoDialog(false)}
+  onSubmit={({ firstName, lastName, email }) => {
+    setShowInfoDialog(false);
+    setFirstName(firstName);
+    setLastName(lastName);
+    setEmail(email);
+    handleSubmit(firstName, lastName, email);
+  }}
+  initialData={{ firstName, lastName, email }} // pass saved info here
+/>
+
     </>
   );
 };

@@ -24,8 +24,8 @@ export const TransactionData = (props) => {
   const loadAndExportData = async () => {
     const filters = {
       startdate:
-        document.querySelector('input[name="startdate"]')?.value || null,
-      enddate: document.querySelector('input[name="enddate"]')?.value || null,
+        document.querySelector('input[name="startdate"]')?.value || "2025-01-01",
+      enddate: document.querySelector('input[name="enddate"]')?.value || "2025-02-28",
       starttime: tempStartTime || null,
       endtime: tempEndTime || null,
     };

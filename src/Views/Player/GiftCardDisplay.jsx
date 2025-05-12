@@ -3,7 +3,12 @@ import { Typography, Card, CardContent, Grid, Box } from "@mui/material";
 import Copy from "../../Assets/icons/Copy.svg";
 import LinkButton from "../../Assets/icons/LinkButton.svg";
 
-const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalExpiredGiftCard}) => {
+const GiftCardsDisplay = ({
+  giftCards,
+  totalGiftCard,
+  totalAvailableGiftCard,
+  totalExpiredGiftCard,
+}) => {
   // const giftCards = [
   //   {
   //     name: "Amazon",
@@ -42,7 +47,7 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
         padding: "24px",
         borderRadius: "8px",
         border: "1px solid #E7E7E7",
-        minWidth:{ xs: "100%", md: "800px" },
+        minWidth: { xs: "100%", md: "800px" },
       }}
     >
       <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>
@@ -50,79 +55,79 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
       </Typography>
 
       <Grid container spacing={2} mb={2}>
-      <Grid item xs={12} sm={4}>
-        <Card
-          sx={{ 
-            bgcolor: "#F4F3FC", 
-            borderRadius: "8px", 
-            boxShadow: "none" 
-          }}
-        >
-          <CardContent sx={{ pb: "16px !important" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Total number of Gift cards
-            </Typography>
-            <Typography
-              sx={{ 
-                fontSize: "20px", 
-                fontWeight: 600, 
-                color: "#2E5BFF" 
-              }}
-            >
-              {totalGiftCard}
-            </Typography>
-          </CardContent>
-        </Card>
+        <Grid item xs={12} sm={4}>
+          <Card
+            sx={{
+              bgcolor: "#F4F3FC",
+              borderRadius: "8px",
+              boxShadow: "none",
+            }}
+          >
+            <CardContent sx={{ pb: "16px !important" }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total number of Gift cards
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "20px",
+                  fontWeight: 600,
+                  color: "#2E5BFF",
+                }}
+              >
+                {totalGiftCard}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card
+            sx={{
+              bgcolor: "#F4F3FC",
+              borderRadius: "8px",
+              boxShadow: "none",
+            }}
+          >
+            <CardContent sx={{ pb: "16px !important" }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Available Gift cards
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "20px",
+                  fontWeight: 600,
+                  color: "#2E5BFF",
+                }}
+              >
+                {totalAvailableGiftCard}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <Card
+            sx={{
+              bgcolor: "#F4F3FC",
+              borderRadius: "8px",
+              boxShadow: "none",
+            }}
+          >
+            <CardContent sx={{ pb: "16px !important" }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Expired Gift cards
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "20px",
+                  fontWeight: 600,
+                  color: "#2E5BFF",
+                }}
+              >
+                {totalExpiredGiftCard}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
-      <Grid item xs={12} sm={4}>
-        <Card
-          sx={{ 
-            bgcolor: "#F4F3FC", 
-            borderRadius: "8px", 
-            boxShadow: "none" 
-          }}
-        >
-          <CardContent sx={{ pb: "16px !important" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Available Gift cards
-            </Typography>
-            <Typography
-              sx={{ 
-                fontSize: "20px", 
-                fontWeight: 600, 
-                color: "#2E5BFF" 
-              }}
-            >
-              {totalAvailableGiftCard}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12} sm={4}>
-        <Card
-          sx={{ 
-            bgcolor: "#F4F3FC", 
-            borderRadius: "8px", 
-            boxShadow: "none" 
-          }}
-        >
-          <CardContent sx={{ pb: "16px !important" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Expired Gift cards
-            </Typography>
-            <Typography
-              sx={{ 
-                fontSize: "20px", 
-                fontWeight: 600, 
-                color: "#2E5BFF" 
-              }}
-            >
-              {totalExpiredGiftCard}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
 
       {giftCards.map((card, index) => (
         <Box
@@ -146,8 +151,20 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
               <Typography sx={{ fontSize: 16, fontWeight: 400, mb: 1 }}>
                 {card.apiResponse?.productName}
               </Typography>
-              <Typography sx={{ fontSize: 12,fontWeight: 400, color: "#808080" }}>
-                Valid until {card.apiResponse?.expiryAndValidity}
+              <Typography
+                sx={{ fontSize: 12, fontWeight: 400, color: "#808080" }}
+              >
+                Valid until{" "}
+                {new Date(
+                  card.apiResponse?.vouchers[0]?.validityDate
+                ).toLocaleString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
               </Typography>
             </Box>
             <Box>
@@ -158,6 +175,7 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
                   mb: 1,
                 }}
               >
+                {card.apiResponse?.vouchers[0]?.voucherCurrency} &nbsp;
                 {card.price}
               </Typography>
             </Box>
@@ -187,12 +205,42 @@ const GiftCardsDisplay = ({giftCards,totalGiftCard,totalAvailableGiftCard,totalE
               />
             </Box>
           </Box>
-          {/* <Box sx={{ display: "flex", justifyContent: "flex-end",alignItems:"center", mt: 2 }}>
-            <Typography sx={{ fontSize: 16, color: "#2E5BFF", cursor: "pointer",fontWeight: 600, mr: 1 }}>
-              Use now 
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              mt: 2,
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              const url = card?.apiResponse?.vouchers[0]?.code;
+              if (url) window.open(url, "_blank");
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 16,
+                color: "#2E5BFF",
+                cursor: "pointer",
+                fontWeight: 600,
+                mr: 1,
+              }}
+            >
+              Use now
             </Typography>
             <img src={LinkButton} alt="LinkButton" />
-          </Box> */}
+          </Box>
+          {card.apiResponse?.howToUse && (
+            <Box sx={{ mt: 1 }}>
+              <Typography
+                sx={{ fontSize: 14 }}
+                dangerouslySetInnerHTML={{
+                  __html: card.apiResponse.howToUse,
+                }}
+              />
+            </Box>
+          )}
         </Box>
       ))}
     </Box>
