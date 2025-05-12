@@ -148,9 +148,18 @@ const GiftCardsDisplay = ({
             }}
           >
             <Box>
-              <Typography sx={{ fontSize: 16, fontWeight: 400, mb: 1 }}>
-                {card.apiResponse?.productName}
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <img
+                  src={card?.productImage}
+                  height={40}
+                  width={60}
+                  alt="product"
+                  style={{ marginRight: 8 }}
+                />
+                <Typography sx={{ fontSize: 16, fontWeight: 400 }}>
+                  {card.apiResponse?.productName}
+                </Typography>
+              </Box>
               <Typography
                 sx={{ fontSize: 12, fontWeight: 400, color: "#808080" }}
               >

@@ -76,9 +76,19 @@ const CashOutModal = ({
     onClose();
   };
   const handleBalanceChange = (e) => {
-    setBalance(e.target.value);
-    setErrorMessage(""); // Clear error message when user starts typing
+    const raw = e.target.value;
+  
+    // Remove non-digit characters
+    const numeric = raw.replace(/\D/g, "");
+  
+    // Limit to 4 digits
+    if (numeric.length > 4) return;
+  
+    setBalance(numeric);
+    setErrorMessage("");
   };
+  
+  
 
   const handleClose = () => {
     setBalance(initialBalance);
@@ -171,7 +181,7 @@ const CashOutModal = ({
                   style={{ width: "40px", height: "40px", marginRight: "10px" }}
                 />
                 <TextField
-                  type="number"
+                  type="text"
                   value={balance}
                   onChange={handleBalanceChange}
                   variant="standard" // Removes the default border
