@@ -393,8 +393,9 @@ const SelectGiftCardDialog = ({
                   }}
                 >
                   <Button
-                    className="custom-button cancel"
-                    style={{ border: "1px solid #E7E7E7", borderRadius: "8px" }}
+                      variant="outlined"
+
+                      sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                     onClick={onBack}
                   >
                     <Typography
@@ -409,12 +410,9 @@ const SelectGiftCardDialog = ({
                     </Typography>
                   </Button>
                   <Button
-                    className="custom-button"
-                    style={{
-                      backgroundColor: "#2E5BFF",
-                      color: "#fff",
-                      borderRadius: "8px",
-                    }}
+                    variant="contained"
+                    color="primary"
+                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                     disabled={loading}
                     onClick={handleConfirm}
                   >
