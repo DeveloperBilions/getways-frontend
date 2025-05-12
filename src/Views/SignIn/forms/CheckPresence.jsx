@@ -74,7 +74,7 @@ const LoginPage = () => {
   }, [recaptchaRef.current]); // Watch the ref to ensure it is correctly initialized
 
   const onSubmit = async (data) => {
-    if (!captchaValue) {
+    if (process.env.REACT_APP_NODE_ENV === "production" && !captchaValue) {
       notify("Please verify the reCAPTCHA");
       return;
     }
@@ -104,6 +104,7 @@ const LoginPage = () => {
         window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
       }
     } catch (error) {
+      setLoading(false);
       notify(error?.message || "User Checking failed. Please try again.");
     } finally {
     }
@@ -242,21 +243,23 @@ const LoginPage = () => {
               {errors.email && (
                 <FormHelperText>{errors.email.message}</FormHelperText>
               )}
-              {!captchaVerified && (
-                <Box mt={"10px"}>
-                  <div className="recaptcha-container">
-                    <ReCAPTCHA
-                      sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                      onChange={(value) => setCaptchaValue(value)}
-                      onExpired={() => {
-                        setCaptchaValue(null);
-                        recaptchaRef.current?.reset(); // ✅ reset only when expired
-                      }}
-                      ref={recaptchaRef}
-                    />
-                  </div>
-                </Box>
-              )}
+              {!captchaVerified &&
+                process.env.REACT_APP_NODE_ENV === "production" && (
+                  <Box mt={"10px"}>
+                    <div className="recaptcha-container">
+                      <ReCAPTCHA
+                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                        onChange={(value) => setCaptchaValue(value)}
+                        onExpired={() => {
+                          setCaptchaValue(null);
+                          recaptchaRef.current?.reset();
+                        }}
+                        ref={recaptchaRef}
+                      />
+                    </div>
+                  </Box>
+                )}
+
               <Button
                 type="submit"
                 fullWidth

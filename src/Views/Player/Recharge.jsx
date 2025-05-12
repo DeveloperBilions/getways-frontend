@@ -31,13 +31,13 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
-import { initOnRamp } from '@coinbase/cbpay-js';
+import { initOnRamp } from "@coinbase/cbpay-js";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
 //const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
 ///New Live
-const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e"
+const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -66,6 +66,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [popupDialogOpen, setPopupDialogOpen] = useState(false);
   const [storedBuyUrl, setStoredBuyUrl] = useState("");
   const [showSafariHelp, setShowSafariHelp] = useState(false);
+  const [loadingSessionToken, setLoadingSessionToken] = useState(false);
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -193,10 +194,13 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     try {
       if (!identity?.walletAddr) {
         setWalletLoading(true);
-        const walletResp = await Parse.Cloud.run("assignRandomWalletAddrIfMissing", {
-          userId: identity?.objectId,
-        });
-  
+        const walletResp = await Parse.Cloud.run(
+          "assignRandomWalletAddrIfMissing",
+          {
+            userId: identity?.objectId,
+          }
+        );
+
         if (walletResp?.walletAddr) {
           identity.walletAddr = walletResp.walletAddr;
           setSnackbarOpen(true);
@@ -205,15 +209,18 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           return;
         }
       }
-  
-      const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount);
+
+      const sessionToken = await fetchCoinbaseSessionToken(
+        identity.walletAddr,
+        rechargeAmount
+      );
       if (!sessionToken) {
         alert("Could not generate session token for Coinbase.");
         return;
       }
-  
+
       let savedTransaction = null;
-  
+
       const options = {
         sessionToken,
         experienceLoggedIn: "popup",
@@ -236,15 +243,15 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           console.log("📦 Coinbase event received:", event);
         },
       };
-  
+
       const instance = await initOnRamp(options);
       instance.open();
-  
+
       // Save transaction as PENDING
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transactionDetails = new TransactionDetails();
       const user = await Parse.User.current()?.fetch();
-  
+
       transactionDetails.set("type", "recharge");
       transactionDetails.set("gameId", "786");
       transactionDetails.set("username", identity?.username || "");
@@ -258,8 +265,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       transactionDetails.set("portal", "Coinbase");
       transactionDetails.set("referralLink", "Coinbase Widget");
       transactionDetails.set("walletAddr", identity?.walletAddr);
-  
-      savedTransaction = await transactionDetails.save(null, { useMasterKey: true });
+
+      savedTransaction = await transactionDetails.save(null, {
+        useMasterKey: true,
+      });
     } catch (error) {
       console.error("Coinbase Onramp Error:", error);
       alert("Something went wrong with Coinbase Recharge.");
@@ -267,13 +276,17 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       setWalletLoading(false);
     }
   };
-  
-  const fetchCoinbaseSessionToken = async (walletAddr, rechargeAmount,partnerUserRef) => {
+
+  const fetchCoinbaseSessionToken = async (
+    walletAddr,
+    rechargeAmount,
+    partnerUserRef
+  ) => {
     try {
       const result = await Parse.Cloud.run("generateCoinbaseSessionToken", {
         walletAddr,
         rechargeAmount,
-        partnerUserRef
+        partnerUserRef,
       });
       return result?.token;
     } catch (err) {
@@ -281,7 +294,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       return null;
     }
   };
-  
 
   return (
     <>
@@ -292,7 +304,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           border: "1px solid #E7E7E7",
           mb: 2,
           bgcolor: "white",
-          minWidth:{ xs: "100%", md: "800px" },
+          minWidth: { xs: "100%", md: "800px" },
         }}
       >
         <Typography
@@ -652,16 +664,16 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
                 const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
-      //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
+                //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
 
-      //           const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount,partnerUserRef);
-      // if (!sessionToken) {
-      //   alert("Could not generate session token for Coinbase.");
-      //   return;
-      // }
+                //           const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount,partnerUserRef);
+                // if (!sessionToken) {
+                //   alert("Could not generate session token for Coinbase.");
+                //   return;
+                // }
                 ///const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&sessionToken=${sessionToken}`;
-      
-              //  const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+                //  const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
                 // Save the transaction
                 const TransactionDetails =
@@ -686,7 +698,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 transactionDetails.set("referralLink", buyUrl);
                 transactionDetails.set("transactionIdFromStripe", buyUrl);
                 transactionDetails.set("walletAddr", identity?.walletAddr);
-                  //transactionDetails.set("partnerUserRef",partnerUserRef)
+                //transactionDetails.set("partnerUserRef",partnerUserRef)
                 await transactionDetails.save(null, { useMasterKey: true });
                 setStoredBuyUrl(buyUrl); // Store for retry
                 const popup = window.open(buyUrl, "_blank");
@@ -721,6 +733,157 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               </>
             )}
           </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              height: "52px",
+              borderRadius: "4px",
+              backgroundColor: "#FF9800",
+              color: "#FFFFFF",
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: "18px",
+              ":hover": {
+                backgroundColor: "#FB8C00",
+              },
+              marginTop: "10px",
+            }}
+            disabled={
+              loadingSessionToken || identity?.isBlackListed || rechargeDisabled
+            }
+            onClick={debounce(async () => {
+              if (loadingSessionToken) return;
+              setLoadingSessionToken(true);
+              try {
+                // Assign wallet if missing
+                if (!identity?.walletAddr) {
+                  setWalletLoading(true);
+                  const walletResp = await Parse.Cloud.run(
+                    "assignRandomWalletAddrIfMissing",
+                    {
+                      userId: identity?.objectId,
+                    }
+                  );
+
+                  if (walletResp?.walletAddr) {
+                    identity.walletAddr = walletResp.walletAddr;
+                    setSnackbarOpen(true);
+                  } else {
+                    alert("Failed to assign wallet address.");
+                    return;
+                  }
+                }
+
+                // Generate partnerUserRef
+                const partnerUserRef = `${identity.objectId}-${Date.now()}`;
+
+                // Generate session token
+                const sessionToken = await fetchCoinbaseSessionToken(
+                  identity.walletAddr,
+                  rechargeAmount,
+                  partnerUserRef
+                );
+                if (!sessionToken) {
+                  alert("Could not generate session token for Coinbase.");
+                  return;
+                }
+                const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&appId=16201d2e-a55f-4634-8327-631dfe30fab2&&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+                // Save transaction
+                const TransactionDetails =
+                  Parse.Object.extend("TransactionRecords");
+                const transactionDetails = new TransactionDetails();
+                const user = await Parse.User.current()?.fetch();
+
+                transactionDetails.set("type", "recharge");
+                transactionDetails.set("gameId", "786");
+                transactionDetails.set("username", identity?.username || "");
+                transactionDetails.set("userId", identity?.objectId);
+                transactionDetails.set("transactionDate", new Date());
+                transactionDetails.set("transactionAmount", rechargeAmount);
+                transactionDetails.set("remark", remark);
+                transactionDetails.set("useWallet", false);
+                transactionDetails.set(
+                  "userParentId",
+                  user?.get("userParentId") || ""
+                );
+                transactionDetails.set("status", 1); // pending
+                transactionDetails.set("portal", "Coinbase");
+                transactionDetails.set("walletAddr", identity?.walletAddr);
+                transactionDetails.set("partnerUserRef", partnerUserRef);
+                transactionDetails.set("referralLink", referralUrl);
+                transactionDetails.set("transactionIdFromStripe", referralUrl);
+
+                const savedTransaction = await transactionDetails.save(null, {
+                  useMasterKey: true,
+                });
+                let onrampInstance;
+
+                await initOnRamp(
+                  {
+                    widgetParameters: {
+                      sessionToken,
+                      appId: "16201d2e-a55f-4634-8327-631dfe30fab2",
+                      addresses: {
+                        [identity.walletAddr]: ["base"],
+                      },
+                      presetCryptoAmount: rechargeAmount,
+                      defaultAsset: "USDC",
+                      defaultPaymentMethod: "CARD",
+                      partnerUserId: partnerUserRef,
+                    },
+                    onSuccess: async () => {
+                      if (savedTransaction) {
+                        savedTransaction.set("status", 2); // success
+                        await savedTransaction.save(null, {
+                          useMasterKey: true,
+                        });
+                      }
+                    },
+                    onExit: async () => {
+                      if (savedTransaction) {
+                        savedTransaction.set("status", 10); // cancelled
+                        await savedTransaction.save(null, {
+                          useMasterKey: true,
+                        });
+                      }
+                    },
+                    onEvent: (event) => {
+                      console.log("Coinbase Widget Event:", event);
+                    },
+                    experienceLoggedIn: "popup",
+                    experienceLoggedOut: "popup",
+                    closeOnExit: true,
+                    closeOnSuccess: true,
+                  },
+                  (error, instance) => {
+                    onrampInstance = instance;
+                  }
+                );
+
+                onrampInstance.open();
+              } catch (err) {
+                console.error("Recharge with session token failed:", err);
+                alert(
+                  "Something went wrong during the session token recharge."
+                );
+              } finally {
+                setLoadingSessionToken(false);
+                setWalletLoading(false);
+              }
+            })}
+          >
+            <BsFillCreditCard2FrontFill style={{ marginRight: 8 }} />
+
+            {loadingSessionToken
+              ? "Generating Token..."
+              : "Recharge Token Widget"}
+            <ArrowForwardIcon
+              style={{ width: 24, height: 24, marginLeft: 10 }}
+            />
+          </Button>
+
           <Button
             variant="contained"
             sx={{
