@@ -39,7 +39,8 @@ const ChatbotWidget = () => {
   const inputRef = useRef(null);
   const role = localStorage.getItem("role");
 
-  const { mainOptions, subOptions, finalOptions } = getRoleBasedOptions(role);
+  const { mainOptions, subOptions, finalOptions, finalAnswer } =
+    getRoleBasedOptions(role);
 
   // Show initial options when chat opens
   useEffect(() => {
@@ -54,7 +55,7 @@ const ChatbotWidget = () => {
       setShowOptions(true);
       setIsTextFieldEnabled(false);
     }
-  }, [isOpen]);
+  }, [isOpen, chat.length]);
 
   // Automatically scroll to bottom when new messages arrive
   useEffect(() => {
@@ -67,7 +68,7 @@ const ChatbotWidget = () => {
     ) {
       setUnreadCount((prev) => prev + 1);
     }
-  }, [chat]);
+  }, [chat, isOpen, hasScrolledUp]);
 
   // Focus input when chat opens
   useEffect(() => {
@@ -128,7 +129,7 @@ const ChatbotWidget = () => {
 
   const handleMainOptionSelect = (option) => {
     setShowOptions(false);
-    
+
     if (option.id === "other") {
       setIsTextFieldEnabled(true);
       setCurrentStep("other");
@@ -164,6 +165,27 @@ const ChatbotWidget = () => {
     ]);
     setShowOptions(true);
   };
+
+  // const handleFinalOptionSelect = (option) => {
+  //   setShowOptions(false);
+  //   setChat((prev) => [...prev, { role: "user", text: option }]);
+
+  //   const answer =
+  //     finalAnswer[option] ||
+  //     "I don't have information on that specific topic yet. Please contact support for assistance.";
+
+  //   setIsLoading(true);
+  //   scrollToBottom();
+
+  //   setTimeout(() => {
+  //     setChat((prev) => [...prev, { role: "assistant", text: answer }]);
+  //     setIsLoading(false);
+  //     setCurrentStep("main");
+  //     setSelectedMainOption(null);
+  //     setSelectedSubOption(null);
+  //     setShowOptions(true);
+  //   }, 500);
+  // };
 
   const handleFinalOptionSelect = async (option) => {
     setShowOptions(false);
