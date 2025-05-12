@@ -137,6 +137,7 @@ const ChatbotWidget = () => {
         inputRef.current?.focus();
       }, 100);
     } else {
+      setIsTextFieldEnabled(false);
       setSelectedMainOption(option.id);
       setCurrentStep("sub");
       setChat((prev) => [
@@ -166,36 +167,46 @@ const ChatbotWidget = () => {
     setShowOptions(true);
   };
 
-  // const handleFinalOptionSelect = (option) => {
+  const handleFinalOptionSelect = async (option) => {
+    if (role === "Master-Agent" || role === "Player") {
+      setShowOptions(false);
+      setChat((prev) => [...prev, { role: "user", text: option }]);
+
+      const answer =
+        finalAnswer[option] ||
+        "I don't have information on that specific topic yet. Please contact support for assistance.";
+
+      setIsLoading(true);
+      scrollToBottom();
+
+      setTimeout(() => {
+        setChat((prev) => [...prev, { role: "assistant", text: answer }]);
+        setIsLoading(false);
+        setCurrentStep("main");
+        setSelectedMainOption(null);
+        setSelectedSubOption(null);
+        setShowOptions(true);
+      }, 500);
+    } else {
+      setShowOptions(false);
+      setChat((prev) => [...prev, { role: "user", text: option }]);
+      await sendMessageToBackend(option);
+      setCurrentStep("main");
+      setSelectedMainOption(null);
+      setSelectedSubOption(null);
+      setShowOptions(true);
+    }
+  };
+
+  // const handleFinalOptionSelect = async (option) => {
   //   setShowOptions(false);
   //   setChat((prev) => [...prev, { role: "user", text: option }]);
-
-  //   const answer =
-  //     finalAnswer[option] ||
-  //     "I don't have information on that specific topic yet. Please contact support for assistance.";
-
-  //   setIsLoading(true);
-  //   scrollToBottom();
-
-  //   setTimeout(() => {
-  //     setChat((prev) => [...prev, { role: "assistant", text: answer }]);
-  //     setIsLoading(false);
-  //     setCurrentStep("main");
-  //     setSelectedMainOption(null);
-  //     setSelectedSubOption(null);
-  //     setShowOptions(true);
-  //   }, 500);
+  //   await sendMessageToBackend(option);
+  //   setCurrentStep("main");
+  //   setSelectedMainOption(null);
+  //   setSelectedSubOption(null);
+  //   setShowOptions(true);
   // };
-
-  const handleFinalOptionSelect = async (option) => {
-    setShowOptions(false);
-    setChat((prev) => [...prev, { role: "user", text: option }]);
-    await sendMessageToBackend(option);
-    setCurrentStep("main");
-    setSelectedMainOption(null);
-    setSelectedSubOption(null);
-    setShowOptions(true);
-  };
 
   const sendMessageToBackend = async (message) => {
     setIsLoading(true);
@@ -245,7 +256,9 @@ const ChatbotWidget = () => {
     setChat((prev) => [...prev, userMsg]);
     setInput("");
     await sendMessageToBackend(input);
-    setCurrentStep("main");
+    if (!isTextFieldEnabled) {
+      setCurrentStep("main");
+    }
     setSelectedMainOption(null);
     setSelectedSubOption(null);
     setShowOptions(true);

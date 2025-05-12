@@ -1,4 +1,16 @@
-import { playerFinalAnswers, playerFinalOptions, playerMainOptions, playerSubOptions } from "./chatConst";
+import {
+  agentFinalOptions,
+  agentMainOptions,
+  agentSubOptions,
+  masterAgentFinalAnswers,
+  masterAgentFinalOptions,
+  masterAgentMainOptions,
+  masterAgentSubOptions,
+  playerFinalAnswers,
+  playerFinalOptions,
+  playerMainOptions,
+  playerSubOptions,
+} from "./chatConst";
 
 export const mapTransactionStatus = (status) => {
   switch (status) {
@@ -270,23 +282,24 @@ export const getRoleBasedOptions = (role) => {
 
   switch (role) {
     case "Player":
-      mainOptions = [...playerMainOptions ];
-      subOptions = { ...playerSubOptions };
-      finalOptions = { ...playerFinalOptions };
-      finalAnswer = { ...playerFinalAnswers };
+      mainOptions = playerMainOptions;
+      subOptions = playerSubOptions;
+      finalOptions = playerFinalOptions;
+      finalAnswer = playerFinalAnswers;
       break;
 
-    // case "Agent":
-    //   mainOptions = [...playerMainOptions];
-    //   subOptions = { ...playerSubOptions };
-    //   finalOptions = { ...playerFinalOptions };
-    //   break;
+    case "Agent":
+      mainOptions = agentMainOptions;
+      subOptions = agentSubOptions
+      finalOptions = agentFinalOptions;
+      break;
 
-    // case "Master-Agent":
-    //   mainOptions = [...playerMainOptions];
-    //   subOptions = { ...playerSubOptions };
-    //   finalOptions = { ...playerFinalOptions };
-    //   break;
+    case "Master-Agent":
+      mainOptions = masterAgentMainOptions;
+      subOptions = masterAgentSubOptions;
+      finalOptions = masterAgentFinalOptions;
+      finalAnswer = masterAgentFinalAnswers;
+      break;
 
     // case "Super-User":
     //   mainOptions = [...playerMainOptions];
@@ -295,10 +308,10 @@ export const getRoleBasedOptions = (role) => {
     //   break;
 
     default:
-      mainOptions = [...playerMainOptions];
-      subOptions = { ...playerSubOptions };
-      finalOptions = { ...playerFinalOptions };
-      finalAnswer = { ...playerFinalAnswers };
+      mainOptions = [playerMainOptions];
+      subOptions = { playerSubOptions };
+      finalOptions = { playerFinalOptions };
+      finalAnswer = { playerFinalAnswers };
   }
 
   return {
