@@ -521,7 +521,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               </Box>
             )}
           </Box>
-          <Box
+          {/* <Box
             sx={{
               display: "flex",
               gap: "6px",
@@ -542,6 +542,58 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   padding: { xs: "6px 12px", md: "8px 16px" },
                   border:
                     amount !== rechargeAmount ? "1px dashed #93B1D2" : "none",
+                  bgcolor:
+                    amount === rechargeAmount ? "#2E5BFF" : "transparent",
+                  color: amount === rechargeAmount ? "white" : "black",
+                  ":hover": {
+                    border: "none",
+                    bgcolor: "#2E5BFF",
+                    color: "white",
+                  },
+                  gap: "8px",
+                }}
+                onClick={() => setRechargeAmount(amount)}
+              >
+                <img
+                  src={AOG_Symbol}
+                  alt="AOG Symbol"
+                  style={{ width: "24px", height: "24px" }}
+                />
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }}
+                >
+                  {amount}
+                </Typography>
+              </Button>
+            ))}
+          </Box> */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              justifyContent: "center",
+              alignItems: "center",
+              mt: 2,
+              mb: 2,
+              flexWrap: "wrap", // Always wrap on all screen sizes
+              maxWidth: "100%",
+            }}
+          >
+            {[10, 15, 20, 30, 40, 50, 75, 100].map((amount) => (
+              <Button
+                key={amount}
+                variant="outlined"
+                sx={{
+                  borderRadius: "40px",
+                  width: {
+                    xs: "calc(50% - 8px)", // 2 buttons per row on extra small screens
+                    sm: "calc(33.33% - 10px)", // 3 buttons per row on small screens
+                    md: "calc(25% - 12px)", // 4 buttons per row on medium screens
+                    lg: "auto", // Flexible width on large screens
+                  },
+                  padding: { xs: "6px 12px", md: "8px 16px" },
+                  border:
+                    amount !== rechargeAmount ? "1px dashed#93B1D2" : "none",
                   bgcolor:
                     amount === rechargeAmount ? "#2E5BFF" : "transparent",
                   color: amount === rechargeAmount ? "white" : "black",
