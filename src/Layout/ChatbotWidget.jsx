@@ -168,7 +168,7 @@ const ChatbotWidget = () => {
   };
 
   const handleFinalOptionSelect = async (option) => {
-    if (role === "Master-Agent" || role === "Player") {
+    if (role === "Master-Agent" || role === "Player" || role === "Agent") {
       setShowOptions(false);
       setChat((prev) => [...prev, { role: "user", text: option }]);
 

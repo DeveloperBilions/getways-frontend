@@ -1,4 +1,5 @@
 import {
+  agentFinalAnswers,
   agentFinalOptions,
   agentMainOptions,
   agentSubOptions,
@@ -292,6 +293,7 @@ export const getRoleBasedOptions = (role) => {
       mainOptions = agentMainOptions;
       subOptions = agentSubOptions
       finalOptions = agentFinalOptions;
+      finalAnswer = agentFinalAnswers
       break;
 
     case "Master-Agent":

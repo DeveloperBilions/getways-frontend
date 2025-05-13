@@ -497,8 +497,8 @@ export const masterAgentFinalAnswers = {
   // Add User
   "How do I create a new Agent using the 'Add New User' option?":
     "To create a new Agent using the 'Add New User' option in the User Management section of the GETWAYS platform, you would typically follow these steps: 1. Navigate to the User Management section. 2. Look for the 'Add New User' option. 3. Click on 'Add New User' to begin creating a new Agent. 4. Fill in the required information for the new Agent, such as User Name, Email, Parent User (Master Agent), User Type, and Date. 5. Once you have entered all the necessary details, you should be able to save or submit the information to create the new Agent in the system. If you need more specific guidance or have any other questions, feel free to ask!",
-  "What information is required to add a new Agent?":
-    "To add a new Agent in the GETWAYS Master Agent section, you will typically need to provide the following information: - User Name - Email - User Type - Parent User Additionally, you may have the option to set permissions such as Disable Recharge, Recharge Limits, Password Permission, and Allow Creation Permission for the new Agent. Is there anything else you would like to know about adding a new Agent?",
+  "What information is required to add a new Player?":
+    "When adding a new Player, the following information is required to be filled out: - Username - Name - Phone Number - Email - Password - Confirm Password Is there anything else you would like to know about adding a new Player?",
   "Can I add a Player directly as a Master Agent?":
     "As a Master Agent, you can only add Agents directly. Players can be added by Agents under your supervision. If you need to add a Player, you would need to ask one of your Agents to create the Player account for you.",
 
@@ -544,7 +544,7 @@ export const masterAgentFinalAnswers = {
   "How do I filter Recharge Records by Account, Status, or Mode?":
     "To filter Recharge Records by Account, Status, or Mode in the Master Agent section of the GETWAYS platform, you can follow these steps: 1. Go to the Recharge Records section. 2. Look for the filter options provided, usually located at the top of the table or list of records. 3. You should see options to filter by Account, Status, and Mode. 4. Click on the filter option you want to apply (Account, Status, or Mode) and select the specific criteria you wish to filter by. 5. The records will then be filtered based on your selected criteria, allowing you to view the Recharge Records that match your filtering choices. If you need further assistance or have any more questions, feel free to ask",
   "What statuses can I filter Recharge Records by?":
-    "You can filter Recharge Records by the following statuses: - Account - Status - Mode Is there anything else you would like to know about Recharge Records?",
+    "You can filter Recharge Records by the following statuses: - Pending Referral - Pending Confirmation - Confirmed - Coin Credit - Expired - Failed Transaction Feel free to ask if you need more information or assistance!",
 
   // Export Recharges
   "How can I export Recharge Records in PDF or Excel format?":
@@ -562,7 +562,7 @@ export const masterAgentFinalAnswers = {
   "How do I filter Redeem Records by Account or Status?":
     "To filter Redeem Records by Account or Status in the Master Agent section of GETWAYS platform, you can use the filtering options available. Here's how you can do it: 1. Log in to your Master Agent account on the GETWAYS platform. 2. Navigate to the Redeem Records section. 3. Look for the filter options provided for filtering by Account and Status. 4. Select the desired filter criteria for Account or Status to refine the list of Redeem Records displayed. 5. Once you apply the filters, the Redeem Records will be displayed according to your selected criteria. If you encounter any issues or need further assistance with filtering Redeem Records, feel free to let me know!",
   "What statuses are available for filtering Redeem Records?":
-    "You can filter Redeem Records by the following statuses: - Account - Status Feel free to ask if you have any more questions or need further assistance!",
+    "You can filter Redeem Records by the following statuses: - Failed - Pending Approval - Rejected - Redeem Successfully - Expired - Failed Transaction Is there anything else you would like to know about Redeem Records or any other feature of the Agent section?",
 
   // Export Redeems
   "How can I export Redeem Records in PDF or Excel format?":
@@ -678,7 +678,6 @@ export const agentFinalOptions = {
   "referral-link": [
     "How do I create a referral link for Players?",
     "How can Players use my referral link to sign up?",
-    "How do I track Players who signed up using my referral link?",
   ],
   "player-actions": [
     "How do I perform a recharge for a Player?",
@@ -745,9 +744,133 @@ export const agentFinalOptions = {
     "How do I log out of my Agent account?",
     "What happens to my session after logging out?",
   ],
-  balance: [
-    "How is the Agent Balance calculated?",
-    "Why does my balance reflect the combined balance of Players?",
-    "How can I view my current balance?",
-  ],
+  balance: ["How can I view my current balance?"],
+};
+
+export const agentFinalAnswers = {
+  // View Players
+  "How can I view the list of Players under me?":
+    "To view the list of Players under you, you can access the User Management section in the Agent dashboard. There, you will find a list of Players that includes details such as User Name, Email, Parent User, User Type, and Date. You can click on the Actions button in the table to perform various actions like Redeem, Recharge, view Wallet Details, copy Wallet Address, access transaction details, edit player details, or delete player details. Is there anything specific you would like to know about viewing Players under you?",
+  "What details are shown in the User Management table for Players?":
+    "In the User Management table for Players, the following details are typically shown: - User Name - Email - Parent User - User Type - Date Additionally, you can perform various actions for each Player by clicking the Actions button in the table. These actions include Redeem, Recharge, Wallet, View Key, BaseScan, EtherScan, Edit, and Delete.",
+  "How do I check the Parent User of a Player?":
+    "To check the Parent User of a Player, you can access the User Management section in the Agent dashboard. From there, you can view a list of Players under you, including User Name, Email, Parent User, User Type, and Date. The Parent User column will display the Agent who is the direct parent of each Player. If you need more detailed information or assistance with this, feel free to ask!",
+
+  // Add Player
+  "How do I create a new Player using the 'Add New User' option?":
+    "To create a new Player using the 'Add New User' option in the User Management section of the Agent platform, you can follow these steps: 1. Navigate to the User Management section. 2. Look for the 'Add New User' option. 3. Click on 'Add New User' to create a new Player. 4. Fill in the required details such as User Name, Email, Parent User (Agent), User Type, and Date. 5. Once you have entered the necessary information, save the new Player profile. 6. The new Player will now be successfully created and linked to you as their Parent User (Agent). If you need further assistance or have any more questions, feel free to ask!",
+  "What information is required to add a new Player?":
+    "When adding a new Player, the following information is required to be filled out: - Username - Name - Phone Number - Email - Password - Confirm Password Is there anything else you would like to know about adding a new Player?",
+  "Are there any restrictions when adding a new Player?":
+    "When adding a new Player in the GETWAYS Agent section, there are certain required fields that must be filled out. These fields include: - Username - Name - Phone Number - Email - Password - Confirm Password Ensuring that all these fields are properly filled out is essential when creating a new Player. If any of these required fields are left blank or not filled out correctly, it may hinder the successful creation of the new Player.",
+
+  // Referral Link
+  "How do I create a referral link for Players?":
+    "To create a referral link for Players, you can follow these steps: 1. Log in to the Agent section of the GETWAYS platform. 2. Navigate to the User Management tab. 3. Click on the Add New User option. 4. Fill in the required fields for the new Player, including Username, Name, Phone Number, Email, Password, and Confirm Password. 5. Once the Player is created, you can find the referral link associated with that Player. 6. Share this referral link with potential Players for them to sign up and be linked to you as the Agent. If you need further assistance or have any other questions, feel free to ask!",
+  "How can Players use my referral link to sign up?":
+    "Players can use your referral link to sign up by following these steps: 1. You, as an Agent, generate a referral link from your Agent account. 2. Share this referral link with potential Players. 3. When a Player clicks on the referral link, they will be directed to the sign-up page with your Agent information pre-filled. 4. The Player can then complete the sign-up process by entering their details and creating an account. 5. Once the Player successfully signs up using your referral link, they will be linked to your Agent account, and you can start managing them within your dashboard. This way, Players can easily sign up and be associated with you as their Agent. If you have any more questions or need further clarification, feel free",
+
+  // Player Actions
+  "How do I perform a recharge for a Player?":
+    "To perform a recharge for a Player, follow these steps: 1. Go to the User Management section. 2. Locate the Player for whom you want to recharge. 3. Click on the Actions button in the table next to the Player's details. 4. Select the Recharge option. 5. Enter the necessary recharge details such as the amount to be recharged and any remarks if needed. 6. Submit the recharge request. 7. If the recharge status is Pending Confirmation, you'll need to copy the recharge confirmation URL and manually confirm the recharge for the Player. 8. If the status is Confirmed, you can click on the Coin Credit button to credit the coins to the Player. If you have any",
+  "How can I redeem funds for a Player?":
+    "To redeem funds for a Player, follow these steps: 1. Go to the Redeem Records section in the Agent dashboard. 2. Locate the Player for whom you want to redeem funds. 3. If the status is Pending Approval, you will see two buttons: ✅ (tick) and ❌ (cross). 4. Click the ✅ (tick) button to approve the redemption request. 5. A confirmation dialog will appear. Confirm the redemption request to complete the process. 6. The status will be updated to reflect the approved redemption. If you have any more questions or need further assistance, feel free to ask!",
+  "How do I view a Player's wallet details?":
+    "To view a Player's wallet details, you can access the Wallet option for that specific Player. This will allow you to see the available balance, payment methods, cashout status, and other relevant information related to the Player's wallet. If you need more details or have any other questions, feel free to ask!",
+  "How can I copy a Player's wallet address?":
+    "To copy a Player's wallet address, you can access the Player's profile and click on the View Key option. This will allow you to copy the wallet address associated with that player. If you have any more questions or need further assistance, feel free to ask!",
+  "How do I access BaseScan or EtherScan for a Player's transactions?":
+    "To access BaseScan or EtherScan for a Player's transactions, you can click on the BaseScan or EtherScan option under the Actions menu for that specific Player. This will allow you to view detailed transaction information related to that Player. Let me know if you need any more details or assistance!",
+  "How can I edit or delete a Player's details?":
+    "To edit or delete a Player's details in the Agent section, you can follow these steps: 1. Go to the User Management tab. 2. Find the Player you want to edit or delete in the list. 3. Click on the Actions button for that specific Player. 4. From the dropdown menu, you can select either Edit to modify the Player's details or Delete to remove the Player from your list. By following these steps, you can easily edit or delete a Player's details as needed. Let me know if you need more help with this!",
+
+  // Filter Players
+  "How can I filter Players by Email or Username?":
+    "To filter Players by Email or Username in the User Management section, you can use the search bar provided in the User Management interface. Simply enter the email or username you want to filter by, and the system will display the relevant Players matching your search criteria. Let me know if you need more assistance with this feature!",
+  "What filters are available in the User Management section?":
+    "In the User Management section, you can filter Players by Email and Username. This allows you to easily search for specific Players under your management. If you need more information or assistance with filtering Players, feel free to ask!",
+
+  // View Recharges
+  "How can I view all Recharge Records for Players under me?":
+    "To view all Recharge Records for Players under you, you can access the Recharge Records section in the Agent area of the GETWAYS platform. Once there, you will see a list of all Recharge Records with columns such as Action, Accounts, Recharged, Remark, Status, Failed Reason, Parent, and Recharge Date. You can filter these records by Account, Status, and Mode. Additionally, you have the option to export the data in PDF and Excel formats for your convenience. If you have any specific questions or need further assistance, feel free to ask!",
+  "What details are included in the Recharge Records list?":
+    "The Recharge Records list includes the following details for each entry: - Action - Accounts - Recharged amount - Remark - Status - Failed Reason - Parent User - Recharge Date These details provide a comprehensive overview of each recharge transaction for Players under the Agent.",
+
+  // Filter Recharges
+  "How do I filter Recharge Records by Account, Status, or Mode?":
+    "To filter Recharge Records by Account, Status, or Mode in the Agent section of GETWAYS platform, follow these steps: 1. Go to the Recharge Records section. 2. Look for the filter options available for filtering the records. 3. You can filter by: - Account: This allows you to filter recharge records based on the account used for the recharge. - Status: This helps you filter records based on the current status of the recharge (e.g., Pending Confirmation, Confirmed). - Mode: This enables you to filter records based on the mode of recharge. Simply select the desired filter criteria, and the system will display the Recharge Records that match your selected filters.",
+  "What statuses can I filter Recharge Records by?":
+    "You can filter Recharge Records by the following statuses: - Pending Referral - Pending Confirmation - Confirmed - Coin Credit - Expired - Failed Transaction Feel free to ask if you need more information or assistance!",
+
+  // Export Recharges
+  "How can I export Recharge Records in PDF or Excel format?":
+    "To export Recharge Records in PDF or Excel format, follow these steps: 1. Go to the Recharge Records section in the Agent dashboard. 2. Use the filters to display the specific Recharge Records you want to export. 3. Look for an option or button that allows you to export the data. It should be labeled as Export or similar. 4. Click on the export option and choose the format you prefer: PDF or Excel. 5. The system will generate the export file with the Recharge Records in the selected format for you to download. If you encounter any issues or need further assistance, feel free to ask!",
+  "What data is included in the exported Recharge Records?":
+    "When you export Recharge Records, the following data is included in the exported file: - Action - Accounts - Recharged - Remark - Status - Failed Reason - Parent - Recharge Date This information helps Agents keep track of all recharge activities for Players under them.",
+
+  // View Redeems
+  "How can I view all Redeem Records for Players under me?":
+    "To view all Redeem Records for Players under you, you can access the Redeem Records section in the Agent area of the platform. There, you will find a list of all the Redeem Records, including columns such as Action, Accounts, Redeemed, Remark, Status, Service Fee, Parent, and Redeem Date. You can also filter the records by Account and Status to easily find the information you need. Additionally, you have the option to export the data in PDF and Excel formats for further analysis or record-keeping. Let me know if you need more details or assistance with this feature!",
+  "What information is shown in the Redeem Records list?":
+    "In the Redeem Records list, you can view the following information for each redeem transaction: - Action: Approve or Reject - Accounts: Details of the account used for the redeem - Redeemed: Amount redeemed - Remark: Additional notes or comments - Status: Pending Approval, Approved, Rejected - Service Fee: Fee charged for the redeem - Parent: Referral link used, if any - Redeem Date: Date and time of the redeem transaction Feel free to ask if you need more details or have any other questions!",
+
+  // Filter Redeems
+  "How do I filter Redeem Records by Account or Status?":
+    "To filter Redeem Records by Account or Status, you can use the filter options available in the Redeem Records section of the Agent platform. Simply click on the filter options for Account or Status, and then select the specific criteria you want to filter by. This will help you quickly find the Redeem Records that match your desired parameters. Let me know if you need more information!",
+  "What statuses are available for filtering Redeem Records?":
+    "You can filter Redeem Records by the following statuses: - Failed - Pending Approval - Rejected - Redeem Successfully - Expired - Failed Transaction Is there anything else you would like to know about Redeem Records or any other feature of the Agent section?",
+
+  // Export Redeems
+  "How can I export Redeem Records in PDF or Excel format?":
+    "To export Redeem Records in PDF or Excel format, you can follow these steps: 1. Go to the Redeem Records section in the Agent dashboard. 2. Apply any filters you need to refine the list of Redeem Records. 3. Look for an Export button or option on the page. 4. Click on the Export button and select the format you prefer (PDF or Excel). 5. The system will generate the file for you to download with all the Redeem Records in the chosen format. If you encounter any issues or need further assistance, feel free to ask!",
+  "What data is included in the exported Redeem Records?":
+    "When you export Redeem Records data, the following information is included in the export file: - Action - Accounts - Redeemed - Remark - Status - Service Fee - Parent - Redeem Date Is there anything else you would like to know about the Redeem Records or any other feature on the platform?",
+
+  // View Summary
+  "What information is included in the Summary section?":
+    "In the Summary section, you can view the following information: - Total number of users - Total Recharges - Total Redeems - Pending Recharges - Failed Redeems Is there anything else you would like to know about the Summary section?",
+  "How can I view the total number of Players and transactions?":
+    "To view the total number of Players and transactions, you can access the Summary section in the Agent dashboard. In the Summary, you will find details such as the total number of users, total recharges, total redeems, pending recharges, and failed redeems. Simply filter the summary by date or search for specific Players to get an overview of the transactions and the number of Players under your management.",
+  "How do I check total Recharges and Redeems?":
+    "To check the total Recharges and Redeems, you can access the Summary section. The Summary provides you with an overview of the total number of users, total Recharges, total Redeems, pending Recharges, and failed Redeems. You can filter this information by date and search for specific Players under your account by name. If you need more detailed information or assistance, feel free to ask!",
+
+  // Filter Summary
+  "How can I filter the Summary by date?":
+    "In the Summary section, you can filter the information by date. Simply select the date range you want to view, and the summary will update to show the relevant data within that timeframe. If you have any other questions or need further assistance, feel free to ask!",
+  "What date ranges are available for filtering the Summary?":
+    "In the Summary section, you can filter by specific dates to view a detailed summary. The available date ranges for filtering include: - All Time - Today - Yesterday - This Week - Last Week - This Month - Last Month You can choose any of these date ranges to get a summary for that specific period. Is there anything else you would like to know?",
+
+  // Search Players
+  "How do I search for a specific Player in the Summary?":
+    "To search for a specific Player in the Summary section, you can enter the Player's name in the search bar provided. This will filter the results to show only the Player you are looking for. Is there anything else you would like to know about searching for Players in the Summary?",
+  "What details can I see for searched Players in the Summary?":
+    "In the Summary section, you can view the following details for searched Players under you: - Total number of users - Total Recharges - Total Redeems - Pending Recharges - Failed Redeems Is there anything else you would like to know about the Summary section or Players' details?",
+
+  // Change Password
+  "How do I change my Agent account password?":
+    "To change your Agent account password, you can follow these steps: 1. Click on the profile icon in the top right corner of the GETWAYS platform. 2. Select Change Password from the options. 3. A popup will appear where you can enter your current password and then set a new password. 4. Once you've entered the required information, click on the appropriate button to confirm the password change.",
+  "What should I do if I encounter issues changing my password?":
+    "If you encounter any issues while changing your password on the GETWAYS platform, you can try the following steps: 1. **Check your Internet Connection**: Ensure you have a stable internet connection before attempting to change your password. 2. **Browser Compatibility**: Make sure you are using a compatible browser to access the platform. Recommended browsers include Chrome, Firefox, Safari, or Edge. 3. **Clear Browser Cache**: Clear your browser cache and cookies as this can sometimes cause issues with website functionality. 4. **Contact Support**: If the issue persists, you can reach out to the platform's support team for assistance. They can provide further guidance on resolving password change issues. If you need more specific assistance or guidance, feel free to provide additional",
+
+  // Recharge Limit
+  "How do I set Recharge Limits for Players under me?":
+    "To set Recharge Limits for Players under you in the GETWAYS Agent section, follow these steps: 1. Log in to your Agent account. 2. Click on the profile icon in the top right corner. 3. Select Recharge Limit from the options. 4. A popup will appear where you can set the desired recharge limit for your Players. 5. Enter the recharge limit value you wish to set. 6. Click on the Save or Confirm button to save the recharge limit for your Players. By following these steps, you can easily set recharge limits for the Players under your management on the platform. If you need further assistance, feel free to ask!",
+  "What are the minimum and maximum Recharge Limits I can set?":
+    "The minimum and maximum Recharge Limits that you can set for Players under you can be customized based on your requirements. There are no predefined standard values for the limits, allowing you the flexibility to adjust them as needed. Feel free to set the Recharge Limits according to your preferences and the needs of your Players. If you have specific values in mind or need further assistance with setting the limits, please let me know!",
+
+  // Help Videos
+  "How can I access Help Videos for Login and Sign Up processes?":
+    "To access Help Videos for Login and Sign Up processes, you can click on the profile icon in the top right corner of the Agent section. From there, you will find an option to watch Help Videos. Simply select that option to view the videos and learn more about the Login and Sign Up processes.",
+  "What topics are covered in the Help Videos?":
+    "The Help Videos cover topics related to the Login and Sign Up processes. They provide step-by-step guidance on how to navigate through these essential processes on the GETWAYS platform. If you need more details or assistance with the Help Videos, feel free to ask!",
+
+  // Logout
+  "How do I log out of my Agent account?":
+    "To log out of your Agent account, you can click on the profile icon in the top right corner of the screen. From there, you will see the option to Logout. Simply click on Logout to successfully log out of your Agent account.",
+  "What happens to my session after logging out?":
+    "After logging out, your session will be terminated, and you will be redirected to the login page. This ensures that your account remains secure and that you need to log back in to access the Agent section of the GETWAYS platform.",
+
+  // Balance
+  "How can I view my current balance?":
+    "To view your current balance as an Agent on the platform, you can check the top right corner near the Profile icon. The balance displayed reflects the combined balance of all Players under your account. If you need any more assistance, feel free to ask!",
 };
