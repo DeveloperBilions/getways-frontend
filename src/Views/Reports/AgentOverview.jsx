@@ -15,7 +15,7 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import { fetchTransactionsofAgentByDate } from "../../Utils/utils";
 import debounce from "lodash/debounce";
 
-export const AgentOverview = () => {
+const AgentOverview = () => {
   const { identity } = useGetIdentity();
   const [formattedData, setFormattedData] = useState([]);
   const [lineChartDates, setLineChartDates] = useState([]);
@@ -444,3 +444,5 @@ export const AgentOverview = () => {
     </>
   );
 };
+
+export default AgentOverview;
