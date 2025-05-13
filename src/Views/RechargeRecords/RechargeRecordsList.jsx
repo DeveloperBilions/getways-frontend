@@ -927,39 +927,69 @@ export const RechargeRecordsList = (props) => {
               <FunctionField
                 label="Failed Reason"
                 render={(record) => {
-                  const errorCode = parseInt(record.fail_reason); // Ensure it's a number
-                  const message = failedReasonMessages[errorCode];
-                  const fullText = message
-                    ? `${record.fail_reason} - ${message}`
-                    : "-";
+                  const failedReason = record.failed_reason;
+                  const failReasonCode = record.fail_reason;
 
-                  // Only show tooltip if text is long
-                  const maxLength = 30;
-                  const isLongText = fullText.length > maxLength;
-                  const displayText = isLongText
-                    ? `${fullText.substring(0, maxLength)}...`
-                    : fullText;
+                  // Priority 1: Directly show `failed_reason` if present
+                  if (failedReason) {
+                    const isLong = failedReason.length > 30;
+                    const display = isLong
+                      ? failedReason.substring(0, 30) + "..."
+                      : failedReason;
+                    return (
+                      <Tooltip title={failedReason} arrow placement="top">
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            maxWidth: "200px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            cursor: "default",
+                          }}
+                        >
+                          {display}
+                        </Typography>
+                      </Tooltip>
+                    );
+                  }
 
-                  return fullText !== "-" ? (
-                    <Tooltip title={fullText} arrow placement="top">
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          maxWidth: "200px",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "default",
-                        }}
-                      >
-                        {displayText}
-                      </Typography>
-                    </Tooltip>
-                  ) : (
-                    "-"
-                  );
+                  // Priority 2: Handle numeric `fail_reason` if `failed_reason` is not present
+                  const code = parseInt(failReasonCode);
+                  const mappedMessage = !isNaN(code)
+                    ? failedReasonMessages[code]
+                    : null;
+
+                  if (mappedMessage) {
+                    const fullText = `${failReasonCode} - ${mappedMessage}`;
+                    const isLong = fullText.length > 30;
+                    const display = isLong
+                      ? fullText.substring(0, 30) + "..."
+                      : fullText;
+
+                    return (
+                      <Tooltip title={fullText} arrow placement="top">
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            maxWidth: "200px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            cursor: "default",
+                          }}
+                        >
+                          {display}
+                        </Typography>
+                      </Tooltip>
+                    );
+                  }
+
+                  // If neither exists
+                  return "-";
                 }}
               />
+
               {role === "Super-User" && (
                 <FunctionField
                   label="Transaction Confirmation Link"
@@ -1190,7 +1220,17 @@ export const RechargeRecordsList = (props) => {
               const doc = new jsPDF();
               doc.text("Recharge Records", 10, 10);
               doc.autoTable({
-                head: [["No", "Name", "Amount($)", "Remark", "Status","Mode", "Date"]],
+                head: [
+                  [
+                    "No",
+                    "Name",
+                    "Amount($)",
+                    "Remark",
+                    "Status",
+                    "Mode",
+                    "Date",
+                  ],
+                ],
                 body: exportData.map((row, index) => [
                   index + 1,
                   row.username,

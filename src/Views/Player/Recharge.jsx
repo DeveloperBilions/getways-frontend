@@ -648,7 +648,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             </Alert>
           )}
 
-          <Button
+          {/* <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -783,22 +783,23 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
+          </Button> */}
           <Button
             variant="contained"
             fullWidth
             sx={{
+              width: "100%",
               height: "52px",
               borderRadius: "4px",
-              backgroundColor: "#FF9800",
+              backgroundColor: "#00695C", // Slightly lighter than #0052FF
               color: "#FFFFFF",
+              mt: 2,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "18px",
               ":hover": {
-                backgroundColor: "#FB8C00",
+                backgroundColor: "#004D40", // deeper teal-green on hover
               },
-              marginTop: "10px",
             }}
             disabled={
               loadingSessionToken || identity?.isBlackListed || rechargeDisabled
@@ -929,7 +930,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
             {loadingSessionToken
               ? "Generating Token..."
-              : "Recharge Token Widget"}
+              : "Quick Debit Recharge"}
             <ArrowForwardIcon
               style={{ width: 24, height: 24, marginLeft: 10 }}
             />
