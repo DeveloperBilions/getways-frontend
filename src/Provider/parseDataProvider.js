@@ -256,6 +256,7 @@ export const dataProvider = {
           total,
         };
       } else if (resource === "redeemRecords") {
+        console.log(filter,role,"hjyuiuiu")
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -282,6 +283,7 @@ export const dataProvider = {
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
           query.notEqualTo("isCashOut", true);
+          query.notContainedIn("status", [11, 12, 13]);
         } else if (role === "Master-Agent") {
           // filter &&
           //   Object.keys(filter).map((f) => {
@@ -291,6 +293,7 @@ export const dataProvider = {
           var { ids } = await fetchUsers(null, true);
           query.containedIn("userId", ids);
           query.notEqualTo("isCashOut", true);
+          query.notContainedIn("status", [11, 12, 13]);
         }
         if (
           filter &&
@@ -332,6 +335,7 @@ export const dataProvider = {
             }
           }
         }
+        console.log(query,"query result")
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
