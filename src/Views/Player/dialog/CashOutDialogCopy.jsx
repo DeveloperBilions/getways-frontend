@@ -3,7 +3,6 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
-  Button,
   ModalFooter,
   Col,
 } from "reactstrap";
@@ -13,7 +12,7 @@ import SelectGiftCardDialog from "./SelectGiftCardDialog";
 import Close from "../../../Assets/icons/close.svg";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
-import { Alert } from "@mui/material";
+import { Alert ,Button} from "@mui/material";
 import CheckbookPaymentDialog from './CheckbookPaymentDialog'; // Adjust path as needed
 
 const CashOutModal = ({
@@ -76,9 +75,19 @@ const CashOutModal = ({
     onClose();
   };
   const handleBalanceChange = (e) => {
-    setBalance(e.target.value);
-    setErrorMessage(""); // Clear error message when user starts typing
+    const raw = e.target.value;
+  
+    // Remove non-digit characters
+    const numeric = raw.replace(/\D/g, "");
+  
+    // Limit to 4 digits
+    if (numeric.length > 4) return;
+  
+    setBalance(numeric);
+    setErrorMessage("");
   };
+  
+  
 
   const handleClose = () => {
     setBalance(initialBalance);
@@ -171,7 +180,7 @@ const CashOutModal = ({
                   style={{ width: "40px", height: "40px", marginRight: "10px" }}
                 />
                 <TextField
-                  type="number"
+                  type="text"
                   value={balance}
                   onChange={handleBalanceChange}
                   variant="standard" // Removes the default border
@@ -204,42 +213,25 @@ const CashOutModal = ({
             </Box>
           </ModalBody>
           <ModalFooter className="custom-modal-footer">
-            <Col md={12}>
-              <Box
-                className="d-flex w-100 justify-content-between"
-                sx={{
-                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
-                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
-                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
-                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
-                  width: "100% !important", // Ensure the container takes full width
-                }}
-              >
+            <Box sx={{display:"flex",gap:2,py:2}}>
                 <Button
-                  className="custom-button cancel"
-                  style={{
-                    border: "#E7E7E7 !important",
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    fontFamily: "Inter",
-                  }}
+                          variant="outlined"
+
+                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                   onClick={handleClose}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="custom-button"
-                  style={{
-                    backgroundColor: "#2E5BFF",
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    fontFamily: "Inter",
-                  }}
+                  
+                  variant="contained"
+                  color="primary"
+                  sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                   onClick={handalOpenGiftCard}
                   disabled={cashoutDisabled}
                 >
                   Next
-                </Button>
+                </Button></Box>
                 {/* <Button
                   className="custom-button"
                   style={{
@@ -278,8 +270,7 @@ const CashOutModal = ({
                 >
                  Next
                 </Button> */}
-              </Box>
-            </Col>
+              
           </ModalFooter>
         </Box>
       </Modal>
@@ -288,6 +279,7 @@ const CashOutModal = ({
         onClose={() => {
           setIsGiftCardOpen(false);
           handleClose();
+          handleRefresh()
         }}
         onBack={() => {
           setIsGiftCardOpen(false);

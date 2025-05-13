@@ -21,6 +21,7 @@ import { Box, Button, IconButton, Typography } from "@mui/material";
 import "../../../Assets/css/cashoutDialog.css";
 import { useNotify } from "react-admin";
 import Close from "../../../Assets/icons/close.svg";
+import UserGiftInfoDialog from "./UserGiftInfoDialog";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -45,6 +46,11 @@ const SelectGiftCardDialog = ({
   const notify = useNotify();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+
   useEffect(() => {
     if (open) {
       fetchGiftCards(searchTerm);
@@ -81,17 +87,15 @@ const SelectGiftCardDialog = ({
           return true;
         });
         setTotalPages(Math.ceil(allResponse.totalCount / perPage));
-
       } else {
         const response = await Parse.Cloud.run("fetchGiftCards", {
           searchTerm: search.trim(),
           currentPage: page,
           perPage,
         });
-        console.log(response,"responseresponseresponseresponse")
+        console.log(response, "responseresponseresponseresponse");
         combinedResults = response.result || [];
         setTotalPages(Math.ceil(response.totalCount / perPage));
-
       }
 
       setGiftCards(combinedResults);
@@ -103,26 +107,52 @@ const SelectGiftCardDialog = ({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedGiftCard) {
       setErrorMessage("Please select a gift card to proceed.");
       return;
-    } else {
-      handleSubmit();
     }
+
+    const user = await Parse.User.current()?.fetch();
+    const savedFirst = user?.get("gift_firstName");
+    const savedLast = user?.get("gift_lastName");
+    const savedEmail = user?.get("gift_email");
+
+   // if (!savedFirst || !savedLast || !savedEmail) {
+      setShowInfoDialog(true); // Open dialog to collect info
+    //   return;
+    // }
+
+    setFirstName(savedFirst);
+    setLastName(savedLast);
+    setEmail(savedEmail);
+
+  //  handleSubmit(savedFirst, savedLast, savedEmail);
   };
-  const handleSubmit = async () => {
+
+  const handleSubmit = async (
+    fname = firstName,
+    lname = lastName,
+    userEmail = email
+  ) => {
     try {
       setLoading(true);
+      const user = await Parse.User.current()?.fetch();
+      user.set("gift_firstName", fname);
+      user.set("gift_lastName", lname);
+      user.set("gift_email", userEmail);
+      await user.save(null, { useMasterKey: true });
+
       const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const purchasePayload = {
         orderId: orderId,
         price: parseFloat(redeemAmount),
         productId: selectedGiftCard.productId,
+        productImage:selectedGiftCard?.productImage,
         externalUserId: userId,
-        externalUserFirstName: userName,
-        externalUserLastName: "User",
-        externalUserEmail: record?.email,
+        externalUserFirstName: fname,
+        externalUserLastName: lname,
+        externalUserEmail: userEmail,
       };
 
       const response = await Parse.Cloud.run(
@@ -138,16 +168,13 @@ const SelectGiftCardDialog = ({
         });
         setSuccessModalOpen(true);
         setTimeout(() => {
-          onClose();
           setSuccessModalOpen(false);
         }, 2000);
       } else {
-        console.log("Gift card purchase error:", response);
-
         setErrorMessage(response.error || "Purchase failed");
       }
     } catch (error) {
-      console.log("Gift card purchase error:", error);
+      console.error("Gift card purchase error:", error);
       setErrorMessage("Gift card purchase failed. Please try again.");
     } finally {
       setLoading(false);
@@ -325,33 +352,33 @@ const SelectGiftCardDialog = ({
                   </Row>
                 </Box>
               )}
-                 <Col md={12} className="d-flex justify-content-center mt-3">
-                  <Button
+              <Col md={12} className="d-flex justify-content-center mt-3">
+                <Button
                   variant="outlined"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => {
-                      setCurrentPage(currentPage - 1);
-                      fetchGiftCards(searchTerm, currentPage - 1);
-                    }}
-                  >
-                    Previous
-                  </Button>
-                  <span style={{ margin: "0 10px", alignSelf: "center" }}>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
+                  size="sm"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage(currentPage - 1);
+                    fetchGiftCards(searchTerm, currentPage - 1);
+                  }}
+                >
+                  Previous
+                </Button>
+                <span style={{ margin: "0 10px", alignSelf: "center" }}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
                   variant="outlined"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => {
-                      setCurrentPage(currentPage + 1);
-                      fetchGiftCards(searchTerm, currentPage + 1);
-                    }}
-                  >
-                    Next
-                  </Button>
-                </Col>
+                  size="sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage(currentPage + 1);
+                    fetchGiftCards(searchTerm, currentPage + 1);
+                  }}
+                >
+                  Next
+                </Button>
+              </Col>
             </ModalBody>
             <ModalFooter className="custom-modal-footer">
               <Col md={12}>
@@ -366,8 +393,9 @@ const SelectGiftCardDialog = ({
                   }}
                 >
                   <Button
-                    className="custom-button cancel"
-                    style={{ border: "1px solid #E7E7E7", borderRadius: "8px" }}
+                      variant="outlined"
+
+                      sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                     onClick={onBack}
                   >
                     <Typography
@@ -382,12 +410,9 @@ const SelectGiftCardDialog = ({
                     </Typography>
                   </Button>
                   <Button
-                    className="custom-button"
-                    style={{
-                      backgroundColor: "#2E5BFF",
-                      color: "#fff",
-                      borderRadius: "8px",
-                    }}
+                    variant="contained"
+                    color="primary"
+                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                     disabled={loading}
                     onClick={handleConfirm}
                   >
@@ -408,6 +433,19 @@ const SelectGiftCardDialog = ({
           </Box>
         )}
       </Modal>
+      <UserGiftInfoDialog
+  open={showInfoDialog}
+  onClose={() => setShowInfoDialog(false)}
+  onSubmit={({ firstName, lastName, email }) => {
+    setShowInfoDialog(false);
+    setFirstName(firstName);
+    setLastName(lastName);
+    setEmail(email);
+    handleSubmit(firstName, lastName, email);
+  }}
+  initialData={{ firstName, lastName, email }} // pass saved info here
+/>
+
     </>
   );
 };

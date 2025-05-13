@@ -304,7 +304,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           border: "1px solid #E7E7E7",
           mb: 2,
           bgcolor: "white",
-          minWidth: { xs: "100%", md: "800px" },
         }}
       >
         <Typography
@@ -733,7 +732,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               </>
             )}
           </Button>
-          <Button
+          {/* <Button
             variant="contained"
             fullWidth
             sx={{
@@ -882,7 +881,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <ArrowForwardIcon
               style={{ width: 24, height: 24, marginLeft: 10 }}
             />
-          </Button>
+          </Button> */}
 
           <Button
             variant="contained"

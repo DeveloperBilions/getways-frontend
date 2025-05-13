@@ -272,7 +272,6 @@ const Redeem = ({
           border: "1px solid #E7E7E7",
           boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.05)",
           mb: 2,
-          minWidth:{ xs: "100%", md: "800px" },
         }}
       >
         <Typography
@@ -398,11 +397,12 @@ const Redeem = ({
         <Box
           sx={{
             display: "flex",
-            gap: "6px",
+            gap: { xs: "8px", sm: "10px", md: "12px" },
             justifyContent: "center",
             alignItems: "center",
             m: 2,
-            flexWrap: { xs: "wrap", md: "nowrap" },
+            flexWrap: "wrap", // Already had wrap, which is good
+            maxWidth: "100%", // Ensure box doesn't overflow container
           }}
         >
           {[20, 50, 100, 200, 500].map((amount) => (
@@ -411,7 +411,14 @@ const Redeem = ({
               variant="outlined"
               sx={{
                 borderRadius: "40px",
-                width: { xs: "45%", sm: "30%", md: "100%" },
+                // Adjusted widths for different breakpoints to create better wrapping behavior
+                width: {
+                  xs: "calc(50% - 8px)", // 2 buttons per row on extra small screens
+                  sm: "calc(33.33% - 10px)", // 3 buttons per row on small screens
+                  md: "calc(25% - 12px)", // 4 buttons per row on medium screens
+                  lg: "auto", // Flexible width on large screens
+                },
+                minWidth: { xs: "80px", sm: "90px", md: "100px" }, // Minimum width to prevent squishing
                 padding: { xs: "6px 12px", md: "8px 16px" },
                 border: amount !== redeemAmount ? "1px dashed #93B1D2" : "none",
                 bgcolor: amount === redeemAmount ? "#2E5BFF" : "transparent",
@@ -428,10 +435,16 @@ const Redeem = ({
               <img
                 src={AOG_Symbol}
                 alt="AOG Symbol"
-                style={{ width: "24px", height: "24px" }}
+                style={{
+                  width: { xs: "20px", md: "24px" },
+                  height: { xs: "20px", md: "24px" },
+                }}
               />
               <Typography
-                sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }}
+                sx={{
+                  fontWeight: 400,
+                  fontSize: { xs: "14px", sm: "16px", md: "18px" },
+                }}
               >
                 {amount}
               </Typography>
