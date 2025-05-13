@@ -874,3 +874,7 @@ export const agentFinalAnswers = {
   "How can I view my current balance?":
     "To view your current balance as an Agent on the platform, you can check the top right corner near the Profile icon. The balance displayed reflects the combined balance of all Players under your account. If you need any more assistance, feel free to ask!",
 };
+
+export const superUserMainOptions = [
+  { id: "other", label: "Other", icon: "🤷‍♂️" },
+];

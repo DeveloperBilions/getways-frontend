@@ -11,6 +11,7 @@ import {
   playerFinalOptions,
   playerMainOptions,
   playerSubOptions,
+  superUserMainOptions,
 } from "./chatConst";
 
 export const mapTransactionStatus = (status) => {
@@ -303,11 +304,9 @@ export const getRoleBasedOptions = (role) => {
       finalAnswer = masterAgentFinalAnswers;
       break;
 
-    // case "Super-User":
-    //   mainOptions = [...playerMainOptions];
-    //   subOptions = { ...playerSubOptions };
-    //   finalOptions = { ...playerFinalOptions };
-    //   break;
+    case "Super-User":
+      mainOptions = superUserMainOptions;
+      break;
 
     default:
       mainOptions = [playerMainOptions];
