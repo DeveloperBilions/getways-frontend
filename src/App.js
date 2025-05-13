@@ -32,7 +32,7 @@ import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 // import { QueryClient } from "react-query";
-import { Reports } from "./Views/Reports/Reports";
+import Reports from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import { Box, Typography, Button } from "@mui/material";

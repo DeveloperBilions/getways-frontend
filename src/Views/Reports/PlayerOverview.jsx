@@ -30,7 +30,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
 import jsPDF from "jspdf";
 
-export const PlayerOverview = () => {
+const PlayerOverview = () => {
   const [playerData, setPlayerData] = useState([]); // For Player transaction report
   const [filteredPlayerData, setFilteredPlayerData] = useState([]);
   const [playerRechargeData, setPlayerRechargeData] = useState([]); // For Player recharge report
@@ -809,3 +809,5 @@ export const PlayerOverview = () => {
     </>
   );
 };
+
+export default PlayerOverview;
