@@ -282,13 +282,16 @@ const ParticularPlayer = () => {
               <>
                 <Grid container spacing={3} mt={3}>
                   {/* Pie Chart - Left Side */}
-                  <Grid item xs={12} md={4}>
+                  <Grid item md={6} xs={12} >
                     <Box
                       sx={{
                         p: 2,
                         border: "1px solid #eaeaea",
                         borderRadius: 2,
                         height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        minWidth: "300px",
                       }}
                     >
                       <Typography variant="h6" gutterBottom align="center">
@@ -296,9 +299,19 @@ const ParticularPlayer = () => {
                       </Typography>
                       <Box
                         sx={{
-                          mt: 2,
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}
+                      >
+
+                        <Box
+                        sx={{
                           display: "flex",
                           justifyContent: "center",
+                          alignItems: "center",
+                          height: "100%",
                         }}
                       >
                         <PieChart
@@ -338,14 +351,15 @@ const ParticularPlayer = () => {
                         //  height={300}
                           slotProps={{
                             legend: {
-                              direction: "row",
-                              position: {
-                                vertical: "bottom",
-                                horizontal: "middle",
-                              },
-                              padding: 0,
+                              direction: 'row',
+                          position: { vertical: 'bottom', horizontal: 'middle' },
+                          padding: { top: 20 }, 
+                          itemMarkWidth: 10, 
+                          itemMarkHeight: 10, 
+                          labelStyle: { fontSize: 16 },
                             },
                           }}
+                          height={300}
                         />
                       </Box>
                       <Box sx={{ mt: 2 }}>
@@ -354,10 +368,11 @@ const ParticularPlayer = () => {
                         </Typography>
                       </Box>
                     </Box>
+                    </Box>
                   </Grid>
 
                   {/* Line Chart - Right Side */}
-                  <Grid item xs={12} md={8}>
+                  <Grid item md={6} xs={12} >
                     <Box
                       sx={{
                         p: 2,
@@ -376,7 +391,7 @@ const ParticularPlayer = () => {
                             scaleType: "band",
                           },
                         ]}
-                        yAxis={[{ label: "Amount" }]}
+                        yAxis={[{ label: "Amount", labelStyle: {  fontSize: 14 } }]}
                         series={[
                           {
                             data: lineChartDates.map(
@@ -403,12 +418,21 @@ const ParticularPlayer = () => {
                             color: "#4caf50",
                           },
                         ]}
-                        // width={1200}
-                        height={400}
-                        margin={{ left: 70, right: 40, top: 75, bottom: 40}}
+                        // width={400}
+                        height={300}
+                        margin={{ left: 70, right: 40, top: 30, bottom: 70}}
+                        slotProps={{
+                        legend: {
+                          direction: 'row',
+                          position: { vertical: 'bottom', horizontal: 'middle' },
+                          padding: { top: 20 }, 
+                          itemMarkWidth: 10, 
+                          itemMarkHeight: 10, 
+                          labelStyle: { fontSize: 16 },
+                        },
+                        }}
                       />
-                    </Box>{" "}
-                    {/* Closing Box tag moved here */}
+                    </Box>
                   </Grid>
                 </Grid>
               </>
