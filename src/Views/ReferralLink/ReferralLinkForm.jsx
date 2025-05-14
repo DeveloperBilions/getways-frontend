@@ -19,9 +19,15 @@ import {
   InputAdornment,
   IconButton,
   FormControl,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 // import "./ReferralLinkForm.css";
 import Getways_Logo_White from "../../Assets/icons/Logo.svg";
+import Person from "../../Assets/icons/Person.svg";
+import Phone from "../../Assets/icons/Phone.svg";
+import Gmail from "../../Assets/icons/Gmail.svg";
+import Password from "../../Assets/icons/Password.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -48,6 +54,7 @@ const ReferralLinkForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isEnable, setIsEnable] = useState(false);
 
   useEffect(() => {
     const clearSession = async () => {
@@ -186,8 +193,6 @@ const ReferralLinkForm = () => {
   return (
     <Box
       sx={{
-        width: "100vw",
-        minHeight: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
         background: "#F6F4F4",
@@ -197,15 +202,14 @@ const ReferralLinkForm = () => {
       {/* Left Sidebar */}
       <Box
         sx={{
-          width: { xs: "100%", md: "30%" },
-          minWidth: { md: "200px" },
-          maxWidth: { md: "480px" },
-          height: { xs: "auto", md: "100vh" },
+          width: { xs: "88%", sm: "95%", md: "30%" },
           bgcolor: "#07070E",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: { xs: 4, md: 0 },
+          margin: "24px",
+          borderRadius: "12px",
+          p: 3,
         }}
       >
         <img
@@ -226,18 +230,19 @@ const ReferralLinkForm = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: { xs: 4, md: 0 },
+          mx: "24px",
         }}
       >
         {/* Form Card */}
         <Card
           sx={{
-            width: { xs: "90%", sm: "80%", md: "520px" },
-            maxWidth: "520px",
+            width: "450px",
+            maxWidth: "450px",
             borderRadius: "8px",
             p: { xs: "16px", sm: "24px 32px" },
             background: "#FFFFFF",
             boxShadow: 3,
+            my: 4,
           }}
         >
           <Typography
@@ -245,15 +250,14 @@ const ReferralLinkForm = () => {
               fontFamily: "Inter",
               fontWeight: 400,
               fontSize: { xs: "20px", sm: "24px" },
-              lineHeight: "100%",
-              mb: "24px",
+              mb: 2,
             }}
           >
             Get Started
           </Typography>
 
           <form onSubmit={handleSubmit}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {/* Referral */}
               <FormControl>
                 <Typography
@@ -261,9 +265,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Referral
@@ -291,9 +294,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Username
@@ -306,9 +308,24 @@ const ReferralLinkForm = () => {
                       setUserName(value);
                     }
                   }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img
+                          src={Person}
+                          alt="username icon"
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
                   required
                   autoComplete="off"
                   fullWidth
+                  placeholder="Choose a username"
                   sx={{
                     "& .MuiInputBase-root": {
                       height: { xs: "36px", sm: "40px" },
@@ -327,9 +344,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Name
@@ -344,6 +360,7 @@ const ReferralLinkForm = () => {
                   }}
                   required
                   autoComplete="off"
+                  placeholder="Your full name"
                   fullWidth
                   sx={{
                     "& .MuiInputBase-root": {
@@ -363,9 +380,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Phone Number
@@ -378,9 +394,24 @@ const ReferralLinkForm = () => {
                       setPhoneNumber(value);
                     }
                   }}
+                  placeholder="Your phone number"
                   required
                   autoComplete="off"
                   fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img
+                          src={Phone}
+                          alt="phone icon"
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={{
                     "& .MuiInputBase-root": {
                       height: { xs: "36px", sm: "40px" },
@@ -399,20 +430,34 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Email
                 </Typography>
                 <TextField
                   type="email"
+                  placeholder="Your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="off"
                   fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img
+                          src={Gmail}
+                          alt="gmail icon"
+                          style={{
+                            width: "18px",
+                            height: "18px",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={{
                     "& .MuiInputBase-root": {
                       height: { xs: "36px", sm: "40px" },
@@ -431,9 +476,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Password
@@ -441,6 +485,7 @@ const ReferralLinkForm = () => {
                 <TextField
                   type={showPassword ? "text" : "password"}
                   value={password}
+                  placeholder="Create a secure password"
                   onChange={handlePasswordChange}
                   required
                   autoComplete="off"
@@ -454,12 +499,23 @@ const ReferralLinkForm = () => {
                     },
                   }}
                   InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img
+                          src={Password}
+                          alt="password icon"
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
-                          
                         >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
@@ -488,9 +544,8 @@ const ReferralLinkForm = () => {
                     fontFamily: "Inter",
                     fontWeight: 600,
                     fontSize: "12px",
-                    lineHeight: "14px",
-                    letterSpacing: "1.2%",
-                    mb: "4px",
+                    mb: "2px",
+                    color: "#374151",
                   }}
                 >
                   Confirm Password
@@ -498,6 +553,7 @@ const ReferralLinkForm = () => {
                 <TextField
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
+                  placeholder="Create a secure password"
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   autoComplete="off"
@@ -511,6 +567,18 @@ const ReferralLinkForm = () => {
                     },
                   }}
                   InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img
+                          src={Password}
+                          alt="password icon"
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
@@ -518,7 +586,6 @@ const ReferralLinkForm = () => {
                             setShowConfirmPassword(!showConfirmPassword)
                           }
                           edge="end"
-                          
                         >
                           {showConfirmPassword ? (
                             <VisibilityOff />
@@ -539,22 +606,50 @@ const ReferralLinkForm = () => {
                 </Typography>
               )}
 
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isEnable}
+                    onChange={() => setIsEnable(!isEnable)}
+                    sx={{
+                      color: "#CFD4DB",
+                      "&.Mui-checked": {
+                        color: "#374351",
+                      },
+                    }}
+                  />
+                }
+                label="Accept terms and conditions"
+                sx={{
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "14px",
+                    fontWeight: 400,
+                  },
+                }}
+              />
+
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={disableButtonState}
+                disabled={!isEnable}
                 sx={{
                   width: "100%",
                   height: { xs: "36px", sm: "40px" },
-                  borderRadius: "4px",
-                  background: "#1671C5",
+                  borderRadius: "5px",
+                  background: "#000000",
                   color: "#FFFFFF",
                   textTransform: "none",
                   fontFamily: "Inter",
                   fontWeight: 400,
                   fontSize: { xs: "13px", sm: "14px" },
+                  cursor: "pointer",
                   "&:hover": {
-                    background: "#135ea3",
+                    background: "#000000",
+                  },
+                  "&.Mui-disabled": {
+                    background: "#BDBDBD",
+                    color: "#FFFFFF",
+                    cursor: "not-allowed",
                   },
                 }}
               >

@@ -313,7 +313,7 @@ export const KycRecordsList = (props) => {
             <CircularProgress />
           </Box>
         ) : (
-          <>
+          <Box sx={{ width: "100%" }}>
             <Datagrid
               bulkActionButtons={false}
               rowClick="show"
@@ -382,7 +382,7 @@ export const KycRecordsList = (props) => {
                 setPerPage={setPerPage}
               />
             </Box>
-          </>
+          </Box>
         )}
       </List>
     </>
