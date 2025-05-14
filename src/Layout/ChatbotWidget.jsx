@@ -347,7 +347,7 @@ const ChatbotWidget = () => {
                   <ChatIcon sx={{ mr: 1.5 }} />
                 </Zoom>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  Gateways Support
+                  Getways Support
                 </Typography>
               </Box>
               <Box>
