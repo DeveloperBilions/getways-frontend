@@ -806,6 +806,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }
             onClick={debounce(async () => {
               if (loadingSessionToken) return;
+             
               setLoadingSessionToken(true);
               try {
                 // Assign wallet if missing
@@ -914,7 +915,22 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   }
                 );
 
-                onrampInstance.open();
+                  // ✅ Step 1: Popup blocker test
+              const testPopup = window.open("", "_blank", "width=1,height=1");
+              if (
+                !testPopup ||
+                testPopup.closed ||
+                typeof testPopup.closed === "undefined"
+              ) {
+                setPopupBlocked(true);
+                setPopupDialogOpen(true);
+                setStoredBuyUrl(referralUrl)
+                return;
+              }
+              testPopup.close();
+
+              onrampInstance.open();
+
               } catch (err) {
                 console.error("Recharge with session token failed:", err);
                 alert(
