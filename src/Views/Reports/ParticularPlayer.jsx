@@ -15,7 +15,7 @@ import { dataProvider } from "../../Provider/parseDataProvider";
 import { fetchTransactionsofPlayerByDate } from "../../Utils/utils"; // Ensure this utility exists
 import debounce from "lodash/debounce";
 
-export const ParticularPlayer = () => {
+const ParticularPlayer = () => {
   const { identity } = useGetIdentity();
   const [formattedData, setFormattedData] = useState([]);
   const [lineChartDates, setLineChartDates] = useState([]);
@@ -431,3 +431,5 @@ export const ParticularPlayer = () => {
     </>
   );
 };
+
+export default ParticularPlayer;

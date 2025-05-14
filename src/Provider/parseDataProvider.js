@@ -256,6 +256,7 @@ export const dataProvider = {
           total,
         };
       } else if (resource === "redeemRecords") {
+        console.log(filter,role,"hjyuiuiu")
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -282,6 +283,7 @@ export const dataProvider = {
           var { ids } = await fetchUsers();
           query.containedIn("userId", ids);
           query.notEqualTo("isCashOut", true);
+          query.notContainedIn("status", [11, 12, 13]);
         } else if (role === "Master-Agent") {
           // filter &&
           //   Object.keys(filter).map((f) => {
@@ -291,6 +293,7 @@ export const dataProvider = {
           var { ids } = await fetchUsers(null, true);
           query.containedIn("userId", ids);
           query.notEqualTo("isCashOut", true);
+          query.notContainedIn("status", [11, 12, 13]);
         }
         if (
           filter &&
@@ -332,6 +335,7 @@ export const dataProvider = {
             }
           }
         }
+        console.log(query,"query result")
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -2103,54 +2107,57 @@ export const dataProvider = {
       remark,
       useWallet,
     } = params;
-
+  
     try {
       // Find the user by ID
       const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", id);
       const user = await userQuery.first({ useMasterKey: true });
-
+  
       if (!user) {
         throw new Error(`User with ID ${id} not found`);
       }
+  
       if (isNaN(Number(transactionAmount)) || Number(transactionAmount) <= 0) {
         throw new Error(`Amount should be a positive number greater than 0`);
       }
-
+  
       let finalAmount = balance;
+      let session = null;
+  
       if (useWallet) {
         // Ensure sufficient wallet balance
         if (balance < parseFloat(transactionAmount / 100)) {
           throw new Error("Insufficient wallet balance.");
         }
+  
         // Deduct amount from the wallet balance
         finalAmount -= parseFloat(transactionAmount / 100);
-
+  
         // Update the wallet balance in the Wallet class
         const walletQuery = new Parse.Query("Wallet");
         walletQuery.equalTo("userID", id);
         const wallet = await walletQuery.first();
-
+  
         if (!wallet) {
           throw new Error(`Wallet for user ID ${id} not found.`);
         }
-
+  
         wallet.set("balance", finalAmount);
-      
         await wallet.save(null);
         console.log(wallet);
       } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);
-
+  
         // Take the floor value of finalAmount with two decimal precision
         finalAmount = Math.floor(finalAmount * 100) / 100;
       }
-
-      // Create a new transaction record
+  
+      // Create a new transaction record (after all validation passes)
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transactionDetails = new TransactionDetails();
-
+  
       transactionDetails.set("type", type);
       transactionDetails.set("gameId", "786");
       transactionDetails.set("username", username);
@@ -2162,44 +2169,15 @@ export const dataProvider = {
       );
       transactionDetails.set("remark", remark);
       transactionDetails.set("useWallet", !!useWallet); // Store whether wallet was used
-      transactionDetails.set("userParentId", user.get("userParentId")); // Store whether wallet was used
-
-      let session = null;
-
+      transactionDetails.set("userParentId", user.get("userParentId")); // Store parent ID
+  
       if (!useWallet) {
         // Process Stripe transaction
-        // session = await stripe.checkout.sessions.create({
-        //  // payment_method_types: ["card", "cashapp"], // Accept card payments
-        //   mode: "payment", // One-time payment
-        //   success_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-        //   cancel_url: `${process.env.REACT_APP_REDIRECT_URL}?session_id={CHECKOUT_SESSION_ID}`, // Dynamic URL
-        //   expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // Expires in 30 minutes
-        //   line_items: [
-        //     {
-        //       price_data: {
-        //         currency: "usd",
-        //         product_data: {
-        //           name: "One-time Payment", // Placeholder for product
-        //         },
-        //         unit_amount: Math.floor(parseFloat(transactionAmount)), // Store unit amount as integer cents
-        //       },
-        //       quantity: 1,
-        //     },
-        //   ],
-        //   metadata: {
-        //     userId: id,
-        //     username: username,
-        //   },
-        // });
-
-        // transactionDetails.set("status", 1); // Pending status
-        // transactionDetails.set("referralLink", session.url);
-        // transactionDetails.set("transactionIdFromStripe", session.id);
+        // session = await stripe.checkout.sessions.create({ ... });
         session = await processTransfiDeposit(transactionAmount, id);
         transactionDetails.set("status", 1); // Pending
         transactionDetails.set("referralLink", session?.paymentUrl); // Payment link from NOWPayments
         transactionDetails.set("transactionIdFromStripe", session.orderId);
-        session = session;
       } else {
         transactionDetails.set("status", 2); // Completed via wallet
         const parentUserId = await getParentUserId(id);
@@ -2209,10 +2187,10 @@ export const dataProvider = {
           "recharge"
         );
       }
-
+  
       // Save the transaction record
       await transactionDetails.save(null);
-
+  
       return {
         success: true,
         message: "Transaction updated and validated successfully",
@@ -2220,13 +2198,12 @@ export const dataProvider = {
       };
     } catch (error) {
       console.error("Error in userTransaction:", error.message);
-
       return {
         success: false,
         message: error.message || "An unexpected error occurred.",
       };
     }
-  },
+  },  
   summaryReport: async (params) => {
     const queryPipeline = [
       {

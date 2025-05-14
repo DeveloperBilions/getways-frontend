@@ -32,7 +32,7 @@ import { Success } from "./Views/Stripe/Success";
 import { Wallet } from "./Views/Player/Wallet";
 import Config from "./Config.json";
 // import { QueryClient } from "react-query";
-import { Reports } from "./Views/Reports/Reports";
+import Reports from "./Views/Reports/Reports";
 import { TransactionData } from "./Views/TransactionData/TransactionData";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import { Box, Typography, Button } from "@mui/material";
@@ -50,9 +50,9 @@ function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    if (process.env.REACT_APP_NODE_ENV === "production") {
+   // if (process.env.REACT_APP_NODE_ENV === "production") {
     clarity.init("remtta6418"); // Replace with your actual Clarity ID
-  }
+  //}
   }, []);
   useEffect(() => {
     const handleOnline = () => {

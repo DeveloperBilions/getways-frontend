@@ -37,7 +37,7 @@ import { initOnRamp } from "@coinbase/cbpay-js";
 //Live
 //const projectId = "773e4bb2-b324-4eea-bf04-0df54d41a9d8";
 ///New Live
-const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
+const projectId = "981aec85-7141-44af-929c-51c2954b6c64";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -521,7 +521,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               </Box>
             )}
           </Box>
-          <Box
+          {/* <Box
             sx={{
               display: "flex",
               gap: "6px",
@@ -542,6 +542,58 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   padding: { xs: "6px 12px", md: "8px 16px" },
                   border:
                     amount !== rechargeAmount ? "1px dashed #93B1D2" : "none",
+                  bgcolor:
+                    amount === rechargeAmount ? "#2E5BFF" : "transparent",
+                  color: amount === rechargeAmount ? "white" : "black",
+                  ":hover": {
+                    border: "none",
+                    bgcolor: "#2E5BFF",
+                    color: "white",
+                  },
+                  gap: "8px",
+                }}
+                onClick={() => setRechargeAmount(amount)}
+              >
+                <img
+                  src={AOG_Symbol}
+                  alt="AOG Symbol"
+                  style={{ width: "24px", height: "24px" }}
+                />
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: { xs: "16px", md: "18px" } }}
+                >
+                  {amount}
+                </Typography>
+              </Button>
+            ))}
+          </Box> */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              justifyContent: "center",
+              alignItems: "center",
+              mt: 2,
+              mb: 2,
+              flexWrap: "wrap", // Always wrap on all screen sizes
+              maxWidth: "100%",
+            }}
+          >
+            {[10, 15, 20, 30, 40, 50, 75, 100].map((amount) => (
+              <Button
+                key={amount}
+                variant="outlined"
+                sx={{
+                  borderRadius: "40px",
+                  width: {
+                    xs: "calc(50% - 8px)", // 2 buttons per row on extra small screens
+                    sm: "calc(33.33% - 10px)", // 3 buttons per row on small screens
+                    md: "calc(25% - 12px)", // 4 buttons per row on medium screens
+                    lg: "auto", // Flexible width on large screens
+                  },
+                  padding: { xs: "6px 12px", md: "8px 16px" },
+                  border:
+                    amount !== rechargeAmount ? "1px dashed#93B1D2" : "none",
                   bgcolor:
                     amount === rechargeAmount ? "#2E5BFF" : "transparent",
                   color: amount === rechargeAmount ? "white" : "black",
@@ -596,7 +648,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             </Alert>
           )}
 
-          <Button
+          {/* <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -731,28 +783,30 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
-          {/* <Button
+          </Button> */}
+          <Button
             variant="contained"
             fullWidth
             sx={{
+              width: "100%",
               height: "52px",
               borderRadius: "4px",
-              backgroundColor: "#FF9800",
+              backgroundColor: "#00695C", // Slightly lighter than #0052FF
               color: "#FFFFFF",
+              mt: 2,
               textTransform: "none",
               fontWeight: 500,
               fontSize: "18px",
               ":hover": {
-                backgroundColor: "#FB8C00",
+                backgroundColor: "#004D40", // deeper teal-green on hover
               },
-              marginTop: "10px",
             }}
             disabled={
               loadingSessionToken || identity?.isBlackListed || rechargeDisabled
             }
             onClick={debounce(async () => {
               if (loadingSessionToken) return;
+             
               setLoadingSessionToken(true);
               try {
                 // Assign wallet if missing
@@ -861,7 +915,22 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   }
                 );
 
-                onrampInstance.open();
+                  // ✅ Step 1: Popup blocker test
+              const testPopup = window.open("", "_blank", "width=1,height=1");
+              if (
+                !testPopup ||
+                testPopup.closed ||
+                typeof testPopup.closed === "undefined"
+              ) {
+                setPopupBlocked(true);
+                setPopupDialogOpen(true);
+                setStoredBuyUrl(referralUrl)
+                return;
+              }
+              testPopup.close();
+
+              onrampInstance.open();
+
               } catch (err) {
                 console.error("Recharge with session token failed:", err);
                 alert(
@@ -877,11 +946,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
             {loadingSessionToken
               ? "Generating Token..."
-              : "Recharge Token Widget"}
+              : "Quick Debit Recharge"}
             <ArrowForwardIcon
               style={{ width: 24, height: 24, marginLeft: 10 }}
             />
-          </Button> */}
+          </Button>
 
           <Button
             variant="contained"

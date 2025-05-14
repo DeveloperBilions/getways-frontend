@@ -16,7 +16,7 @@ import { useGetIdentity } from "react-admin";
 import React, { useState } from "react";
 import { fetchTransactionComparison } from "../../Utils/utils";
 
-export const Comparison = () => {
+const Comparison = () => {
   const [comparisonData, setComparisonData] = useState([]);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareSubmitted, setCompareSubmitted] = useState(false);
@@ -490,3 +490,5 @@ export const Comparison = () => {
     </>
   );
 };
+
+export default Comparison;

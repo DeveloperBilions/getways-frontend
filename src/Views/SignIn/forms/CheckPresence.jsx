@@ -79,11 +79,11 @@ const LoginPage = () => {
       return;
     }
     try {
-      setLoading(true);
       if (data?.emailPhone === "") {
         setErrorMessage("Please enter email or phone number");
         return;
       }
+      setLoading(true);
       const response = await Parse.Cloud.run("checkpresence", data);
       setCaptchaVerified(true);
 

@@ -19,7 +19,7 @@ import { fetchPlayerTransactionComparison } from "../../Utils/utils";
 import debounce from "lodash/debounce";
 import { dataProvider } from "../../Provider/parseDataProvider";
 
-export const PlayerComparison = () => {
+const PlayerComparison = () => {
   const [comparisonData, setComparisonData] = useState([]);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareSubmitted, setCompareSubmitted] = useState(false);
@@ -704,3 +704,5 @@ export const PlayerComparison = () => {
     </>
   );
 };
+
+export default PlayerComparison;

@@ -30,7 +30,7 @@ import jsPDF from "jspdf";
 import TotalUser from "../../Assets/icons/TotalUser.svg";
 import TotalAgent from "../../Assets/icons/TotalAgent.svg";
 
-export const Overview = () => {
+const Overview = () => {
   const [data, setData] = useState();
   const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
   const [filteredRechargeData, setFilteredRechargeData] = useState([]);
@@ -787,3 +787,5 @@ export const Overview = () => {
     </>
   );
 };
+
+export default Overview;
