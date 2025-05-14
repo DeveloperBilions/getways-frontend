@@ -98,10 +98,10 @@ const LoginPage = () => {
 
       if (response?.fromAgentExcel) {
         setLoading(false);
-        window.location.href = `/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`;
+        redirect(`/updateUser?emailPhone=${data?.emailPhone}&name=${response?.name}&username=${response?.username}`)
       } else {
         setLoading(false);
-        window.location.href = `/loginEmail?emailPhone=${data?.emailPhone}`;
+        redirect(`/loginEmail?emailPhone=${data?.emailPhone}`)
       }
     } catch (error) {
       setLoading(false);
