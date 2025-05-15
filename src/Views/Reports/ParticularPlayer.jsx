@@ -343,8 +343,8 @@ const ParticularPlayer = () => {
                               cornerRadius: 5,
                               startAngle: -90,
                               endAngle: 270,
-                              cx: 150,
-                              cy: 150,
+                              cx: "65%",
+                              cy: "50%",
                             },
                           ]}
                           // width={400}
