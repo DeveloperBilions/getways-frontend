@@ -303,7 +303,7 @@ const Overview = () => {
           {!loading && (
             <Grid container spacing={2}>
               {finalData?.map((item) => (
-                <Grid item xs={12} md={4} key={item?.id}>
+                <Grid item xs={12} md={6} key={item?.id}>
                   <Card
                     sx={{
                       backgroundColor: item?.bgColor,
@@ -385,7 +385,7 @@ const Overview = () => {
                   <CardContent sx={{ p: 0 }}>
                     <Grid container spacing={2}>
                       {/* Left Box - Pie Chart */}
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <Box
                           sx={{
                             p: 2,
@@ -398,6 +398,7 @@ const Overview = () => {
                             gap: 2,
                             display: "flex",
                             flexDirection: "column",
+                            minWidth: "300px",
                           }}
                         >
                           <Typography
@@ -485,7 +486,7 @@ const Overview = () => {
                       </Grid>
 
                       {/* Right Box - Bar Chart */}
-                      <Grid item xs={12} md={8}>
+                      <Grid item xs={12} md={6}>
                         <Box
                           sx={{
                             p: 2,
@@ -690,7 +691,7 @@ const Overview = () => {
                 <TableContainer
                   component={Paper}
                   sx={{
-                    width: { xs: "94%", sm: "100%" }, // mobile: 95% of screen, desktop: 100%
+                    width: "100%", // mobile: 95% of screen, desktop: 100%
                     maxWidth: { xs: "90vw", sm: "100%" }, // cap width to 95% of viewport on mobile
                     overflowX: "auto", // enable horizontal scroll if needed
                     boxShadow: "none",
@@ -748,25 +749,24 @@ const Overview = () => {
                       ))}
                     </TableBody>
                   </Table>
-
-                  {/* Pagination */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      mt: 2,
-                      px: 1,
-                    }}
-                  >
-                    <CustomPagination
-                      page={page}
-                      perPage={rowsPerPage}
-                      total={filteredRechargeData?.length}
-                      setPage={setPage}
-                      setPerPage={setRowsPerPage}
-                    />
-                  </Box>
                 </TableContainer>
+                {/* Pagination */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    mt: 2,
+                    px: 1,
+                  }}
+                >
+                  <CustomPagination
+                    page={page}
+                    perPage={rowsPerPage}
+                    total={filteredRechargeData?.length}
+                    setPage={setPage}
+                    setPerPage={setRowsPerPage}
+                  />
+                </Box>
               </>
             ) : (
               <Grid container justifyContent="center" sx={{ mt: 4 }}>

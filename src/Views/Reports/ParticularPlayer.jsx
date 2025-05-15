@@ -363,6 +363,62 @@ const ParticularPlayer = () => {
   />
 </Box>
 
+                        <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          height: "100%",
+                        }}
+                      >
+                        <PieChart
+                          series={[
+                            {
+                              data: [
+                                {
+                                  id: 0,
+                                  value: totalData.totalRecharge,
+                                  label: "Recharge",
+                                  color: "#43A047",
+                                },
+                                {
+                                  id: 1,
+                                  value: totalData.totalRedeem,
+                                  label: "Redeem",
+                                  color: "#E53935",
+                                },
+                                {
+                                  id: 2,
+                                  value: totalData.totalCashout,
+                                  label: "Cashout",
+                                  color: "#FB8C00",
+                                },
+                              ],
+                              innerRadius: 30,
+                              outerRadius: 100,
+                              paddingAngle: 1,
+                              cornerRadius: 5,
+                              startAngle: -90,
+                              endAngle: 270,
+                              cx: "65%",
+                              cy: "50%",
+                            },
+                          ]}
+                          // width={400}
+                        //  height={300}
+                          slotProps={{
+                            legend: {
+                              direction: 'row',
+                          position: { vertical: 'bottom', horizontal: 'middle' },
+                          padding: { top: 20 }, 
+                          itemMarkWidth: 10, 
+                          itemMarkHeight: 10, 
+                          labelStyle: { fontSize: 16 },
+                            },
+                          }}
+                          height={300}
+                        />
+                      </Box>
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="body2" align="center">
                           Period: {tempStartDate} to {tempEndDate}

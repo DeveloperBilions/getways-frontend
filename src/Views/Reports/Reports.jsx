@@ -157,7 +157,7 @@ const Reports = memo(() => {
       </DescriptionBox>
 
       <ContentContainer>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense>
           {activeComponent === "overview" && <Overview />}
           {activeComponent === "comparison" && <Comparison />}
           {activeComponent === "agentOverview" && <AgentOverview />}
