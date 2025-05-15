@@ -8,6 +8,7 @@ import {
   useListController,
   DateField,
   FunctionField,
+  usePermissions,
 } from "react-admin";
 import {
   Box,
@@ -17,6 +18,7 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import "jspdf-autotable";
@@ -47,6 +49,8 @@ export const KycRecordsList = (props) => {
   } = listContext;
 
   const [menuAnchor, setMenuAnchor] = useState(null);
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const { permissions } = usePermissions();
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget);
   };
@@ -100,30 +104,95 @@ export const KycRecordsList = (props) => {
   };
 
   const postListActions = (
-    <TopToolbar>
-      <Button
-        variant="contained"
-        startIcon={<img src={download} alt="Export" />}
-        onClick={handleExport}
+    <TopToolbar
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        width: { xs: "100%", sm: "auto" },
+      }}
+    >
+      <Box
         sx={{
-          width: { xs: "100%", md: "auto" },
-          whiteSpace: "nowrap",
-          height: "40px",
-          mb:"12px"
+          display: "flex",
+          // flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+          alignItems: "space-between",
+          justifyContent: isMobile ? "space-between" : "flex-end",
+          gap: 2, // Add space between buttons
+          // p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+          width: "100%",
         }}
       >
-        <Typography
-          sx={{
-            fontSize: "16px",
-            fontWeight: 500,
-            color: "var(--white-color)",
-            textTransform: "none",
-            fontFamily: "Inter",
-          }}
-        >
-          Export
-        </Typography>
-      </Button>
+        {isMobile && (
+          <Box>
+            <Typography
+              sx={{
+                fontSize: "24px",
+                fontWeight: 400,
+                color: "var(--primary-color)",
+              }}
+            >
+              Kyc Record
+            </Typography>
+          </Box>
+        )}
+        {permissions !== "Player" && (
+          <>
+            {isMobile ? (
+              <Box
+                onClick={handleExport}
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  width: "60px",
+                  height: "40px",
+                  borderRadius: "4px",
+                }}
+              >
+                <img src={download} alt="Add User" width="20px" height="20px" />
+              </Box>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={
+                  <img
+                    src={download}
+                    alt="Add User"
+                    width="20px"
+                    height="20px"
+                  />
+                }
+                onClick={handleExport}
+                sx={{
+                  width: { xs: "100%", sm: "119px" },
+                  height: { xs: "100%", sm: "40px" },
+                  backgroundColor: "var(--primary-color)",
+                  color: "var(--secondary-color)",
+                  mb: "1px",
+                  ml: "8px",
+                }} // Full width on small screens
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 500,
+                    color: "var(--secondary-color)",
+                    textTransform: "none",
+                  }}
+                >
+                  Export
+                </Typography>
+              </Button>
+            )}
+          </>
+        )}
+      </Box>
     </TopToolbar>
   );
 
@@ -132,13 +201,21 @@ export const KycRecordsList = (props) => {
       key="search-filter"
       sx={{
         display: "flex",
+        flexDirection: {
+          sm: "row",
+        },
+        "@media (max-width:536px)": {
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 1,
+        },
         alignItems: "end",
         justifyContent: "flex-start",
         flexWrap: "nowrap",
         overflowX: "auto",
         gap: 2,
         width: "100%",
-        mb: 1,
+        mb: 0.5,
       }}
       alwaysOn
     >
@@ -148,7 +225,10 @@ export const KycRecordsList = (props) => {
         placeholder="Search Email"
         resettable
         sx={{
-          minWidth: "250px",
+          minWidth: "200px",
+          "@media (max-width:536px)": {
+            width: "100%",
+          },
           height: "40px",
           "& .MuiInputBase-root": {
             height: "40px",
@@ -161,7 +241,10 @@ export const KycRecordsList = (props) => {
         placeholder="Search Parent"
         resettable
         sx={{
-          minWidth: "250px",
+          "@media (max-width:536px)": {
+            width: "100%",
+          },
+          minWidth: "200px",
           height: "40px",
           "& .MuiInputBase-root": {
             height: "40px",
@@ -178,6 +261,7 @@ export const KycRecordsList = (props) => {
           fontWeight: 400,
           fontSize: "14px",
           textTransform: "none",
+          px: 2,
         }}
       >
         <FilterListIcon
@@ -267,24 +351,26 @@ export const KycRecordsList = (props) => {
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mt: "8px",
-        }}
-      >
-        <Typography
+      {!isMobile && (
+        <Box
           sx={{
-            fontSize: "24px",
-            fontWeight: 400,
-            color: "var(--primary-color)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: "8px",
           }}
         >
-          KYC Records
-        </Typography>
-      </Box>
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            KYC Records
+          </Typography>
+        </Box>
+      )}
       <List
         {...props}
         filters={filters}
@@ -292,12 +378,11 @@ export const KycRecordsList = (props) => {
         sort={{ field: "createdAt", order: "DESC" }}
         pagination={false}
         sx={{
-          "& .MuiToolbar-root.MuiToolbar-dense": {
-            paddingBottom: 0,
+          // pt: 1,
+          "& .RaList-actions": {
+            flexWrap: "nowrap", // Ensures table fills the available space
           },
-          "& .MuiPaper-root.MuiPaper-elevation.MuiCard-root": {
-            boxShadow: "none",
-          },
+          "& .RaFilterFormInput-spacer": { display: "none" },
         }}
       >
         {isLoading ? (
@@ -313,74 +398,106 @@ export const KycRecordsList = (props) => {
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{ width: "100%" }}>
-            <Datagrid
-              bulkActionButtons={false}
-              rowClick="show"
-              sx={{
-                "& .MuiTableCell-head": {
-                  fontWeight: 600,
-                },
-                borderRadius: "8px",
-                borderColor: "#CFD4DB",
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+            }}
+          >
+            <Box
+              style={{
+                width: "100%",
+                position: "absolute",
               }}
             >
-              <TextField source="username" label="Account" />
-              <TextField source="email" label="Email" />
-              <TextField source="userParentName" label="Parent" />
-              <TextField source="kycStatus" label="KYC Status" />
-              {/* <TextField source="redirectUrl" label="Redirect Link" /> */}
-              <FunctionField
-                label="Verified"
-                render={(record) => (
-                  <Chip
-                    label={record.kycVerified ? "Yes" : "No"}
-                    variant="outlined"
-                    sx={{
-                      backgroundColor: record.kycVerified
-                        ? "#EBF9F0"
-                        : "#FFFCEB",
-                      color: "black",
-                      border: `1px solid ${
-                        record.kycVerified ? "#77C79C" : "#FFDC60"
-                      }`,
-                      borderRadius: "6px",
-                      fontSize: "14px",
-                      fontWeight: "400",
-                      height: "22px",
-                    }}
-                  />
-                )}
-              />
-              <FunctionField
-                label="Failed Reason"
-                render={(record) =>
-                  record.kycStatus === "kyc_failed" && record.failed_reason ? (
-                    <Typography
+              <Datagrid
+                bulkActionButtons={false}
+                rowClick="show"
+                sx={{
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  width: "100%",
+                  maxHeight: "100%",
+                  "& .RaDatagrid-table": {
+                    width: "100%", // Ensures table fills the available space
+                  },
+                  "& .column-paymentMethodType": {
+                    minWidth: "150px", // Ensure this column is wide enough
+                    maxWidth: "150px",
+                    whiteSpace: "nowrap",
+                  },
+                  "& .MuiTableCell-head": {
+                    fontWeight: 600,
+                  },
+                  borderRadius: "8px",
+                  borderColor: "#CFD4DB",
+                }}
+              >
+                <TextField source="username" label="Account" />
+                <TextField source="email" label="Email" />
+                <TextField source="userParentName" label="Parent" />
+                <TextField source="kycStatus" label="KYC Status" />
+                {/* <TextField source="redirectUrl" label="Redirect Link" /> */}
+                <FunctionField
+                  label="Verified"
+                  render={(record) => (
+                    <Chip
+                      label={record.kycVerified ? "Yes" : "No"}
+                      variant="outlined"
                       sx={{
-                        whiteSpace: "pre-line",
-                        fontSize: "13px",
-                        maxWidth: "300px",
-                        overflowWrap: "break-word",
+                        backgroundColor: record.kycVerified
+                          ? "#EBF9F0"
+                          : "#FFFCEB",
+                        color: "black",
+                        border: `1px solid ${
+                          record.kycVerified ? "#77C79C" : "#FFDC60"
+                        }`,
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        fontWeight: "400",
+                        height: "22px",
                       }}
-                    >
-                      {record.failed_reason}
-                    </Typography>
-                  ) : (
-                    "-"
-                  )
-                }
-              />
-              <DateField source="createdAt" label="Created At" showTime />
-            </Datagrid>
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <CustomPagination
-                page={page}
-                perPage={perPage}
-                total={total}
-                setPage={setPage}
-                setPerPage={setPerPage}
-              />
+                    />
+                  )}
+                />
+                <FunctionField
+                  label="Failed Reason"
+                  render={(record) =>
+                    record.kycStatus === "kyc_failed" &&
+                    record.failed_reason ? (
+                      <Typography
+                        sx={{
+                          whiteSpace: "pre-line",
+                          fontSize: "13px",
+                          maxWidth: "300px",
+                          overflowWrap: "break-word",
+                        }}
+                      >
+                        {record.failed_reason}
+                      </Typography>
+                    ) : (
+                      "-"
+                    )
+                  }
+                />
+                <DateField source="createdAt" label="Created At" showTime />
+              </Datagrid>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "100% !important",
+                  margin: "16px 0px",
+                }}
+              >
+                <CustomPagination
+                  page={page}
+                  perPage={perPage}
+                  total={total}
+                  setPage={setPage}
+                  setPerPage={setPerPage}
+                />
+              </Box>
             </Box>
           </Box>
         )}
