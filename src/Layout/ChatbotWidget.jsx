@@ -21,6 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Parse from "parse";
 import { getRoleBasedOptions } from "../utils";
+import ReactMarkdown from "react-markdown";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -168,8 +169,39 @@ const ChatbotWidget = () => {
   };
 
   const handleFinalOptionSelect = async (option) => {
-    if (role === "Master-Agent" || role === "Player" || role === "Agent") {
-      setShowOptions(false);
+    // if (
+    //   role === "Master-Agent" ||
+    //   role === "Player" ||
+    //   role === "Agent" 
+    // ) {
+    //   setShowOptions(false);
+    //   setChat((prev) => [...prev, { role: "user", text: option }]);
+
+    //   const answer =
+    //     finalAnswer[option] ||
+    //     "I don't have information on that specific topic yet. Please contact support for assistance.";
+
+    //   setIsLoading(true);
+    //   scrollToBottom();
+
+    //   setTimeout(() => {
+    //     setChat((prev) => [...prev, { role: "assistant", text: answer }]);
+    //     setIsLoading(false);
+    //     setCurrentStep("main");
+    //     setSelectedMainOption(null);
+    //     setSelectedSubOption(null);
+    //     setShowOptions(true);
+    //   }, 500);
+    // } else {
+    //   setShowOptions(false);
+    //   setChat((prev) => [...prev, { role: "user", text: option }]);
+    //   await sendMessageToBackend(option);
+    //   setCurrentStep("main");
+    //   setSelectedMainOption(null);
+    //   setSelectedSubOption(null);
+    //   setShowOptions(true);
+    // }
+    setShowOptions(false);
       setChat((prev) => [...prev, { role: "user", text: option }]);
 
       const answer =
@@ -187,15 +219,6 @@ const ChatbotWidget = () => {
         setSelectedSubOption(null);
         setShowOptions(true);
       }, 500);
-    } else {
-      setShowOptions(false);
-      setChat((prev) => [...prev, { role: "user", text: option }]);
-      await sendMessageToBackend(option);
-      setCurrentStep("main");
-      setSelectedMainOption(null);
-      setSelectedSubOption(null);
-      setShowOptions(true);
-    }
   };
 
   // const handleFinalOptionSelect = async (option) => {
@@ -425,13 +448,23 @@ const ChatbotWidget = () => {
                           transform: "translateY(-1px)",
                           transition: "all 0.2s",
                         },
+                        lineHeight: 1.6,
+                        fontSize: 12,
                       }}
                     >
                       <Typography
                         variant="body2"
-                        sx={{ lineHeight: 1.6, fontSize: 12 }}
+                        sx={{
+                          lineHeight: 1.6,
+                          fontSize: 12,
+                          "& p, & ul, & ol, & pre, & code, & blockquote": {
+                            marginBottom: 0,
+                            paddingBottom: 0,
+                          },
+                        }}
                       >
-                        {msg.text}
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        {/* {msg.text} */}
                       </Typography>
                     </Box>
                   </Box>

@@ -11,7 +11,10 @@ import {
   playerFinalOptions,
   playerMainOptions,
   playerSubOptions,
+  superUserFinalAnswers,
+  superUserFinalOptions,
   superUserMainOptions,
+  superUserSubOptions,
 } from "./chatConst";
 
 export const mapTransactionStatus = (status) => {
@@ -306,13 +309,16 @@ export const getRoleBasedOptions = (role) => {
 
     case "Super-User":
       mainOptions = superUserMainOptions;
+      subOptions = superUserSubOptions;
+      finalOptions = superUserFinalOptions;
+      finalAnswer = superUserFinalAnswers;
       break;
 
     default:
-      mainOptions = [playerMainOptions];
-      subOptions = { playerSubOptions };
-      finalOptions = { playerFinalOptions };
-      finalAnswer = { playerFinalAnswers };
+      mainOptions = playerMainOptions;
+      subOptions = playerSubOptions;
+      finalOptions = playerFinalOptions ;
+      finalAnswer = playerFinalAnswers ;
   }
 
   return {
