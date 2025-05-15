@@ -45,6 +45,7 @@ import { BrowserRouter } from "react-router-dom";
 import NotFoundPage from "./Views/PageNotFound/NotFoundPage";
 import AutoWertWidget from "./Views/AutoWertWidget";
 import clarity from "@microsoft/clarity";
+import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -149,6 +150,7 @@ const allowedPaths = [
   "/wallet-details",
   "/transactionData",
   "/buyWert",
+  "/GiftCardHistory",
     "/404"
 ];
 if (!allowedPaths.includes(currentPath)) {
@@ -227,6 +229,12 @@ if (!allowedPaths.includes(currentPath)) {
                     options={{ label: "KYC Data" }}
                     icon={SummarizeIcon}
                   />
+                  <Resource
+  name="GiftCardHistory"
+  list={GiftCardHistoryList}
+  options={{ label: "Gift Card History", route: "GiftCardHistory" }} // 👈 override
+/>
+
                   <CustomRoutes>
                     <Route
                       path="/transactionData"
