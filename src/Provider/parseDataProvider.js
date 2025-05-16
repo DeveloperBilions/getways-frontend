@@ -1614,7 +1614,53 @@ export const dataProvider = {
         };
 
         return [mergedResults];
-      } else {
+      }else if (resource === "GiftCardHistory") {
+        const query = new Parse.Query(resource);
+      
+        // 🔍 Filter by status
+        if (params.filter?.status) {
+          query.equalTo("status", params.filter.status);
+        }
+      
+        if (params.filter?.username) {
+          const userQuery = new Parse.Query(Parse.User);
+          userQuery.matches("username", new RegExp(params.filter.username, "i")); // Case-insensitive, partial match
+          userQuery.limit(1000); // Set a reasonable limit to avoid performance issues
+          const users = await userQuery.find({ useMasterKey: true });
+        
+          if (users.length > 0) {
+            const userIds = users.map(user => user.id);
+            query.containedIn("userId", userIds);
+          } else {
+            return {
+              data: [],
+              total: 0,
+            };
+          }
+        }
+        
+        
+        if (params.sort?.field) {
+          const order = params.sort.order === "DESC" ? "descending" : "ascending";
+          query[order](params.sort.field);
+        }
+      
+        // 📄 Pagination
+        query.limit(params.pagination.perPage);
+        query.skip((params.pagination.page - 1) * params.pagination.perPage);
+      
+        const results = await query.find({ useMasterKey: true });
+        const count = await query.count({ useMasterKey: true });
+      
+        return {
+          data: results.map((record) => ({
+            id: record.id,
+            ...record.toJSON(),
+          })),
+          total: count,
+        };
+      }
+      else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
         filter &&
@@ -2126,27 +2172,31 @@ export const dataProvider = {
       let session = null;
   
       if (useWallet) {
-        // Ensure sufficient wallet balance
-        if (balance < parseFloat(transactionAmount / 100)) {
-          throw new Error("Insufficient wallet balance.");
-        }
-  
-        // Deduct amount from the wallet balance
-        finalAmount -= parseFloat(transactionAmount / 100);
-  
-        // Update the wallet balance in the Wallet class
+        // Get Wallet from DB
         const walletQuery = new Parse.Query("Wallet");
         walletQuery.equalTo("userID", id);
-        const wallet = await walletQuery.first();
-  
+        const wallet = await walletQuery.first({ useMasterKey: true });
+      
         if (!wallet) {
           throw new Error(`Wallet for user ID ${id} not found.`);
         }
-  
-        wallet.set("balance", finalAmount);
-        await wallet.save(null);
-        console.log(wallet);
-      } else if (type === "recharge") {
+      
+        const walletBalance = wallet.get("balance");
+        const amountToDeduct = parseFloat(transactionAmount / 100);
+      
+        // Ensure sufficient balance using fresh wallet balance
+        if (walletBalance < amountToDeduct) {
+          throw new Error("Insufficient wallet balance.");
+        }
+      
+        // const finalAmount = walletBalance - amountToDeduct;
+      
+        // // Update and save the new balance
+        // wallet.set("balance", finalAmount);
+        // await wallet.save(null, { useMasterKey: true });
+        // console.log(wallet);
+      }
+       else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);
   

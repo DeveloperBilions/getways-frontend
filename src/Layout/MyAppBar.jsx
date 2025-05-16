@@ -175,6 +175,11 @@ export default function MyAppBar(props) {
         label: "KYC",
         onClick: () => navigate("/kycRecords"),
       });
+      menuItems.push({
+        key: "GiftCardHistory",
+        label: "Giftcard",
+        onClick: () => navigate("/GiftCardHistory"),
+      });
     }
   }
 

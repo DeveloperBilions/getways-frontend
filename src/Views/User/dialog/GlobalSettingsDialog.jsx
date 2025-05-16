@@ -282,7 +282,7 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
   };
 
   // Show overrides section only when at least one global toggle is enabled
-  const showOverrides = rechargeEnabled || cashoutEnabled;
+  const showOverrides = !rechargeEnabled || !cashoutEnabled;
 
   return (
     <Dialog

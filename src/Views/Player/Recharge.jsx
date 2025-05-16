@@ -841,7 +841,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   alert("Could not generate session token for Coinbase.");
                   return;
                 }
-                const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&appId=16201d2e-a55f-4634-8327-631dfe30fab2&&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+                const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}&redirectUrl=${process.env.REACT_APP_REFERRAL_URL}`;
 
                 // Save transaction
                 const TransactionDetails =
@@ -885,6 +885,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                       defaultAsset: "USDC",
                       defaultPaymentMethod: "CARD",
                       partnerUserId: partnerUserRef,
+                      redirectUrl: process.env.REACT_APP_REFERRAL_URL,
                     },
                     onSuccess: async () => {
                       if (savedTransaction) {

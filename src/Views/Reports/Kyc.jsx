@@ -155,7 +155,7 @@ const Kyc = () => {
         {/* Status Filter Button */}
         <Box
           sx={{
-            display: { xs: "none", md: "flex" },
+            display: "flex",
             alignItems: "center",
             gap: "8px",
           }}
@@ -240,7 +240,7 @@ const Kyc = () => {
             startIcon={<img src={download} alt="Export" />}
             onClick={handleExport}
             sx={{
-              width: { xs: "100%", md: "auto" },
+              width: "auto",
               whiteSpace: "nowrap",
               height: "40px",
             }}

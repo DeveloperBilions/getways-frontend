@@ -303,52 +303,49 @@ const AgentOverview = () => {
                           justifyContent: "center",
                         }}
                       >
-                        
-                            <PieChart
-                              series={[
+                        <PieChart
+                          series={[
+                            {
+                              data: [
                                 {
-                                  data: [
-                                    {
-                                      id: 0,
-                                      value: totalData.totalRecharge,
-                                      label: "Recharge",
-                                      color: "#43A047",
-                                    },
-                                    {
-                                      id: 1,
-                                      value: totalData.totalRedeem,
-                                      label: "Redeem",
-                                      color: "#E53935",
-                                    },
-                                    {
-                                      id: 2,
-                                      value: totalData.totalCashout,
-                                      label: "Cashout",
-                                      color: "#FB8C00",
-                                    },
-                                  ],
-                                  innerRadius: 30,
-                                  outerRadius: 100,
-                                  paddingAngle: 1,
-                                  cornerRadius: 5,
-                                  startAngle: -90,
-                                  endAngle: 270,
-                                  cx: 150,
-                                  cy: 150,
+                                  id: 0,
+                                  value: totalData.totalRecharge,
+                                  label: "Recharge",
+                                  color: "#43A047",
                                 },
-                              ]}
-                              height={300}
-                              slotProps={{
-                                legend: {
-                                  direction: "row",
-                                  position: {
-                                    vertical: "bottom",
-                                    horizontal: "middle",
-                                  },
-                                  padding: 0,
+                                {
+                                  id: 1,
+                                  value: totalData.totalRedeem,
+                                  label: "Redeem",
+                                  color: "#E53935",
                                 },
-                              }}
-                            />
+                                {
+                                  id: 2,
+                                  value: totalData.totalCashout,
+                                  label: "Cashout",
+                                  color: "#FB8C00",
+                                },
+                              ],
+                            },
+                          ]}
+                          height={300}
+                          margin={{
+                            top: 0,
+                            bottom: 100,
+                            left: 30,
+                            right: 30,
+                          }}
+                          slotProps={{
+                            legend: {
+                              direction: "row",
+                              position: {
+                                vertical: "bottom",
+                                horizontal: "middle",
+                              },
+                              padding: 0,
+                            },
+                          }}
+                        />
                       </Box>
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="body2" align="center">
@@ -371,56 +368,54 @@ const AgentOverview = () => {
                       <Typography variant="h6" gutterBottom>
                         Daily Transactions
                       </Typography>
-                          <LineChart
-                            xAxis={[
-                              {
-                                data: formattedData,
-                                scaleType: "band",
-                                label: "Date",
-                              },
-                            ]}
-                            yAxis={[
-                              {
-                                label: "Amount",
-                              },
-                            ]}
-                            series={[
-                              {
-                                data: lineChartDates.map(
-                                  (date) =>
-                                    agentUsername.transactions[date]
-                                      .totalRecharge
-                                ),
-                                label: "Recharge",
-                                color: "#2196f3",
-                              },
-                              {
-                                data: lineChartDates.map(
-                                  (date) =>
-                                    agentUsername.transactions[date].totalRedeem
-                                ),
-                                label: "Redeem",
-                                color: "#f44336",
-                              },
-                              {
-                                data: lineChartDates.map(
-                                  (date) =>
-                                    agentUsername.transactions[date]
-                                      .totalCashout
-                                ),
-                                label: "Cashout",
-                                color: "#4caf50",
-                              },
-                            ]}
-                            // width={500}
-                            height={400}
-                            margin={{
-                              left: 70,
-                              right: 40,
-                              top: 75,
-                              bottom: 40,
-                            }}
-                          />
+                      <LineChart
+                        xAxis={[
+                          {
+                            data: formattedData,
+                            scaleType: "band",
+                            label: "Date",
+                          },
+                        ]}
+                        yAxis={[
+                          {
+                            label: "Amount",
+                          },
+                        ]}
+                        series={[
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalRecharge
+                            ),
+                            label: "Recharge",
+                            color: "#2196f3",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalRedeem
+                            ),
+                            label: "Redeem",
+                            color: "#f44336",
+                          },
+                          {
+                            data: lineChartDates.map(
+                              (date) =>
+                                agentUsername.transactions[date].totalCashout
+                            ),
+                            label: "Cashout",
+                            color: "#4caf50",
+                          },
+                        ]}
+                        // width={500}
+                        height={400}
+                        margin={{
+                          left: 70,
+                          right: 40,
+                          top: 75,
+                          bottom: 40,
+                        }}
+                      />
                     </Box>
                   </Grid>
                 </Grid>
