@@ -1622,24 +1622,24 @@ export const dataProvider = {
           query.equalTo("status", params.filter.status);
         }
       
-        // 🔍 Filter by username → resolve to userId
         if (params.filter?.username) {
-          const userQuery = new Parse.Query("_User");
-          userQuery.equalTo("username", params.filter.username);
-          const user = await userQuery.first({ useMasterKey: true });
-      
-          if (user) {
-            query.equalTo("userId", user.id);
+          const userQuery = new Parse.Query(Parse.User);
+          userQuery.matches("username", new RegExp(params.filter.username, "i")); // Case-insensitive, partial match
+          userQuery.limit(1000); // Set a reasonable limit to avoid performance issues
+          const users = await userQuery.find({ useMasterKey: true });
+        
+          if (users.length > 0) {
+            const userIds = users.map(user => user.id);
+            query.containedIn("userId", userIds);
           } else {
-            // No user found, return empty result early
             return {
               data: [],
               total: 0,
             };
           }
         }
-      
-        // 🔃 Sorting
+        
+        
         if (params.sort?.field) {
           const order = params.sort.order === "DESC" ? "descending" : "ascending";
           query[order](params.sort.field);
