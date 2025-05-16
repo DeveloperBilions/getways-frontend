@@ -4,8 +4,12 @@ import { MySidebar } from "./MySidebar";
 import Config from "../Config.json";
 import { Navigate } from "react-router-dom";
 import ChatbotWidget from "./ChatbotWidget";
+import { useMediaQuery } from "@mui/system";
 
 export const MyLayout = (props) => {
+  const isMobile = useMediaQuery("(max-width: 900px)");
+   const isTablet = useMediaQuery("(min-width:901px) and (max-width:1100px)");
+
   if (Config?.maintenance) {
     return <Navigate to="/maintenance" replace />;
   }
@@ -16,6 +20,8 @@ export const MyLayout = (props) => {
 
   const EmptySidebar = () => null;
 
+  const padding = isMobile ? "1vw" : isSidebarOpen ? "7.813vw" :isTablet ? "16vw" : "22vw";
+
   return (
     <>
       <Layout
@@ -24,9 +30,9 @@ export const MyLayout = (props) => {
         sidebar={isSidebarOpen ? MySidebar : EmptySidebar}
         sx={{
           "& .RaLayout-content": {
-            paddingLeft: { xs: 1, md: isSidebarOpen ? "120px" : "300px" },
-            paddingRight: { xs: 1, md: isSidebarOpen ? "120px" : "300px" },
-            width: "100%", // Full width
+            paddingLeft: padding,
+            paddingRight: padding,
+            width: "100%",
             overflow: "auto",
             boxSizing: "border-box",
             height: "auto",
