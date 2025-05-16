@@ -1,7 +1,7 @@
 import "./App.css";
 import React, { useEffect, useState } from "react";
 import { Admin, Resource, CustomRoutes, Authenticated } from "react-admin";
-import { Route, Navigate } from "react-router-dom";
+import { Route, Navigate, useLocation } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import SummarizeIcon from "@mui/icons-material/Summarize";
@@ -42,6 +42,50 @@ import AutoWertWidget from "./Views/AutoWertWidget";
 import clarity from "@microsoft/clarity";
 import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 import WalletAuditList from "./Views/WalletAudit/WalletAudit";
+
+function RouteChecker() {
+  const location = useLocation();
+  const [shouldShow404, setShouldShow404] = useState(false);
+
+  const allowedPaths = [
+    "/",
+    "/users",
+    "/summary",
+    "/Reports",
+    "/kycRecords",
+    "/login",
+    "/loginEmail",
+    "/updateUser",
+    "/signup",
+    "/reset-email-sent",
+    "/reset-password",
+    "/reset-email",
+    "/create-user",
+    "/checkout",
+    "/checkout-version2",
+    "/success",
+    "/maintenance",
+    "/playerDashboard",
+    "/rechargeRecords",
+    "/redeemRecords",
+    "/gift-card-history",
+    "/wallet-details",
+    "/transactionData",
+    "/buyWert",
+    "/GiftCardHistory",
+    "/walletAudit",
+    "/404",
+  ];
+
+  // Re-evaluate the path whenever location changes
+  useEffect(() => {
+    const currentPath = location.pathname;
+    // Check if the current path is allowed
+    setShouldShow404(!allowedPaths.includes(currentPath));
+  }, [location]);
+
+  return shouldShow404 ? <NotFoundPage /> : null;
+}
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -116,55 +160,6 @@ function App() {
           <Route path="/maintenance" element={<Maintenance />} />
         </CustomRoutes>
       </Admin>
-    );
-  }
-
-  const currentPath = window.location.pathname;
-
-  const allowedPaths = [
-    "/",
-    "/users",
-    "/summary",
-    "/Reports",
-    "/kycRecords",
-    "/login",
-    "/loginEmail",
-    "/updateUser",
-    "/signup",
-    "/reset-email-sent",
-    "/reset-password",
-    "/reset-email",
-    "/create-user",
-    "/checkout",
-    "/checkout-version2",
-    "/success",
-    "/maintenance",
-    "/playerDashboard",
-    "/rechargeRecords",
-    "/redeemRecords",
-    "/gift-card-history",
-    "/wallet-details",
-    "/transactionData",
-    "/buyWert",
-    "/GiftCardHistory",
-    "/walletAudit",
-    "/404",
-  ];
-  if (!allowedPaths.includes(currentPath)) {
-    return (
-      <BrowserRouter>
-        <Admin
-          dataProvider={dataProvider}
-          authProvider={authProvider}
-          loginPage={LoginPage}
-          layout={MyLayout}
-          theme={MyTheme}
-        >
-          <CustomRoutes>
-            <Route path="/404" element={<NotFoundPage />} />
-          </CustomRoutes>
-        </Admin>
-      </BrowserRouter>
     );
   }
 
@@ -396,7 +391,9 @@ function App() {
         }}
         <CustomRoutes noLayout>
           <Route path="/buyWert" element={<AutoWertWidget />} />
+          <Route path="/404" element={<NotFoundPage />} />
         </CustomRoutes>
+        <RouteChecker />  
       </Admin>
     </BrowserRouter>
   );
