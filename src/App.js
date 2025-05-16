@@ -1,11 +1,6 @@
 import "./App.css";
 import React, { useEffect, useState } from "react";
-import {
-  Admin,
-  Resource,
-  CustomRoutes,
-  Authenticated,
-} from "react-admin";
+import { Admin, Resource, CustomRoutes, Authenticated } from "react-admin";
 import { Route, Navigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -46,14 +41,15 @@ import NotFoundPage from "./Views/PageNotFound/NotFoundPage";
 import AutoWertWidget from "./Views/AutoWertWidget";
 import clarity from "@microsoft/clarity";
 import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
+import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-   // if (process.env.REACT_APP_NODE_ENV === "production") {
+    // if (process.env.REACT_APP_NODE_ENV === "production") {
     clarity.init("remtta6418"); // Replace with your actual Clarity ID
-  //}
+    //}
   }, []);
   useEffect(() => {
     const handleOnline = () => {
@@ -125,212 +121,264 @@ function App() {
 
   const currentPath = window.location.pathname;
 
-const allowedPaths = [
-  "/",
-  "/users",
-  "/summary",
-  "/Reports",
-  "/kycRecords",
-  "/login",
-  "/loginEmail",
-  "/updateUser",
-  "/signup",
-  "/reset-email-sent",
-  "/reset-password",
-  "/reset-email",
-  "/create-user",
-  "/checkout",
-  "/checkout-version2",
-  "/success",
-  "/maintenance",
-  "/playerDashboard",
-  "/rechargeRecords",
-  "/redeemRecords",
-  "/gift-card-history",
-  "/wallet-details",
-  "/transactionData",
-  "/buyWert",
-  "/GiftCardHistory",
-    "/404"
-];
-if (!allowedPaths.includes(currentPath)) {
-  return (
-    <BrowserRouter>
-    <Admin  dataProvider={dataProvider}
-      authProvider={authProvider}
-      loginPage={LoginPage}
-      layout={MyLayout}
-      theme={MyTheme}>
-   <CustomRoutes>
-  <Route path="/404" element={<NotFoundPage />} />
-</CustomRoutes>
-    </Admin>
-    </BrowserRouter>
-  );
-}
+  const allowedPaths = [
+    "/",
+    "/users",
+    "/summary",
+    "/Reports",
+    "/kycRecords",
+    "/login",
+    "/loginEmail",
+    "/updateUser",
+    "/signup",
+    "/reset-email-sent",
+    "/reset-password",
+    "/reset-email",
+    "/create-user",
+    "/checkout",
+    "/checkout-version2",
+    "/success",
+    "/maintenance",
+    "/playerDashboard",
+    "/rechargeRecords",
+    "/redeemRecords",
+    "/gift-card-history",
+    "/wallet-details",
+    "/transactionData",
+    "/buyWert",
+    "/GiftCardHistory",
+    "/walletAudit",
+    "/404",
+  ];
+  if (!allowedPaths.includes(currentPath)) {
+    return (
+      <BrowserRouter>
+        <Admin
+          dataProvider={dataProvider}
+          authProvider={authProvider}
+          loginPage={LoginPage}
+          layout={MyLayout}
+          theme={MyTheme}
+        >
+          <CustomRoutes>
+            <Route path="/404" element={<NotFoundPage />} />
+          </CustomRoutes>
+        </Admin>
+      </BrowserRouter>
+    );
+  }
 
   return (
     <BrowserRouter>
-    <Admin
-      dataProvider={dataProvider}
-      authProvider={authProvider}
-      loginPage={LoginPage}
-      layout={MyLayout}
-      theme={MyTheme}
-    >
-      {(permissions) => {
-        if (permissions && permissions !== "Player") {
-          return (
-            <>
-              <Resource
-                name="users"
-                list={UserList}
-                options={{
-                  label: "User Management",
-                  defaultQuery: { sort: "createdAt", order: "DESC" },
-                }}
-                icon={PersonIcon}
-              />
-              <Resource
-                name="rechargeRecords"
-                list={RechargeRecordsList}
-                options={{
-                  label: "Recharge Records",
-                  defaultQuery: { sort: "transactionDate", order: "DESC" },
-                }}
-                icon={LocalAtmIcon}
-              />
-              <Resource
-                name="redeemRecords"
-                list={RedeemRecordsList}
-                options={{
-                  label: "Redeem Records",
-                  defaultQuery: { sort: "transactionDate", order: "DESC" },
-                }}
-                icon={LocalAtmIcon}
-              />
-              <Resource
-                name="summary"
-                list={DataSummary}
-                options={{ label: "Summary" }}
-                icon={SummarizeIcon}
-              />
-              {permissions === "Super-User" && (
-                <>
-                  <Resource
-                    name="Reports"
-                    list={Reports}
-                    options={{ label: "Reports" }}
-                    icon={SummarizeIcon}
-                  />
-                  <Resource
-                    name="kycRecords"
-                    list={KycRecordsList}
-                    options={{ label: "KYC Data" }}
-                    icon={SummarizeIcon}
-                  />
-                  <Resource
-  name="GiftCardHistory"
-  list={GiftCardHistoryList}
-  options={{ label: "Gift Card History", route: "GiftCardHistory" }} // 👈 override
-/>
-
-                  <CustomRoutes>
-                    <Route
-                      path="/transactionData"
-                      element={
-                        <Authenticated>
-                          <TransactionData resource="transactionData" />
-                        </Authenticated>
-                      }
+      <Admin
+        dataProvider={dataProvider}
+        authProvider={authProvider}
+        loginPage={LoginPage}
+        layout={MyLayout}
+        theme={MyTheme}
+      >
+        {(permissions) => {
+          if (permissions && permissions !== "Player") {
+            return (
+              <>
+                <Resource
+                  name="users"
+                  list={UserList}
+                  options={{
+                    label: "User Management",
+                    defaultQuery: { sort: "createdAt", order: "DESC" },
+                  }}
+                  icon={PersonIcon}
+                />
+                <Resource
+                  name="rechargeRecords"
+                  list={RechargeRecordsList}
+                  options={{
+                    label: "Recharge Records",
+                    defaultQuery: { sort: "transactionDate", order: "DESC" },
+                  }}
+                  icon={LocalAtmIcon}
+                />
+                <Resource
+                  name="redeemRecords"
+                  list={RedeemRecordsList}
+                  options={{
+                    label: "Redeem Records",
+                    defaultQuery: { sort: "transactionDate", order: "DESC" },
+                  }}
+                  icon={LocalAtmIcon}
+                />
+                <Resource
+                  name="summary"
+                  list={DataSummary}
+                  options={{ label: "Summary" }}
+                  icon={SummarizeIcon}
+                />
+                {permissions === "Super-User" && (
+                  <>
+                    <Resource
+                      name="Reports"
+                      list={Reports}
+                      options={{ label: "Reports" }}
+                      icon={SummarizeIcon}
                     />
-                  </CustomRoutes>
-                </>
-              )}
-              <CustomRoutes>
-                <Route
-                  path="/checkout"
-                  element={
+                    <Resource
+                      name="kycRecords"
+                      list={KycRecordsList}
+                      options={{ label: "KYC Data" }}
+                      icon={SummarizeIcon}
+                    />
+                    <Resource
+                      name="GiftCardHistory"
+                      list={GiftCardHistoryList}
+                      options={{
+                        label: "Gift Card History",
+                        route: "GiftCardHistory",
+                      }} // 👈 override
+                    />{" "}
+                    <Resource
+                      name="walletAudit"
+                      list={WalletAuditList}
+                      options={{
+                        label: "Wallet audit History",
+                        route: "walletAudit",
+                      }} // 👈 override
+                    />
+                    <CustomRoutes>
+                      <Route
+                        path="/transactionData"
+                        element={
+                          <Authenticated>
+                            <TransactionData resource="transactionData" />
+                          </Authenticated>
+                        }
+                      />
+                    </CustomRoutes>
+                  </>
+                )}
+                <CustomRoutes>
+                  <Route
+                    path="/checkout"
+                    element={
+                      <Authenticated>
+                        <CheckoutForm />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/checkout-version2"
+                    element={
+                      <Authenticated>
+                        <CheckoutFormV2 />
+                      </Authenticated>
+                    }
+                  />
+                </CustomRoutes>
+                <Route path="/success" element={<Success />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <CustomRoutes noLayout>
+                  <Route path="/create-user" element={<ReferralLinkForm />} />
+                </CustomRoutes>
+              </>
+            );
+          } else if (permissions && permissions === "Player") {
+            return (
+              <>
+                <Resource
+                  name="playerDashboard"
+                  list={PlayerList}
+                  options={{ label: "DashBoard" }}
+                  icon={SummarizeIcon}
+                />
+                <Resource
+                  name="Wallet"
+                  list={
                     <Authenticated>
-                      <CheckoutForm />
+                      <Wallet />
                     </Authenticated>
                   }
+                  options={{ label: "Wallet" }}
+                  icon={SummarizeIcon}
                 />
-                <Route
-                  path="/checkout-version2"
-                  element={
-                    <Authenticated>
-                      <CheckoutFormV2 />
-                    </Authenticated>
-                  }
-                />
-              </CustomRoutes>
-              <Route path="/success" element={<Success />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <CustomRoutes noLayout>
-              <Route path="/create-user" element={<ReferralLinkForm />} />
-              </CustomRoutes>
-            </>
-          );
-        } else if (permissions && permissions === "Player") {
-          return (
-            <>
-              <Resource
-                name="playerDashboard"
-                list={PlayerList}
-                options={{ label: "DashBoard" }}
-                icon={SummarizeIcon}
-              />
-              <Resource
-                name="Wallet"
-                list={
-                  <Authenticated>
-                    <Wallet />
-                  </Authenticated>
-                }
-                options={{ label: "Wallet" }}
-                icon={SummarizeIcon}
-              />
-              <CustomRoutes>
-                <Route
-                  path="/playerDashboard"
-                  element={
-                    <Authenticated>
-                      <PlayerList resource="DashBoard" />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path="/rechargeRecords"
-                  element={
-                    <Authenticated>
-                      <RechargeRecordsList resource="rechargeRecords" />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path="/redeemRecords"
-                  element={
-                    <Authenticated>
-                      <RedeemRecordsList resource="redeemRecords" />
-                    </Authenticated>
-                  }
-                />
-                              <Route path="/success" element={<Success />} />
+                <CustomRoutes>
+                  <Route
+                    path="/playerDashboard"
+                    element={
+                      <Authenticated>
+                        <PlayerList resource="DashBoard" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/rechargeRecords"
+                    element={
+                      <Authenticated>
+                        <RechargeRecordsList resource="rechargeRecords" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/redeemRecords"
+                    element={
+                      <Authenticated>
+                        <RedeemRecordsList resource="redeemRecords" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route path="/success" element={<Success />} />
 
+                  <Route
+                    path="/checkout"
+                    element={
+                      <Authenticated>
+                        <CheckoutForm />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/gift-card-history"
+                    element={
+                      <Authenticated>
+                        <GiftCardHistory resource="GiftCardHistory" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/checkout-version2"
+                    element={
+                      <Authenticated>
+                        <CheckoutFormV2 />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/wallet-details"
+                    element={
+                      <Authenticated>
+                        <WalletDetails />
+                      </Authenticated>
+                    }
+                  />
+                </CustomRoutes>
+              </>
+            );
+          } else {
+            return (
+              <CustomRoutes noLayout>
+                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/loginEmail" element={<LoginEmailPage />} />
+                <Route path="/updateUser" element={<UpdateUser />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/reset-email-sent" element={<EmailSent />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/reset-email" element={<PasswordResetEmail />} />
+                <Route path="/create-user" element={<ReferralLinkForm />} />
                 <Route
                   path="/checkout"
                   element={
                     <Authenticated>
                       <CheckoutForm />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path="/gift-card-history"
-                  element={
-                    <Authenticated>
-                      <GiftCardHistory resource="GiftCardHistory" />
                     </Authenticated>
                   }
                 />
@@ -342,54 +390,14 @@ if (!allowedPaths.includes(currentPath)) {
                     </Authenticated>
                   }
                 />
-                <Route
-                  path="/wallet-details"
-                  element={
-                    <Authenticated>
-                      <WalletDetails />
-                    </Authenticated>
-                  }
-                />
               </CustomRoutes>
-            </>
-          );
-        } else {
-          return (
-            <CustomRoutes noLayout>
-              <Route path="*" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/loginEmail" element={<LoginEmailPage />} />
-              <Route path="/updateUser" element={<UpdateUser />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/reset-email-sent" element={<EmailSent />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/reset-email" element={<PasswordResetEmail />} />
-              <Route path="/create-user" element={<ReferralLinkForm />} />
-              <Route
-                path="/checkout"
-                element={
-                  <Authenticated>
-                    <CheckoutForm />
-                  </Authenticated>
-                }
-              />
-              <Route
-                path="/checkout-version2"
-                element={
-                  <Authenticated>
-                    <CheckoutFormV2 />
-                  </Authenticated>
-                }
-              />
-            </CustomRoutes>
-          );
-        }
-      }}
-      <CustomRoutes noLayout>
-      <Route path="/buyWert" element={<AutoWertWidget />} />
-      </CustomRoutes>
-      
-    </Admin>
+            );
+          }
+        }}
+        <CustomRoutes noLayout>
+          <Route path="/buyWert" element={<AutoWertWidget />} />
+        </CustomRoutes>
+      </Admin>
     </BrowserRouter>
   );
 }

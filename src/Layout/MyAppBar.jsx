@@ -180,6 +180,11 @@ export default function MyAppBar(props) {
         label: "Giftcard",
         onClick: () => navigate("/GiftCardHistory"),
       });
+      menuItems.push({
+        key: "wlletAudit",
+        label: "walletAudit",
+        onClick: () => navigate("/walletAudit"),
+      });
     }
   }
 
