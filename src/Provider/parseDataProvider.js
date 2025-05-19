@@ -1675,7 +1675,7 @@ export const dataProvider = {
         const results = await userQuery.find({ useMasterKey: true });
         const count = await userQuery.count({ useMasterKey: true });
       
-        const API_KEY = "F7TE3VRA95UZ8RN4V7V3F94RAQD7968B5X";
+        const API_KEY = process.env.REACT_APP_KEYBSCAN;
         const CONTRACT_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
         const CHAIN_ID = "8453";
       
