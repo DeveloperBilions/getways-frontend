@@ -1660,6 +1660,134 @@ export const dataProvider = {
           total: count,
         };
       }
+      else if (resource === "walletAudit") {
+        const userQuery = new Parse.Query(Parse.User);
+        userQuery.exists("walletAddr");
+      
+        if (params.filter?.username) {
+          userQuery.matches("username", new RegExp(params.filter.username, "i"));
+        }
+      
+        userQuery.limit(params.pagination.perPage);
+        userQuery.skip((params.pagination.page - 1) * params.pagination.perPage);
+        userQuery.descending("createdAt");
+      
+        const results = await userQuery.find({ useMasterKey: true });
+        const count = await userQuery.count({ useMasterKey: true });
+      
+        const API_KEY = process.env.REACT_APP_KEYBSCAN;
+        const CONTRACT_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+        const CHAIN_ID = "8453";
+      
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const enriched = [];
+      
+        for (let i = 0; i < results.length; i++) {
+          const u = results[i];
+          const username = u.get("username");
+          const walletAddr = u.get("walletAddr") || "";
+          const gatewayBalance = parseFloat(u.get("gatewayBalance") || 0);
+          let usdcBalance = 0;
+          let wertTotal = 0;
+          let coinbaseTotal = 0;
+          let linkTotal = 0;
+      
+          // 🕒 Throttle Etherscan to 5 calls/second
+          if (i > 0 && i % 5 === 0) {
+            await delay(1000);
+          }
+      
+          // 🌐 Fetch balance from Etherscan
+          try {
+            if (walletAddr) {
+              const url = `https://api.etherscan.io/v2/api?chainid=${CHAIN_ID}&module=account&action=tokenbalance&contractaddress=${CONTRACT_ADDRESS}&address=${walletAddr}&tag=latest&apikey=${API_KEY}`;
+              const response = await fetch(url);
+              const json = await response.json();
+              usdcBalance = json?.result ? parseFloat(json.result) / 1e6 : 0;
+            }
+          } catch (err) {
+            console.error(`Balance fetch failed for ${walletAddr}`, err);
+          }
+      
+          // 📊 Aggregate gateway transactions
+          const txAgg = await new Parse.Query("TransactionRecords").aggregate([
+            {
+              $match: {
+                userId: u.id,
+                status: { $in: [2, 3] },
+              },
+            },
+            {
+              $addFields: {
+                stripeId: {
+                  $cond: [
+                    { $ifNull: ["$transactionIdFromStripe", false] },
+                    { $toString: "$transactionIdFromStripe" },
+                    "",
+                  ],
+                },
+                referralLink: {
+                  $cond: [
+                    { $ifNull: ["$referralLink", false] },
+                    { $toString: "$referralLink" },
+                    "",
+                  ],
+                },
+              },
+            },
+            {
+              $addFields: {
+                mode: {
+                  $cond: [
+                    { $regexMatch: { input: "$stripeId", regex: "txn", options: "i" } }, "WERT",
+                    {
+                      $cond: [
+                        { $regexMatch: { input: "$referralLink", regex: "pay.coinbase.com", options: "i" } }, "CoinBase",
+                        {
+                          $cond: [
+                            { $regexMatch: { input: "$stripeId", regex: "crypto.link.com", options: "i" } }, "Link",
+                            "Other",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$mode",
+                totalAmount: { $sum: "$transactionAmount" },
+              },
+            },
+          ], { useMasterKey: true });
+      
+          txAgg.forEach(({ objectId, totalAmount }) => {
+            if (objectId === "WERT") wertTotal = totalAmount;
+            else if (objectId === "CoinBase") coinbaseTotal = totalAmount;
+            else if (objectId === "Link") linkTotal = totalAmount;
+          });
+      
+          enriched.push({
+            id: u.id,
+            username,
+            walletAddr,
+            gatewayBalance,
+            usdcBalance,
+            wertTotal,
+            coinbaseTotal,
+            linkTotal,
+            difference: (usdcBalance - coinbaseTotal).toFixed(2),
+          });
+        }
+      
+        return {
+          data: enriched,
+          total: count,
+        };
+      }
+      
       else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
