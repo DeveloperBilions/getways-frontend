@@ -49,6 +49,7 @@ const TransactionDialog = ({ user, open, onClose }) => {
     const query = new Parse.Query("TransactionRecords");
     query.equalTo("userId", user.id);
     query.containedIn("status", [2, 3]);
+    query.notEqualTo("useWallet", true);
 
     if (statusFilter !== "") {
       query.equalTo("status", parseInt(statusFilter));
@@ -197,14 +198,16 @@ const TransactionDialog = ({ user, open, onClose }) => {
                           .includes("crypto.link.com") &&
                           !row.referralLink
                             ?.toLowerCase()
-                            .includes("pay.coinbase.com")) ? (
+                            .includes("pay.coinbase.com") && !row.transactionIdFromStripe
+                            ?.toLowerCase()
+                            .includes("txn")) ? (
                           "N/A"
                         ) : (
                           <Button
                             variant="outlined"
                             size="small"
                             sx={{
-                              color: row.transactionHash ? "#1976D2" : "gray",
+                              color: "#1976D2",
                               textDecoration: row.transactionHash
                                 ? "underline"
                                 : "none",
@@ -240,9 +243,13 @@ const TransactionDialog = ({ user, open, onClose }) => {
                               ) {
                                 link = `https://basescan.org/tx/${row.transactionHash}`;
                               }
+                              else if (row.transactionIdFromStripe.toLowerCase()
+                              .includes("txn")) {
+                                link = `https://bscscan.com/address/${user.walletAddr}`;
+                              }                        
                               if (link !== "#") window.open(link, "_blank");
                             }}
-                            disabled={!row.transactionHash}
+                            //disabled={!row.transactionHash}
                           >
                             Check Transaction
                           </Button>
