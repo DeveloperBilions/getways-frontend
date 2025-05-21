@@ -882,6 +882,8 @@ export const superUserMainOptions = [
   { id: "summary", label: "Summary", icon: "📊" },
   { id: "reports", label: "Reports", icon: "📈" },
   { id: "kyc", label: "KYC Management", icon: "🛡️" },
+  { id: "giftcard", label: "Gift Card", icon: "💌" },
+  { id: "walletaudit", label: "Wallet Audit", icon: "💼" },
   { id: "profile", label: "Profile Options", icon: "👤" },
   { id: "other", label: "Other", icon: "🤷‍♂️" },
 ];
@@ -926,6 +928,17 @@ export const superUserSubOptions = {
     { id: "view-kyc", label: "View KYC Records", icon: "📋" },
     { id: "filter-kyc", label: "Filter KYC Records", icon: "🔍" },
     { id: "export-kyc", label: "Export KYC Report", icon: "📤" },
+  ],
+  giftcard: [
+    { id: "view-gift-cards", label: "View Gift Card Transactions", icon: "📜" },
+    { id: "search-giftcard", label: "Search", icon: "🔍" },
+    { id: "filter-status", label: "Filter by Status", icon: "📅" },
+  ],
+  walletaudit: [
+    { id: "view-wallet-audit", label: "View Wallet Audit Report", icon: "📊" },
+    { id: "search-walletaudit", label: "Search", icon: "🔍" },
+    { id: "export-data", label: "Export Data", icon: "📤" },
+    { id: "filter-mode", label: "Filter by Mode", icon: "📅" },
   ],
   profile: [
     { id: "global-settings", label: "Global Recharge & Cashout", icon: "🌐" },
@@ -1069,6 +1082,25 @@ export const superUserFinalOptions = {
   "export-kyc": [
     "How do I generate a PDF report for KYC Records?",
     "What data is included in the exported KYC Records report?",
+  ],
+  "view-gift-cards": [
+    "How can I view all Gift Card Transactions?",
+    "What details are shown in the Gift Card Transactions table?",
+  ],
+  "search-giftcard": ["How do I search for Gift Card Transactions?"],
+  "filter-status": [
+    "How can I filter Gift Card Transactions by Status?",
+    "What does each status represent in the Gift Card Transactions table?",
+  ],
+  "view-wallet-audit": [
+    "How can I view the Wallet Audit Report?",
+    "What details are shown in the Wallet Audit Report table?",
+  ],
+  "search-walletaudit": ["How do I search for Wallet Audit transactions?"],
+  "export-data": ["How can I export the Wallet Audit Report data?"],
+  "filter-mode": [
+    "How can I filter Wallet Audit transactions by Mode?",
+    "What does each mode represent in the Wallet Audit transactions modal?",
   ],
   "global-settings": [
     "How do I enable or disable Recharge globally for all users?",
@@ -1228,6 +1260,30 @@ export const superUserFinalAnswers = {
   "How do I generate a PDF report for KYC Records?": `To generate a PDF report for KYC Records, you can follow these steps: 1. Go to the KYC section in the Super-User interface. 2. Look for the option to export the KYC records. It is usually located at the top right of the table. 3. Click on the **Export** button. 4. A dialog box will appear, allowing you to select the format for the export. Choose the PDF option. 5. The system will generate the PDF report based on the KYC records available in the table. If you encounter any issues or need further assistance, feel free to ask!`,
   "What data is included in the exported KYC Records report?": `The exported KYC Records report includes the following data columns: - Account - Email - Parent - KYC Status - Verified - Failed Reason - Created At You can sort the table by clicking on the column headers, search via Email or Parent, filter records by Status, and generate a PDF of the KYC Records report by clicking the Export button.`,
 
+  // view-gift-cards
+  "How can I view all Gift Card Transactions?": `To view all Gift Card Transactions on the Gift Card Page, follow these steps: 1. Navigate to the Gift Card section in the Super-User interface. 2. Locate the table displaying Gift Card Transactions. 3. The table will include columns such as Username, Order ID, Price, Product ID, Product Name, Status, Product Image, and Created At. 4. You can sort the table by clicking on any column header to organize the data as needed. 5. Use the search box at the top left of the table to search for transactions by Username. 6. Filter transactions by Status using the Status Filter option next to the search box. By default, the Status Filter is set to All, displaying all transactions. Following these steps allows you to easily view and manage all Gift Card Transactions on the Gift Card Page. If you need further assistance with managing Gift Card Transactions, feel free to ask!`,
+  "What details are shown in the Gift Card Transactions table?": `The Gift Card Transactions table displays the following details for each transaction: - Username - Order ID - Price - Product ID - Product Name - Status - Product Image - Created At. You can sort the table by clicking on the column headers, search for transactions by Username using the search box, and filter transactions by Status using the Status Filter option. If you need further assistance with managing Gift Card Transactions, feel free to ask!`,
+
+  // search-username
+  "How do I search for Gift Card Transactions?": `You can search for gift card transactions by Username, follow these steps: 1. Go to the Gift Card section in the Super-User interface. 2. Locate the search box at the top left corner of the Gift Card Transactions table. 3. Enter the Username you want to search for in the search box. 4. The system will automatically filter the table to display only the Gift Card Transactions associated with the entered Username. If no transactions are found for the specified Username, the table will show no results. Ensure the Username is entered correctly, and try again if needed. If you need further assistance with managing Gift Card Transactions, feel free to ask!`,
+
+  // filter-status
+  "How can I filter Gift Card Transactions by Status?": `To filter Gift Card Transactions by Status, follow these steps: 1. Navigate to the Gift Card section in the Super-User platform. 2. Find the Status Filter option, typically located next to the search box at the top-left of the Gift Card Transactions table. 3. Click on the **Status** filter to view the available options: All, Processed, Failed, Pending. 4. Select the desired status from the dropdown menu. 5. The table will update to show only the transactions matching the selected status. By default, the filter is set to All, displaying all transactions. This allows you to focus on specific transaction statuses as needed. Let me know if you need further help!`,
+  "What does each status represent in the Gift Card Transactions table?": `In the Gift Card Transactions table, the statuses represent the following: - **All**: Displays all transactions regardless of their status. - **Processed**: Indicates transactions that have been successfully completed. - **Failed**: Shows transactions that did not complete successfully, possibly due to payment issues or other errors. - **Pending**: Represents transactions that are still in progress and awaiting completion or confirmation. You can filter transactions by these statuses using the Status Filter option, sort the table by clicking column headers, or search by Username to narrow down results. If you need more details, feel free to ask!`,
+
+  // view-wallet-audit
+  "How can I view the Wallet Audit Report?": `To view the Wallet Audit Report, follow these steps: 1. Navigate to the Wallet Audit section in the Super-User interface. 2. Locate the table displaying deatils of that. 3. The table includes columns: Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, and Actions. 4. Sort the table by clicking on any column header to organize the data. If you need further assistance, feel free to ask!,
+  "What details are shown in the Wallet Audit Report table?": The Wallet Audit Report table displays the following details: - Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, Actions. You can sort the table by column headerr. If you need further assistance with Wallet Audit Report, feel free to ask!`,
+
+  // search-username
+  "How do I search for Wallet Audit transactions?": `You search for Wallet Audit transactions by Username, follow these steps: 1. Go to the Wallet Audit section in the Super-User interface. 2. Locate the search box at the top left corner of the Wallet Audit Report table. 3. Enter the Username you want to search for. 4. The table will automatically filter to show only transactions associated with the entered Username. If no transactions are found, the table will display no results. Ensure the Username is entered correctly. If you need further assistance with Wallet Audit Report, feel free to ask!`,
+
+  // export-data
+  "How can I export the Wallet Audit Report data?": `To export the Wallet Audit Report data, follow these steps: 1. Navigate to the Wallet Audit section in the Super-User interface. 2. Locate the Export button at the top right of the Wallet Audit Report table. 3. Click the Export button to generate an Excel report containing the table data, including Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, and Difference. 4. The system will download the report to your device. If you need further assistance with Wallet Audit Report, feel free to ask!`,
+
+  // filter-mode
+  "How can I filter Wallet Audit transactions by Mode?": `To filter Wallet Audit transactions by Mode, follow these steps: 1. Navigate to the Wallet Audit section in the Super-User interface. 2. Click the Actions menu for a specific user in the Wallet Audit Report table. 3. In the modal, locate the Mode Filter option at the top. 4. Select from the available options: All Modes, WERT, Coinbase, Link, or Other. 5. The modal's table will update to show only transactions matching the selected mode. By default, the filter is set to All Modes. Use the Close button at the bottom of the modal to exit. If you need further assistance, feel free to ask!`,
+  "What does each mode represent in the Wallet Audit transactions modal?": `In the Wallet Audit transactions modal, the modes represent the following: - **All Modes**: Displays all transactions regardless of mode. - **WERT**: Shows transactions processed through WERT. - **Coinbase**: Shows transactions processed through Coinbase. - **Link**: Shows transactions processed through Link. - **Other**: Shows transactions not categorized under WERT, Coinbase, or Link. You can filter by these modes using the Mode Filter in the modal, or close the modal using the Close button. If you need more details, feel free to ask!`,
   // global-settings
   "How do I enable or disable Recharge globally for all users?": `To enable or disable Recharge globally for all users, follow these steps: 1. Access the Profile Options by clicking on the profile icon in the top-right corner. 2. Look for the **Global Recharge & Cashout Settings** section. 3. Toggle the switch next to **Enable Recharge (Global)** to turn Recharge functionality on or off for all Agents and Players globally. 4. Your changes will be applied immediately across the platform. If you have any more questions or need further assistance, feel free to ask!`,
   "How can I enable or disable Cashout globally for all users?": `To enable or disable Cashout globally for all users as a Super User, you can follow these steps: 1. Access the Profile Options by clicking on the profile icon in the top-right corner of the Super-User section. 2. Look for the **Global Recharge & Cashout Settings** option. 3. Within this section, you will find a toggle switch labeled **Enable Cashout (Global).** 4. Toggle the switch to enable or disable Cashout functionality for all Agents and Players globally. 5. Note: Disabling Cashout globally will restrict all users from initiating cashout transactions until the feature is enabled again. If you have any more questions or need further assistance, feel free to ask!`,
