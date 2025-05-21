@@ -1308,6 +1308,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   <Box
                     sx={{
                       display: "flex",
+                      // flexDirection: {xs: "column", md: "row"},
                       alignItems: "center",
                       justifyContent: "space-between",
                     }}
@@ -1331,7 +1332,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                       >
                         {option.icon}
                       </Box>
-
+                      <Box sx={{ display: "flex", flexDirection: "column",gap: 1 }}>
                       <Box>
                         <Typography sx={{ fontWeight: 500, fontSize: "16px" }}>
                           {option.title}
@@ -1357,15 +1358,40 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                           {option.subtext}
                         </Typography>
                       </Box>
+                      {option.paymentIcons && (
+                        <Box
+                          sx={{
+                            display: {xs: "flex", md: "none"},
+                            // flexDirection: { md: "row", xs: "column" },
+                            alignItems: "center",
+                            gap: { xs: 1, md: 0 },
+                          }}
+                        >
+                          {option.paymentIcons.map((icon, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                mr: 1,
+                                color: "text.secondary",
+                                fontWeight: "bold",
+                                fontSize: "14px",
+                              }}
+                            >
+                              {icon}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}</Box>
                     </Box>
 
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                       {option.paymentIcons && (
                         <Box
                           sx={{
-                            display: "flex",
-                            flexDirection: { md: "row", xs: "column" },
+                            display: {xs: "none", md: "flex"},
+                            // flexDirection: { md: "row", xs: "column" },
                             alignItems: "center",
+                            gap: { xs: 1, md: 0 },
                           }}
                         >
                           {option.paymentIcons.map((icon, index) => (

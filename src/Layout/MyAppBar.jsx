@@ -68,6 +68,11 @@ export default function MyAppBar(props) {
   const isMobile = useMediaQuery(
     isSidebarOpen ? "(max-width:1023px)" : "(max-width: 900px)"
   );
+  const isTablet = useMediaQuery(
+    isSidebarOpen
+      ? "(max-width:1023px)"
+      : "(min-width:901px) and (max-width:1100px)"
+  );
 
   const handleOpenModal = () => {
     setUserMenuOpen(false); // Close user menu
@@ -214,8 +219,8 @@ export default function MyAppBar(props) {
           height: role === "Player" ? "4em" : "3.5em",
           color: "white",
           zIndex: 1300,
-          paddingLeft: role === "Player" && !isMobile ? "272px" : "0",
-          paddingRight: role === "Player" && !isMobile ? "300px" : "0",
+          paddingLeft: role === "Player" && !isMobile ? isTablet ? "16vw" : "22vw" : "0",
+          paddingRight: role === "Player" && !isMobile ? isTablet ? "16vw" : "22vw" : "0",
         }}
       >
         <Box
