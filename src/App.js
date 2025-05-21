@@ -47,9 +47,9 @@ function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    // if (process.env.REACT_APP_NODE_ENV === "production") {
+    if (process.env.REACT_APP_NODE_ENV === "production") {
     clarity.init("remtta6418"); // Replace with your actual Clarity ID
-    //}
+    }
   }, []);
   useEffect(() => {
     const handleOnline = () => {

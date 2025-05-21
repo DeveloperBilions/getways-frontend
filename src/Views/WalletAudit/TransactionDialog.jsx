@@ -46,23 +46,26 @@ const TransactionDialog = ({ user, open, onClose }) => {
     if (!user) return;
     setLoading(true);
 
-    const query = new Parse.Query("TransactionRecords");
-    query.equalTo("userId", user.id);
-    query.containedIn("status", [2, 3]);
-    query.notEqualTo("useWallet", true);
-
-    if (statusFilter !== "") {
-      query.equalTo("status", parseInt(statusFilter));
-    }
-
-    query.limit(rowsPerPage * 5); // Fetch more to filter on client side if needed
-    query.skip(page * rowsPerPage);
-    query.descending("createdAt");
-
     try {
+      // Build query with filters except mode (mode filtering done client-side)
+      const query = new Parse.Query("TransactionRecords");
+      query.equalTo("userId", user.id);
+      query.containedIn("status", [2, 3]);
+      query.notEqualTo("useWallet", true);
+
+      if (statusFilter !== "") {
+        query.equalTo("status", parseInt(statusFilter));
+      }
+
+      // Fetch extra records to allow client-side mode filtering & pagination
+      query.limit(rowsPerPage * 5);
+      query.skip(page * rowsPerPage);
+      query.descending("createdAt");
+
+      // Execute query
       const results = await query.find({ useMasterKey: true });
 
-      // Map with derived mode
+      // Map each transaction to your desired shape and derive mode client-side
       const allMapped = results.map((tx) => {
         const mode = getModeFromTransaction(tx);
         return {
@@ -73,17 +76,22 @@ const TransactionDialog = ({ user, open, onClose }) => {
           createdAt: tx.createdAt?.toLocaleString() ?? "-",
           transactionHash: tx.get("transactionHash") ?? "",
           referralLink: tx.get("referralLink") ?? "",
-          transactionIdFromStripe: tx.get("transactionIdFromStripe") ?? ""
+          transactionIdFromStripe: tx.get("transactionIdFromStripe") ?? "",
         };
       });
 
-      // Apply mode filter on client side
-      const filtered = modeFilter
-        ? allMapped.filter((row) => row.mode === modeFilter)
-        : allMapped;
+      // **Exclude "Other" mode transactions here**
+      const nonOther = allMapped.filter((row) => row.mode !== "Other");
 
-      // Paginate client-side after filtering (if needed)
+      // Apply mode filter client-side if modeFilter is selected
+      const filtered = modeFilter
+        ? nonOther.filter((row) => row.mode === modeFilter)
+        : nonOther;
+
+      // Set total count after filtering for pagination UI
       setTotal(filtered.length);
+
+      // Paginate filtered results client-side
       setTransactions(filtered.slice(0, rowsPerPage));
     } catch (error) {
       console.error("Failed to fetch transactions", error);
@@ -151,7 +159,6 @@ const TransactionDialog = ({ user, open, onClose }) => {
             <MenuItem value="WERT">WERT</MenuItem>
             <MenuItem value="CoinBase">CoinBase</MenuItem>
             <MenuItem value="Link">Link</MenuItem>
-            <MenuItem value="Other">Other</MenuItem>
           </TextField>
         </Box>
 
@@ -198,7 +205,8 @@ const TransactionDialog = ({ user, open, onClose }) => {
                           .includes("crypto.link.com") &&
                           !row.referralLink
                             ?.toLowerCase()
-                            .includes("pay.coinbase.com") && !row.transactionIdFromStripe
+                            .includes("pay.coinbase.com") &&
+                          !row.transactionIdFromStripe
                             ?.toLowerCase()
                             .includes("txn")) ? (
                           "N/A"
@@ -242,11 +250,13 @@ const TransactionDialog = ({ user, open, onClose }) => {
                                   .includes("pay.coinbase.com")
                               ) {
                                 link = `https://basescan.org/tx/${row.transactionHash}`;
-                              }
-                              else if (row.transactionIdFromStripe.toLowerCase()
-                              .includes("txn")) {
+                              } else if (
+                                row.transactionIdFromStripe
+                                  .toLowerCase()
+                                  .includes("txn")
+                              ) {
                                 link = `https://bscscan.com/address/${user.walletAddr}`;
-                              }                        
+                              }
                               if (link !== "#") window.open(link, "_blank");
                             }}
                             //disabled={!row.transactionHash}

@@ -35,8 +35,9 @@ import { initOnRamp } from "@coinbase/cbpay-js";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
-const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
+// const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
 
+const projectId = "64b19e33-9599-4a15-b3de-4728b5e8ead6";
 
 ///New Live
 // const projectId = "981aec85-7141-44af-929c-51c2954b6c64";

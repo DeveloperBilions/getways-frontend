@@ -24,8 +24,8 @@ export const TransactionData = (props) => {
   const loadAndExportData = async () => {
     const filters = {
       startdate:
-        document.querySelector('input[name="startdate"]')?.value || "2025-01-01",
-      enddate: document.querySelector('input[name="enddate"]')?.value || "2025-02-28",
+      tempStartDate || "2025-05-01",
+      enddate: tempEndDate || "2025-05-17",
       starttime: tempStartTime || null,
       endtime: tempEndTime || null,
     };
@@ -132,6 +132,7 @@ export const TransactionData = (props) => {
               </Typography>
               <TextField
                 type="date"
+                key={"startdate"}
                 value={tempStartDate}
                 onChange={(event) => setTempStartDate(event.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -188,6 +189,7 @@ export const TransactionData = (props) => {
               </Typography>
               <TextField
                 type="date"
+                key={"enddate"}
                 value={tempEndDate}
                 onChange={(event) => setTempEndDate(event.target.value)}
                 InputLabelProps={{ shrink: true }}
