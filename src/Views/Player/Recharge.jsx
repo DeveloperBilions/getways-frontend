@@ -319,16 +319,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       color: "#14B8A6",
       hoverColor: "#F6FEFD",
       paymentIcons: [
-        <img
-          src={visa}
-          alt="visa"
-          style={{
-            border: "1px solid #E7E7E7",
-            padding: "8px 12px",
-            borderRadius: "5px",
-          }}
-        />,
-        <img src={mastercard} alt="mastercard" />,
+       visa,mastercard
       ],
       onClick: debounce(async () => {
         try {
@@ -438,9 +429,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       color: "#3B82F6",
       hoverColor: "#F5F9FF",
       paymentIcons: [
-        <img src={Chime} alt="Chime" />,
-        <img src={payPal} alt="payPal" />,
-        <img src={venmo} alt="venmo" />,
+        Chime,payPal,venmo
       ],
       onClick: debounce(() => {
         if (!identity?.isBlackListed) {
@@ -1377,7 +1366,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                                 fontSize: "14px",
                               }}
                             >
-                              {icon}
+                              <img
+                                src={icon}
+                                alt={`Payment Icon ${index}`}
+                                style={{ width: "100%"}}
+                              />
                             </Box>
                           ))}
                         </Box>
@@ -1404,7 +1397,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                                 fontSize: "14px",
                               }}
                             >
-                              {icon}
+                              <img
+                                src={icon}
+                                alt={`Payment Icon ${index}`}
+                                style={{ width: "100%"}}
+                              />
                             </Box>
                           ))}
                         </Box>
