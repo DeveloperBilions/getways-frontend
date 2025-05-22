@@ -39,12 +39,13 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import quickRecharge from "../../Assets/icons/quickRecharge.svg";
 import instantRecharge from "../../Assets/icons/instantRecharge.svg";
 import cryptoRecharge from "../../Assets/icons/cryptoRecharge.svg";
-import bankTransfer from "../../Assets/icons/bankTransfer.svg";
+// import bankTransfer from "../../Assets/icons/bankTransfer.svg";
 import mastercard from "../../Assets/icons/mastercard.svg";
 import visa from "../../Assets/icons/visa.svg";
 import venmo from "../../Assets/icons/venmo.svg";
-import payPal from "../../Assets/icons/payPal.svg";
+import payPal from "../../Assets/icons/logo_paypal.svg";
 import Chime from "../../Assets/icons/Chime.svg";
+import Logo1 from "../../Assets/icons/Logo1.svg";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -318,9 +319,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       icon: <img src={quickRecharge} alt="quickRecharge" />, // Credit card icon
       color: "#14B8A6",
       hoverColor: "#F6FEFD",
-      paymentIcons: [
-       visa,mastercard
-      ],
+      paymentIcons: [venmo, payPal, visa, mastercard],
       onClick: debounce(async () => {
         try {
           const testPopup = window.open("", "_blank", "width=1,height=1");
@@ -423,14 +422,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     {
       id: "instant",
       title: "Instant Recharge",
-      description: "Limited debit card support • Instant",
+      description: "Instant • Limited debit card support",
       subtext: "No KYC needed",
       icon: <img src={instantRecharge} alt="instantRecharge" />, // Lightning icon
       color: "#3B82F6",
       hoverColor: "#F5F9FF",
-      paymentIcons: [
-        Chime,payPal,venmo
-      ],
+      paymentIcons: [Chime, venmo, payPal, visa, mastercard],
       onClick: debounce(() => {
         if (!identity?.isBlackListed) {
           if (paymentSource === "stripe") {
@@ -444,11 +441,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     },
     {
       id: "crypto",
-      title: "Crypto Recharge",
-      description: "Below 30 min • Wallet required",
+      title: "Standard Recharge",
+      description: "",
       subtext: "KYC Required",
-      subtextColor: "#ED580C", // Red color for KYC required
+      subtextColor: "#4B5563", // Red color for KYC required
       icon: <img src={cryptoRecharge} alt="cryptoRecharge" />, // Bitcoin icon
+      paymentIcons: [Logo1, visa, mastercard],
       color: "#A855F7",
       hoverColor: "#FAF5FF",
       onClick: debounce(async () => {
@@ -485,17 +483,17 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       }),
       disabled: identity?.isBlackListed || rechargeDisabled || walletLoading,
     },
-    {
-      id: "bank",
-      title: "Bank Transfer",
-      description: "2-3 Days • Manual confirmation",
-      subtext: "KYC Required",
-      subtextColor: "#ED580C", // Red color for KYC required
-      icon: <img src={bankTransfer} alt="bankTransfer" />, // Bank icon
-      color: "#6B7280",
-      hoverColor: "#F9FAFA",
-      onClick: () => console.log("Bank Transfer selected"),
-    },
+    // {
+    //   id: "bank",
+    //   title: "Bank Transfer",
+    //   description: "2-3 Days • Manual confirmation",
+    //   subtext: "KYC Required",
+    //   subtextColor: "#ED580C", // Red color for KYC required
+    //   icon: <img src={bankTransfer} alt="bankTransfer" />, // Bank icon
+    //   color: "#6B7280",
+    //   hoverColor: "#F9FAFA",
+    //   onClick: () => console.log("Bank Transfer selected"),
+    // },
   ];
 
   return (
@@ -554,24 +552,41 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   flexDirection: { xs: "column", md: "row" },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <img
-                    src={AOG_Symbol}
-                    alt="AOG Symbol"
-                    style={{ width: "40px", height: "40px" }}
-                  />
-                  <Typography
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Box
                     sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "40px",
-                      lineHeight: "100%",
-                      letterSpacing: "0px",
-                      color: "#000000",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      bgcolor: "#EFF6FF",
+                      borderRadius: "40px",
+                      padding: "11.5px 24px",
                     }}
                   >
-                    {rechargeAmount}
-                  </Typography>
+                    <img
+                      src={AOG_Symbol}
+                      alt="AOG Symbol"
+                      style={{ width: "32px", height: "32px" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontWeight: 600,
+                        fontSize: "32px",
+                        lineHeight: "100%",
+                        letterSpacing: "0px",
+                        color: "#000000",
+                      }}
+                    >
+                      {rechargeAmount}
+                    </Typography>
+                  </Box>
                   <Box>
                     <TextField
                       fullWidth
@@ -832,7 +847,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }}
           >
             <Typography sx={{ fontSize: "12px", fontWeight: 400 }}>
-              Recharge now and Get your credits
+              Recharge now and keep playing!
             </Typography>
             <img
               src={Star}
@@ -1321,67 +1336,86 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                       >
                         {option.icon}
                       </Box>
-                      <Box sx={{ display: "flex", flexDirection: "column",gap: 1 }}>
-                      <Box>
-                        <Typography sx={{ fontWeight: 500, fontSize: "16px" }}>
-                          {option.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: "14px",
-                            color: "#4B5563",
-                          }}
-                        >
-                          {option.description}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color={option.subtextColor || "text.secondary"}
-                          sx={{
-                            fontWeight: 500,
-                            fontSize: "14px",
-                          }}
-                        >
-                          {option.subtext}
-                        </Typography>
-                      </Box>
-                      {option.paymentIcons && (
-                        <Box
-                          sx={{
-                            display: {xs: "flex", md: "none"},
-                            // flexDirection: { md: "row", xs: "column" },
-                            alignItems: "center",
-                            gap: { xs: 1, md: 0 },
-                          }}
-                        >
-                          {option.paymentIcons.map((icon, index) => (
-                            <Box
-                              key={index}
-                              sx={{
-                                mr: 1,
-                                color: "text.secondary",
-                                fontWeight: "bold",
-                                fontSize: "14px",
-                              }}
-                            >
-                              <img
-                                src={icon}
-                                alt={`Payment Icon ${index}`}
-                                style={{ width: "100%"}}
-                              />
-                            </Box>
-                          ))}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            sx={{ fontWeight: 500, fontSize: "16px" }}
+                          >
+                            {option.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: "14px",
+                              color: "#4B5563",
+                            }}
+                          >
+                            {option.description}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color={option.subtextColor || "text.secondary"}
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: "14px",
+                            }}
+                          >
+                            {option.subtext}
+                          </Typography>
                         </Box>
-                      )}</Box>
+                        {option.paymentIcons && (
+                          <Box
+                            sx={{
+                              display: { xs: "flex", md: "none" },
+                              // flexDirection: { md: "row", xs: "column" },
+                              alignItems: "center",
+                              gap: 2,
+                            }}
+                          >
+                            {option.paymentIcons.map((icon, index) => (
+                              <Box
+                                key={index}
+                                sx={{
+                                  mr: 1,
+                                  color: "text.secondary",
+                                  fontWeight: "bold",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                <img
+                                  src={icon}
+                                  alt={`Payment Icon ${index}`}
+                                  style={{
+                                    width: "100%",
+                                    padding:
+                                      icon === visa ? "8px 12px" : undefined,
+                                    border:
+                                      icon === visa
+                                        ? "1px solid #E7E7E7"
+                                        : undefined,
+                                    borderRadius:
+                                      icon === visa ? "4px" : undefined,
+                                  }}
+                                />
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
                     </Box>
 
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                       {option.paymentIcons && (
                         <Box
                           sx={{
-                            display: {xs: "none", md: "flex"},
+                            display: { xs: "none", md: "flex" },
                             // flexDirection: { md: "row", xs: "column" },
                             alignItems: "center",
                             gap: { xs: 1, md: 0 },
@@ -1391,7 +1425,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                             <Box
                               key={index}
                               sx={{
-                                mr: 1,
+                                mr: 2,
                                 color: "text.secondary",
                                 fontWeight: "bold",
                                 fontSize: "14px",
@@ -1400,13 +1434,23 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                               <img
                                 src={icon}
                                 alt={`Payment Icon ${index}`}
-                                style={{ width: "100%"}}
+                                style={{
+                                  width: "100%",
+                                  padding:
+                                    icon === visa ? "8px 12px" : undefined,
+                                  border:
+                                    icon === visa
+                                      ? "1px solid #E7E7E7"
+                                      : undefined,
+                                  borderRadius:
+                                    icon === visa ? "4px" : undefined,
+                                }}
                               />
                             </Box>
                           ))}
                         </Box>
                       )}
-                      <ChevronRightIcon sx={{ color: option.color }} />
+                      <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
                     </Box>
                   </Box>
                 </CardContent>
