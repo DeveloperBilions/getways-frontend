@@ -32,7 +32,8 @@ import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from "@coinbase/cbpay-js";
-
+import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
+import { CircularProgress } from "@mui/material";
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
 // const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
@@ -70,7 +71,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [storedBuyUrl, setStoredBuyUrl] = useState("");
   const [showSafariHelp, setShowSafariHelp] = useState(false);
   const [loadingSessionToken, setLoadingSessionToken] = useState(false);
-
+  const [showCoinbase, setShowCoinbase] = useState(false);
+  const [showWert, setShowWert] = useState(false);
+  const [showLink, setShowLink] = useState(false);
+  const [rechargeMethodLoading, setRechargeMethodLoading]  = useState(false);
   useEffect(() => {
     const checkRechargeAccess = async () => {
       const disabled = !(await isRechargeEnabledForAgent(
@@ -81,7 +85,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
 
     if (identity?.userParentId) {
       checkRechargeAccess();
-      handlecheck();
+      //handlecheck();
     }
   }, [identity]);
   const handlePaymentMethodChange = (event) => {
@@ -111,51 +115,70 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     refresh();
     resetFields();
   };
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      handlecheck();
-    }, 30000); // 1 minute = 60000ms
-
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
-
-  const handlecheck = async () => {
-    try {
-      const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
-      const query = new Parse.Query(TransfiUserInfo);
-      query.equalTo("userId", identity?.objectId);
-      const result = await query.first({ useMasterKey: true });
-
-      const kycStatus = result?.get("kycStatus")?.trim().toLowerCase();
-      const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
-
-      if (kycStatus === "kyc_success") {
-        let currentCount = parseInt(
-          localStorage.getItem("kycRechargeCount") || "0",
-          10
-        );
-        console.log(currentCount, "currentCountcurrentCount");
-        // If just completed, reset count to 0 if not already set
-        if (wasJustCompleted?.trim() === "true") {
-          if (isNaN(currentCount)) {
-            localStorage.setItem("kycRechargeCount", "0");
-            currentCount = 0;
-          }
-          localStorage.removeItem("kycCompletedOnce");
-        }
-
-        // Show KYC message only if count is less than 10
-        if (currentCount < 10) {
-          setShowKycSuccessMsg(true);
-        } else {
-          setShowKycSuccessMsg(false);
-        }
-      }
-    } catch (err) {
-      console.error("Error checking KYC after refresh:", err);
+    const checkAccess = async () => {
+      const parentId = identity?.userParentId;
+      if (!parentId) return;
+  
+      setRechargeMethodLoading(true); // loader while checking
+      const isCoinbaseAllowed = await isPaymentMethodAllowed(parentId, "coinbase");
+      const isWertAllowed = await isPaymentMethodAllowed(parentId, "wert");
+      const isLinkAllowed = await isPaymentMethodAllowed(parentId, "link");
+  
+      setShowCoinbase(isCoinbaseAllowed);
+      setShowWert(isWertAllowed);
+      setShowLink(isLinkAllowed);
+      setRechargeMethodLoading(false);
+    };
+  
+    if (identity?.userParentId) {
+      checkAccess();
     }
-  };
+  }, [identity]);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     handlecheck();
+  //   }, 30000); // 1 minute = 60000ms
+
+  //   return () => clearInterval(interval); // Cleanup on unmount
+  // }, []);
+
+  // const handlecheck = async () => {
+  //   try {
+  //     const TransfiUserInfo = Parse.Object.extend("TransfiUserInfo");
+  //     const query = new Parse.Query(TransfiUserInfo);
+  //     query.equalTo("userId", identity?.objectId);
+  //     const result = await query.first({ useMasterKey: true });
+
+  //     const kycStatus = result?.get("kycStatus")?.trim().toLowerCase();
+  //     const wasJustCompleted = localStorage.getItem("kycCompletedOnce");
+
+  //     if (kycStatus === "kyc_success") {
+  //       let currentCount = parseInt(
+  //         localStorage.getItem("kycRechargeCount") || "0",
+  //         10
+  //       );
+  //       console.log(currentCount, "currentCountcurrentCount");
+  //       // If just completed, reset count to 0 if not already set
+  //       if (wasJustCompleted?.trim() === "true") {
+  //         if (isNaN(currentCount)) {
+  //           localStorage.setItem("kycRechargeCount", "0");
+  //           currentCount = 0;
+  //         }
+  //         localStorage.removeItem("kycCompletedOnce");
+  //       }
+
+  //       // Show KYC message only if count is less than 10
+  //       if (currentCount < 10) {
+  //         setShowKycSuccessMsg(true);
+  //       } else {
+  //         setShowKycSuccessMsg(false);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error("Error checking KYC after refresh:", err);
+  //   }
+  // };
 
   const resetFields = () => {
     setRechargeAmount(50);
@@ -651,7 +674,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             </Alert>
           )}
 
-          <Button
+{walletLoading ? (
+  <CircularProgress />
+) : (
+<>
+          {showCoinbase && <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -786,7 +813,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
+          </Button> }
           {/* <Button
             variant="contained"
             fullWidth
@@ -956,7 +983,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             />
           </Button> */}
 
-          <Button
+          {showWert && <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -992,9 +1019,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <ArrowForwardIcon
               style={{ width: "24px", height: "24px", marginLeft: "10px" }}
             />
-          </Button>
+          </Button>}
 
-          <Button
+        {showLink &&   <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -1068,7 +1095,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
+          </Button>}
+          </>
+)}
         </Box>
       </Box>
       {totalData > 0 && data.length !== 0 && (

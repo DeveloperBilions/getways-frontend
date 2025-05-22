@@ -44,6 +44,8 @@ import { Parse } from "parse";
 import passwordChange from "../Assets/icons/passwordChange.svg";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import CustomUserMenu from "./CustomUserMenu";
+import RechargeMethodsDialog from "../Views/User/dialog/RechargeMethodsDialog";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -58,7 +60,7 @@ export default function MyAppBar(props) {
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
     React.useState(false);
-    const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -71,7 +73,8 @@ export default function MyAppBar(props) {
 
   const handleOpenModal = () => {
     setUserMenuOpen(false); // Close user menu
-    setOpenModal(true)}
+    setOpenModal(true);
+  };
   const handleCloseModal = () => setOpenModal(false);
   const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
   const handleOpenGlobalSettingsDialog = () =>
@@ -82,6 +85,7 @@ export default function MyAppBar(props) {
     setOpenGlobalSettingsDialog(false);
 
   const [activeTab, setActiveTab] = useState("users");
+  const [openRechargeMethods, setOpenRechargeMethods] = React.useState(false);
 
   const getBalance = async () => {
     try {
@@ -397,8 +401,15 @@ export default function MyAppBar(props) {
                 }}
               />
             )}
-            <CustomUserMenu icon={<img src={Account} alt="Account" style={{ width: 19, height: 19 }} />}>
-
+            <CustomUserMenu
+              icon={
+                <img
+                  src={Account}
+                  alt="Account"
+                  style={{ width: 19, height: 19 }}
+                />
+              }
+            >
               <Box sx={{ width: "248px", height: "auto" }}>
                 {(role === "Agent" ||
                   role === "Player" ||
@@ -447,6 +458,19 @@ export default function MyAppBar(props) {
                       <img src={globalRecharge} alt="Global Recharge" />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                         Global Recharge
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenRechargeMethods(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Recharge Methods
                       </Typography>
                     </MenuItem>
                   </Box>
@@ -514,7 +538,8 @@ export default function MyAppBar(props) {
                   <MenuItem
                     onClick={() => {
                       setUserMenuOpen(false); // Close user menu
-                      setOpenHelpVideo(true)}}
+                      setOpenHelpVideo(true);
+                    }}
                     style={{
                       color: "#000000",
                       gap: "8px",
@@ -594,6 +619,10 @@ export default function MyAppBar(props) {
         <GlobalSettingsDialog
           open={openGlobalSettingsDialog}
           onClose={handleCloseGlobalSettingsDialog}
+        />
+        <RechargeMethodsDialog
+          open={openRechargeMethods}
+          onClose={() => setOpenRechargeMethods(false)}
         />
       </AppBar>
     </>
