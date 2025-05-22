@@ -10,7 +10,6 @@ import {
   Fade,
   Slide,
   Zoom,
-  Badge,
   CircularProgress,
   Tooltip,
 } from "@mui/material";
@@ -172,7 +171,7 @@ const ChatbotWidget = () => {
     // if (
     //   role === "Master-Agent" ||
     //   role === "Player" ||
-    //   role === "Agent" 
+    //   role === "Agent"
     // ) {
     //   setShowOptions(false);
     //   setChat((prev) => [...prev, { role: "user", text: option }]);
@@ -202,23 +201,23 @@ const ChatbotWidget = () => {
     //   setShowOptions(true);
     // }
     setShowOptions(false);
-      setChat((prev) => [...prev, { role: "user", text: option }]);
+    setChat((prev) => [...prev, { role: "user", text: option }]);
 
-      const answer =
-        finalAnswer[option] ||
-        "I don't have information on that specific topic yet. Please contact support for assistance.";
+    const answer =
+      finalAnswer[option] ||
+      "I don't have information on that specific topic yet. Please contact support for assistance.";
 
-      setIsLoading(true);
-      scrollToBottom();
+    setIsLoading(true);
+    scrollToBottom();
 
-      setTimeout(() => {
-        setChat((prev) => [...prev, { role: "assistant", text: answer }]);
-        setIsLoading(false);
-        setCurrentStep("main");
-        setSelectedMainOption(null);
-        setSelectedSubOption(null);
-        setShowOptions(true);
-      }, 500);
+    setTimeout(() => {
+      setChat((prev) => [...prev, { role: "assistant", text: answer }]);
+      setIsLoading(false);
+      setCurrentStep("main");
+      setSelectedMainOption(null);
+      setSelectedSubOption(null);
+      setShowOptions(true);
+    }, 500);
   };
 
   // const handleFinalOptionSelect = async (option) => {
@@ -563,11 +562,11 @@ const ChatbotWidget = () => {
                       display: "flex",
                       justifyContent: "flex-start",
                       mt: 1,
+                      alignItems: "center",
                     }}
                   >
                     <Box
                       sx={{
-                        p: 1,
                         borderRadius: 2,
                         bgcolor: "white",
                         boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
@@ -604,13 +603,7 @@ const ChatbotWidget = () => {
                           transition: "all 0.2s",
                         }}
                       >
-                        {unreadCount > 0 ? (
-                          <Badge color="error" badgeContent={unreadCount}>
-                            <ExpandMoreIcon />
-                          </Badge>
-                        ) : (
-                          <ExpandMoreIcon />
-                        )}
+                        <ExpandMoreIcon />
                       </IconButton>
                     </Tooltip>
                   </Box>
@@ -632,7 +625,7 @@ const ChatbotWidget = () => {
                     display: "flex",
                     alignItems: "center",
                     bgcolor: "#f0f2f5",
-                    borderRadius: 3,
+                    borderRadius: 1.5,
                     px: 1,
                   }}
                 >
@@ -654,6 +647,7 @@ const ChatbotWidget = () => {
                     sx={{
                       "& .MuiInputBase-input": {
                         fontSize: 12,
+                        padding: 0,
                       },
                       "& .MuiInputBase-root": {
                         p: 1,
@@ -695,11 +689,6 @@ const ChatbotWidget = () => {
       ) : (
         <Zoom in={!isOpen} timeout={500}>
           <Box>
-            <Badge
-              color="error"
-              badgeContent={unreadCount > 0 ? unreadCount : null}
-              overlap="circular"
-            >
               <IconButton
                 color="primary"
                 aria-label="Open chat"
@@ -731,7 +720,6 @@ const ChatbotWidget = () => {
               >
                 <ChatIcon fontSize="medium" />
               </IconButton>
-            </Badge>
           </Box>
         </Zoom>
       )}
