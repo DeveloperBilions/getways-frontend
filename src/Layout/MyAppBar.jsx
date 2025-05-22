@@ -249,8 +249,8 @@ export default function MyAppBar(props) {
               alt="Company Logo"
               loading="lazy"
               style={{
-                maxHeight: "3em",
-                width: "auto",
+                width: "116px",
+                height:"40px",
               }}
             />
           </Toolbar>

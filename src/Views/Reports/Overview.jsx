@@ -20,19 +20,241 @@ import {
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useGetIdentity } from "react-admin";
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
 import { fetchTransactionsofAgent } from "../../Utils/utils";
 import CustomPagination from "../Common/CustomPagination";
 import SearchIcon from "@mui/icons-material/Search";
 import downloadDark from "../../Assets/icons/downloadDark.svg";
 import jsPDF from "jspdf";
-import TotalUser from "../../Assets/icons/TotalUser.svg";
-import TotalAgent from "../../Assets/icons/TotalAgent.svg";
 
-const Overview = () => {
+// Dynamic icon imports
+const iconImports = {
+  TotalUser: () => import("../../Assets/icons/TotalUser.svg"),
+  TotalAgent: () => import("../../Assets/icons/TotalAgent.svg"),
+};
+
+const preloadedIcons = {};
+Object.keys(iconImports).forEach((key) => {
+  iconImports[key]().then((module) => {
+    preloadedIcons[key] = module.default;
+  });
+});
+
+// Memoized SummaryCard
+const SummaryCard = React.memo(({ item }) => (
+  <Card
+    sx={{
+      backgroundColor: item?.bgColor,
+      borderRadius: 1,
+      boxShadow: 0,
+    }}
+  >
+    <CardContent>
+      <Typography variant="subtitle1" display="flex" alignItems="center">
+        {item?.icon} {item?.name}
+      </Typography>
+      <Typography
+        variant="h4"
+        sx={{ mt: 1, fontWeight: 500, color: item?.color, fontSize: "32px" }}
+      >
+        {item?.value}
+      </Typography>
+    </CardContent>
+  </Card>
+));
+SummaryCard.displayName = "SummaryCard";
+
+// Memoized PieChartContainer
+const PieChartContainer = React.memo(({ data }) => (
+  <Box
+    sx={{
+      p: 2,
+      height: { xs: "auto", md: 422 },
+      minHeight: { xs: 400, md: "unset" },
+      border: "1px solid #E7E7E7",
+      borderRadius: 1,
+      backgroundColor: "#ffffff",
+      width: "100%",
+      gap: 2,
+      display: "flex",
+      flexDirection: "column",
+      minWidth: "300px",
+    }}
+  >
+    <Typography
+      variant="subtitle1"
+      gutterBottom
+      sx={{
+        fontFamily: "Inter",
+        fontWeight: 600,
+        fontSize: "16px",
+        lineHeight: "100%",
+        color: "#333333",
+      }}
+    >
+      Transaction Overview - Total Distribution
+    </Typography>
+    <Typography
+      sx={{
+        fontFamily: "Inter",
+        fontWeight: 400,
+        fontSize: "12px",
+        lineHeight: "150%",
+        color: "#666666",
+        mb: 2,
+      }}
+    >
+      The pie chart below shows the distribution of different transaction types
+      in the system.
+    </Typography>
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 300,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {data.length > 0 ? (
+        <PieChart
+          series={[
+            {
+              data,
+              highlightScope: { faded: "global", highlighted: "item" },
+              faded: { innerRadius: 30, additionalRadius: -30, color: "gray" },
+            },
+          ]}
+          height={300}
+          margin={{ top: 0, bottom: 100, left: 30, right: 30 }}
+          legend={{
+            direction: "row",
+            position: { vertical: "bottom", horizontal: "middle" },
+            itemMarkWidth: 10,
+            itemMarkHeight: 10,
+          }}
+          sx={{
+            "& .MuiChartsLegend-mark": {
+              width: "10px !important",
+              height: "10px !important",
+            },
+          }}
+        />
+      ) : (
+        <Typography>No data available for pie chart</Typography>
+      )}
+    </Box>
+  </Box>
+));
+PieChartContainer.displayName = "PieChartContainer";
+
+// Memoized BarChartContainer
+const BarChartContainer = React.memo(({ data, loading }) => (
+  <Box
+    sx={{
+      p: 2,
+      height: 422,
+      border: "1px solid #E7E7E7",
+      borderRadius: 1,
+      backgroundColor: "#ffffff",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {loading ? (
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
+        sx={{ height: "100%" }}
+      >
+        <CircularProgress />
+      </Grid>
+    ) : (
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <Typography variant="subtitle1" gutterBottom>
+          Agents Overview
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Inter",
+            fontWeight: 400,
+            fontSize: "12px",
+            lineHeight: "150%",
+            color: "#666666",
+            mb: 2,
+          }}
+        >
+          The bar chart below shows the distribution of different transaction
+          types in the system.
+        </Typography>
+        <Box sx={{ flex: 1, width: "100%", position: "relative" }}>
+          <BarChart
+            xAxis={[
+              {
+                data: data.slice(0, 10).map((item) => item.agentName),
+                scaleType: "band",
+                tickLabelStyle: { fontSize: "8.5px" },
+              },
+            ]}
+            series={[
+              {
+                data: data.slice(0, 10).map((item) => item.totalRecharge),
+                label: "Recharge",
+                color: "#089B2D",
+              },
+              {
+                data: data.slice(0, 10).map((item) => item.totalRedeem),
+                label: "Redeem",
+                color: "#F20D33",
+              },
+              {
+                data: data.slice(0, 10).map((item) => item.totalCashout),
+                label: "Cashout",
+                color: "#0D46F2",
+              },
+            ]}
+            height={350}
+            slotProps={{
+              legend: {
+                direction: "row",
+                position: { vertical: "top", horizontal: "right" },
+                padding: { top: 0 },
+                itemMarkWidth: 10,
+                itemMarkHeight: 10,
+              },
+            }}
+            margin={{
+              left: 70,
+              right: 30,
+              top: 30,
+              bottom: data.length > 5 ? 100 : 70,
+            }}
+            sx={{
+              "& .MuiChartsAxis-tickLabel": { fontSize: "0.75rem" },
+            }}
+          />
+        </Box>
+      </Box>
+    )}
+  </Box>
+));
+BarChartContainer.displayName = "BarChartContainer";
+
+const Overview = React.memo(() => {
   const [data, setData] = useState();
-  const [rechargeData, setRechargeData] = useState([]); // For agent recharge report
+  const [rechargeData, setRechargeData] = useState([]);
   const [filteredRechargeData, setFilteredRechargeData] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -41,38 +263,92 @@ const Overview = () => {
   const { identity } = useGetIdentity();
   const [sortColumn, setSortColumn] = useState("totalRecharge");
   const [sortOrder, setSortOrder] = useState("desc");
-  const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
-  const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
+  const today = new Date().toISOString().split("T")[0];
+  const startDateLimit = "2024-12-01";
   const [noDataFound, setNoDataFound] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentRechargeData, setCurrentRechargeData] = useState([]);
 
-  useEffect(() => {
+  // Memoize finalData
+  const finalData = useMemo(
+    () => [
+      {
+        id: 1,
+        name: "Conversion Rate (Fees Collected)",
+        value: data?.totalFeesAmount?.[0]?.totalFees
+          ? data.totalFeesAmount[0].totalFees.toFixed(2)
+          : "0.00",
+        bgColor: "#F2EFFF",
+        borderColor: "#7EB9FB",
+        color: "#3C24B2",
+        icon: preloadedIcons.TotalUser ? (
+          <img
+            src={preloadedIcons.TotalUser}
+            alt="Total User"
+            style={{ marginRight: "4px", width: "24px", height: "24px" }}
+            loading="lazy"
+          />
+        ) : null,
+      },
+      {
+        id: 2,
+        name: "Ticket Amount",
+        value: data?.totalTicketAmount?.[0]?.totalTicketAmount
+          ? data.totalTicketAmount[0].totalTicketAmount.toFixed(2)
+          : "0.00",
+        bgColor: "#F5FCFF",
+        borderColor: "#adb5bd",
+        color: "#276E91",
+        icon: preloadedIcons.TotalAgent ? (
+          <img
+            src={preloadedIcons.TotalAgent}
+            alt="Total Agent"
+            style={{ marginRight: "4px", width: "24px", height: "24px" }}
+            loading="lazy"
+          />
+        ) : null,
+      },
+    ],
+    [data]
+  );
+
+  // Memoize pieChartData
+  const pieChartData = useMemo(() => {
+    if (!rechargeData.length) return [];
+    let totalRecharge = 0;
+    let totalRedeem = 0;
+    let totalCashout = 0;
+    rechargeData.forEach((agent) => {
+      totalRecharge += agent.totalRecharge;
+      totalRedeem += agent.totalRedeem;
+      totalCashout += agent.totalCashout;
+    });
+    return [
+      { id: 0, value: totalRecharge, label: "Recharge", color: "#43A047" },
+      { id: 1, value: totalRedeem, label: "Redeem", color: "#E53935" },
+      { id: 2, value: totalCashout, label: "Cashout", color: "#FB8C00" },
+    ];
+  }, [rechargeData]);
+
+  // Memoize filteredRechargeData
+  const memoizedFilteredRechargeData = useMemo(() => {
+    if (searchTerm.trim() === "") return rechargeData;
+    return rechargeData.filter((item) =>
+      item.agentName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [rechargeData, searchTerm]);
+
+  // Memoize currentRechargeData
+  const memoizedCurrentRechargeData = useMemo(() => {
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
+    return memoizedFilteredRechargeData.slice(startIndex, endIndex);
+  }, [memoizedFilteredRechargeData, page, rowsPerPage]);
 
-    setCurrentRechargeData(filteredRechargeData.slice(startIndex, endIndex));
-  }, [page, rowsPerPage, filteredRechargeData]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filteredRechargeData]);
-
-  useEffect(() => {
-    // Filter data based on search term whenever rechargeData or searchTerm changes
-    if (searchTerm.trim() === "") {
-      setFilteredRechargeData(rechargeData);
-    } else {
-      const filtered = rechargeData.filter((item) =>
-        item.agentName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredRechargeData(filtered);
-    }
-  }, [searchTerm, rechargeData]);
-
-  const fetchData = async () => {
+  // Memoized fetchData
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const filter = {};
@@ -87,13 +363,12 @@ const Overview = () => {
 
       setData(result[0]);
 
-      // Fetch agent recharge report
       const transactionResult = await fetchTransactionsofAgent({
         sortOrder: "desc",
         startDate: fromDate,
         endDate: toDate,
       });
-      console.log(transactionResult);
+
       if (!transactionResult?.data || !transactionResult?.data.length) {
         setNoDataFound(true);
         setRechargeData([]);
@@ -108,22 +383,38 @@ const Overview = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fromDate, toDate]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     setSubmitted(true);
     setPage(1);
     setSearchTerm("");
     fetchData();
-  };
+  }, [fetchData]);
 
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
     setPage(1);
-  };
+  }, []);
 
-  const handleExportPDF = async () => {
-    if (!filteredRechargeData || filteredRechargeData.length === 0) {
+  const handleSort = useCallback((column) => {
+    setSortColumn(column);
+    setSortOrder((prevSortOrder) => {
+      const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
+      setRechargeData((prevData) => {
+        const sortedData = [...prevData].sort((a, b) => {
+          if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
+          if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
+          return 0;
+        });
+        return sortedData;
+      });
+      return newSortOrder;
+    });
+  }, []);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!memoizedFilteredRechargeData.length) {
       console.warn("No data to export.");
       return;
     }
@@ -133,7 +424,7 @@ const Overview = () => {
       head: [
         ["No", "Agent Name", "Total Recharge", "Total Redeem", "Total Cashout"],
       ],
-      body: filteredRechargeData.map((row, index) => [
+      body: memoizedFilteredRechargeData.map((row, index) => [
         index + 1,
         row.agentName,
         row.totalRecharge,
@@ -142,476 +433,104 @@ const Overview = () => {
       ]),
     });
     doc.save("AgentOverallReport.pdf");
-  };
+  }, [memoizedFilteredRechargeData]);
 
-  const finalData = [
-    {
-      id: 1,
-      name: "Conversion Rate (Fees Collected)",
-      value: data?.totalFeesAmount?.[0]?.totalFees
-        ? data.totalFeesAmount[0].totalFees.toFixed(2)
-        : "0.00",
-      bgColor: "#F2EFFF",
-      borderColor: "#7EB9FB",
-      color: "#3C24B2",
-      icon: <img src={TotalUser} alt="Total User" />,
-    },
-    {
-      id: 2,
-      name: "Ticket Amount",
-      value: data?.totalTicketAmount?.[0]?.totalTicketAmount
-        ? data.totalTicketAmount[0].totalTicketAmount.toFixed(2)
-        : "0.00",
-      bgColor: "#F5FCFF",
-      borderColor: "#adb5bd",
-      color: "#276E91",
-      icon: <img src={TotalAgent} alt="Total Agent" />,
-    },
-  ];
-
-  // Calculate totals for PieChart
-  const calculateTotals = () => {
-    if (!rechargeData.length) return [];
-
-    let totalRecharge = 0;
-    let totalRedeem = 0;
-    let totalCashout = 0;
-
-    rechargeData.forEach((agent) => {
-      totalRecharge += agent.totalRecharge;
-      totalRedeem += agent.totalRedeem;
-      totalCashout += agent.totalCashout;
-    });
-
-    return [
-      {
-        id: 0,
-        value: totalRecharge,
-        label: "Recharge",
-        color: "#43A047",
-      },
-      { id: 1, value: totalRedeem, label: "Redeem", color: "#E53935" },
-      { id: 2, value: totalCashout, label: "Cashout", color: "#FB8C00" },
-    ];
-  };
-
-  const handleSort = (column) => {
-    setSortColumn(column);
-    setSortOrder((prevSortOrder) => {
-      const newSortOrder = prevSortOrder === "asc" ? "desc" : "asc";
-
-      setRechargeData((prevData) => {
-        const sortedData = [...prevData].sort((a, b) => {
-          if (a[column] < b[column]) return newSortOrder === "asc" ? -1 : 1;
-          if (a[column] > b[column]) return newSortOrder === "asc" ? 1 : -1;
-          return 0;
-        });
-        return sortedData;
-      });
-
-      return newSortOrder; // Update the state with the new order
-    });
-  };
-
-  const pieChartData = calculateTotals();
+  if (identity?.email !== "zen@zen.com") return null;
 
   return (
     <>
-      {/* Date Filters */}
-      {identity?.email === "zen@zen.com" && (
-        <>
-          <Box
-            display="flex"
-            flexDirection={{ xs: "column", sm: "row" }}
-            gap={2}
-            sx={{ mb: 2 }}
-            alignItems={{ xs: "stretch", sm: "flex-end" }}
+      <Box
+        display="flex"
+        flexDirection={{ xs: "column", sm: "row" }}
+        gap={2}
+        sx={{ mb: 2 }}
+        alignItems={{ xs: "stretch", sm: "flex-end" }}
+      >
+        <Box display="flex" flexDirection="column">
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 0.5,
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#00000099",
+            }}
           >
-            <Box display="flex" flexDirection="column">
-              <Typography
-                variant="body2"
-                sx={{
-                  mb: 0.5,
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#00000099",
-                }}
-              >
-                Start Date<span style={{ color: "red" }}> *</span>
-              </Typography>
-              <TextField
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                inputProps={{
-                  min: startDateLimit,
-                  max: toDate || today,
-                }}
-                required
-                sx={{
-                  "& .MuiInputBase-root": {
-                    height: "40px",
-                  },
-                }}
-              />
-            </Box>
-            <Box display="flex" flexDirection="column">
-              <Typography
-                variant="body2"
-                sx={{
-                  mb: 0.5,
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#00000099",
-                }}
-              >
-                End Date<span style={{ color: "red" }}> *</span>
-              </Typography>
-              <TextField
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                inputProps={{
-                  min: fromDate || startDateLimit,
-                  max: today,
-                }}
-                required
-                sx={{
-                  "& .MuiFormLabel-asterisk": {
-                    color: "red",
-                  },
-                  "& .MuiInputBase-root": {
-                    height: "40px",
-                  },
-                }}
-              />
-            </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}
-              disabled={loading || !fromDate || !toDate}
-              sx={{
-                height: "40px",
-              }}
-            >
-              {loading ? "Loading..." : "Apply Filter"}
-            </Button>
-          </Box>
-          {!loading && (
-            <Grid container spacing={2}>
-              {finalData?.map((item) => (
-                <Grid item xs={12} md={6} key={item?.id}>
-                  <Card
-                    sx={{
-                      backgroundColor: item?.bgColor,
-                      // border: 2,
-                      // borderColor: item?.borderColor,
-                      borderRadius: 1,
-                      boxShadow: 0,
-                    }}
-                  >
-                    <CardContent>
-                      <Typography
-                        variant="subtitle1"
-                        display="flex"
-                        alignItems="center"
-                      >
-                        {item?.icon}
-                        &nbsp;{item?.name}
-                      </Typography>
-                      <Typography
-                        variant="h4"
-                        sx={{
-                          mt: 1,
-                          fontWeight: 500,
-                          color: item?.color,
-                          fontSize: "32px",
-                        }}
-                      >
-                        {item?.value}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-          {loading ? (
-            <Grid container justifyContent="center">
-              <CircularProgress />
-            </Grid>
-          ) : submitted ? (
+            Start Date<span style={{ color: "red" }}> *</span>
+          </Typography>
+          <TextField
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            inputProps={{ min: startDateLimit, max: toDate || today }}
+            required
+            sx={{ "& .MuiInputBase-root": { height: "40px" } }}
+          />
+        </Box>
+        <Box display="flex" flexDirection="column">
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 0.5,
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#00000099",
+            }}
+          >
+            End Date<span style={{ color: "red" }}> *</span>
+          </Typography>
+          <TextField
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            inputProps={{ min: fromDate || startDateLimit, max: today }}
+            required
+            sx={{ "& .MuiInputBase-root": { height: "40px" } }}
+          />
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={loading || !fromDate || !toDate}
+          sx={{ height: "40px" }}
+        >
+          {loading ? "Loading..." : "Apply Filter"}
+        </Button>
+      </Box>
+      {loading ? (
+        <Grid container justifyContent="center">
+          <CircularProgress />
+        </Grid>
+      ) : (
+        <>
+          <Grid container spacing={2}>
+            {finalData.map((item) => (
+              <Grid item xs={12} md={6} key={item.id}>
+                <SummaryCard item={item} />
+              </Grid>
+            ))}
+          </Grid>
+          {submitted ? (
             !noDataFound ? (
               <>
-                {/* Summary Cards */}
-                {/* <Grid container spacing={2}>
-                  {finalData?.map((item) => (
-                    <Grid item xs={12} md={4} key={item?.id}>
-                      <Card
-                        sx={{
-                          backgroundColor: item?.bgColor,
-                          border: 2,
-                          borderColor: item?.borderColor,
-                          borderRadius: 0,
-                          boxShadow: 0,
-                        }}
-                      >
-                        <CardContent>
-                          <Typography
-                            variant="subtitle1"
-                            display="flex"
-                            alignItems="center"
-                          >
-                            {item?.icon}
-                            &nbsp;{item?.name}
-                          </Typography>
-                          <Typography
-                            variant="h4"
-                            sx={{ mt: 1, fontWeight: "bold" }}
-                          >
-                            {item?.value}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid> */}
-
-                {/* PieChart for Totals */}
                 <Box sx={{ mt: 4 }}>
                   <CardContent sx={{ p: 0 }}>
                     <Grid container spacing={2}>
-                      {/* Left Box - Pie Chart */}
                       <Grid item xs={12} md={6}>
-                        <Box
-                          sx={{
-                            p: 2,
-                            height: { xs: "auto", md: 422 },
-                            minHeight: { xs: 400, md: "unset" },
-                            border: "1px solid #E7E7E7",
-                            borderRadius: 1,
-                            backgroundColor: "#ffffff",
-                            width: "100%",
-                            gap: 2,
-                            display: "flex",
-                            flexDirection: "column",
-                            minWidth: "300px",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle1"
-                            gutterBottom
-                            sx={{
-                              fontFamily: "Inter",
-                              fontWeight: 600,
-                              fontSize: "16px",
-                              lineHeight: "100%",
-                              color: "#333333",
-                            }}
-                          >
-                            Transaction Overview - Total Distribution
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: "Inter",
-                              fontWeight: 400,
-                              fontSize: "12px",
-                              lineHeight: "150%",
-                              color: "#666666",
-                              mb: 2,
-                            }}
-                          >
-                            The pie chart below shows the distribution of
-                            different transaction types in the system.
-                          </Typography>
-                          <Box
-                            sx={{
-                              flex: 1,
-                              minHeight: 300,
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            {pieChartData.length > 0 ? (
-                              <PieChart
-                                series={[
-                                  {
-                                    data: pieChartData,
-                                    highlightScope: {
-                                      faded: "global",
-                                      highlighted: "item",
-                                    },
-                                    faded: {
-                                      innerRadius: 30,
-                                      additionalRadius: -30,
-                                      color: "gray",
-                                    },
-                                  },
-                                ]}
-                                height={300}
-                                margin={{
-                                  top: 0,
-                                  bottom: 100,
-                                  left: 30,
-                                  right: 30,
-                                }}
-                                legend={{
-                                  direction: "row",
-                                  position: {
-                                    vertical: "bottom",
-                                    horizontal: "middle",
-                                  },
-                                  itemMarkWidth: 10,
-                                  itemMarkHeight: 10,
-                                }}
-                                sx={{
-                                  "& .MuiChartsLegend-mark": {
-                                    width: "10px !important",
-                                    height: "10px !important",
-                                  },
-                                }}
-                              />
-                            ) : (
-                              <Typography>
-                                No data available for pie chart
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
+                        <PieChartContainer data={pieChartData} />
                       </Grid>
-
-                      {/* Right Box - Bar Chart */}
                       <Grid item xs={12} md={6}>
-                        <Box
-                          sx={{
-                            p: 2,
-                            height: 422,
-                            border: "1px solid #E7E7E7",
-                            borderRadius: 1,
-                            backgroundColor: "#ffffff",
-                            width: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                          }}
-                        >
-                          {loading ? (
-                            <Grid
-                              container
-                              justifyContent="center"
-                              alignItems="center"
-                              sx={{ height: "100%" }}
-                            >
-                              <CircularProgress />
-                            </Grid>
-                          ) : (
-                            <Box
-                              sx={{
-                                width: "100%",
-                                height: "100%",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 2,
-                              }}
-                            >
-                              <Typography variant="subtitle1" gutterBottom>
-                                Agents Overview
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontFamily: "Inter",
-                                  fontWeight: 400,
-                                  fontSize: "12px",
-                                  lineHeight: "150%",
-                                  color: "#666666",
-                                  mb: 2,
-                                }}
-                              >
-                                The bar chart below shows the distribution of
-                                different transaction types in the system.
-                              </Typography>
-
-                              <Box
-                                sx={{
-                                  flex: 1,
-                                  width: "100%",
-                                  position: "relative",
-                                }}
-                              >
-                                <BarChart
-                                  xAxis={[
-                                    {
-                                      data: rechargeData
-                                        .slice(0, 10)
-                                        .map((item) => item.agentName),
-                                      scaleType: "band",
-                                      tickLabelStyle: {
-                                        fontSize: "8.5px",
-                                      },
-                                    },
-                                  ]}
-                                  series={[
-                                    {
-                                      data: rechargeData
-                                        .slice(0, 10)
-                                        .map((item) => item.totalRecharge),
-                                      label: "Recharge",
-                                      color: "#089B2D",
-                                    },
-                                    {
-                                      data: rechargeData
-                                        .slice(0, 10)
-                                        .map((item) => item.totalRedeem),
-                                      label: "Redeem",
-                                      color: "#F20D33",
-                                    },
-                                    {
-                                      data: rechargeData
-                                        .slice(0, 10)
-                                        .map((item) => item.totalCashout),
-                                      label: "Cashout",
-                                      color: "#0D46F2",
-                                    },
-                                  ]}
-                                  height={350}
-                                  slotProps={{
-                                    legend: {
-                                      direction: "row",
-                                      position: {
-                                        vertical: "top",
-                                        horizontal: "right",
-                                      },
-                                      padding: { top: 0 },
-                                      itemMarkWidth: 10,
-                                      itemMarkHeight: 10,
-                                    },
-                                  }}
-                                  margin={{
-                                    left: 70,
-                                    right: 30,
-                                    top: 30,
-                                    bottom: rechargeData.length > 5 ? 100 : 70,
-                                  }}
-                                  sx={{
-                                    "& .MuiChartsAxis-tickLabel": {
-                                      fontSize: "0.75rem",
-                                    },
-                                  }}
-                                />
-                              </Box>
-                            </Box>
-                          )}
-                        </Box>
+                        <BarChartContainer
+                          data={rechargeData}
+                          loading={loading}
+                        />
                       </Grid>
                     </Grid>
                   </CardContent>
                 </Box>
-
-                {/* Data Grid for Agent Recharge Report */}
                 <Box
                   sx={{
                     display: "flex",
@@ -633,7 +552,6 @@ const Overview = () => {
                   >
                     Agent overall Report
                   </Typography>
-
                   <Box
                     sx={{
                       display: "flex",
@@ -661,7 +579,6 @@ const Overview = () => {
                         ),
                       }}
                     />
-
                     <Button
                       variant="contained"
                       color="secondary"
@@ -687,13 +604,12 @@ const Overview = () => {
                     </Button>
                   </Box>
                 </Box>
-
                 <TableContainer
                   component={Paper}
                   sx={{
-                    width: "100%", // mobile: 95% of screen, desktop: 100%
-                    maxWidth: { xs: "90vw", sm: "100%" }, // cap width to 95% of viewport on mobile
-                    overflowX: "auto", // enable horizontal scroll if needed
+                    width: "100%",
+                    maxWidth: { xs: "90vw", sm: "100%" },
+                    overflowX: "auto",
                     boxShadow: "none",
                   }}
                 >
@@ -739,7 +655,7 @@ const Overview = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {currentRechargeData.map((row, index) => (
+                      {memoizedCurrentRechargeData.map((row, index) => (
                         <TableRow key={index}>
                           <TableCell>{row.agentName}</TableCell>
                           <TableCell>{row.totalRecharge}</TableCell>
@@ -750,7 +666,6 @@ const Overview = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                {/* Pagination */}
                 <Box
                   sx={{
                     display: "flex",
@@ -762,7 +677,7 @@ const Overview = () => {
                   <CustomPagination
                     page={page}
                     perPage={rowsPerPage}
-                    total={filteredRechargeData?.length}
+                    total={memoizedFilteredRechargeData.length}
                     setPage={setPage}
                     setPerPage={setRowsPerPage}
                   />
@@ -786,6 +701,6 @@ const Overview = () => {
       )}
     </>
   );
-};
+});
 
 export default Overview;

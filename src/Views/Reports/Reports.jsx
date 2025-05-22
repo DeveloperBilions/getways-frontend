@@ -1,10 +1,10 @@
-import React, { useState, memo, Suspense, useCallback } from "react";
+import React, { useState, Suspense, useCallback, useMemo } from "react";
 import { useGetIdentity } from "react-admin";
-import { Box, Typography, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { TransactionData } from "../TransactionData/TransactionData";
 
-// Lazy load components
+// Lazy-loaded components
 const Overview = React.lazy(() => import("./Overview"));
 const Comparison = React.lazy(() => import("./Comparison"));
 const AgentOverview = React.lazy(() => import("./AgentOverview"));
@@ -13,7 +13,37 @@ const PlayerComparison = React.lazy(() => import("./PlayerComparison"));
 const ParticularPlayer = React.lazy(() => import("./ParticularPlayer"));
 const Kyc = React.lazy(() => import("./Kyc"));
 
-// Styled components with identical styling to original
+// Static data
+const tabToComponentMap = {
+  Overview: "overview",
+  Comparison: "comparison",
+  "Agent Overview": "agentOverview",
+  "Player Overview": "playerOverview",
+  "Player Comparison": "playerComparison",
+  "Particular Player": "particularPlayer",
+  KYC: "Kyc",
+  "Transaction Export": "TransactionData",
+};
+
+const tabOptions = Object.keys(tabToComponentMap);
+
+const descriptions = {
+  overview: "This Overview page is a comprehensive financial dashboard...",
+  comparison: "This Comparison page enables users to analyze and compare...",
+  agentOverview:
+    "The Agent Overview page allows admins to analyze an agent's transactions...",
+  playerOverview:
+    "The Player Overview page provides a detailed transactional analysis...",
+  playerComparison:
+    "The Player Comparison page allows users to compare player transaction data...",
+  particularPlayer:
+    "The Particular Player page allows admins to analyze a player's transactions...",
+  TransactionData:
+    "The Transaction Export page allows users to download transaction data...",
+  Kyc: "This KYC page provides a comprehensive view of customer verification statuses...",
+};
+
+// Styled components (unchanged except for DescriptionText and DescriptionBox)
 const RootBox = styled(Box)({
   width: "100%",
   padding: "16px",
@@ -46,43 +76,55 @@ const TabContainer = styled(Box)({
   },
 });
 
-const TabButton = styled(Box)(({ active }) => ({
-  padding: "8px 16px",
-  borderRadius: "4px",
-  cursor: "pointer",
-  backgroundColor: active ? "#000" : "transparent",
-  transition: "background-color 0.3s",
-  "&:hover": {
-    backgroundColor: active ? "#000" : "#f5f5f5",
-  },
-}));
+const TabButton = React.memo(
+  styled(Box)(({ active }) => ({
+    padding: "8px 16px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    backgroundColor: active ? "#000" : "transparent",
+    transition: "background-color 0.3s",
+    "&:hover": {
+      backgroundColor: active ? "#000" : "#f5f5f5",
+    },
+  }))
+);
+TabButton.displayName = "TabButton";
 
-const TabText = styled(Typography)(({ active }) => ({
-  fontSize: "16px",
-  color: active ? "#fff" : "#4D4D4D",
-  whiteSpace: "nowrap",
-  "@media (max-width: 768px)": {
-    fontSize: "14px",
-  },
-}));
+const TabText = React.memo(
+  styled(Typography)(({ active }) => ({
+    fontSize: "16px",
+    color: active ? "#fff" : "#4D4D4D",
+    whiteSpace: "nowrap",
+    "@media (max-width: 768px)": {
+      fontSize: "14px",
+    },
+  }))
+);
+TabText.displayName = "TabText";
 
-const DescriptionBox = styled(Box)({
-  marginTop: "24px",
-  padding: "16px",
-  background: "#F7F8F8",
-  borderRadius: "8px",
-  "@media (max-width: 768px)": {
-    marginTop: "16px",
-  },
-});
+const DescriptionBox = React.memo(
+  styled(Box)({
+    marginTop: "24px",
+    padding: "16px",
+    background: "#F7F8F8",
+    borderRadius: "8px",
+    "@media (max-width: 768px)": {
+      marginTop: "16px",
+    },
+  })
+);
+DescriptionBox.displayName = "DescriptionBox";
 
-const DescriptionText = styled(Typography)({
-  fontSize: "16px",
-  color: "#4D4D4D",
-  "@media (max-width: 768px)": {
-    fontSize: "14px",
-  },
-});
+const DescriptionText = React.memo(
+  styled(Typography)({
+    fontSize: "16px",
+    color: "#4D4D4D",
+    "@media (max-width: 768px)": {
+      fontSize: "14px",
+    },
+  })
+);
+DescriptionText.displayName = "DescriptionText";
 
 const ContentContainer = styled(Box)({
   marginTop: "24px",
@@ -95,65 +137,45 @@ const ContentContainer = styled(Box)({
   },
 });
 
-const Reports = memo(() => {
+const Reports = React.memo(() => {
   const { identity } = useGetIdentity();
   const [activeTab, setActiveTab] = useState("Overview");
-
   const handleTabClick = useCallback((tab) => {
     setActiveTab(tab);
   }, []);
 
-  const tabToComponentMap = {
-    Overview: "overview",
-    Comparison: "comparison",
-    "Agent Overview": "agentOverview",
-    "Player Overview": "playerOverview",
-    "Player Comparison": "playerComparison",
-    "Particular Player": "particularPlayer",
-    KYC: "Kyc",
-    "Transaction Export": "TransactionData",
-  };
-
-  const tabOptions = Object.keys(tabToComponentMap);
-
-  const descriptions = {
-    overview: "This Overview page is a comprehensive financial dashboard...",
-    comparison: "This Comparison page enables users to analyze and compare...",
-    agentOverview:
-      "The Agent Overview page allows admins to analyze an agent's transactions...",
-    playerOverview:
-      "The Player Overview page provides a detailed transactional analysis...",
-    playerComparison:
-      "The Player Comparison page allows users to compare player transaction data...",
-    particularPlayer:
-      "The Particular Player page allows admins to analyze a player's transactions...",
-    TransactionData:
-      "The Transaction Export page allows users to download transaction data...",
-    Kyc: "This KYC page provides a comprehensive view of customer verification statuses...",
-  };
+  // Memoize the active component and description to avoid unnecessary lookups
+  const activeComponent = useMemo(
+    () => tabToComponentMap[activeTab],
+    [activeTab]
+  );
+  const activeDescription = useMemo(
+    () => descriptions[activeComponent],
+    [activeComponent]
+  );
 
   if (identity?.email !== "zen@zen.com") return null;
-
-  const activeComponent = tabToComponentMap[activeTab];
 
   return (
     <RootBox>
       <Title>Reports</Title>
-
       <TabContainer>
         {tabOptions.map((tab) => (
           <TabButton
             key={tab}
-            onClick={() => handleTabClick(tab)}
+            onClick={handleTabClick.bind(null, tab)}
             active={activeTab === tab}
           >
             <TabText active={activeTab === tab}>{tab}</TabText>
           </TabButton>
         ))}
       </TabContainer>
-
       <DescriptionBox>
-        <DescriptionText>{descriptions[activeComponent]}</DescriptionText>
+        {activeDescription ? (
+          <DescriptionText>{activeDescription}</DescriptionText>
+        ) : (
+          <Typography>Loading description...</Typography>
+        )}
       </DescriptionBox>
 
       <ContentContainer>
