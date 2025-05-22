@@ -10,7 +10,7 @@ import TransactionRecords from "../TransactionRecords";
 import { Parse } from "parse";
 import CashOutModal from "./CashOutDialogCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Alert } from "@mui/material"; 
+import { Alert } from "@mui/material";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -39,14 +39,15 @@ export const WalletDetails = ({
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
-        const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
-        setCashoutDisabled(disabled);
-    }
-  
-    if(identity?.userParentId){
+      const disabled = !(await isCashoutEnabledForAgent(
+        identity?.userParentId
+      ));
+      setCashoutDisabled(disabled);
+    };
+
+    if (identity?.userParentId) {
       checkRechargeAccess();
     }
-
   }, [identity]);
   const role = localStorage.getItem("role");
 
@@ -114,22 +115,35 @@ export const WalletDetails = ({
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <img
-              src={AOG_Symbol}
-              alt="AOG Symbol"
-              style={{ width: 32, height: 32 }}
-            />
-            <Typography
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box
               sx={{
-                color: "#000000",
-                fontWeight: "600",
-                fontFamily: "Inter",
-                fontSize: "32px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                bgcolor: "#EFF6FF",
+                borderRadius: "40px",
+                padding: "11.5px 24px",
               }}
             >
-              {balance}
-            </Typography>
+              <img
+                src={AOG_Symbol}
+                alt="AOG Symbol"
+                style={{ width: 32, height: 32 }}
+              />
+              <Typography
+                sx={{
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 600,
+                  fontSize: "32px",
+                  lineHeight: "100%",
+                  letterSpacing: "0px",
+                  color: "#000000",
+                }}
+              >
+                {balance}
+              </Typography>
+            </Box>
           </Box>
         </Box>
         <Box
@@ -180,12 +194,12 @@ export const WalletDetails = ({
             marginBottom: "16px",
           }}
         >
-{cashoutDisabled && (
-  <Alert severity="error" sx={{ mb: 2 }}>
-    Cashouts are not available at this time. Please try again later.
-  </Alert>
-)}
-        {/* <Alert severity="error" sx={{ my: 2 }}>
+          {cashoutDisabled && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              Cashouts are not available at this time. Please try again later.
+            </Alert>
+          )}
+          {/* <Alert severity="error" sx={{ my: 2 }}>
         We're experiencing cashout processing delays due to high demand. Please try again later.
 </Alert> */}
           <Typography

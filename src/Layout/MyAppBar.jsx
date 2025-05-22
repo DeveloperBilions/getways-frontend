@@ -187,7 +187,7 @@ export default function MyAppBar(props) {
       });
       menuItems.push({
         key: "wlletAudit",
-        label: "walletAudit",
+        label: "Wallet Audit",
         onClick: () => navigate("/walletAudit"),
       });
     }

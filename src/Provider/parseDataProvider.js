@@ -18,7 +18,6 @@ Parse.initialize(
 Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
-
 export const dataProvider = {
   create: async (resource, params) => {
     try {
@@ -242,12 +241,12 @@ export const dataProvider = {
             dailyRechargeLimit: user.get("dailyRechargeLimit"),
             activeRechargeLimit: user.get("activeRechargeLimit"),
             walletAddr: user.get("walletAddr"),
-            allowUserCreation:user.get("allowUserCreation"),
+            allowUserCreation: user.get("allowUserCreation"),
             kycVerified: kyc.kycVerified || false,
             kycStatus: kyc.kycStatus || "unknown",
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
-            rechargeDisabled:user.get("rechargeDisabled")
+            rechargeDisabled: user.get("rechargeDisabled"),
           };
         });
 
@@ -256,7 +255,7 @@ export const dataProvider = {
           total,
         };
       } else if (resource === "redeemRecords") {
-        console.log(filter,role,"hjyuiuiu")
+        console.log(filter, role, "hjyuiuiu");
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -335,7 +334,7 @@ export const dataProvider = {
             }
           }
         }
-        console.log(query,"query result")
+        console.log(query, "query result");
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
@@ -396,9 +395,9 @@ export const dataProvider = {
                 } else {
                   query.containedIn("userId", []);
                 }
-              }else if (f === "mode") {
+              } else if (f === "mode") {
                 const modeValue = filter[f].toLowerCase();
-              
+
                 if (modeValue === "wert") {
                   query.matches("transactionIdFromStripe", /^txn/i);
                 } else if (modeValue === "link") {
@@ -414,8 +413,7 @@ export const dataProvider = {
                 } else if (modeValue === "stripe") {
                   query.equalTo("useWallet", false);
                 }
-              }
-               else if (f === "searchBy") {
+              } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
               } else {
                 query.equalTo(f, filter[f]);
@@ -564,7 +562,9 @@ export const dataProvider = {
         }
 
         const matchConditions = [];
-        matchConditions.push({transactionAmount: { $gt: 0, $type: "number" },});
+        matchConditions.push({
+          transactionAmount: { $gt: 0, $type: "number" },
+        });
         if (filter.startDate && filter.endDate) {
           matchConditions.push({
             transactionDate: {
@@ -670,7 +670,7 @@ export const dataProvider = {
               ],
               totalRechargeByType: [
                 {
-                   $match: { status: { $in: [2, 3] },useWallet:true } ,
+                  $match: { status: { $in: [2, 3] }, useWallet: true },
                 },
                 {
                   $group: { _id: null, total: { $sum: "$transactionAmount" } },
@@ -720,27 +720,28 @@ export const dataProvider = {
         let totalWalletBalance = 0;
 
         const pipe = [];
-        
+
         if (filter?.username && userIds.length) {
           pipe.push({
             $match: {
-              userID: { $in: userIds }
-            }
+              userID: { $in: userIds },
+            },
           });
         }
-        
+
         // Group stage for sum (common for both cases)
         pipe.push({
           $group: {
             _id: null,
-            totalBalance: { $sum: "$balance" }
-          }
+            totalBalance: { $sum: "$balance" },
+          },
         });
-        
-        const res = await new Parse.Query("Wallet").aggregate(pipe, { useMasterKey: true });
-        
+
+        const res = await new Parse.Query("Wallet").aggregate(pipe, {
+          useMasterKey: true,
+        });
+
         totalWalletBalance = res.length > 0 ? res[0].totalBalance : 0;
-        
 
         function mergeFacets(active, archived, walletBalance = 0) {
           const merged = {};
@@ -1426,16 +1427,24 @@ export const dataProvider = {
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
-              } else if (f === "transactionDate" && typeof filter[f] === "object") {
+              } else if (
+                f === "transactionDate" &&
+                typeof filter[f] === "object"
+              ) {
                 const dateFilter = filter[f];
                 if (dateFilter.$gte) {
-                  query.greaterThanOrEqualTo("transactionDate", new Date(dateFilter.$gte));
+                  query.greaterThanOrEqualTo(
+                    "transactionDate",
+                    new Date(dateFilter.$gte)
+                  );
                 }
                 if (dateFilter.$lte) {
-                  query.lessThanOrEqualTo("transactionDate", new Date(dateFilter.$lte));
+                  query.lessThanOrEqualTo(
+                    "transactionDate",
+                    new Date(dateFilter.$lte)
+                  );
                 }
-              }
-              else {
+              } else {
                 query.equalTo(f, filter[f]);
               }
             }
@@ -1502,15 +1511,24 @@ export const dataProvider = {
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
-              } else if (f === "transactionDate" && typeof filter[f] === "object") {
+              } else if (
+                f === "transactionDate" &&
+                typeof filter[f] === "object"
+              ) {
                 const dateFilter = filter[f];
                 if (dateFilter.$gte) {
-                  query.greaterThanOrEqualTo("transactionDate", new Date(dateFilter.$gte));
+                  query.greaterThanOrEqualTo(
+                    "transactionDate",
+                    new Date(dateFilter.$gte)
+                  );
                 }
                 if (dateFilter.$lte) {
-                  query.lessThanOrEqualTo("transactionDate", new Date(dateFilter.$lte));
+                  query.lessThanOrEqualTo(
+                    "transactionDate",
+                    new Date(dateFilter.$lte)
+                  );
                 }
-              }else {
+              } else {
                 query.equalTo(f, filter[f]);
               }
             }
@@ -1614,22 +1632,25 @@ export const dataProvider = {
         };
 
         return [mergedResults];
-      }else if (resource === "GiftCardHistory") {
+      } else if (resource === "GiftCardHistory") {
         const query = new Parse.Query(resource);
-      
+
         // 🔍 Filter by status
         if (params.filter?.status) {
           query.equalTo("status", params.filter.status);
         }
-      
+
         if (params.filter?.username) {
           const userQuery = new Parse.Query(Parse.User);
-          userQuery.matches("username", new RegExp(params.filter.username, "i")); // Case-insensitive, partial match
+          userQuery.matches(
+            "username",
+            new RegExp(params.filter.username, "i")
+          ); // Case-insensitive, partial match
           userQuery.limit(1000); // Set a reasonable limit to avoid performance issues
           const users = await userQuery.find({ useMasterKey: true });
-        
+
           if (users.length > 0) {
-            const userIds = users.map(user => user.id);
+            const userIds = users.map((user) => user.id);
             query.containedIn("userId", userIds);
           } else {
             return {
@@ -1638,20 +1659,20 @@ export const dataProvider = {
             };
           }
         }
-        
-        
+
         if (params.sort?.field) {
-          const order = params.sort.order === "DESC" ? "descending" : "ascending";
+          const order =
+            params.sort.order === "DESC" ? "descending" : "ascending";
           query[order](params.sort.field);
         }
-      
+
         // 📄 Pagination
         query.limit(params.pagination.perPage);
         query.skip((params.pagination.page - 1) * params.pagination.perPage);
-      
+
         const results = await query.find({ useMasterKey: true });
         const count = await query.count({ useMasterKey: true });
-      
+
         return {
           data: results.map((record) => ({
             id: record.id,
@@ -1659,135 +1680,177 @@ export const dataProvider = {
           })),
           total: count,
         };
-      }
-      else if (resource === "walletAudit") {
-        const userQuery = new Parse.Query(Parse.User);
-        userQuery.exists("walletAddr");
+      }else if (resource === "walletAudit") {
+        const page = params.pagination.page || 1;
+        const perPage = params.pagination.perPage || 10;
+        const usernameFilter = params.filter?.username;
       
-        if (params.filter?.username) {
-          userQuery.matches("username", new RegExp(params.filter.username, "i"));
+        const matchStage = {
+          status: { $in: [2, 3] },
+          type: "recharge",
+          $or: [{ useWallet: { $exists: false } }, { useWallet: false }],
+        };
+      
+        if (usernameFilter) {
+          matchStage["username"] = { $regex: usernameFilter, $options: "i" };
         }
       
-        userQuery.limit(params.pagination.perPage);
-        userQuery.skip((params.pagination.page - 1) * params.pagination.perPage);
-        userQuery.descending("createdAt");
-      
-        const results = await userQuery.find({ useMasterKey: true });
-        const count = await userQuery.count({ useMasterKey: true });
-      
-        const API_KEY = process.env.REACT_APP_KEYBSCAN;
-        const CONTRACT_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
-        const CHAIN_ID = "8453";
-      
-        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-        const enriched = [];
-      
-        for (let i = 0; i < results.length; i++) {
-          const u = results[i];
-          const username = u.get("username");
-          const walletAddr = u.get("walletAddr") || "";
-          const gatewayBalance = parseFloat(u.get("gatewayBalance") || 0);
-          let usdcBalance = 0;
-          let wertTotal = 0;
-          let coinbaseTotal = 0;
-          let linkTotal = 0;
-      
-          // 🕒 Throttle Etherscan to 5 calls/second
-          if (i > 0 && i % 5 === 0) {
-            await delay(1000);
-          }
-      
-          // 🌐 Fetch balance from Etherscan
-          try {
-            if (walletAddr) {
-              const url = `https://api.etherscan.io/v2/api?chainid=${CHAIN_ID}&module=account&action=tokenbalance&contractaddress=${CONTRACT_ADDRESS}&address=${walletAddr}&tag=latest&apikey=${API_KEY}`;
-              const response = await fetch(url);
-              const json = await response.json();
-              usdcBalance = json?.result ? parseFloat(json.result) / 1e6 : 0;
-            }
-          } catch (err) {
-            console.error(`Balance fetch failed for ${walletAddr}`, err);
-          }
-      
-          // 📊 Aggregate gateway transactions
-          const txAgg = await new Parse.Query("TransactionRecords").aggregate([
-            {
-              $match: {
-                userId: u.id,
-                status: { $in: [2, 3] },
-              },
+        const transactionAgg = await new Parse.Query("TransactionRecords").aggregate([
+          { $match: matchStage },
+          {
+            $addFields: {
+              stripeId: { $ifNull: ["$transactionIdFromStripe", ""] },
+              referralLink: { $ifNull: ["$referralLink", ""] },
             },
-            {
-              $addFields: {
-                stripeId: {
-                  $cond: [
-                    { $ifNull: ["$transactionIdFromStripe", false] },
-                    { $toString: "$transactionIdFromStripe" },
-                    "",
-                  ],
-                },
-                referralLink: {
-                  $cond: [
-                    { $ifNull: ["$referralLink", false] },
-                    { $toString: "$referralLink" },
-                    "",
-                  ],
-                },
-              },
-            },
-            {
-              $addFields: {
-                mode: {
-                  $cond: [
-                    { $regexMatch: { input: "$stripeId", regex: "txn", options: "i" } }, "WERT",
+          },
+          {
+            $addFields: {
+              mode: {
+                $switch: {
+                  branches: [
                     {
-                      $cond: [
-                        { $regexMatch: { input: "$referralLink", regex: "pay.coinbase.com", options: "i" } }, "CoinBase",
-                        {
-                          $cond: [
-                            { $regexMatch: { input: "$stripeId", regex: "crypto.link.com", options: "i" } }, "Link",
-                            "Other",
-                          ],
-                        },
-                      ],
+                      case: { $regexMatch: { input: "$stripeId", regex: "txn", options: "i" } },
+                      then: "WERT",
+                    },
+                    {
+                      case: { $regexMatch: { input: "$referralLink", regex: "pay.coinbase.com", options: "i" } },
+                      then: "CoinBase",
+                    },
+                    {
+                      case: { $regexMatch: { input: "$stripeId", regex: "crypto.link.com", options: "i" } },
+                      then: "Link",
                     },
                   ],
+                  default: "Other",
                 },
               },
             },
-            {
-              $group: {
-                _id: "$mode",
-                totalAmount: { $sum: "$transactionAmount" },
+          },
+          { $match: { mode: { $in: ["WERT", "CoinBase", "Link"] } } },
+          {
+            $group: {
+              _id: "$userId",
+              username: { $first: "$username" },
+              walletAddr: { $first: "$walletAddr" },
+              gatewayBalance: { $first: "$gatewayBalance" },
+              totalAmount: { $sum: "$transactionAmount" },
+              wertTotal: {
+                $sum: {
+                  $cond: [{ $eq: ["$mode", "WERT"] }, "$transactionAmount", 0],
+                },
+              },
+              coinbaseTotal: {
+                $sum: {
+                  $cond: [{ $eq: ["$mode", "CoinBase"] }, "$transactionAmount", 0],
+                },
+              },
+              linkTotal: {
+                $sum: {
+                  $cond: [{ $eq: ["$mode", "Link"] }, "$transactionAmount", 0],
+                },
               },
             },
-          ], { useMasterKey: true });
+          },          
+          { $sort: { totalAmount: -1 } },
+          { $skip: (page - 1) * perPage },
+          { $limit: perPage },
+        ], { useMasterKey: true });
       
-          txAgg.forEach(({ objectId, totalAmount }) => {
-            if (objectId === "WERT") wertTotal = totalAmount;
-            else if (objectId === "CoinBase") coinbaseTotal = totalAmount;
-            else if (objectId === "Link") linkTotal = totalAmount;
-          });
+        const userQueryForCount = new Parse.Query(Parse.User);
+        userQueryForCount.exists("walletAddr");
+        if (usernameFilter) {
+          userQueryForCount.matches("username", new RegExp(usernameFilter, "i"));
+        }
+        const totalUserCount = await userQueryForCount.count({ useMasterKey: true });
       
+        const API_KEY = process.env.REACT_APP_KEYBSCAN;
+        const API_KEY_ETH = process.env.REACT_APP_KEYBSCAN;
+        const CHAIN_ID = "8453";
+        const CONTRACT_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+        const LINK_CONTRACT_ETH = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+      
+        const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+        const createRateLimiter = (maxPerSecond) => {
+          const interval = 1000 / maxPerSecond;
+          let lastCallTime = 0;
+          return async () => {
+            const now = Date.now();
+            const waitTime = lastCallTime + interval - now;
+            if (waitTime > 0) await delay(waitTime);
+            lastCallTime = Date.now();
+          };
+        };
+      
+        const throttle = {
+          etherscan: createRateLimiter(5),
+          linkscan: createRateLimiter(5),
+        };
+      
+        const enriched = [];
+      
+        for (const entry of transactionAgg) {
+          const userId = entry.objectId;
+          const { username = "", walletAddr = "", gatewayBalance = 0 } = entry;
+          const totalTransactionAmount = parseFloat(entry.totalAmount?.toFixed(2) || "0");
+        
+          let baseUsdc = 0;
+          let ethUsdc = 0;
+          let linkUsdc = 0;
+        
+          // Extract mode-wise totals from the entry if included in outer aggregation
+          const wertTotal = parseFloat(entry.wertTotal || 0);
+          const coinbaseTotal = parseFloat(entry.coinbaseTotal || 0);
+          const linkTotal = parseFloat(entry.linkTotal || 0);
+        
+          try {
+            if (walletAddr) {
+              await throttle.etherscan();
+              const baseUrl = `https://api.etherscan.io/v2/api?chainid=${CHAIN_ID}&module=account&action=tokenbalance&contractaddress=${CONTRACT_ADDRESS}&address=${walletAddr}&tag=latest&apikey=${API_KEY}`;
+              const res = await fetch(baseUrl);
+              const json = await res.json();
+              baseUsdc = json?.result ? parseFloat(json.result) / 1e6 : 0;
+            }
+          } catch (err) {
+            console.error(`Base USDC fetch failed for ${walletAddr}`, err.message);
+          }
+        
+          try {
+            if (walletAddr) {
+              await throttle.linkscan();
+              const ethUrl = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=tokenbalance&contractaddress=${LINK_CONTRACT_ETH}&address=${walletAddr}&tag=latest&apikey=${API_KEY_ETH}`;
+              const res = await fetch(ethUrl);
+              const json = await res.json();
+              ethUsdc = json?.result ? parseFloat(json.result) / 1e6 : 0;
+              linkUsdc = ethUsdc;
+            }
+          } catch (err) {
+            console.error(`ETH USDC fetch failed for ${walletAddr}`, err.message);
+          }
+        
+          const usdcBalance = baseUsdc + ethUsdc;
+          const hasData = usdcBalance > 0 || linkUsdc > 0 || wertTotal > 0 || coinbaseTotal > 0 || linkTotal > 0;
+        
           enriched.push({
-            id: u.id,
+            id: userId,
             username,
             walletAddr,
             gatewayBalance,
-            usdcBalance,
-            wertTotal,
-            coinbaseTotal,
-            linkTotal,
-            difference: (usdcBalance - coinbaseTotal).toFixed(2),
+            usdcBalance: hasData ? parseFloat(usdcBalance.toFixed(2)) : 0,
+            linkUsdc: hasData ? parseFloat(linkUsdc.toFixed(2)) : 0,
+            wertTotal: hasData ? parseFloat(wertTotal.toFixed(2)) : 0,
+            coinbaseTotal: hasData ? parseFloat(coinbaseTotal.toFixed(2)) : 0,
+            linkTotal: hasData ? parseFloat(linkTotal.toFixed(2)) : 0,
+            difference: hasData ? parseFloat((usdcBalance - coinbaseTotal).toFixed(2)) : 0,
+            totalTransactionAmount,
           });
         }
+        
       
         return {
           data: enriched,
-          total: count,
+          total: totalUserCount,
         };
-      }
-      
+      }      
       else {
         const Resource = Parse.Object.extend(resource);
         query = new Parse.Query(Resource);
@@ -2281,61 +2344,60 @@ export const dataProvider = {
       remark,
       useWallet,
     } = params;
-  
+
     try {
       // Find the user by ID
       const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", id);
       const user = await userQuery.first({ useMasterKey: true });
-  
+
       if (!user) {
         throw new Error(`User with ID ${id} not found`);
       }
-  
+
       if (isNaN(Number(transactionAmount)) || Number(transactionAmount) <= 0) {
         throw new Error(`Amount should be a positive number greater than 0`);
       }
-  
+
       let finalAmount = balance;
       let session = null;
-  
+
       if (useWallet) {
         // Get Wallet from DB
         const walletQuery = new Parse.Query("Wallet");
         walletQuery.equalTo("userID", id);
         const wallet = await walletQuery.first({ useMasterKey: true });
-      
+
         if (!wallet) {
           throw new Error(`Wallet for user ID ${id} not found.`);
         }
-      
+
         const walletBalance = wallet.get("balance");
         const amountToDeduct = parseFloat(transactionAmount / 100);
-      
+
         // Ensure sufficient balance using fresh wallet balance
         if (walletBalance < amountToDeduct) {
           throw new Error("Insufficient wallet balance.");
         }
-      
+
         // const finalAmount = walletBalance - amountToDeduct;
-      
+
         // // Update and save the new balance
         // wallet.set("balance", finalAmount);
         // await wallet.save(null, { useMasterKey: true });
         // console.log(wallet);
-      }
-       else if (type === "recharge") {
+      } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);
-  
+
         // Take the floor value of finalAmount with two decimal precision
         finalAmount = Math.floor(finalAmount * 100) / 100;
       }
-  
+
       // Create a new transaction record (after all validation passes)
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transactionDetails = new TransactionDetails();
-  
+
       transactionDetails.set("type", type);
       transactionDetails.set("gameId", "786");
       transactionDetails.set("username", username);
@@ -2348,7 +2410,7 @@ export const dataProvider = {
       transactionDetails.set("remark", remark);
       transactionDetails.set("useWallet", !!useWallet); // Store whether wallet was used
       transactionDetails.set("userParentId", user.get("userParentId")); // Store parent ID
-  
+
       if (!useWallet) {
         // Process Stripe transaction
         // session = await stripe.checkout.sessions.create({ ... });
@@ -2365,10 +2427,10 @@ export const dataProvider = {
           "recharge"
         );
       }
-  
+
       // Save the transaction record
       await transactionDetails.save(null);
-  
+
       return {
         success: true,
         message: "Transaction updated and validated successfully",
@@ -2381,7 +2443,7 @@ export const dataProvider = {
         message: error.message || "An unexpected error occurred.",
       };
     }
-  },  
+  },
   summaryReport: async (params) => {
     const queryPipeline = [
       {

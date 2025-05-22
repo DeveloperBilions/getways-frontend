@@ -8,6 +8,9 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
+  Stack,
+  Card,
+  CardContent,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import WalletIcon from "../../Assets/icons/WalletIcon.svg";
@@ -32,6 +35,17 @@ import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from "@coinbase/cbpay-js";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import quickRecharge from "../../Assets/icons/quickRecharge.svg";
+import instantRecharge from "../../Assets/icons/instantRecharge.svg";
+import cryptoRecharge from "../../Assets/icons/cryptoRecharge.svg";
+// import bankTransfer from "../../Assets/icons/bankTransfer.svg";
+import mastercard from "../../Assets/icons/mastercard.svg";
+import visa from "../../Assets/icons/visa.svg";
+import venmo from "../../Assets/icons/venmo.svg";
+import payPal from "../../Assets/icons/logo_paypal.svg";
+import Chime from "../../Assets/icons/Chime.svg";
+import Logo1 from "../../Assets/icons/Logo1.svg";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -295,6 +309,193 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
     }
   };
 
+  const [hoveredOption, setHoveredOption] = useState(null);
+  const paymentOptions = [
+    {
+      id: "quick-debit",
+      title: "Quick Debit Recharge",
+      description: "Instant • Most debit cards supported",
+      subtext: "No KYC needed",
+      icon: <img src={quickRecharge} alt="quickRecharge" />, // Credit card icon
+      color: "#14B8A6",
+      hoverColor: "#F6FEFD",
+      paymentIcons: [venmo, payPal, visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          const testPopup = window.open("", "_blank", "width=1,height=1");
+          if (
+            !testPopup ||
+            testPopup.closed ||
+            typeof testPopup.closed === "undefined"
+          ) {
+            setPopupBlocked(true);
+            setPopupDialogOpen(true);
+            return;
+          }
+          testPopup.close();
+          // Assign wallet if missing
+          if (!identity?.walletAddr) {
+            setWalletLoading(true);
+            const walletResp = await Parse.Cloud.run(
+              "assignRandomWalletAddrIfMissing",
+              {
+                userId: identity?.objectId,
+              }
+            );
+
+            if (walletResp?.walletAddr) {
+              identity.walletAddr = walletResp.walletAddr;
+              setSnackbarOpen(true);
+            } else {
+              alert("Failed to assign wallet address. Please try again.");
+              return;
+            }
+          }
+
+          // Generate Onramp URL
+          // const buyUrl = getOnrampBuyUrl({
+          //   projectId,
+          //   addresses: { "0x1": [identity.walletAddr] }, // Ethereum mainnet
+          //   assets: ["USDC"],
+          //   presetFiatAmount: rechargeAmount,
+          //   fiatCurrency: "USD",
+          //   redirectUrl: "https://yourapp.com/onramp-return",
+          // });
+
+          //const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&destinationWallets=[{"address":"0xb69b947183c5a4434bb028e295947a3496e12298","blockchains":["ethereum"]}]&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+          const encodedAddresses = encodeURIComponent(
+            JSON.stringify({ [identity.walletAddr]: ["base"] })
+          );
+
+          const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+          //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
+
+          //           const sessionToken = await fetchCoinbaseSessionToken(identity.walletAddr, rechargeAmount,partnerUserRef);
+          // if (!sessionToken) {
+          //   alert("Could not generate session token for Coinbase.");
+          //   return;
+          // }
+          ///const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&sessionToken=${sessionToken}`;
+
+          //  const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses={${identity.walletAddr}:["base"]}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+
+          // Save the transaction
+          const TransactionDetails = Parse.Object.extend("TransactionRecords");
+          const transactionDetails = new TransactionDetails();
+          const user = await Parse.User.current()?.fetch();
+
+          transactionDetails.set("type", "recharge");
+          transactionDetails.set("gameId", "786");
+          transactionDetails.set("username", identity?.username || "");
+          transactionDetails.set("userId", identity?.objectId);
+          transactionDetails.set("transactionDate", new Date());
+          transactionDetails.set("transactionAmount", rechargeAmount);
+          transactionDetails.set("remark", remark);
+          transactionDetails.set("useWallet", false);
+          transactionDetails.set(
+            "userParentId",
+            user?.get("userParentId") || ""
+          );
+          transactionDetails.set("status", 1); // pending
+          transactionDetails.set("portal", "Coinbase");
+          transactionDetails.set("referralLink", buyUrl);
+          transactionDetails.set("transactionIdFromStripe", buyUrl);
+          transactionDetails.set("walletAddr", identity?.walletAddr);
+          //transactionDetails.set("partnerUserRef",partnerUserRef)
+          await transactionDetails.save(null, { useMasterKey: true });
+          setStoredBuyUrl(buyUrl); // Store for retry
+          const popup = window.open(buyUrl, "_blank");
+          if (!popup || popup.closed || typeof popup.closed === "undefined") {
+            setPopupBlocked(true);
+            setPopupDialogOpen(true);
+          }
+        } catch (error) {
+          console.error("Coinbase Onramp Error:", error);
+          alert("Something went wrong with Coinbase Recharge.");
+        } finally {
+          setWalletLoading(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading,
+    },
+    {
+      id: "instant",
+      title: "Instant Recharge",
+      description: "Instant • Limited debit card support",
+      subtext: "No KYC needed",
+      icon: <img src={instantRecharge} alt="instantRecharge" />, // Lightning icon
+      color: "#3B82F6",
+      hoverColor: "#F5F9FF",
+      paymentIcons: [Chime, venmo, payPal, visa, mastercard],
+      onClick: debounce(() => {
+        if (!identity?.isBlackListed) {
+          if (paymentSource === "stripe") {
+            handleRechargeClick();
+          } else {
+            setRechargeDialogOpen(true);
+          }
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled,
+    },
+    {
+      id: "crypto",
+      title: "Standard Recharge",
+      description: "",
+      subtext: "KYC Required",
+      subtextColor: "#4B5563", // Red color for KYC required
+      icon: <img src={cryptoRecharge} alt="cryptoRecharge" />, // Bitcoin icon
+      paymentIcons: [Logo1, visa, mastercard],
+      color: "#A855F7",
+      hoverColor: "#FAF5FF",
+      onClick: debounce(async () => {
+        if (walletLoading) return; // prevent spamming
+
+        if (!identity?.walletAddr) {
+          try {
+            setWalletLoading(true);
+
+            const walletResp = await Parse.Cloud.run(
+              "assignRandomWalletAddrIfMissing",
+              {
+                userId: identity?.objectId,
+              }
+            );
+
+            if (walletResp?.walletAddr) {
+              identity.walletAddr = walletResp.walletAddr;
+              setSnackbarOpen(true);
+            } else {
+              alert("Failed to assign wallet address. Please try again.");
+              return;
+            }
+          } catch (err) {
+            console.error("Error assigning wallet:", err);
+            alert("Something went wrong while assigning wallet address.");
+            return;
+          } finally {
+            setWalletLoading(false);
+          }
+        }
+
+        setRechargeLinkDialogOpen(true);
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading,
+    },
+    // {
+    //   id: "bank",
+    //   title: "Bank Transfer",
+    //   description: "2-3 Days • Manual confirmation",
+    //   subtext: "KYC Required",
+    //   subtextColor: "#ED580C", // Red color for KYC required
+    //   icon: <img src={bankTransfer} alt="bankTransfer" />, // Bank icon
+    //   color: "#6B7280",
+    //   hoverColor: "#F9FAFA",
+    //   onClick: () => console.log("Bank Transfer selected"),
+    // },
+  ];
+
   return (
     <>
       <Box
@@ -351,24 +552,41 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                   flexDirection: { xs: "column", md: "row" },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <img
-                    src={AOG_Symbol}
-                    alt="AOG Symbol"
-                    style={{ width: "40px", height: "40px" }}
-                  />
-                  <Typography
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Box
                     sx={{
-                      fontFamily: "Inter, sans-serif",
-                      fontWeight: 600,
-                      fontSize: "40px",
-                      lineHeight: "100%",
-                      letterSpacing: "0px",
-                      color: "#000000",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      bgcolor: "#EFF6FF",
+                      borderRadius: "40px",
+                      padding: "11.5px 24px",
                     }}
                   >
-                    {rechargeAmount}
-                  </Typography>
+                    <img
+                      src={AOG_Symbol}
+                      alt="AOG Symbol"
+                      style={{ width: "32px", height: "32px" }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "Inter, sans-serif",
+                        fontWeight: 600,
+                        fontSize: "32px",
+                        lineHeight: "100%",
+                        letterSpacing: "0px",
+                        color: "#000000",
+                      }}
+                    >
+                      {rechargeAmount}
+                    </Typography>
+                  </Box>
                   <Box>
                     <TextField
                       fullWidth
@@ -629,7 +847,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             }}
           >
             <Typography sx={{ fontSize: "12px", fontWeight: 400 }}>
-              Recharge now and Get your credits
+              Recharge now and keep playing!
             </Typography>
             <img
               src={Star}
@@ -648,7 +866,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             </Alert>
           )}
 
-          <Button
+          {/* <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -783,7 +1001,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
+          </Button> */}
           {/* <Button
             variant="contained"
             fullWidth
@@ -953,7 +1171,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             />
           </Button> */}
 
-          <Button
+          {/* <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -989,9 +1207,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
             <ArrowForwardIcon
               style={{ width: "24px", height: "24px", marginLeft: "10px" }}
             />
-          </Button>
+          </Button> */}
 
-          <Button
+          {/* <Button
             variant="contained"
             sx={{
               width: "100%",
@@ -1065,7 +1283,180 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 />
               </>
             )}
-          </Button>
+          </Button> */}
+
+          <Stack spacing={2}>
+            {paymentOptions.map((option) => (
+              <Card
+                key={option.id}
+                sx={{
+                  borderRadius: 2,
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "none",
+                  transition: "all 0.2s ease",
+                  cursor: "pointer",
+                  "&:hover": option.disabled
+                    ? ""
+                    : {
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        bgcolor: option.hoverColor,
+                      },
+                  borderLeft: `4px solid ${option.color}`,
+                  bgcolor: option.disabled ? "#E7E7E7" : "",
+                }}
+                onMouseEnter={() => setHoveredOption(option.id)}
+                onMouseLeave={() => setHoveredOption(null)}
+                onClick={!option.disabled ? option.onClick : undefined}
+              >
+                <CardContent sx={{ p: "16px !important" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      // flexDirection: {xs: "column", md: "row"},
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mr: 1,
+                          fontSize: "24px",
+                        }}
+                      >
+                        {option.icon}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            sx={{ fontWeight: 500, fontSize: "16px" }}
+                          >
+                            {option.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: "14px",
+                              color: "#4B5563",
+                            }}
+                          >
+                            {option.description}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color={option.subtextColor || "text.secondary"}
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: "14px",
+                            }}
+                          >
+                            {option.subtext}
+                          </Typography>
+                        </Box>
+                        {option.paymentIcons && (
+                          <Box
+                            sx={{
+                              display: { xs: "flex", md: "none" },
+                              // flexDirection: { md: "row", xs: "column" },
+                              alignItems: "center",
+                              gap: 2,
+                            }}
+                          >
+                            {option.paymentIcons.map((icon, index) => (
+                              <Box
+                                key={index}
+                                sx={{
+                                  mr: 1,
+                                  color: "text.secondary",
+                                  fontWeight: "bold",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                <img
+                                  src={icon}
+                                  alt={`Payment Icon ${index}`}
+                                  style={{
+                                    width: "100%",
+                                    padding:
+                                      icon === visa ? "8px 12px" : undefined,
+                                    border:
+                                      icon === visa
+                                        ? "1px solid #E7E7E7"
+                                        : undefined,
+                                    borderRadius:
+                                      icon === visa ? "4px" : undefined,
+                                  }}
+                                />
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      {option.paymentIcons && (
+                        <Box
+                          sx={{
+                            display: { xs: "none", md: "flex" },
+                            // flexDirection: { md: "row", xs: "column" },
+                            alignItems: "center",
+                            gap: { xs: 1, md: 0 },
+                          }}
+                        >
+                          {option.paymentIcons.map((icon, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                mr: 2,
+                                color: "text.secondary",
+                                fontWeight: "bold",
+                                fontSize: "14px",
+                              }}
+                            >
+                              <img
+                                src={icon}
+                                alt={`Payment Icon ${index}`}
+                                style={{
+                                  width: "100%",
+                                  padding:
+                                    icon === visa ? "8px 12px" : undefined,
+                                  border:
+                                    icon === visa
+                                      ? "1px solid #E7E7E7"
+                                      : undefined,
+                                  borderRadius:
+                                    icon === visa ? "4px" : undefined,
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
         </Box>
       </Box>
       {totalData > 0 && data.length !== 0 && (
