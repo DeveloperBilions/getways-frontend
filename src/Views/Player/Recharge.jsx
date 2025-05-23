@@ -1313,6 +1313,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
           </Button>} */}
           {/* </>
 )} */}
+{rechargeMethodLoading ? 
+ <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+ <CircularProgress size={32} />
+</Box>
+:
           <Stack spacing={2}>
             {paymentOptions
               .filter((option) => {
@@ -1492,6 +1497,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
                 </Card>
               ))}
           </Stack>
+}
         </Box>
       </Box>
       {totalData > 0 && data.length !== 0 && (
