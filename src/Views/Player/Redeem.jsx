@@ -76,25 +76,25 @@ const Redeem = ({
   }, [wallet]);
 
   useEffect(() => {
-  const fetchRechargeTotal = async () => {
-    try {
-      if (identity?.objectId) {
-        const total = await getTotalRechargeAmount(identity.objectId);
-        setLiveRechargeTotal(total);
-        if (total <= 0) {
-          setIsRedeemDisabled(true);
-        } else {
-          setIsRedeemDisabled(false);
+    const fetchRechargeTotal = async () => {
+      try {
+        if (identity?.objectId) {
+          const total = await getTotalRechargeAmount(identity.objectId);
+          setLiveRechargeTotal(total);
+          if (total <= 0) {
+            setIsRedeemDisabled(true);
+          } else {
+            setIsRedeemDisabled(false);
+          }
         }
+      } catch (error) {
+        console.error("Failed to fetch total recharge amount:", error);
+        setIsRedeemDisabled(true); // Disable in case of error
       }
-    } catch (error) {
-      console.error("Failed to fetch total recharge amount:", error);
-      setIsRedeemDisabled(true); // Disable in case of error
-    }
-  };
+    };
 
-  fetchRechargeTotal();
-}, [identity]);
+    fetchRechargeTotal();
+  }, [identity]);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -109,7 +109,7 @@ const Redeem = ({
   const handleConfirm = async () => {
     const { cashAppId, paypalId, venmoId } = paymentMethods;
     const methodCount = [cashAppId, paypalId, venmoId].filter(Boolean).length;
-  
+
     if (methodCount === 0) {
       notify(
         "No payment methods are added. Please add a payment method to proceed.",
@@ -120,10 +120,9 @@ const Redeem = ({
       );
       setShowWarningModal(true);
       return;
+    } else {
+      handleConfirmDoublee();
     }
-  else{
-    handleConfirmDoublee()
-  }
   };
   const handleConfirmDoublee = async () => {
     try {
@@ -140,7 +139,7 @@ const Redeem = ({
         type: "error",
       });
     }
-  }
+  };
 
   const handleSubmit = async () => {
     const { cashAppId, paypalId, venmoId, zelleId } = paymentMethods;
@@ -247,7 +246,7 @@ const Redeem = ({
       setPaymentMethods(newMethods);
       setShowAddPaymentMethodDialog(false);
       setShowWarningModal(false);
-      handleConfirmDoublee()
+      handleConfirmDoublee();
       //handleSubmit();
     } catch (error) {
       console.error("Error updating payment methods:", error);
@@ -339,23 +338,34 @@ const Redeem = ({
                 gap: "8px",
               }}
             >
-              <img
-                src={AOG_Symbol}
-                alt="AOG Symbol"
-                style={{ width: "40px", height: "40px" }}
-              />
-              <Typography
+              <Box
                 sx={{
-                  fontFamily: "Inter, sans-serif",
-                  fontWeight: 600,
-                  fontSize: "40px",
-                  lineHeight: "100%",
-                  letterSpacing: "0px",
-                  color: "#000000",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  bgcolor: "#EFF6FF",
+                  borderRadius: "40px",
+                  padding: "11.5px 24px",
                 }}
               >
-                {redeemAmount}
-              </Typography>
+                <img
+                  src={AOG_Symbol}
+                  alt="AOG Symbol"
+                  style={{ width: "32px", height: "32px" }}
+                />
+                <Typography
+                  sx={{
+                    fontFamily: "Inter, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "32px",
+                    lineHeight: "100%",
+                    letterSpacing: "0px",
+                    color: "#000000",
+                  }}
+                >
+                  {redeemAmount}
+                </Typography>
+              </Box>
               <TextField
                 fullWidth
                 label="Add Transaction Note"
@@ -655,7 +665,7 @@ const Redeem = ({
               }}
               onClick={() => {
                 setShowWarningModal(false);
-                handleConfirmDoublee()
+                handleConfirmDoublee();
                 //handleSubmit();
               }}
             >
@@ -797,8 +807,8 @@ const Redeem = ({
         <DialogTitle>Confirm Redeem</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            The redeem amount is higher than 50% of your total recharge.
-            Would you like to continue?
+            The redeem amount is higher than 50% of your total recharge. Would
+            you like to continue?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
