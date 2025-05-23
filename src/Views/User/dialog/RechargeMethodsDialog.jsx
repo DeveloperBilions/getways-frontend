@@ -151,11 +151,14 @@ export default function RechargeMethodsDialog({ open, onClose }) {
 
       const q = new Parse.Query(Parse.User)
         .equalTo("roleName", "Agent")
-        .ascending("username")
+        .descending("createdAt") // Sort latest created first
         .limit(rowsPerPage)
         .skip(page * rowsPerPage);
-      if (search.trim()) q.matches("username", `.*${search.trim()}.*`, "i");
-
+        if (search.trim()) {
+          const regex = new RegExp(search.trim(), "i");
+          q.matches("username", regex);
+        }
+        
       const res = await q.find({ useMasterKey: true });
       const mapped = res.map((u) => ({
         id: u.id,
