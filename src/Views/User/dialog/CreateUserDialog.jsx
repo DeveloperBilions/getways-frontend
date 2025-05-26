@@ -63,7 +63,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     setConfirmPassword("");
     setErrorMessage("");
     setUserType("");
-    // setParentType({})
+    setParentType({});
   };
 
   const handlePasswordChange = (e) => {
@@ -108,14 +108,31 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
   useEffect(() => {
     fetchUsersByRole();
-    if (identity) {
+    // if (identity) {
+    //   setParentType({
+    //     id: identity.objectId,
+    //     name: identity.name,
+    //     type: identity?.role,
+    //   });
+    // }
+  }, [identity]);
+
+  useEffect(() => {
+    if (userType === "Master-Agent" && identity?.role === "Super-User") {
+      // Set Super-User as parent for Master-Agent
       setParentType({
-        id: identity.objectId,
-        name: identity.name,
+        id: identity?.objectId,
+        name: identity?.name,
         type: identity?.role,
       });
+    } else if (userType === "Player") {
+      // Reset parentType for Player (force selection from dropdown)
+      setParentType({});
+    } else {
+      // Clear parentType for other cases (e.g. Agent)
+      setParentType({});
     }
-  }, [identity]);
+  }, [userType, identity]);
 
   // Function to create a new user in Parse
   const handleSubmit = async (event) => {
@@ -153,10 +170,12 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     }
 
     if (userType === "Player" && email.toLowerCase().endsWith("@get.com")) {
-      setErrorMessage("Players are not allowed to use @get.com email addresses.");
+      setErrorMessage(
+        "Players are not allowed to use @get.com email addresses."
+      );
       return;
     }
-    
+
     setLoading(true);
     try {
       let response;
@@ -253,41 +272,39 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
           userParentName: identity?.name,
         });
       } else if (permissions === "Master-Agent") {
-
         if (userType === "Agent") {
-           if (!identity?.objectId && !identity?.name) {
-             setErrorMessage("Parent User data is not valid");
-             return;
-           }
-           response = await Parse.Cloud.run("createUser", {
-             roleName: userType,
-             username: userName,
-             name,
-             phoneNumber,
-             email,
-             password,
-             userParentId: parentType?.id,
-             userParentName: parentType?.name,
-             redeemService: 5,
-           });
-         
-         } else if (userType === "Player") {
-           if (!parentType?.id && !parentType?.name) {
-             setErrorMessage("Parent User data is not valid");
-             return;
-           }
-           response = await Parse.Cloud.run("createUser", {
-             roleName: userType,
-             username: userName,
-             name,
-             phoneNumber,
-             email,
-             password,
-             userParentId: parentType?.id,
-             userParentName: parentType?.name,
-           });
-         }
-       }
+          if (!identity?.objectId && !identity?.name) {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
+          response = await Parse.Cloud.run("createUser", {
+            roleName: userType,
+            username: userName,
+            name,
+            phoneNumber,
+            email,
+            password,
+            userParentId: parentType?.id,
+            userParentName: parentType?.name,
+            redeemService: 5,
+          });
+        } else if (userType === "Player") {
+          if (!parentType?.id && !parentType?.name) {
+            setErrorMessage("Parent User data is not valid");
+            return;
+          }
+          response = await Parse.Cloud.run("createUser", {
+            roleName: userType,
+            username: userName,
+            name,
+            phoneNumber,
+            email,
+            password,
+            userParentId: parentType?.id,
+            userParentName: parentType?.name,
+          });
+        }
+      }
       if (!response?.success) {
         setErrorMessage(response?.message);
         return;
@@ -312,10 +329,30 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     }
   };
   // Combine parentOptions with identity
-  const combinedOptions = [
-    { id: identity?.objectId, name: identity?.name, role: identity?.role },
-    ...parentOptions,
-  ];
+  const combinedOptions = (() => {
+    if (!userType) return [];
+
+    // Master-Agent should be created under Super-User
+    if (userType === "Master-Agent" && identity?.role === "Super-User") {
+      return [
+        { id: identity?.objectId, name: identity?.name, role: identity?.role },
+      ];
+    }
+
+    // Player can only be created under Agent or Master-Agent (not Super-User)
+    if (userType === "Player") {
+      return parentOptions.filter(
+        (user) => user.role === "Agent"
+      );
+    }
+
+    // Agent can only be created under Master-Agent
+    if (userType === "Agent") {
+      return parentOptions.filter((user) => user.role === "Master-Agent");
+    }
+
+    return [];
+  })();
 
   const handleParentTypeChange = (e) => {
     const selectedId = e.target.value;
@@ -491,27 +528,15 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                           className="custom-input"
                           value={parentType.id}
                           onChange={handleParentTypeChange}
-                          disabled={userType === "Master-Agent"}
+                          disabled={!userType || userType === "Master-Agent"} // disable if no user type or master-agent
                           required
                         >
-                          <option value="">Select Parent</option>
-                          {[
-                            {
-                              id: identity?.objectId,
-                              name: identity?.name,
-                              role: identity?.role,
-                            }, // Always include identity
-                            ...parentOptions.filter((user) => {
-                              if (userType === "Agent")
-                                return user.role === "Master-Agent"; // Show only Master-Agent
-                              if (userType === "Player")
-                                return (
-                                  user.role === "Agent" ||
-                                  user.role === "Master-Agent"
-                                ); // Show Agents & Master-Agents
-                              return true;
-                            }),
-                          ].map((user) => (
+                          <option value="">
+                            {userType
+                              ? "Select Parent"
+                              : "Select user type first"}
+                          </option>
+                          {combinedOptions.map((user) => (
                             <option key={user.id} value={user.id}>
                               {`${user.role}: ${user.name}`}
                             </option>
@@ -540,7 +565,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                       />
                       <InputGroupText
                         onClick={() => setShowPassword(!showPassword)}
-                        style={{ cursor: "pointer", height:"35px" }}
+                        style={{ cursor: "pointer", height: "35px" }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </InputGroupText>
@@ -577,7 +602,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        style={{ cursor: "pointer", height:"35px" }}
+                        style={{ cursor: "pointer", height: "35px" }}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff />

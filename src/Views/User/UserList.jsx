@@ -653,9 +653,9 @@ export const UserList = (props) => {
               </Typography>
             </Button>
           ))}
-        {isMobile ? (
+        {isMobile && role !== "Master-Agent" ? (
           <Box
-            onClick={handleCreateUser}
+            onClick={handleGenerateLink}
             sx={{
               cursor: "pointer",
               display:
