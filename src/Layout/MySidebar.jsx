@@ -61,6 +61,16 @@ export const MySidebar = () => {
         label: "KYC",
         onClick: () => navigate("/kycRecords"),
       });
+      menuItems.push({
+        key: "GiftCardHistory",
+        label: "Giftcard",
+        onClick: () => navigate("/GiftCardHistory"),
+      });
+      menuItems.push({
+        key: "wlletAudit",
+        label: "Wallet Audit",
+        onClick: () => navigate("/walletAudit"),
+      });
     }
   }
 

@@ -1,4 +1,3 @@
-// src/Pages/GiftCardHistoryList.js
 import React, { useState, useEffect } from "react";
 import {
   List,
@@ -10,9 +9,14 @@ import {
   FunctionField,
   SearchInput,
   SelectInput,
-  Filter,
+  FilterForm,
 } from "react-admin";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  useMediaQuery,
+} from "@mui/material";
 import Parse from "parse";
 import CustomPagination from "../Common/CustomPagination";
 
@@ -22,19 +26,63 @@ const statusChoices = [
   { id: "PENDING", name: "Pending" },
 ];
 
-const GiftCardFilter = (props) => (
-  <Filter {...props}>
-    <SearchInput source="username" alwaysOn placeholder="Search by Username" />
-    <SelectInput
-      source="status"
-      choices={statusChoices}
-      alwaysOn
-      label="Status"
-      emptyText="All"
-      allowEmpty
+const GiftCardFilter = (props) => {
+  const { filterValues, setFilters } = props;
+
+  return (
+    <FilterForm
+      filters={[
+        <SearchInput
+          source="username"
+          alwaysOn
+          placeholder="Search by Username"
+          resettable
+          sx={{
+            minWidth: "150px",
+            height: "40px",
+            "& .MuiInputBase-root": {
+              height: "40px",
+            },
+          }}
+        />,
+        <SelectInput
+          source="status"
+          choices={statusChoices}
+          alwaysOn
+          label="Status"
+          emptyText="All"
+          allowEmpty
+          sx={{
+            minWidth: "120px",
+            height: "40px",
+            "& .MuiInputBase-root": {
+              height: "40px",
+              marginTop: "2px",
+            },
+          }}
+        />,
+      ]}
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        flexWrap: "nowrap",
+        overflowX: "auto",
+
+        gap: 1,
+        width: "100%",
+        mb: 0.5,
+        "@media (max-width:566px)": {
+          gap: 1,
+          "& .MuiInputBase-root": {
+            fontSize: "14px",
+          },
+        },
+      }}
     />
-  </Filter>
-);
+  );
+};
 
 const GiftCardHistoryList = (props) => {
   const listContext = useListController(props);
@@ -51,6 +99,7 @@ const GiftCardHistoryList = (props) => {
   } = listContext;
 
   const [userMap, setUserMap] = useState({});
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   useEffect(() => {
     if (!data || typeof data !== "object") return;
@@ -96,62 +145,112 @@ const GiftCardHistoryList = (props) => {
 
       <List
         {...props}
-        filters={<GiftCardFilter />}
-        actions={<TopToolbar />}
+        filters={
+          <GiftCardFilter filterValues={filterValues} setFilters={setFilters} />
+        }
+        actions={<TopToolbar sx={{ minHeight: "auto", p: 0 }} />}
         pagination={false}
         sort={{ field: "createdAt", order: "DESC" }}
+        sx={{
+          "& .RaList-actions": {
+            flexWrap: "nowrap",
+          },
+          "& .RaFilterFormInput-spacer": { display: "none" },
+        }}
       >
         {isLoading ? (
           <Box
-            sx={{ display: "flex", justifyContent: "center", height: "200px" }}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "200px",
+              width: "100%",
+            }}
           >
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{ width: "100%" }}>
-            <Datagrid bulkActionButtons={false} rowClick="show">
-              <FunctionField
-                label="Username"
-                render={(record) =>
-                  userMap[record.userId] || record.userId || "-"
-                }
-              />
-              <TextField source="orderId" label="Order ID" />
-              <TextField source="price" label="Price" />
-              <TextField source="productId" label="Product ID" />
-              <FunctionField
-                label="Product Name"
-                render={(record) =>
-                  record.apiResponse?.productName
-                    ? record.apiResponse.productName
-                    : "-"
-                }
-              />
-              <TextField source="status" label="Status" />
-              <FunctionField
-                label="Product Image"
-                render={(record) =>
-                  record.productImage ? (
-                    <img
-                      src={record.productImage}
-                      alt="giftcard"
-                      style={{ width: 50, height: 30, objectFit: "contain" }}
-                    />
-                  ) : (
-                    "-"
-                  )
-                }
-              />
-              <DateField source="createdAt" showTime label="Created At" />
-            </Datagrid>
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <CustomPagination
-                page={page}
-                perPage={perPage}
-                total={total}
-                setPage={setPage}
-                setPerPage={setPerPage}
-              />
+          <Box
+            style={{
+              width: "100%",
+              overflowX: "auto",
+            }}
+          >
+            <Box
+              style={{
+                width: "100%",
+                position: "absolute",
+              }}
+            >
+              <Datagrid
+                bulkActionButtons={false}
+                rowClick="show"
+                sx={{
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  width: "100%",
+                  maxHeight: "100%",
+                  "& .RaDatagrid-table": {
+                    width: "100%",
+                  },
+                  "& .MuiTableCell-head": {
+                    fontWeight: 600,
+                  },
+                  borderRadius: "8px",
+                  borderColor: "#CFD4DB",
+                }}
+              >
+                <FunctionField
+                  label="Username"
+                  render={(record) =>
+                    userMap[record.userId] || record.userId || "-"
+                  }
+                />
+                <TextField source="orderId" label="Order ID" />
+                <TextField source="price" label="Price" />
+                <TextField source="productId" label="Product ID" />
+                <FunctionField
+                  label="Product Name"
+                  render={(record) =>
+                    record.apiResponse?.productName
+                      ? record.apiResponse.productName
+                      : "-"
+                  }
+                />
+                <TextField source="status" label="Status" />
+                <FunctionField
+                  label="Product Image"
+                  render={(record) =>
+                    record.productImage ? (
+                      <img
+                        src={record.productImage}
+                        alt="giftcard"
+                        style={{ width: 50, height: 30, objectFit: "contain" }}
+                      />
+                    ) : (
+                      "-"
+                    )
+                  }
+                />
+                <DateField source="createdAt" showTime label="Created At" />
+              </Datagrid>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "100% !important",
+                  margin: "16px 0px",
+                }}
+              >
+                <CustomPagination
+                  page={page}
+                  perPage={perPage}
+                  total={total}
+                  setPage={setPage}
+                  setPerPage={setPerPage}
+                />
+              </Box>
             </Box>
           </Box>
         )}
