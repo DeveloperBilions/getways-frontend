@@ -44,6 +44,7 @@ export default function RechargeMethodsDialog({ open, onClose }) {
   const [newMethodName, setNewMethodName] = useState("");
   const [methodSuccessMsg, setMethodSuccessMsg] = useState("");
   const [creating, setCreating] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const fetchMethods = async () => {
     const objs = await new Parse.Query("RechargeMethod")
@@ -144,7 +145,7 @@ export default function RechargeMethodsDialog({ open, onClose }) {
         fetchAllowedIds(selectedMethod.name),
         new Parse.Query(Parse.User)
           .equalTo("roleName", "Agent")
-          .contains("username", search)
+          .contains("username", debouncedSearch)
           .count({ useMasterKey: true }),
       ]);
       setTotal(count);
@@ -155,7 +156,7 @@ export default function RechargeMethodsDialog({ open, onClose }) {
         .limit(rowsPerPage)
         .skip(page * rowsPerPage);
         if (search.trim()) {
-          const regex = new RegExp(search.trim(), "i");
+          const regex = new RegExp(debouncedSearch.trim(), "i");
           q.matches("username", regex);
         }
         
@@ -187,8 +188,17 @@ export default function RechargeMethodsDialog({ open, onClose }) {
   }, [selectedMethod]);
 
   useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedSearch(search);
+    setPage(0); // Reset to first page on new search
+  }, 500); // 500ms delay
+
+  return () => clearTimeout(timeout);
+}, [search]);
+
+  useEffect(() => {
     loadAgents();
-  }, [page, rowsPerPage, search]);
+  }, [page, rowsPerPage, debouncedSearch]);
 
   const toggleAgent = (id, allowed) =>
     setAgents((prev) => prev.map((a) => (a.id === id ? { ...a, allowed } : a)));
