@@ -182,7 +182,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           },
         }}
       >
-        {(record?.roleName === "Agent" ||
+        {/* {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") && (
           <MenuItem
             onClick={() => {
@@ -192,7 +192,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           >
             Disable Recharge
           </MenuItem>
-        )}
+        )} */}
         {record?.roleName === "Player" && (
           <MenuItem onClick={handleRedeem} sx={{ width: "100%" }}>
             Redeem

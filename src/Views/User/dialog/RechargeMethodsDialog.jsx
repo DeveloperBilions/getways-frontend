@@ -206,20 +206,41 @@ export default function RechargeMethodsDialog({ open, onClose }) {
   const toggleAllCurrentPage = (checked) =>
     setAgents((prev) => prev.map((a) => ({ ...a, allowed: checked })));
 
-  const handleSave = async () => {
-    if (!selectedMethod) return;
-    setSaving(true);
-    try {
-      const allowedIds = agents.filter((a) => a.allowed).map((a) => a.id);
-      await saveAllowedIds(selectedMethod.name, allowedIds);
-      setSuccessMsg("Settings saved successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (e) {
-      console.error("Error saving:", e);
-    } finally {
-      setSaving(false);
-    }
-  };
+    const handleSave = async () => {
+      if (!selectedMethod) return;
+      setSaving(true);
+      try {
+        // Step 1: Get previously saved allowedIds
+        const previousAllowedIds = await fetchAllowedIds(selectedMethod.name);
+    
+        // Step 2: Build a map of agentId => allowed from current page
+        const currentPageMap = new Map();
+        agents.forEach((a) => currentPageMap.set(a.id, a.allowed));
+    
+        // Step 3: Merge previous allowedIds with changes from current page
+        const updatedAllowedSet = new Set(previousAllowedIds);
+        agents.forEach((a) => {
+          if (a.allowed) {
+            updatedAllowedSet.add(a.id);
+          } else {
+            updatedAllowedSet.delete(a.id);
+          }
+        });
+    
+        const finalAllowedIds = Array.from(updatedAllowedSet);
+    
+        // Step 4: Save merged allowed IDs
+        await saveAllowedIds(selectedMethod.name, finalAllowedIds);
+    
+        setSuccessMsg("Settings saved successfully!");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } catch (e) {
+        console.error("Error saving:", e);
+      } finally {
+        setSaving(false);
+      }
+    };
+    
 
   const allChecked = agents.length > 0 && agents.every((a) => a.allowed);
   const someChecked = agents.some((a) => a.allowed) && !allChecked;
