@@ -38,10 +38,15 @@ const GlobalSettingsDialog = ({ open, onClose }) => {
 
   useEffect(() => {
     if (open) {
-      fetchSettings();
       fetchAgents();
     }
   }, [open, searchTerm]);
+
+  useEffect(() => {
+    if (open) {
+      fetchSettings();
+    }
+  }, [open]);
 
   const fetchSettings = async () => {
     setLoading(true);
