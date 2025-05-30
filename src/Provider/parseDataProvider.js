@@ -2235,22 +2235,22 @@ export const dataProvider = {
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("objectId", orderId);
       let transaction = await query.first();
-
+      console.log(transaction,"transactiontransactiontransaction")
       if (
         transaction &&
         (transaction.get("status") === 11 || transaction.get("status") === 12)
       ) {
         // Fetch the user ID and transaction amount
-        const walletId = transaction.get("walletId");
+        //const walletId = transaction.get("walletId");
         const transactionAmount = transaction.get("transactionAmount");
 
-        if (!walletId || !transactionAmount) {
+        if (!transactionAmount) {
           return { success: false, error: "Invalid transaction data" };
         }
 
         // Fetch the wallet for the user
         const walletQuery = new Parse.Query(Wallet);
-        walletQuery.equalTo("objectId", walletId); // Ensure your Wallet class has a `userId` field
+        walletQuery.equalTo("userID", transaction.get("userId")); // Ensure your Wallet class has a `userId` field
         const wallet = await walletQuery.first();
         if (!wallet) {
           return { success: false, error: "Wallet not found for user" };

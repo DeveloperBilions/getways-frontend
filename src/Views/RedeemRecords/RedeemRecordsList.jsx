@@ -878,7 +878,7 @@ export const RedeemRecordsList = (props) => {
                               <CheckIcon sx={{ fontSize: "16px" }} />
                             </Button>
                           )}
-
+                        {record?.paymentMode !== "GiftCard" && 
                           <Button
                             size="small"
                             sx={{
@@ -898,6 +898,7 @@ export const RedeemRecordsList = (props) => {
                           >
                             <CloseIcon sx={{ fontSize: "16px" }} />
                           </Button>
+                }
                         </Box>
                       )}
                     </>
