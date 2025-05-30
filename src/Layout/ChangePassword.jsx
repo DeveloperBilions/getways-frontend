@@ -13,6 +13,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material"; // Import icons
 import { changePassword } from "../Provider/parseAuthProvider";
 import { useNavigate } from "react-router-dom";
+import { validatePassword } from "../Validators/Password";
 
 const ChangePassword = ({ open, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -24,6 +25,7 @@ const ChangePassword = ({ open, onClose }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState([]);
   const navigate = useNavigate(); // Initialize useNavigate
 
   const handleSave = async () => {
@@ -46,16 +48,21 @@ const ChangePassword = ({ open, onClose }) => {
       return;
     }
 
-    if (trimmedNewPassword.length < 6) {
-      setError("New password must be at least 6 characters long.");
-      return;
-    }
+    // if (trimmedNewPassword.length < 6) {
+    //   setError("New password must be at least 6 characters long.");
+    //   return;
+    // }
 
-    if (trimmedNewPassword !== trimmedConfirmPassword) {
-      setError("New password and confirm password do not match.");
-      return;
-    }
+   
+    const validationResult = validatePassword(trimmedNewPassword, setPasswordErrors);
+if (validationResult === false) {
+  return; // prevent form submit if password is invalid
+}
 
+if (trimmedNewPassword !== trimmedConfirmPassword) {
+  setError("New password and confirm password do not match.");
+  return;
+}
     try {
       setLoading(true); // Hide loader in case of error
       await changePassword(trimmedCurrentPassword, trimmedNewPassword, trimmedConfirmPassword);
@@ -131,7 +138,12 @@ const ChangePassword = ({ open, onClose }) => {
           label="New Password"
           type={showNewPassword ? "text" : "password"}
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setNewPassword(value);
+            validatePassword(value, setPasswordErrors);
+          }}          
+         // onChange={(e) => setNewPassword(e.target.value)}
           margin="normal"
           disabled={loading} // Disable input while loading
           InputProps={{
@@ -148,6 +160,16 @@ const ChangePassword = ({ open, onClose }) => {
             ),
           }}
         />
+        {passwordErrors.length > 0 && (
+  <Box mt={1} ml={1}>
+    {passwordErrors.map((err, idx) => (
+      <Typography key={idx} variant="caption" color="error" display="block">
+        • {err}
+      </Typography>
+    ))}
+  </Box>
+)}
+
         <TextField
           fullWidth
           label="Confirm Password"
