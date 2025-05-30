@@ -130,7 +130,7 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
             Redeem Service Fee
           </ModalHeader>
           <ModalBody className="custom-modal-body">
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Row>
                 <Col md={12}>
                   <Label for="serviceFee" className="custom-label">
@@ -334,12 +334,12 @@ const RedeemService = ({ open, onClose, record, fetchAllUsers }) => {
               >
                 {identity?.redeemServiceEnabled &&
                   identity?.role === "Master-Agent" && (
-                    <Button className="custom-button confirm" type="submit">
+                    <Button className="custom-button confirm" onClick={handleSubmit}>
                       Confirm
                     </Button>
                   )}
                 {identity?.role === "Super-User" && (
-                  <Button className="custom-button confirm" type="submit">
+                  <Button className="custom-button confirm" onClick={handleSubmit}>
                     Confirm
                   </Button>
                 )}
