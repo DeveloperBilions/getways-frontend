@@ -45,7 +45,7 @@ export const ReedemFilterDialog = ({
         ];
 
   const statusChoices = [
-    { id: 5, name: "Failed" },
+    // { id: 5, name: "Failed" },
     { id: 6, name: "Pending Approval" },
     { id: 7, name: "Rejected" },
     { id: 8, name: "Redeem Successfully" },
