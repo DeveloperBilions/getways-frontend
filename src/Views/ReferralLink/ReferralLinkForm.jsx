@@ -28,6 +28,8 @@ import Person from "../../Assets/icons/Person.svg";
 import Phone from "../../Assets/icons/Phone.svg";
 import Gmail from "../../Assets/icons/Gmail.svg";
 import Password from "../../Assets/icons/Password.svg";
+import Sidebar from "../../Assets/icons/Sidebar.svg";
+import Union from "../../Assets/icons/Union.svg";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -61,11 +63,11 @@ const ReferralLinkForm = () => {
       try {
         // Log out from Parse session
         await Parse.User.logOut();
-  
+
         // Clear localStorage and sessionStorage
         localStorage.clear();
         sessionStorage.clear();
-  
+
         // Optionally clear cookies if needed
         // document.cookie = ''; // Or use cookie utilities
       } catch (err) {
@@ -74,10 +76,9 @@ const ReferralLinkForm = () => {
         console.log("✅ Session cleared");
       }
     };
-  
+
     clearSession();
   }, []);
-  
 
   useEffect(() => {
     const fetchReferral = async () => {
@@ -122,17 +123,19 @@ const ReferralLinkForm = () => {
       phoneNumber,
       email,
       password,
-    }
+    };
 
     const validationResponse = validateCreateUser(validationData);
-      if (!validationResponse.isValid) {
-        setErrorMessage(Object.values(validationResponse.errors).join(" "));
-        setDisableButtonState(false);
-        return;
-      }
+    if (!validationResponse.isValid) {
+      setErrorMessage(Object.values(validationResponse.errors).join(" "));
+      setDisableButtonState(false);
+      return;
+    }
 
     if (!validateUserName(userName)) {
-      setErrorMessage("Username can only contain letters, numbers, spaces, underscores (_), and dots (.)");
+      setErrorMessage(
+        "Username can only contain letters, numbers, spaces, underscores (_), and dots (.)"
+      );
       setDisableButtonState(false);
       return;
     }
@@ -203,15 +206,29 @@ const ReferralLinkForm = () => {
       <Box
         sx={{
           width: { xs: "88%", sm: "95%", md: "30%" },
-          bgcolor: "#07070E",
+          backgroundImage: `url(${Sidebar})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           margin: "24px",
           borderRadius: "12px",
           p: 3,
+          position:"relative"
         }}
       >
+        <img
+          src={Union}
+          alt="Union"
+          style={{
+            width: "400px",
+            height:"auto",
+            position:"absolute",
+            right:"180px"
+          }}
+        />
         <img
           src={Getways_Logo_White}
           alt="Getways Logo"
@@ -220,6 +237,18 @@ const ReferralLinkForm = () => {
             maxWidth: "200px",
           }}
         />
+        <img
+          src={Union}
+          alt="Union"
+          style={{
+            width: "400px",
+            height:"auto",
+            position:"absolute",
+            left:"180px",
+            transform: "rotate(-180deg)"
+          }}
+        />
+
       </Box>
 
       {/* Right Content */}
