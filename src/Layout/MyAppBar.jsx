@@ -243,12 +243,12 @@ export default function MyAppBar(props) {
             onClick={() => {
               if (role === "Player") {
                 setActiveTab("playerDashboard");
-                navigate("/playerDashboard");
+                window.location.href = "/playerDashboard"; // causes full reload
               } else {
                 setActiveTab("users");
-                navigate("/users");
+                window.location.href = "/users"; // causes full reload
               }
-            }}
+            }}            
           >
             <img
               src="/assets/company_logo.svg"
