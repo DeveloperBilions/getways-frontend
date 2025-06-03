@@ -47,7 +47,7 @@ export const PlayerList = () => {
   const [totalExpiredGiftCard, setTotalExpiredGiftCard] = useState(0);
   const [walletData, setWalletData] = useState([]);
   const [redeemFees, setRedeemFees] = useState(0);
-
+  const [RechargeLimitOfAgent, setRechargeLimitOfAgent] =useState(0);
   useEffect(() => {
     WalletService();
     rechargeData();
@@ -90,6 +90,7 @@ export const PlayerList = () => {
         const response = await Parse.Cloud.run("redeemParentServiceFee", {
           userId: identity?.userParentId,
         });
+        setRechargeLimitOfAgent(response?.rechargeLimit || 0);
         setRedeemFees(response?.redeemService || 0);
       } catch (error) {
         console.error("Error fetching parent service fee:", error);
@@ -395,6 +396,7 @@ export const PlayerList = () => {
               data={rechargeTransactionData}
               totalData={totalRechargeData}
               handleRechargeRefresh={handleRechargeRefresh}
+              RechargeLimitOfAgent={RechargeLimitOfAgent}
             />
           </Box>
         )}

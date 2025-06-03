@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import {
   useGetIdentity,
   useGetList,
@@ -41,6 +47,9 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import { RadioGroup, Radio, FormControlLabel } from "@mui/material";
+import calendarIcon from "../../Assets/icons/calendar-03.svg";
+import InputAdornment from "@mui/material/InputAdornment";
 
 const iconImports = {
   TotalUser: () => import("../../Assets/icons/TotalUser.svg"),
@@ -531,7 +540,7 @@ const formatDateForExcel = (date) => {
   if (!date) return date;
 
   const validDate = new Date(date);
-  return !isNaN(validDate.getTime()) ? validDate.toISOString() : date; 
+  return !isNaN(validDate.getTime()) ? validDate.toISOString() : date;
 };
 
 const prepareTableData = (data, type, isRedeem = false) => {
@@ -549,6 +558,8 @@ const prepareTableData = (data, type, isRedeem = false) => {
       stripeId: isRedeem ? undefined : item.transactionIdFromStripe,
       agentName: item.agentName,
       userName: item.userName,
+      referralLink: item?.referralLink,
+      useWallet:item?.useWallet
     })) || []
   );
 };
@@ -563,6 +574,8 @@ export const DataSummary = React.memo(() => {
     selectedUser: null,
     selectedUsertemp: null,
   });
+  const inputRef = useRef(null);
+  const [selectedExportOption, setSelectedExportOption] = useState("");
   const [choices, setChoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -659,6 +672,22 @@ export const DataSummary = React.memo(() => {
     }
   }, [filters, exportMonth]);
 
+  const getMode = (data) => {
+    console.log(data,"dataa")
+    return data?.stripeId?.toLowerCase().includes("txn")
+      ? "WERT"
+      : data?.stripeId?.toLowerCase().includes("crypto.link.com")
+      ? "Link"
+      : data?.stripeId?.toLowerCase().includes("pay.coinbase.com")
+      ? "CoinBase"
+      : data?.stripeId?.toLowerCase().includes("aog")
+      ? "AOG"
+      : data?.stripeId?.toLowerCase().includes("or-")
+      ? "TransFi"
+      : data?.paymentType
+      ? "Wallet"
+      : "Stripe";
+  };  
   // Generic export function
   const exportData = useCallback(
     async (type, format, isRedeem = false) => {
@@ -776,6 +805,7 @@ export const DataSummary = React.memo(() => {
           "Payment Type": item.paymentType,
           "Agent Name": item.agentName,
           "User Name": item.userName,
+          Mode: getMode(item), // ✅ Added Mode here
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(combinedData);
@@ -1078,18 +1108,78 @@ export const DataSummary = React.memo(() => {
       <Dialog
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
       >
-        <DialogTitle>Select Month to Export</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+          Select Month to Export
+        </DialogTitle>
+
         <DialogContent>
           <MonthPickerField
             label="Month"
             type="month"
             value={exportMonth}
+            inputRef={inputRef}
             onChange={(e) => setExportMonth(e.target.value)}
             InputLabelProps={{ shrink: true }}
             fullWidth
-            sx={{ mt: 1 }}
+            sx={{
+              mb: 2,
+              mt: 1,
+              "& input::-webkit-calendar-picker-indicator": {
+                display: "none",
+                WebkitAppearance: "none",
+              },
+              "& input": {
+                paddingRight: "36px",
+              },
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <img
+                    src={calendarIcon}
+                    alt="calendar"
+                    style={{ width: 20, height: 20, cursor: "pointer" }}
+                    onClick={() => inputRef.current?.showPicker?.()}
+                  />
+                </InputAdornment>
+              ),
+            }}
           />
+
+          {/* Radio group styled like checkboxes */}
+          <Box sx={{ pl: 1 }}>
+            <FormControl component="fieldset">
+              <RadioGroup
+                value={selectedExportOption}
+                onChange={(e) => setSelectedExportOption(e.target.value)}
+              >
+                <FormControlLabel
+                  value="recharge-xlsx"
+                  control={<Radio />}
+                  label=".xls Recharge Export"
+                />
+                <FormControlLabel
+                  value="recharge-pdf"
+                  control={<Radio />}
+                  label=".pdf Recharge Export"
+                />
+                <FormControlLabel
+                  value="redeem-xlsx"
+                  control={<Radio />}
+                  label=".xls Redeem Export"
+                />
+                <FormControlLabel
+                  value="redeem-pdf"
+                  control={<Radio />}
+                  label=".pdf Redeem Export"
+                />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+
           {isExporting && (
             <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
               <CircularProgress size={24} sx={{ mr: 2 }} />
@@ -1097,47 +1187,29 @@ export const DataSummary = React.memo(() => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              width: "100%",
-            }}
+
+        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setExportDialogOpen(false)}
+            disabled={isExporting}
+            fullWidth
+            sx={{ mr: 1 }}
           >
-            <Button
-              variant="outlined"
-              onClick={() => setExportDialogOpen(false)}
-              disabled={isExporting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => exportData("recharge", "xlsx")}
-              disabled={!exportMonth || isExporting}
-            >
-              <img src={excelIcon} alt="Excel" width={20} height={20} />{" "}
-              Recharge
-            </Button>
-            <Button
-              onClick={() => exportData("recharge", "pdf")}
-              disabled={!exportMonth || isExporting}
-            >
-              <img src={pdfIcon} alt="PDF" width={20} height={20} /> Recharge
-            </Button>
-            <Button
-              onClick={() => exportData("redeem", "xlsx", true)}
-              disabled={!exportMonth || isExporting}
-            >
-              <img src={excelIcon} alt="Excel" width={20} height={20} /> Redeem
-            </Button>
-            <Button
-              onClick={() => exportData("redeem", "pdf", true)}
-              disabled={!exportMonth || isExporting}
-            >
-              <img src={pdfIcon} alt="PDF" width={20} height={20} /> Redeem
-            </Button>
-          </Box>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              const [type, format] = selectedExportOption?.split("-") || [];
+              if (type && format) exportData(type, format, type === "redeem");
+            }}
+            disabled={!exportMonth || !selectedExportOption || isExporting}
+            fullWidth
+            sx={{ ml: 1 }}
+          >
+            Export
+          </Button>
         </DialogActions>
       </Dialog>
     </>

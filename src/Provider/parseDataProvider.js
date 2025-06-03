@@ -942,7 +942,8 @@ export const dataProvider = {
               "isCashOut",
               "transactionIdFromStripe",
               "transactionDate",
-              "username"
+              "username",
+              "referralLink"
             );
             filter.startDate &&
               transactionQuery.greaterThanOrEqualTo(

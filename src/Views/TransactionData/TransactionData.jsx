@@ -59,9 +59,25 @@ export const TransactionData = (props) => {
     return !isNaN(validDate.getTime()) ? validDate.toISOString() : date;
   };
 
+  const getMode = (data) => {
+    return data?.transactionIdFromStripe?.toLowerCase().includes("txn")
+      ? "WERT"
+      : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")
+      ? "Link"
+      : data?.referralLink?.toLowerCase().includes("pay.coinbase.com")
+      ? "CoinBase"
+      : data?.referralLink?.toLowerCase().includes("aog")
+      ? "AOG"
+      : data?.referralLink?.toLowerCase().includes("transfi")
+      ? "TransFi"
+      : data?.useWallet
+      ? "Wallet"
+      : "Stripe";
+  };
+  
   const handleExportAllDataXLS = async () => {
     const exportData = await loadAndExportData(); // Fetch data
-
+  
     // Flatten and combine all data
     const combinedData = exportData.map((item) => ({
       "Transaction ID": item.id,
@@ -79,13 +95,14 @@ export const TransactionData = (props) => {
       paymentMethodType: item?.paymentMethodType,
       remark: item?.remark,
       "Redeem Remark": item?.redeemRemarks,
+      Mode: getMode(item), // <-- Add Mode using helper
     }));
-
+  
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(combinedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "All Data");
-
+  
     // Write Excel file
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
@@ -93,6 +110,7 @@ export const TransactionData = (props) => {
       "AllData.xlsx"
     );
   };
+  
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025

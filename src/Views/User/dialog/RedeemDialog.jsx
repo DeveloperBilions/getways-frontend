@@ -132,7 +132,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       return false;
     }
     if (redeemAmount < 15) {
-      setAmountError("RedeemAmount amount cannot be less than 15.");
+      setAmountError("Redeem amount cannot be less than 15.");
       return false;
     }
     setFeeError(""); // Clear error if input is valid
@@ -214,6 +214,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           <ModalHeader
             toggle={handleClose}
             className="custom-modal-header border-bottom-0"
+            style={{paddingBottom:"0px"}}
           >
             Redeem Amount
           </ModalHeader>
@@ -223,7 +224,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                 {amountError}
               </Alert>
             )}
-            <FormText className="mb-4">Redeems may take up to 2 hours</FormText>
+            <FormText className="mb-3">Redeems may take up to 2 hours</FormText>
             <Form onSubmit={(e) => e.preventDefault()}>
               <Row>
                 <Col md={12}>
@@ -289,8 +290,8 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     )}
                   </FormGroup>
                 </Col>
-
-                <p className="redeem-fees-text">
+                <Col md={12}>
+                <p className="redeem-fees-text" style={{backgroundColor:"#F6F4F4"}}>
                   <div
                     style={{
                       display: "flex",
@@ -361,13 +362,14 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     </>
                   )}
                 </p>
+                </Col>
 
                 {feeError && <small className="text-danger">{feeError}</small>}
 
                 {redeemPercentage !== null &&
                   redeemPercentage !== undefined && (
-                    <p className="mb-4">
-                      <small>
+                    <p className="mb-3 ml-1">
+                      <small style={{ fontSize: "13px"}}>
                         Total amount to be redeemed = $
                         {Math.floor(redeemPercentage) || 0}
                       </small>
@@ -396,7 +398,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                       letterSpacing: "1.2%",
                       verticalAlign: "middle",
                       color: "var(--semantic-warning, #F59E0B)",
-                      padding: "0 4px",
+                      padding: "5px 4px",
                     }}
                   >
                     "The amount has been rounded down to the nearest lower

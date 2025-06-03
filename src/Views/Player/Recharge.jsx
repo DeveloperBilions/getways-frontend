@@ -59,7 +59,7 @@ const projectId = "64b19e33-9599-4a15-b3de-4728b5e8ead6";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
+const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent }) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -89,6 +89,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
   const [showWert, setShowWert] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
+  const [rechargeError, setRechargeError] = useState("");
+
   useEffect(() => {
     const checkRechargeAccess = async () => {
       const disabled = !(await isRechargeEnabledForAgent(
@@ -351,6 +353,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       paymentIcons: [venmo, payPal, visa, mastercard],
       onClick: debounce(async () => {
         try {
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+        
+          setRechargeError(""); // Clear any previous error
           const testPopup = window.open("", "_blank", "width=1,height=1");
           if (
             !testPopup ||
@@ -479,6 +487,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
       color: "#A855F7",
       hoverColor: "#FAF5FF",
       onClick: debounce(async () => {
+        if (rechargeAmount < RechargeLimitOfAgent) {
+          setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+          return;
+        }
+      
+        setRechargeError(""); // Clear any previous error
         if (walletLoading) return; // prevent spamming
 
         if (!identity?.walletAddr) {
@@ -888,6 +902,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh }) => {
               Recharges are not available at this time. Please try again later.
             </Alert>
           )}
+          {rechargeError && (
+  <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
+    {rechargeError}
+  </Alert>
+)}
+
 
           {/* {walletLoading ? (
   <CircularProgress />
