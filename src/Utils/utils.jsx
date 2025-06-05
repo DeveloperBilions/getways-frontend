@@ -1320,3 +1320,32 @@ export async function getTotalRechargeAmount(userId) {
   return results[0]?.total || 0;
 }
 
+
+export async function isPayarcAllowed() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const pipeline = [
+    {
+      $match: {
+        status: { $in: [2, 3] },
+        portal: "Payarc",
+        createdAt: { $gte: startOfMonth },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: { $sum: "$transactionAmount" },
+      },
+    },
+  ];
+
+  const results = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+  const total = results[0]?.totalAmount || 0;
+
+  return {
+    allowed: total < 1000000,
+    totalProcessed: total,
+  };
+}

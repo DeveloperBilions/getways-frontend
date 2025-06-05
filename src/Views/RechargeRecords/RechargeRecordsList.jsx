@@ -198,7 +198,8 @@ export const RechargeRecordsList = (props) => {
       : data?.referralLink?.toLowerCase().includes("transfi")
       ? "TransFi"
       : data?.useWallet
-      ? "Wallet"
+      ? "Wallet" :
+      data?.portal === "Payarc" ? "Payarc"
       : "Stripe";
   };
 
@@ -1113,7 +1114,8 @@ export const RechargeRecordsList = (props) => {
                                 .includes("transfi")
                             ? "TransFi"
                             : record?.useWallet
-                            ? "Wallet"
+                            ? "Wallet":
+                            record?.portal === "Payarc" ? "Payarc"
                             : "Stripe"}
                         </Typography>
                       </Box>

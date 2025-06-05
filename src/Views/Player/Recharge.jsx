@@ -24,7 +24,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
-import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../Utils/utils";
+import { checkActiveRechargeLimit, isPayarcAllowed, isRechargeEnabledForAgent } from "../../Utils/utils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -88,10 +88,26 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const [showCoinbase, setShowCoinbase] = useState(false);
   const [showWert, setShowWert] = useState(false);
   const [showLink, setShowLink] = useState(false);
+  const [showPayarc, setshowPayarc] = useState(false);
+  const [payarcLimit,setPayArcLimit] = useState(false)
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
 
+  useEffect(() => {
+    const checkPayarcLimit = async () => {
+      try {
+        const result = await isPayarcAllowed();
+        setPayArcLimit(result.allowed);
+      } catch (err) {
+        console.error("Payarc limit check failed:", err);
+        setPayArcLimit(false);
+      }
+    };
+  
+    checkPayarcLimit();
+  }, []);
+  
   useEffect(() => {
     const checkRechargeAccess = async () => {
       const disabled = !(await isRechargeEnabledForAgent(
@@ -144,10 +160,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       );
       const isWertAllowed = await isPaymentMethodAllowed(parentId, "wert");
       const isLinkAllowed = await isPaymentMethodAllowed(parentId, "link");
+      const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
+      setshowPayarc(isPayarcAllowed)
       setRechargeMethodLoading(false);
     };
 
@@ -552,6 +570,74 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       }),
       disabled: identity?.isBlackListed || rechargeDisabled || walletLoading || checkingRechargeLimit,
     },
+    payarcLimit && {
+      id: "payarc",
+      title: "Payarc Recharge",
+      description: "Secure payment via Payarc",
+      subtext: "No KYC needed",
+      icon: <BsFillCreditCard2FrontFill size={24} />,
+      color: "#FF9900",
+      hoverColor: "#FFF7E6",
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          setCheckingRechargeLimit(true);
+    
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+    
+          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+    
+          setRechargeError("");
+    
+          const payarcResponse = await Parse.Cloud.run("createPayarcOrder", {
+            amount: rechargeAmount * 100, // assuming Payarc expects cents
+            surcharge_percent: 0
+          });
+    
+          const TransactionDetails = Parse.Object.extend("TransactionRecords");
+          const transaction = new TransactionDetails();
+          const user = await Parse.User.current()?.fetch();
+    
+          transaction.set("type", "recharge");
+          transaction.set("gameId", "786");
+          transaction.set("username", identity?.username || "");
+          transaction.set("userId", identity?.objectId);
+          transaction.set("transactionDate", new Date());
+          transaction.set("transactionAmount", rechargeAmount);
+          transaction.set("remark", remark);
+          transaction.set("useWallet", false);
+          transaction.set("userParentId", user?.get("userParentId") || "");
+          transaction.set("status", 1);
+          transaction.set("portal", "Payarc");
+          transaction.set("transactionIdFromStripe", payarcResponse?.id);
+          transaction.set("referralLink", payarcResponse?.payment_form_url || "");
+          transaction.set("walletAddr", identity?.walletAddr || "");
+    
+          await transaction.save(null, { useMasterKey: true });
+    
+          const popup = window.open(payarcResponse?.payment_form_url, "_blank");
+          setStoredBuyUrl(payarcResponse?.payment_form_url); // Store for retry
+
+          if (!popup || popup.closed || typeof popup.closed === "undefined") {
+            setPopupBlocked(true);
+            setPopupDialogOpen(true);
+          }
+        } catch (err) {
+          console.error("Payarc order error:", err);
+          alert("Something went wrong with Payarc Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit
+    }    
     // {
     //   id: "bank",
     //   title: "Bank Transfer",
@@ -563,7 +649,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
     //   hoverColor: "#F9FAFA",
     //   onClick: () => console.log("Bank Transfer selected"),
     // },
-  ];
+  ].filter(Boolean);
 
   return (
     <>
@@ -933,7 +1019,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
     {rechargeError}
   </Alert>
 )}
-
 
           {/* {walletLoading ? (
   <CircularProgress />
@@ -1370,6 +1455,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
                 if (option.id === "quick-debit" && !showCoinbase) return false;
                 if (option.id === "instant" && !showWert) return false;
                 if (option.id === "crypto" && !showLink) return false;
+                if (option.id === "payarc" && !showPayarc) return false;
                 return true;
               })
               .map((option) => (
