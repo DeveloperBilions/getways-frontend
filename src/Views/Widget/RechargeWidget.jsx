@@ -21,7 +21,7 @@ const privateKey =
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const RechargeWidgetPopup = ({
-  open,
+  open = true,
   onClose,
   userId,
   walletId,
@@ -30,9 +30,11 @@ const RechargeWidgetPopup = ({
   onOptionClick,
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
+  const [showWertWidget, setShowWertWidget] = useState(false);
 
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isCoinbaseFlow, setIsCoinbaseFlow] = useState(false);
+  const [wertLoading, setWertLoading] = useState(false);
 
   if (!open) return null;
 
@@ -42,15 +44,13 @@ const RechargeWidgetPopup = ({
   const handleOptionClick = async (id) => {
     if (id === "quick-debit") {
       try {
-        setLoadingMessage("Generating session token...");
+        setLoadingMessage("Preparing URL for you...");
         setIsCoinbaseFlow(true);
 
         // Open a blank tab immediately
-        const newWindow = window.open("about:blank", "_blank");
 
         const identity = { walletAddr: walletId };
         const partnerUserRef = `${userId}-${Date.now()}`;
-
         const sessionToken = await fetchCoinbaseSessionToken(
           "0xb69b947183c5a4434bb028e295947a3496e12298",
           rechargeAmount,
@@ -59,28 +59,38 @@ const RechargeWidgetPopup = ({
 
         if (!sessionToken) {
           alert("Could not generate session token for Coinbase.");
-          newWindow?.close();
           setLoadingMessage("");
           setIsCoinbaseFlow(false);
           return;
         }
 
+        // ✅ Open window only after token is generated
         const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}&redirectUrl=${process.env.REACT_APP_REFERRAL_URL}`;
 
-        // Navigate the blank window to the referral URL
-        newWindow.location.href = referralUrl;
+        const newWindow = window.open(referralUrl, "_blank");
+
+        if (
+          !newWindow ||
+          newWindow.closed ||
+          typeof newWindow.closed === "undefined"
+        ) {
+          alert("Popup was blocked. Please allow popups and try again.");
+          setLoadingMessage("");
+          setIsCoinbaseFlow(false);
+          return;
+        }
+
         setLoadingMessage("Processing your Payments...");
 
-        // Wait for the window to close
+        // ✅ Wait for window to close
         const pollWindowClose = setInterval(() => {
           if (newWindow.closed) {
             clearInterval(pollWindowClose);
             setLoadingMessage("Checking payment status...");
-            // Simulate checking logic or call a Parse function if needed
             setTimeout(() => {
               setLoadingMessage("");
               setIsCoinbaseFlow(false);
-            }, 3000); // Simulated delay
+            }, 3000);
           }
         }, 500);
       } catch (err) {
@@ -123,58 +133,60 @@ const RechargeWidgetPopup = ({
   };
 
   const handleOpenWert = async (amount) => {
-    if (!amount || isNaN(amount)) {
-      alert("Please enter a valid amount.");
-      return;
+    try {
+
+      const clickId = `txn-${Date.now()}`;
+      const path =
+        "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
+      const recipient = "0xb69b947183c5a4434bb028e295947a3496e12298";
+      const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
+      const amountOutMinimum = "0";
+
+      const sc_input_data = generateScInputData(
+        path,
+        recipient,
+        amountIn,
+        amountOutMinimum
+      );
+
+      const signedData = signSmartContractData(
+        {
+          address: recipient,
+          commodity: "USDT",
+          commodity_amount: amount,
+          network: "bsc",
+          sc_address: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
+          sc_input_data,
+        },
+        privateKey
+      );
+
+      const wertWidget = new WertWidget({
+        ...signedData,
+        partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
+        origin: "https://widget.wert.io",
+        click_id: clickId,
+        redirect_url: process.env.REACT_APP_REFERRAL_URL,
+        is_crypto_hidden: true,
+        autosize: false,
+        width: 320,
+        height: 500,
+      });
+
+      const iframeSrc = wertWidget.getEmbedUrl();
+      setIframeUrl(iframeSrc);
+      setWertLoading(true); // Start Wert-specific loader
+      setTimeout(()=>{
+        setWertLoading(false); // Start Wert-specific loader
+
+      },4000)
+    } catch (err) {
+      alert("Failed to load Wert widget.");
+      console.error(err);
+    } finally {
     }
-
-    const clickId = `txn-${Date.now()}`;
-
-    const path =
-      "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
-
-    const recipient = "0xb69b947183c5a4434bb028e295947a3496e12298";
-    const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
-    const amountOutMinimum = "0";
-
-    const sc_input_data = generateScInputData(
-      path,
-      recipient,
-      amountIn,
-      amountOutMinimum
-    );
-
-    const signedData = signSmartContractData(
-      {
-        address: recipient,
-        commodity: "USDT",
-        commodity_amount: amount,
-        network: "bsc",
-        sc_address: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
-        sc_input_data: sc_input_data,
-      },
-      privateKey
-    );
-    const wertWidget = new WertWidget({
-      ...signedData,
-      partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
-      origin: "https://widget.wert.io",
-      click_id: clickId,
-      redirect_url: process.env.REACT_APP_REFERRAL_URL,
-      currency: "USD",
-      is_crypto_hidden: true,
-      listeners: {
-        "payment-status": async (status) => {
-          console.log("Wert Payment Status:", status);
-        },
-        close: () => {
-          onClose();
-        },
-      },
-    });
-
-    wertWidget.open();
   };
+
   const paymentOptions = [
     {
       id: "quick-debit",
@@ -227,7 +239,7 @@ const RechargeWidgetPopup = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 360,
+          width: 560,
           maxWidth: "90%",
           borderRadius: 3,
           bgcolor: "#fff",
@@ -275,26 +287,43 @@ const RechargeWidgetPopup = ({
             </Box>
           ) : iframeUrl ? (
             <>
-              <Box sx={{ mb: 1 }}>
+              <Box sx={{ mb: 2 }}>
                 <Button
                   onClick={() => setIframeUrl(null)}
-                  fullWidth
-                  size="small"
                   variant="outlined"
+                  size="small"
+                  fullWidth
                 >
-                  ← Back to Options
+                  ← Back to Recharge Options
                 </Button>
               </Box>
-              <Box sx={{ height: 400 }}>
-                <iframe
-                  src={iframeUrl}
-                  title="Recharge Payment"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  allow="payment"
-                />
-              </Box>
+
+              {wertLoading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    py: 4,
+                  }}
+                >
+                  <CircularProgress size={32} sx={{ mb: 2 }} />
+                  <Typography variant="body2">
+                    Loading Wert Widget...
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ height: "100vh" }}>
+                  <iframe
+                    src={iframeUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: "none", borderRadius: 8 }}
+                    allow="payment"
+                    title="Wert Recharge"
+                  />
+                </Box>
+              )}
             </>
           ) : (
             <Stack spacing={2}>

@@ -893,12 +893,14 @@ export const checkActiveRechargeLimit = async (userId, transactionAmount) => {
     const newTransactionAmount = Math.floor(parseFloat(transactionAmount)) ;
     // Check if the new transaction would exceed the limit
     if (
-      (activeRechargeLimit === "monthly" && totalRecharged + newTransactionAmount >= monthlyLimit) ||
-      (activeRechargeLimit === "daily" && totalRecharged + newTransactionAmount >= dailyLimit)
+      (activeRechargeLimit === "monthly" && totalRecharged + newTransactionAmount > monthlyLimit) ||
+      (activeRechargeLimit === "daily" && totalRecharged + newTransactionAmount > dailyLimit)
     ) {
+      const limitAmount = activeRechargeLimit === "monthly" ? monthlyLimit :dailyLimit
       return {
         success: false,
-        message: `You have reached the ${activeRechargeLimit} maximum limit. Please try again later.`,
+        message: `The maximum ${activeRechargeLimit} recharge limit is ${limitAmount}. Please try again.`
+       // message: `You have reached the ${activeRechargeLimit} maximum limit. Please try again later.`,
       };
     }
 

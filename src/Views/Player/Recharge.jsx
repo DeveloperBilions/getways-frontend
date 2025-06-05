@@ -24,7 +24,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
-import { isRechargeEnabledForAgent } from "../../Utils/utils";
+import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../Utils/utils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -90,6 +90,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const [showLink, setShowLink] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
+  const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
@@ -339,7 +340,6 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       return null;
     }
   };
-
   const [hoveredOption, setHoveredOption] = useState(null);
   const paymentOptions = [
     {
@@ -353,9 +353,22 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       paymentIcons: [venmo, payPal, visa, mastercard],
       onClick: debounce(async () => {
         try {
+          setCheckingRechargeLimit(true);
           if (rechargeAmount < RechargeLimitOfAgent) {
             setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
             return;
+          }
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+          if (!transactionCheck.success) {
+            setCheckingRechargeLimit(false);
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+          else{
+            setCheckingRechargeLimit(false); 
           }
         
           setRechargeError(""); // Clear any previous error
@@ -454,7 +467,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
           setWalletLoading(false);
         }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading,
+      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading || checkingRechargeLimit,
     },
     {
       id: "instant",
@@ -487,11 +500,24 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       color: "#A855F7",
       hoverColor: "#FAF5FF",
       onClick: debounce(async () => {
+        setCheckingRechargeLimit(true);
         if (rechargeAmount < RechargeLimitOfAgent) {
           setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
           return;
         }
-      
+        const transactionCheck = await checkActiveRechargeLimit(
+          identity?.userParentId,
+          rechargeAmount
+        );
+  
+        if (!transactionCheck.success) {
+          setCheckingRechargeLimit(false);
+          setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+          return;
+        }else{
+          setCheckingRechargeLimit(false);
+        }
+        
         setRechargeError(""); // Clear any previous error
         if (walletLoading) return; // prevent spamming
 
@@ -524,7 +550,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
 
         setRechargeLinkDialogOpen(true);
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading,
+      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading || checkingRechargeLimit,
     },
     // {
     //   id: "bank",
