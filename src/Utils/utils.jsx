@@ -1341,7 +1341,7 @@ export async function isPayarcAllowed() {
     },
   ];
 
-  const results = await new Parse.Query("TransactionRecords").aggregate(pipeline, { useMasterKey: true });
+  const results = await new Parse.Query("TransactionRecords").aggregate(pipeline);
   const total = results[0]?.totalAmount || 0;
 
   return {

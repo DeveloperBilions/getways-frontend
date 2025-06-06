@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import the back arrow icon
+import PayArcCheckout from "../Player/PayArcHostedFields";
+import { useLocation } from "react-router-dom";
 
 const countries = ["India", "United States", "United Kingdom", "Australia"];
 
@@ -22,6 +24,8 @@ const CheckoutForm = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const location =  useLocation();
+  const rechargeAmount = location?.state?.rechargeAmount
   const [cardDetails, setCardDetails] = useState({
     email: "",
     number: "",
@@ -96,11 +100,12 @@ const CheckoutForm = () => {
               One-time Payment
             </Typography>
             <Typography variant="h5" fontWeight="bold">
-              US$20.00
+              US${rechargeAmount}
             </Typography>
           </Box>
         </Box>
         <Box sx={{ flex: 1, paddingLeft: 4, marginY: 4 }}>
+          <PayArcCheckout  rechargeAmount={rechargeAmount || 100}/>
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email Section */}
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>

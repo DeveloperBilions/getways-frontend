@@ -48,6 +48,8 @@ import Chime from "../../Assets/icons/Chime.svg";
 import Logo1 from "../../Assets/icons/Logo1.svg";
 import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
 import { CircularProgress } from "@mui/material";
+import PayArcHostedFields from "./PayArcHostedFields";
+import { useNavigate } from "react-router-dom";
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
 // const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
@@ -63,6 +65,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
+  const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
   const [paymentSource, setPaymentSource] = useState("stripe");
@@ -1450,6 +1453,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
 </Box>
 :
           <Stack spacing={2}>
+            {/* <Button className="btn btn-theme-outline" onClick={()=>{
+              navigate("/checkout",{state:{rechargeAmount}})
+            }} >Payarc</Button> */}
+            <PayArcHostedFields  rechargeAmount={rechargeAmount}/>
             {paymentOptions
               .filter((option) => {
                 if (option.id === "quick-debit" && !showCoinbase) return false;
