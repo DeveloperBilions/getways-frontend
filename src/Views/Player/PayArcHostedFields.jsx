@@ -285,7 +285,7 @@ const PayArcCheckout = ({rechargeAmount}) => {
             transaction.set("remark", "Payarc Recharge");
             transaction.set("useWallet", false);
             transaction.set("userParentId", user?.get("userParentId") || "");
-            transaction.set("status", 2); // Success
+            transaction.set("status", 1); // Success
             transaction.set("portal", "Payarc");
             transaction.set("transactionIdFromStripe", token);
             transaction.set("referralLink", response?.payment_form_url || "");

@@ -1456,8 +1456,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
             {/* <Button className="btn btn-theme-outline" onClick={()=>{
               navigate("/checkout",{state:{rechargeAmount}})
             }} >Payarc</Button> */}
-            {payarcLimit && showPayarc && 
-            <PayArcHostedFields  rechargeAmount={rechargeAmount}/>}
+            
+            <PayArcHostedFields  rechargeAmount={rechargeAmount}/>
             {paymentOptions
               .filter((option) => {
                 if (option.id === "quick-debit" && !showCoinbase) return false;
