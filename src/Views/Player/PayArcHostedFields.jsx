@@ -474,13 +474,15 @@ const PayArcCheckout = ({rechargeAmount}) => {
               Prefer a wallet payment? Select one below.
             </div>
 
-            <button
+            {/* <button
               className="checkout-btn apple-pay-button"
               style={{ display: "none", background: "#000", color: "#fff" }}
               data-payarc-wallet="apple-pay"
             >
               Apple Pay
-            </button>
+            </button> */}
+            <button class="checkout-btn" data-payarc-wallet="apple-pay">Apple Pay</button>
+
             <button
               className="checkout-btn"
               style={{ background: "#4285F4", color: "#fff" }}
