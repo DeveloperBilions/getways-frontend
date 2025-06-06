@@ -42,6 +42,7 @@ import AutoWertWidget from "./Views/AutoWertWidget";
 import clarity from "@microsoft/clarity";
 import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 import WalletAuditList from "./Views/WalletAudit/WalletAudit";
+import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -149,6 +150,7 @@ function App() {
     "/GiftCardHistory",
     "/walletAudit",
     "/404",
+    "/payment-checkout"
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -266,6 +268,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/payment-checkout"
+                    element={
+                      <Authenticated>
+                        <CheckoutPayARC />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
                     path="/checkout-version2"
                     element={
                       <Authenticated>
@@ -306,6 +316,14 @@ function App() {
                     element={
                       <Authenticated>
                         <PlayerList resource="DashBoard" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/payment-checkout"
+                    element={
+                      <Authenticated>
+                        <CheckoutPayARC />
                       </Authenticated>
                     }
                   />

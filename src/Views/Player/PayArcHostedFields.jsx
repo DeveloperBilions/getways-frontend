@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useGetIdentity } from "react-admin";
 import { Parse } from "parse";
+import Gpay from "../../Assets/icons/google-pay.png";
+import applep from "../../Assets/icons/apple-pay.png";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const PayArcCheckout = ({rechargeAmount}) => {
@@ -168,8 +170,8 @@ const PayArcCheckout = ({rechargeAmount}) => {
 .checkout-btn  {
   width: 100%;
   padding: 14px;
-  background: #000000 !important;
-  color: white !important;
+  background: #11111 !important;
+  color: 433a3a !important;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -179,9 +181,6 @@ const PayArcCheckout = ({rechargeAmount}) => {
   transition: background 0.2s ease;
 }
 
-.checkout-btn :hover {
-  background: #1f1f1f !important;
-}
 
 .checkout-btn-card {
   background: #34495e;
@@ -350,19 +349,9 @@ const PayArcCheckout = ({rechargeAmount}) => {
     }
 
     if (clientId && window.initPayarcTokenizer) {
-      const interval = setInterval(() => {
-        const allReady =
-          document.getElementById("credit-card-number") &&
-          document.getElementById("credit-card-exp") &&
-          document.getElementById("credit-card-cvv") &&
-          document.getElementById("credit-card-zip") &&
-          document.getElementById("form-status");
-
-        if (allReady) {
-          clearInterval(interval);
-          window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
-        }
-      }, 100);
+      const interval =setTimeout(() => {
+        window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
+      }, 300);      
     }
 
     localStorage.setItem("iframe-demo", JSON.stringify({ clientId }));
@@ -481,13 +470,24 @@ const PayArcCheckout = ({rechargeAmount}) => {
             >
               Apple Pay
             </button> */}
-            <button class="checkout-btn" data-payarc-wallet="apple-pay">Apple Pay</button>
+            <button class="checkout-btn" data-payarc-wallet="apple-pay">
+              
+            <img
+    src={applep}
+    style={{ height: "20px", borderRadius: "2px" }}
+  />&nbsp;
+
+Apple Pay</button>
 
             <button
               className="checkout-btn"
               style={{ background: "#4285F4", color: "#fff" }}
               data-payarc-wallet="google-pay"
             >
+                <img
+    src={Gpay}
+    style={{ height: "20px", borderRadius: "2px" }}
+  />&nbsp;
               Google Pay
             </button>
             <div id="paypal-button-container"></div>

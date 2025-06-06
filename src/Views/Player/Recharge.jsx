@@ -46,6 +46,8 @@ import venmo from "../../Assets/icons/venmo.svg";
 import payPal from "../../Assets/icons/logo_paypal.svg";
 import Chime from "../../Assets/icons/Chime.svg";
 import Logo1 from "../../Assets/icons/Logo1.svg";
+import Gpay from "../../Assets/icons/google-pay.png";
+import applep from "../../Assets/icons/apple-pay.png";
 import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
 import { CircularProgress } from "@mui/material";
 import PayArcHostedFields from "./PayArcHostedFields";
@@ -575,69 +577,70 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
     },
     payarcLimit && {
       id: "payarc",
-      title: "Payarc Recharge",
-      description: "Secure payment via Payarc",
+      title: "Pay By card",
+      description: "Secure payment • No KYC needed",
       subtext: "No KYC needed",
       icon: <BsFillCreditCard2FrontFill size={24} />,
       color: "#FF9900",
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
-        try {
-          setCheckingRechargeLimit(true);
+        navigate("/payment-checkout",{state:{rechargeAmount:rechargeAmount}})
+        // try {
+        //   setCheckingRechargeLimit(true);
     
-          if (rechargeAmount < RechargeLimitOfAgent) {
-            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
-            return;
-          }
+        //   if (rechargeAmount < RechargeLimitOfAgent) {
+        //     setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+        //     return;
+        //   }
     
-          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
-          if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
-            return;
-          }
+        //   const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+        //   if (!transactionCheck.success) {
+        //     setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+        //     return;
+        //   }
     
-          setRechargeError("");
+        //   setRechargeError("");
     
-          const payarcResponse = await Parse.Cloud.run("createPayarcOrder", {
-            amount: rechargeAmount * 100, // assuming Payarc expects cents
-            surcharge_percent: 0
-          });
+        //   const payarcResponse = await Parse.Cloud.run("createPayarcOrder", {
+        //     amount: rechargeAmount * 100, // assuming Payarc expects cents
+        //     surcharge_percent: 0
+        //   });
     
-          const TransactionDetails = Parse.Object.extend("TransactionRecords");
-          const transaction = new TransactionDetails();
-          const user = await Parse.User.current()?.fetch();
+        //   const TransactionDetails = Parse.Object.extend("TransactionRecords");
+        //   const transaction = new TransactionDetails();
+        //   const user = await Parse.User.current()?.fetch();
     
-          transaction.set("type", "recharge");
-          transaction.set("gameId", "786");
-          transaction.set("username", identity?.username || "");
-          transaction.set("userId", identity?.objectId);
-          transaction.set("transactionDate", new Date());
-          transaction.set("transactionAmount", rechargeAmount);
-          transaction.set("remark", remark);
-          transaction.set("useWallet", false);
-          transaction.set("userParentId", user?.get("userParentId") || "");
-          transaction.set("status", 1);
-          transaction.set("portal", "Payarc");
-          transaction.set("transactionIdFromStripe", payarcResponse?.id);
-          transaction.set("referralLink", payarcResponse?.payment_form_url || "");
-          transaction.set("walletAddr", identity?.walletAddr || "");
+        //   transaction.set("type", "recharge");
+        //   transaction.set("gameId", "786");
+        //   transaction.set("username", identity?.username || "");
+        //   transaction.set("userId", identity?.objectId);
+        //   transaction.set("transactionDate", new Date());
+        //   transaction.set("transactionAmount", rechargeAmount);
+        //   transaction.set("remark", remark);
+        //   transaction.set("useWallet", false);
+        //   transaction.set("userParentId", user?.get("userParentId") || "");
+        //   transaction.set("status", 1);
+        //   transaction.set("portal", "Payarc");
+        //   transaction.set("transactionIdFromStripe", payarcResponse?.id);
+        //   transaction.set("referralLink", payarcResponse?.payment_form_url || "");
+        //   transaction.set("walletAddr", identity?.walletAddr || "");
     
-          await transaction.save(null, { useMasterKey: true });
+        //   await transaction.save(null, { useMasterKey: true });
     
-          const popup = window.open(payarcResponse?.payment_form_url, "_blank");
-          setStoredBuyUrl(payarcResponse?.payment_form_url); // Store for retry
+        //   const popup = window.open(payarcResponse?.payment_form_url, "_blank");
+        //   setStoredBuyUrl(payarcResponse?.payment_form_url); // Store for retry
 
-          if (!popup || popup.closed || typeof popup.closed === "undefined") {
-            setPopupBlocked(true);
-            setPopupDialogOpen(true);
-          }
-        } catch (err) {
-          console.error("Payarc order error:", err);
-          alert("Something went wrong with Payarc Recharge.");
-        } finally {
-          setCheckingRechargeLimit(false);
-        }
+        //   if (!popup || popup.closed || typeof popup.closed === "undefined") {
+        //     setPopupBlocked(true);
+        //     setPopupDialogOpen(true);
+        //   }
+        // } catch (err) {
+        //   console.error("Payarc order error:", err);
+        //   alert("Something went wrong with Payarc Recharge.");
+        // } finally {
+        //   setCheckingRechargeLimit(false);
+        // }
       }),
       disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit
     }    
@@ -1457,7 +1460,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
               navigate("/checkout",{state:{rechargeAmount}})
             }} >Payarc</Button> */}
             
-            <PayArcHostedFields  rechargeAmount={rechargeAmount}/>
+            {/* <PayArcHostedFields  rechargeAmount={rechargeAmount}/> */}
             {paymentOptions
               .filter((option) => {
                 if (option.id === "quick-debit" && !showCoinbase) return false;
