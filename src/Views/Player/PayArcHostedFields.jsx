@@ -313,7 +313,7 @@ const PayArcCheckout = ({rechargeAmount}) => {
     },
     walletPayment: {
       amount: rechargeAmount * 100,
-      html: walletHtml(),
+      html: walletHtml(rechargeAmount), // ✅ pass value here
       css: walletCss(),
       onWindowOpened: () => {
         if (placeholderRef.current) {
@@ -339,7 +339,7 @@ const PayArcCheckout = ({rechargeAmount}) => {
       },
       windowWidth: 600,
       windowHeight: 450,
-    },
+    }
   };
 
   useEffect(() => {
@@ -496,12 +496,101 @@ const PayArcCheckout = ({rechargeAmount}) => {
   );
 };
 
-function walletHtml() {
-  return `<div class='bg-color'><h2 style="text-align:center;color:white;">Wallet Checkout</h2></div>`;
+function walletHtml(rechargeAmount) {
+  return `<div class="bg-color">
+  <div class="ant-checkout-container">
+      <div class="center-align">
+          <div class="ant-checkout-card">
+              <div class="ant-checkout-header">
+                  <h2>Checkout</h2>
+              </div>
+              <div class="ant-checkout-item">
+                  <span>Total</span>
+                  <span>${rechargeAmount}</span>
+              </div>
+              <div class="ant-checkout-payment-methods">
+                  <div id='apple-pay-placeholder'></div>
+                  <div id='google-pay-placeholder'></div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>`;
 }
 
 function walletCss() {
-  return `.bg-color { background: #121744; } h2 { font-family: Arial, sans-serif; }`;
+  return `.ant-checkout-container * {
+    box-sizing: border-box;
+}
+.ant-checkout-card {
+    width: 50%;
+    background: #ecf0f1;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
+.ant-checkout-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.ant-checkout-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 10px;
+}
+.ant-checkout-payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ant-checkout-btn {
+    width: 100%;
+    padding: 10px;
+    background: #419DF1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+.ant-checkout-btn:hover {
+    background: #2f71b0;
+}
+.ant-checkout-btn-card {
+    background: #34495e;
+}
+.ant-checkout-btn-card:hover {
+    background: #2c3e50;
+}
+.center-align {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 90px);
+}
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70px;
+    padding: 10px;
+}
+.logo-img {
+    width: 150px;
+    height: auto;
+}
+.bg-color {
+    background: #121744;
+}
+#apple-pay-placeholder {
+    width: 100% !important;
+}
+`;
 }
 
 export default PayArcCheckout;
