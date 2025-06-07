@@ -689,8 +689,7 @@ export const UserList = (props) => {
               mb: 0.5,
             }} // Full width on small screens
             disabled={
-              (role === "Agent" && !identity?.allowUserCreation) ||
-              role === "Master-Agent"
+              (role === "Agent" && !identity?.allowUserCreation)
             }
           >
             <Typography

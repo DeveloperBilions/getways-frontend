@@ -3,11 +3,13 @@ import { useGetIdentity } from "react-admin";
 import { Parse } from "parse";
 import Gpay from "../../Assets/icons/google-pay.png";
 import applep from "../../Assets/icons/apple-pay.png";
+import { CircularProgress } from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const PayArcCheckout = ({rechargeAmount}) => {
+const PayArcCheckout = ({ rechargeAmount }) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
+  const [isLoading, setIsLoading] = useState(false);
 
   const placeholderRef = useRef();
   const resultContentRef = useRef();
@@ -257,24 +259,25 @@ const PayArcCheckout = ({rechargeAmount}) => {
         const token = response.token;
         const el = document.getElementById("card-token");
         if (el) el.textContent = token;
-    
+
         console.log("Tokenization successful!", token);
-    
+
         try {
           const chargeResponse = await Parse.Cloud.run("createPayarcCharge", {
             token_id: token,
             amount: rechargeAmount * 100,
             currency: "usd",
-            description: `Recharge by ${identity?.username || 'User'}`
+            description: `Recharge by ${identity?.username || "User"}`,
           });
-    
+
           if (chargeResponse && chargeResponse.status === "succeeded") {
             const user = await Parse.User.current()?.fetch();
             const identity = user?.toJSON();
-    
-            const TransactionDetails = Parse.Object.extend("TransactionRecords");
+
+            const TransactionDetails =
+              Parse.Object.extend("TransactionRecords");
             const transaction = new TransactionDetails();
-    
+
             transaction.set("type", "recharge");
             transaction.set("gameId", "786");
             transaction.set("username", identity?.username || "");
@@ -289,7 +292,7 @@ const PayArcCheckout = ({rechargeAmount}) => {
             transaction.set("transactionIdFromStripe", token);
             transaction.set("referralLink", response?.payment_form_url || "");
             transaction.set("walletAddr", identity?.walletAddr || "");
-    
+
             await transaction.save(null, { useMasterKey: true });
             alert("Recharge completed and transaction saved successfully!");
           } else {
@@ -298,10 +301,14 @@ const PayArcCheckout = ({rechargeAmount}) => {
         } catch (error) {
           console.error("Charge or save failed:", error);
           alert("Something went wrong during payment or saving transaction.");
+        } finally {
+          setIsLoading(false);
         }
       },
       error: (obj) => {
-        alert(`ERROR: ${obj.status} - ${obj.statusText}`);
+        console.log(obj,"objobjobj")
+        setIsLoading(false); // ✅ STOP loading
+        alert(`ERROR: ${obj.status} - ${obj.responseText}`);
         if (![422, 409].includes(obj.status)) {
           alert("Payment gateway error. Please try again.");
         }
@@ -338,7 +345,7 @@ const PayArcCheckout = ({rechargeAmount}) => {
       },
       windowWidth: 600,
       windowHeight: 450,
-    }
+    },
   };
 
   useEffect(() => {
@@ -349,9 +356,9 @@ const PayArcCheckout = ({rechargeAmount}) => {
     }
 
     if (clientId && window.initPayarcTokenizer) {
-      const interval =setTimeout(() => {
+      const interval = setTimeout(() => {
         window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
-      }, 300);      
+      }, 300);
     }
 
     localStorage.setItem("iframe-demo", JSON.stringify({ clientId }));
@@ -368,14 +375,14 @@ const PayArcCheckout = ({rechargeAmount}) => {
   };
 
   const handlePayment = () => {
+    setIsLoading(true);
     if (window.getPayarcToken) {
       window.getPayarcToken(document.getElementById("initiate-payment"));
     }
   };
 
   return (
-    <div
-    >
+    <div>
       <style
         id="payarc-styles"
         dangerouslySetInnerHTML={{ __html: payarcStyles }}
@@ -408,38 +415,37 @@ const PayArcCheckout = ({rechargeAmount}) => {
               padding: "24px",
               boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
               border: "1px solid #e0e0e0",
-              textAlign:"center"
+              textAlign: "center",
             }}
           >
-                     <span>Recharge Amount:{rechargeAmount}</span>
+            <span>Recharge Amount:{rechargeAmount}</span>
 
             <div id="card-token-container">
-              
               <div
                 id="credit-card-number"
                 data-payarc="CARD_NUMBER"
                 data-placeholder="Card Number"
                 style={{ height: 65 }}
               ></div>
-              <div style={{ display: "flex", gap: "10px",width:"100%" }}>
+              <div style={{ display: "flex", gap: "10px", width: "100%" }}>
                 <div
                   id="credit-card-exp"
                   data-payarc="EXP"
                   data-placeholder="MM/YY"
-                  style={{ flex: 1, height: 65 ,width:"100%" }}
+                  style={{ flex: 1, height: 65, width: "100%" }}
                 ></div>
                 <div
                   id="credit-card-cvv"
                   data-payarc="CVV"
                   data-placeholder="CVV"
-                  style={{ flex: 1, height: 65 , width:"100%" }}
+                  style={{ flex: 1, height: 65, width: "100%" }}
                 ></div>
               </div>
               <div
                 id="credit-card-zip"
                 data-payarc="ZIP"
                 data-placeholder="ZIP Code"
-                style={{ height: 65, }}
+                style={{ height: 65 }}
               ></div>
             </div>
             <div id="card-token"></div>
@@ -456,7 +462,14 @@ const PayArcCheckout = ({rechargeAmount}) => {
             >
               Buy
             </button>
-
+            {isLoading && (
+              <div style={{ textAlign: "center", marginBottom: "16px" }}>
+                <CircularProgress size={32} />
+                <div style={{ marginTop: "8px", color: "#555" }}>
+                  Processing payment...
+                </div>
+              </div>
+            )}
             <div
               style={{ textAlign: "center", margin: "10px 0", color: "black" }}
             >
@@ -471,24 +484,20 @@ const PayArcCheckout = ({rechargeAmount}) => {
               Apple Pay
             </button> */}
             <button class="checkout-btn" data-payarc-wallet="apple-pay">
-              
-            <img
-    src={applep}
-    style={{ height: "20px", borderRadius: "2px" }}
-  />&nbsp;
-
-Apple Pay</button>
+              <img
+                src={applep}
+                style={{ height: "20px", borderRadius: "2px" }}
+              />
+              &nbsp; Apple Pay
+            </button>
 
             <button
               className="checkout-btn"
               style={{ background: "#4285F4", color: "#fff" }}
               data-payarc-wallet="google-pay"
             >
-                <img
-    src={Gpay}
-    style={{ height: "20px", borderRadius: "2px" }}
-  />&nbsp;
-              Google Pay
+              <img src={Gpay} style={{ height: "20px", borderRadius: "2px" }} />
+              &nbsp; Google Pay
             </button>
             <div id="paypal-button-container"></div>
           </div>
