@@ -7,11 +7,21 @@ import {
   Button,
   Alert,
   CircularProgress,
+  MenuItem
 } from "@mui/material";
 import { Parse } from "parse";
 import { useGetIdentity } from "react-admin";
 
 export default function BillingAddressForm({ onSubmit }) {
+  const usStates = [
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
+    "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+    "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma",
+    "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
+    "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+  ];
+
   const { identity } = useGetIdentity();
   const [form, setForm] = useState({
     firstName: "",
@@ -72,9 +82,9 @@ export default function BillingAddressForm({ onSubmit }) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     Object.entries(form).forEach(([key, value]) => {
-      if (!value.trim()) {
+      if (key !== "address2" && !value.trim()) {
         newErrors[key] = "This field is required";
-      }
+      }  
     });
 
     if (form.email && !emailRegex.test(form.email.trim())) {
@@ -109,7 +119,7 @@ export default function BillingAddressForm({ onSubmit }) {
         ? await new Parse.Query(BillingInfo).get(objectId)
         : new BillingInfo();
 
-      billingInfo.set("userId", identity?.objectId); // assuming objectId is user id
+      billingInfo.set("userId", identity?.objectId);
       Object.entries(form).forEach(([key, value]) => {
         billingInfo.set(key, value.trim());
       });
@@ -143,18 +153,8 @@ export default function BillingAddressForm({ onSubmit }) {
         Billing Address
       </Typography>
 
-      {errorMsg && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorMsg}
-        </Alert>
-      )}
-      {successMsg && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {successMsg}
-        </Alert>
-      )}
-
-     
+      {errorMsg && <Alert severity="error" sx={{ mb: 2 }}>{errorMsg}</Alert>}
+      {successMsg && <Alert severity="success" sx={{ mb: 2 }}>{successMsg}</Alert>}
 
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
@@ -164,11 +164,50 @@ export default function BillingAddressForm({ onSubmit }) {
             { name: "address1", label: "Address Line 1" },
             { name: "address2", label: "Address Line 2" },
             { name: "city", label: "City" },
-            { name: "state", label: "State" },
+          ].map(({ name, label }) => (
+            <Grid item xs={12} key={name}>
+              <TextField
+                label={label}
+                name={name}
+                value={form[name]}
+                onChange={handleChange}
+                fullWidth
+                variant="standard"
+                disabled={!editMode}
+                error={Boolean(errors[name])}
+                helperText={errors[name]}
+              />
+            </Grid>
+          ))}
+
+          {/* ✅ State dropdown below City */}
+          <Grid item xs={12} >
+            <TextField
+              select
+              label="State"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              fullWidth
+              variant="standard"
+              disabled={!editMode}
+              error={Boolean(errors.state)}
+              helperText={errors.state}
+            >
+              {usStates.map((state) => (
+                <MenuItem key={state} value={state}>
+                  {state}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Remaining fields: ZIP + Email */}
+          {[
             { name: "zip", label: "ZIP Code" },
             { name: "email", label: "Email Address", type: "email" },
           ].map(({ name, label, type }) => (
-            <Grid item xs={12} sm={name === "email" || name === "zip" ? 6 : 12} key={name}>
+            <Grid item xs={12} sm={6} key={name}>
               <TextField
                 label={label}
                 name={name}
@@ -183,33 +222,33 @@ export default function BillingAddressForm({ onSubmit }) {
               />
             </Grid>
           ))}
- 
- <Grid item xs={12}>
-  <Box display="flex" gap={2}>
-    {!editMode && (
-      <Button
-        variant="outlined"
-        onClick={() => setEditMode(true)}
-        fullWidth
-        sx={{ flex: 1 }}
-      >
-        Edit
-      </Button>
-    )}
-    <Button
-      type={editMode ? "submit" : "button"}
-      variant="contained"
-      color="primary"
-      disabled={submitting}
-      fullWidth
-      sx={{ flex: 1 }}
-      onClick={!editMode ? () => onSubmit?.(form) : undefined}
-    >
-      {submitting && editMode ? "Saving..." : "Continue"}
-    </Button>
-  </Box>
-</Grid>
 
+          {/* Action buttons */}
+          <Grid item xs={12}>
+            <Box display="flex" gap={2}>
+              {!editMode && (
+                <Button
+                  variant="outlined"
+                  onClick={() => setEditMode(true)}
+                  fullWidth
+                  sx={{ flex: 1 }}
+                >
+                  Edit
+                </Button>
+              )}
+              <Button
+                type={editMode ? "submit" : "button"}
+                variant="contained"
+                color="primary"
+                disabled={submitting}
+                fullWidth
+                sx={{ flex: 1 }}
+                onClick={!editMode ? () => onSubmit?.(form) : undefined}
+              >
+                {submitting && editMode ? "Saving..." : "Continue"}
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
       </form>
     </Box>

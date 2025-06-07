@@ -10,6 +10,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
   const [isLoading, setIsLoading] = useState(false);
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
 
   const placeholderRef = useRef();
   const resultContentRef = useRef();
@@ -19,7 +20,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
     const loadScript = (src, id) => {
       return new Promise((resolve, reject) => {
         if (document.getElementById(id)) return resolve();
-
+  
         const script = document.createElement("script");
         script.src = src;
         script.id = id;
@@ -29,24 +30,20 @@ const PayArcCheckout = ({ rechargeAmount }) => {
         document.body.appendChild(script);
       });
     };
-
+  
     const loadScripts = async () => {
       try {
-        await loadScript(
-          "https://code.jquery.com/jquery-3.7.1.min.js",
-          "jquery"
-        );
-        await loadScript(
-          "https://portal.payarc.net/js/iframeprocess.js",
-          "payarc-iframe"
-        );
+        await loadScript("https://code.jquery.com/jquery-3.7.1.min.js", "jquery");
+        await loadScript("https://portal.payarc.net/js/iframeprocess.js", "payarc-iframe");
+        setScriptsLoaded(true); // ✅ Mark scripts as ready
       } catch (error) {
         console.error("Failed to load scripts", error);
       }
     };
-
+  
     loadScripts();
   }, []);
+  
   const payarcStyles = `
 
 .checkout {
@@ -306,7 +303,6 @@ const PayArcCheckout = ({ rechargeAmount }) => {
         }
       },
       error: (obj) => {
-        console.log(obj,"objobjobj")
         setIsLoading(false); // ✅ STOP loading
         alert(`ERROR: ${obj.status} - ${obj.responseText}`);
         if (![422, 409].includes(obj.status)) {
@@ -349,20 +345,27 @@ const PayArcCheckout = ({ rechargeAmount }) => {
   };
 
   useEffect(() => {
-    if (window.ApplePaySession) {
-      document
-        .querySelectorAll(".apple-pay-button")
-        .forEach((btn) => (btn.style.display = "block"));
+    if (scriptsLoaded && clientId && window.initPayarcTokenizer) {
+      window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
+      localStorage.setItem("iframe-demo", JSON.stringify({ clientId }));
     }
+  }, [scriptsLoaded, clientId]);
 
-    if (clientId && window.initPayarcTokenizer) {
-      const interval = setTimeout(() => {
-        window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
-      }, 300);
-    }
+  // useEffect(() => {
+  //   if (window.ApplePaySession) {
+  //     document
+  //       .querySelectorAll(".apple-pay-button")
+  //       .forEach((btn) => (btn.style.display = "block"));
+  //   }
 
-    localStorage.setItem("iframe-demo", JSON.stringify({ clientId }));
-  }, [clientId]);
+  //   if (clientId && window.initPayarcTokenizer) {
+  //     const interval = setTimeout(() => {
+  //       window.initPayarcTokenizer(clientId, PAYARC_SETTINGS);
+  //     }, 300);
+  //   }
+
+  //   localStorage.setItem("iframe-demo", JSON.stringify({ clientId }));
+  // }, [clientId]);
 
   const handleClientIdChange = (e) => {
     const value = e.target.value;
