@@ -229,34 +229,34 @@ const RechargeWidgetPopup = ({
 
   return (
     <>
-      {open && (
-        <Box
-          onClick={onClose}
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            bgcolor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1399,
-          }}
-        />
-      )}
+      {/* {open && (
+        // <Box
+        //   onClick={onClose}
+        //   sx={{
+        //     position: "fixed",
+        //     top: 0,
+        //     left: 0,
+        //     width: "100vw",
+        //     height: "100vh",
+        //     bgcolor: "rgba(0, 0, 0, 0.7)",
+        //     zIndex: 1399,
+        //   }}
+        // />
+      )} */}
 
       <Paper
         elevation={4}
         onClick={(e) => e.stopPropagation()} // Prevent backdrop click from closing when clicking inside
         sx={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 560,
-          maxWidth: "90%",
+          // position: "fixed",
+          // top: "50%",
+          // left: "50%",
+          // transform: "translate(-50%, -50%)",
+          width: "100vw",
           borderRadius: 3,
           bgcolor: "#fff",
           zIndex: 1400,
+          height: "100vh",
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
           overflow: "hidden",
         }}
