@@ -27,18 +27,21 @@ const RechargeWidgetPopup = ({
   userId,
   walletId,
   remark,
+  platform,
+  type,
   walletLoading = false,
   onOptionClick,
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showWertWidget, setShowWertWidget] = useState(false);
-  const [actionType, setActionType] = useState(null); // null | 'recharge' | 'redeem'
+  const [actionType, setActionType] = useState(type || null ); // null | 'recharge' | 'redeem'
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isCoinbaseFlow, setIsCoinbaseFlow] = useState(false);
   const [wertLoading, setWertLoading] = useState(false);
   const [amount, setAmount] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState(null);
   const [amountError, setAmountError] = useState("");
+  const [currentActionType, setCurrentActionType] = useState(actionType || null);
 
   if (!open) return null;
 
@@ -69,7 +72,7 @@ const RechargeWidgetPopup = ({
         }
 
         // ✅ Open window only after token is generated
-        const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}&redirectUrl=${process.env.REACT_APP_REFERRAL_URL}`;
+        const referralUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${amount}&redirectUrl=${process.env.REACT_APP_REFERRAL_URL}`;
 
         const newWindow = window.open(referralUrl, "_blank");
 
@@ -105,14 +108,14 @@ const RechargeWidgetPopup = ({
       }
     } else if (id === "crypto") {
       try {
-        const rechargeUrl = `https://crypto.link.com?ref=lb&source_amount=${rechargeAmount}&source_currency=usd&destination_currency=usdc&destination_network=ethereum`;
+        const rechargeUrl = `https://crypto.link.com?ref=lb&source_amount=${amount}&source_currency=usd&destination_currency=usdc&destination_network=ethereum`;
         setIframeUrl(rechargeUrl);
       } catch (err) {
         alert("Could not initiate Crypto flow.");
         console.error(err);
       }
     } else if (id === "wert") {
-      handleOpenWert(50);
+      handleOpenWert(amount);
     } else {
       onOptionClick(id, { userId, walletId, remark });
     }
@@ -215,6 +218,14 @@ const RechargeWidgetPopup = ({
     //   hoverColor: "#FAF5FF",
     // },
   ];
+  const getHeaderTitle = () => {
+    if (iframeUrl) return "Complete Recharge";
+    if (actionType === "recharge" || actionType === "redeem") {
+      return `Enter ${actionType === "recharge" ? "Recharge" : "Redeem"} Amount`;
+    }
+    return "Recharge Options";
+  };
+  
 
   return (
     <>
@@ -251,26 +262,42 @@ const RechargeWidgetPopup = ({
         }}
       >
         <Box
-          sx={{
-            px: 2,
-            py: 1.5,
-            borderBottom: "1px solid #eee",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            backgroundColor: "#F9FAFB",
-          }}
-        >
-          <Typography variant="subtitle1" fontWeight={600}>
-            {iframeUrl ? "Complete Recharge" : "Recharge Options"}
-          </Typography>
-          <IconButton
-            onClick={iframeUrl ? () => setIframeUrl(null) : onClose}
-            size="small"
-          >
-            <CloseIcon />
-          </IconButton>
-        </Box>
+  sx={{
+    px: 2,
+    py: 1.5,
+    borderBottom: "1px solid #eee",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+  }}
+>
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    {(currentActionType || iframeUrl) && (
+      <IconButton
+        onClick={() => {
+          if (iframeUrl) {
+            setIframeUrl(null);
+          } else {
+            setConfirmedAmount(null);
+            setAmount("");
+            setCurrentActionType(null);
+          }
+        }}
+        size="small"
+      >
+        ←
+      </IconButton>
+    )}
+    <Typography variant="subtitle1" fontWeight={600}>
+      {getHeaderTitle()}
+    </Typography>
+  </Box>
+
+  <IconButton onClick={onClose} size="small">
+    <CloseIcon />
+  </IconButton>
+</Box>
 
         <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
           {!actionType ? (
@@ -296,18 +323,6 @@ const RechargeWidgetPopup = ({
           ) : (actionType === "recharge" || actionType === "redeem") &&
             !confirmedAmount ? (
             <Stack spacing={2} alignItems="center" py={3}>
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => {
-                  setAmount("");
-                  setConfirmedAmount(null);
-                  setActionType(null);
-                }}
-              >
-                ← Back
-              </Button>
-
               <Typography variant="h6">
                 Enter {actionType === "recharge" ? "Recharge" : "Redeem"} Amount
               </Typography>
@@ -368,16 +383,6 @@ const RechargeWidgetPopup = ({
                 </Box>
               ) : iframeUrl ? (
                 <>
-                  <Box sx={{ mb: 2 }}>
-                    <Button
-                      onClick={() => setIframeUrl(null)}
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                    >
-                      ← Back to Recharge Options
-                    </Button>
-                  </Box>
 
                   {wertLoading ? (
                     <Box
@@ -408,17 +413,6 @@ const RechargeWidgetPopup = ({
                 </>
               ) : (
                 <Stack spacing={2}>
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={() => {
-                      setConfirmedAmount("")
-                      setAmount("");
-                      setActionType(null);
-                    }}
-                  >
-                    ← Back
-                  </Button>
                   {paymentOptions.map((option) => (
                     <Card
                       key={option.id}
@@ -468,7 +462,7 @@ const RechargeWidgetPopup = ({
             </>
           ) : actionType === "redeem" ? (
             <RedeemGiftCardFlow
-              amount={50}
+              amount={amount}
               onClose
               onBack={() => {
                 setAmount(null)
