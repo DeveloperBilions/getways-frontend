@@ -41,7 +41,7 @@ const RechargeWidgetPopup = ({
   const [amount, setAmount] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState(null);
   const [amountError, setAmountError] = useState("");
-  const [currentActionType, setCurrentActionType] = useState(actionType || null);
+  const [currentActionType, setCurrentActionType] = useState(type || null);
 
   if (!open) return null;
 
@@ -273,7 +273,7 @@ const RechargeWidgetPopup = ({
   }}
 >
   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-    {(currentActionType || iframeUrl) && (
+    {(currentActionType || iframeUrl || actionType) && (
       <IconButton
         onClick={() => {
           if (iframeUrl) {

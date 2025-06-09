@@ -120,9 +120,6 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId }) => {
 
   return (
     <Box p={3}>
-       <Button onClick={onBack} size="small" variant="outlined">
-          ← Back
-        </Button>
       {success ? (
         <Box textAlign="center">
           <Typography variant="h6" color="success.main" gutterBottom>
