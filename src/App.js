@@ -43,6 +43,7 @@ import clarity from "@microsoft/clarity";
 import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
+import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -150,7 +151,8 @@ function App() {
     "/GiftCardHistory",
     "/walletAudit",
     "/404",
-    "/payment-checkout"
+    "/payment-checkout",
+    "/recharge-widget"
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -414,6 +416,9 @@ function App() {
         }}
         <CustomRoutes noLayout>
           <Route path="/buyWert" element={<AutoWertWidget />} />
+        </CustomRoutes>
+        <CustomRoutes noLayout>
+          <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
         </CustomRoutes>
       </Admin>
     </BrowserRouter>

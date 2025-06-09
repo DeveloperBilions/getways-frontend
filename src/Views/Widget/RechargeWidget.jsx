@@ -16,6 +16,7 @@ import WertWidget from "@wert-io/widget-initializer";
 import { signSmartContractData } from "@wert-io/widget-sc-signer";
 import { generateScInputData } from "../Player/dialog/GenerateInput";
 import { Parse } from "parse";
+import RedeemGiftCardFlow from "./RedeemGiftCardFlow";
 const privateKey =
   "0x2bcb9fc6533713d0705a9f15850a027ec26955d96c22ae02075f3544e6842f74";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -31,10 +32,13 @@ const RechargeWidgetPopup = ({
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showWertWidget, setShowWertWidget] = useState(false);
-
+  const [actionType, setActionType] = useState(null); // null | 'recharge' | 'redeem'
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isCoinbaseFlow, setIsCoinbaseFlow] = useState(false);
   const [wertLoading, setWertLoading] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState(null);
+  const [amountError, setAmountError] = useState("");
 
   if (!open) return null;
 
@@ -134,7 +138,6 @@ const RechargeWidgetPopup = ({
 
   const handleOpenWert = async (amount) => {
     try {
-
       const clickId = `txn-${Date.now()}`;
       const path =
         "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
@@ -176,10 +179,9 @@ const RechargeWidgetPopup = ({
       const iframeSrc = wertWidget.getEmbedUrl();
       setIframeUrl(iframeSrc);
       setWertLoading(true); // Start Wert-specific loader
-      setTimeout(()=>{
+      setTimeout(() => {
         setWertLoading(false); // Start Wert-specific loader
-
-      },4000)
+      }, 4000);
     } catch (err) {
       alert("Failed to load Wert widget.");
       console.error(err);
@@ -271,34 +273,86 @@ const RechargeWidgetPopup = ({
         </Box>
 
         <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
-          {walletLoading || loadingMessage ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                py: 4,
-              }}
-            >
-              <CircularProgress size={32} sx={{ mb: 2 }} />
-              <Typography variant="body2">
-                {loadingMessage || "Loading..."}
-              </Typography>
-            </Box>
-          ) : iframeUrl ? (
-            <>
-              <Box sx={{ mb: 2 }}>
+          {!actionType ? (
+            <Stack spacing={2} alignItems="center" py={3}>
+              <Typography variant="h6">What would you like to do?</Typography>
+              <Box sx={{ display: "flex", gap: 2 }}>
                 <Button
-                  onClick={() => setIframeUrl(null)}
-                  variant="outlined"
-                  size="small"
-                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setActionType("recharge")}
                 >
-                  ← Back to Recharge Options
+                  Recharge
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setActionType("redeem")}
+                >
+                  Redeem
                 </Button>
               </Box>
+            </Stack>
+          ) : (actionType === "recharge" || actionType === "redeem") &&
+            !confirmedAmount ? (
+            <Stack spacing={2} alignItems="center" py={3}>
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => {
+                  setAmount("");
+                  setConfirmedAmount(null);
+                  setActionType(null);
+                }}
+              >
+                ← Back
+              </Button>
 
-              {wertLoading ? (
+              <Typography variant="h6">
+                Enter {actionType === "recharge" ? "Recharge" : "Redeem"} Amount
+              </Typography>
+
+              <input
+                type="number"
+                value={amount}
+                min={1}
+                placeholder="Amount (must be > 0)"
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  setAmountError("");
+                }}
+                style={{
+                  padding: "10px",
+                  width: "200px",
+                  fontSize: "14px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                }}
+              />
+
+              {amountError && (
+                <Typography variant="caption" color="error">
+                  {amountError}
+                </Typography>
+              )}
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  const num = parseFloat(amount);
+                  if (isNaN(num) || num <= 0) {
+                    setAmountError("Please enter a valid amount > 0");
+                    return;
+                  }
+                  setConfirmedAmount(num.toFixed(2));
+                }}
+              >
+                Proceed
+              </Button>
+            </Stack>
+          ) : actionType === "recharge" ? (
+            <>
+              {walletLoading || loadingMessage ? (
                 <Box
                   sx={{
                     display: "flex",
@@ -309,66 +363,120 @@ const RechargeWidgetPopup = ({
                 >
                   <CircularProgress size={32} sx={{ mb: 2 }} />
                   <Typography variant="body2">
-                    Loading Wert Widget...
+                    {loadingMessage || "Loading..."}
                   </Typography>
                 </Box>
-              ) : (
-                <Box sx={{ height: "100vh" }}>
-                  <iframe
-                    src={iframeUrl}
-                    width="100%"
-                    height="100%"
-                    style={{ border: "none", borderRadius: 8 }}
-                    allow="payment"
-                    title="Wert Recharge"
-                  />
-                </Box>
-              )}
-            </>
-          ) : (
-            <Stack spacing={2}>
-              {paymentOptions.map((option) => (
-                <Card
-                  key={option.id}
-                  onClick={() => handleOptionClick(option.id)}
-                  sx={{
-                    borderRadius: 2,
-                    border: "1px solid #E2E8F0",
-                    boxShadow: "none",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    borderLeft: `4px solid ${option.color}`,
-                    "&:hover": {
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                      bgcolor: option.hoverColor,
-                    },
-                  }}
-                >
-                  <CardContent>
+              ) : iframeUrl ? (
+                <>
+                  <Box sx={{ mb: 2 }}>
+                    <Button
+                      onClick={() => setIframeUrl(null)}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                    >
+                      ← Back to Recharge Options
+                    </Button>
+                  </Box>
+
+                  {wertLoading ? (
                     <Box
                       sx={{
                         display: "flex",
-                        justifyContent: "space-between",
+                        flexDirection: "column",
                         alignItems: "center",
+                        py: 4,
                       }}
                     >
-                      <Box>
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {option.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {option.description}
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {option.subtext}
-                        </Typography>
-                      </Box>
-                      <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                      <CircularProgress size={32} sx={{ mb: 2 }} />
+                      <Typography variant="body2">
+                        Loading Wert Widget...
+                      </Typography>
                     </Box>
-                  </CardContent>
-                </Card>
-              ))}
-            </Stack>
+                  ) : (
+                    <Box sx={{ height: "100vh" }}>
+                      <iframe
+                        src={iframeUrl}
+                        width="100%"
+                        height="100%"
+                        style={{ border: "none", borderRadius: 8 }}
+                        allow="payment"
+                        title="Wert Recharge"
+                      />
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <Stack spacing={2}>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setConfirmedAmount("")
+                      setAmount("");
+                      setActionType(null);
+                    }}
+                  >
+                    ← Back
+                  </Button>
+                  {paymentOptions.map((option) => (
+                    <Card
+                      key={option.id}
+                      onClick={() => handleOptionClick(option.id)}
+                      sx={{
+                        borderRadius: 2,
+                        border: "1px solid #E2E8F0",
+                        boxShadow: "none",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        borderLeft: `4px solid ${option.color}`,
+                        "&:hover": {
+                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                          bgcolor: option.hoverColor,
+                        },
+                      }}
+                    >
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box>
+                            <Typography sx={{ fontWeight: 500 }}>
+                              {option.title}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {option.description}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 500 }}
+                            >
+                              {option.subtext}
+                            </Typography>
+                          </Box>
+                          <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Stack>
+              )}{" "}
+            </>
+          ) : actionType === "redeem" ? (
+            <RedeemGiftCardFlow
+              amount={50}
+              onClose
+              onBack={() => {
+                setAmount(null)
+                setConfirmedAmount(null)
+                setActionType(null)}}
+            />
+          ) : (
+            ""
           )}
         </Box>
       </Paper>
