@@ -294,7 +294,14 @@ const RechargeWidgetPopup = ({
     </Typography>
   </Box>
 
-  <IconButton onClick={onClose} size="small">
+  <IconButton  onClick={() => {
+    setIframeUrl(null);         // ✅ Unload the iframe
+    setActionType(null);        // ✅ Reset flow state
+    setAmount("");              // ✅ Reset input
+    setConfirmedAmount(null);   // ✅ Reset confirmation
+    onClose();                  // ✅ Call parent close handler
+  }}
+  size="small">
     <CloseIcon />
   </IconButton>
 </Box>

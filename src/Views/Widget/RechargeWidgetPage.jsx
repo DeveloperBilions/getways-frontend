@@ -1,5 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import RechargeWidgetPopup from './RechargeWidget';
+import { useState } from 'react';
 
 const RechargeWidgetPage = () => {
   const [searchParams] = useSearchParams();
@@ -9,16 +10,16 @@ const RechargeWidgetPage = () => {
   const remark = searchParams.get("remark");
   const platform = searchParams.get("platform") || "desktop";
   const type = searchParams.get("type"); // 'recharge' or 'redeem'
+  const [showRechargeWidget, setShowRechargeWidget] = useState(true);
 
   return (
     <RechargeWidgetPopup
-      open={true}
-      userId={userId}
+    open={showRechargeWidget}
+    onClose={() => setShowRechargeWidget(false)} // ✅ closes widget      userId={userId}
       walletId={walletId}
       remark={remark}
       platform={platform}
       type={type}
-      onClose={() => {}}
       onOptionClick={(id, details) => {
         console.log("Clicked:", id, details);
       }}
