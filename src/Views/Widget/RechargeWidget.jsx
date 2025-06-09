@@ -294,7 +294,7 @@ const RechargeWidgetPopup = ({
     </Typography>
   </Box>
 
-  <IconButton  onClick={() => {
+  {/* <IconButton  onClick={() => {
     setIframeUrl(null);         // ✅ Unload the iframe
     setActionType(null);        // ✅ Reset flow state
     setAmount("");              // ✅ Reset input
@@ -303,7 +303,7 @@ const RechargeWidgetPopup = ({
   }}
   size="small">
     <CloseIcon />
-  </IconButton>
+  </IconButton> */}
 </Box>
 
         <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
