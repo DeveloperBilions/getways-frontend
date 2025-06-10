@@ -44,6 +44,7 @@ import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
+import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -152,7 +153,8 @@ function App() {
     "/walletAudit",
     "/404",
     "/payment-checkout",
-    "/recharge-widget"
+    "/recharge-widget",
+    "/stripe-payment"
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -379,6 +381,15 @@ function App() {
                       </Authenticated>
                     }
                   />
+                <Route
+                    path="/stripe-payment"
+                    element={
+                      <Authenticated>
+                        <CheckoutFormStripe />
+                      </Authenticated>
+                    }
+                  />
+
                 </CustomRoutes>
               </>
             );

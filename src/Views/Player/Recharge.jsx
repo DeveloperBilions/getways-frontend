@@ -33,6 +33,8 @@ import DialogContentText from "@mui/material/DialogContentText";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from "@coinbase/cbpay-js";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -94,6 +96,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const [showWert, setShowWert] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [showPayarc, setshowPayarc] = useState(false);
+  const [showStripe, setshowStripe] = useState(false)
   const [payarcLimit,setPayArcLimit] = useState(false)
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
@@ -166,11 +169,14 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       const isWertAllowed = await isPaymentMethodAllowed(parentId, "wert");
       const isLinkAllowed = await isPaymentMethodAllowed(parentId, "link");
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
+      const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed)
+      setshowStripe(isStripeAllowed)
+
       setRechargeMethodLoading(false);
     };
 
@@ -365,7 +371,51 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   };
   const [hoveredOption, setHoveredOption] = useState(null);
   const paymentOptions = [
-
+    {
+      id: "stripe",
+      title: "Pay By Stripe",
+      description: "Secure payment • No KYC needed",
+      icon: <CreditCardIcon sx={{ color: "#32325D", fontSize: 24 }} />,
+      color: "#32325D",         // Stripe brand dark blue
+      hoverColor: "#F5F7FA",    // Soft grey tint            
+      paymentIcons: [Logo1, visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          setCheckingRechargeLimit(true);
+    
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+    
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+    
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+    
+          setRechargeError(""); // Clear old errors
+    
+          // Everything good → navigate with rechargeAmount
+          navigate("/stripe-payment", {
+            state: { rechargeAmount , remark}
+          });
+        } catch (err) {
+          console.error("Stripe error:", err);
+          alert("Something went wrong with Stripe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit
+    }
+    ,
     payarcLimit && {
       id: "payarc",
       title: "Pay By card",
@@ -1467,6 +1517,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
                 if (option.id === "instant" && !showWert) return false;
                 if (option.id === "crypto" && !showLink) return false;
                 if (option.id === "payarc" && !showPayarc) return false;
+                if (option.id === "stripe" && !showStripe) return false;
                 return true;
               })
               .map((option) => (

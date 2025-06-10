@@ -2335,6 +2335,37 @@ export const dataProvider = {
       throw new Error(`Unable to retrieve session: ${error.message}`);
     }
   },
+  retrieveCheckoutSessionNew: async (sessionId) => {
+    const stripeSession = await Parse.Cloud.run("getStripeSessionStatus", { sessionId });
+  
+    const Transaction = Parse.Object.extend("TransactionRecords");
+    const query = new Parse.Query(Transaction);
+    query.equalTo("transactionIdFromStripe", sessionId);
+    query.descending("createdAt");
+  
+    const transaction = await query.first();
+  
+    if (stripeSession?.session?.status === "complete" && transaction?.get("status") !== 2) {
+      transaction.set("status", 2); // 2 = Completed
+      await transaction.save(null);
+    }
+    else if (stripeSession?.session.status === "pending" || stripeSession?.session.status === "open") {
+      transaction.set("status", 1); // Pending
+      await transaction.save(null);
+    } else if (stripeSession?.session.status === "expired") {
+      transaction.set("status", 9); // Expired
+      await transaction.save(null);
+    } else {
+      transaction.set("status", 10); // Failed or canceled
+      await transaction.save(null);
+      // Failed or canceled
+    }
+  
+    return {
+      transaction: transaction ? { id: transaction.id, ...transaction.attributes } : { status: 0 },
+      stripeSession: stripeSession?.session,
+    };
+  },
   userTransaction: async (params) => {
     const {
       id,

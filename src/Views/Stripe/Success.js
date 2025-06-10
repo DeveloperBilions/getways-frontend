@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { dataProvider } from "../../Provider/parseDataProvider";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "../../Assets/css/Success.css"; // Add styles for the loader
-
+import { Box, Button } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 export const Success = () => {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dataTransaction, setDatTransaction] = useState();
   const [timestamp, setTimestamp] = useState("");
 
@@ -25,18 +27,21 @@ export const Success = () => {
   const checkTransactionStatus = async (sessionId) => {
     setLoading(true);
     try {
-      const { transaction, stripeSession } = await dataProvider.retrieveCheckoutSession(sessionId);
+      const response = await dataProvider.retrieveCheckoutSessionNew(sessionId);
+      console.log(response,"stripeSessionstripeSessionstripeSession")
 
-      setDatTransaction(stripeSession)
+      setDatTransaction(response?.stripeSession)
       setTimestamp(getCurrentTimestamp()); // Set timestamp after fetching transaction
-      if (transaction.status === 2) {
+      if (response?.transaction.status === 2) {
         setStatus("Completed Payment");
-      } else if (transaction.status === 1) {
+      } else if (response?.transaction.status === 1) {  
         setStatus("Pending Payment"); 
       } else {
         setStatus("Payment Failed");
       }
     } catch (error) {
+      console.log(error,"stripeSessionstripeSessionstripeSession")
+
       setStatus("Error verifying payment.");
     } finally {
       setLoading(false);
@@ -47,10 +52,22 @@ export const Success = () => {
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     if (sessionId) {
+      console.log(sessionId,"sessionIdsessionIdsessionId")
       checkTransactionStatus(sessionId);
     }
   }, [searchParams]);
   return (
+    <>
+    <Box display="flex" justifyContent="start" mb={2} p={4} mt={2}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/playerDashboard")}
+        >
+          Back
+        </Button>
+      </Box>
     <div className="success-container">
       {loading ? (
         <div className="loader-container">
@@ -80,5 +97,6 @@ export const Success = () => {
       </div>
       )}
     </div>
+    </>
   );
 };
