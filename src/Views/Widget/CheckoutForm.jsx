@@ -37,7 +37,7 @@ export const CheckoutFormStripe = () => {
     20:  "price_1RYjIAIoQix8s1Ja9GZOolgV",
     30:  "price_1RYjIsIoQix8s1JanZEhhJ5T",
     40:  "price_1RYjJwIoQix8s1Ja8Z3J3LIO",
-    50:  "price_1RYjLGIoQix8s1JadBMS3PZ0",
+    50:  "price_1RYqwWIoQix8s1JaAWXqgUpY",
     75:  "price_1RYjMHIoQix8s1Jav9VnL4gh",
     100: "price_1RYjMhIoQix8s1JageWsP4fM",
   };
