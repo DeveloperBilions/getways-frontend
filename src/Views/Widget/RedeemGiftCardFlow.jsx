@@ -21,7 +21,7 @@ import UserGiftInfoDialog from "../Player/dialog/UserGiftInfoDialog";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId }) => {
+const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [giftCards, setGiftCards] = useState([]);
   const [selectedGiftCard, setSelectedGiftCard] = useState(null);
@@ -71,21 +71,12 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId }) => {
 
   const handleConfirm = async () => {
     if (!selectedGiftCard) return setErrorMessage("Select a gift card first.");
-    const user = await Parse.User.current()?.fetch();
-    setFirstName(user?.get("gift_firstName") || "");
-    setLastName(user?.get("gift_lastName") || "");
-    setEmail(user?.get("gift_email") || "");
     setShowInfoDialog(true);
   };
 
   const handleSubmit = async (fname, lname, mail) => {
     try {
       setLoading(true);
-      const user = await Parse.User.current()?.fetch();
-      user.set("gift_firstName", fname);
-      user.set("gift_lastName", lname);
-      user.set("gift_email", mail);
-      await user.save(null, { useMasterKey: true });
 
       const payload = {
         orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -96,9 +87,10 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId }) => {
         externalUserFirstName: fname,
         externalUserLastName: lname,
         externalUserEmail: mail,
+        platform
       };
 
-      const response = await Parse.Cloud.run("purchaseGiftCard", payload);
+      const response = await Parse.Cloud.run("purchaseGiftCardExternal", payload);
 
       if (response?.status === "success") {
         notify("Gift card added successfully", { type: "success" });

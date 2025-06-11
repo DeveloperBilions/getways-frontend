@@ -83,6 +83,7 @@ const RechargeWidgetPopup = ({
         transactionDetails.set("transactionAmount", amount);
         transactionDetails.set("status", 1);
         transactionDetails.set("portal", "Coinbase");
+        transactionDetails.set("platform", platform);
         transactionDetails.set("referralLink", referralUrl);
         transactionDetails.set("transactionIdFromStripe", partnerUserRef);
         transactionDetails.set("walletAddr", walletId);
@@ -215,7 +216,8 @@ const RechargeWidgetPopup = ({
                 txn.set("transactionAmount", parseFloat(amount));
                 txn.set("transactionDate", transactionDate);
                 txn.set("walletAddr", walletId);
-  
+                txn.set("platform", platform);
+
                 await txn.save(null);
               }
                 if (status?.status === "success") {
@@ -523,6 +525,8 @@ const RechargeWidgetPopup = ({
           ) : actionType === "redeem" ? (
             <RedeemGiftCardFlow
               amount={amount}
+              platform={platform}
+              userId={userId}
               onClose
               onBack={() => {
                 setAmount(null);
