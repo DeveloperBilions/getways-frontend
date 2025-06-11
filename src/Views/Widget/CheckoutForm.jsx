@@ -32,8 +32,8 @@ export const CheckoutFormStripe = () => {
   //   100: "price_1RYjn6IpBVdSQdgP7dCfnYwk",
   // };
   const PRICE_MAP = {
-    10:"price_1RYieyIoQix8s1JaoYhmXVBt",
-    15:  "price_1RYjHXIoQix8s1JaoZmDREVB",
+    10:"price_1RYqPYIoQix8s1JaMI5VWMeE",
+    15:  "price_1RYqRtIoQix8s1JaDnenaznf",
     20:  "price_1RYjIAIoQix8s1Ja9GZOolgV",
     30:  "price_1RYjIsIoQix8s1JanZEhhJ5T",
     40:  "price_1RYjJwIoQix8s1Ja8Z3J3LIO",
