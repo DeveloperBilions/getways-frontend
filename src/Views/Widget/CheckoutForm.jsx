@@ -20,16 +20,26 @@ export const CheckoutFormStripe = () => {
   const { identity } = useGetIdentity();
   const rechargeAmount = location?.state?.rechargeAmount
   const remark = location?.state?.remark
+  // const PRICE_MAP = {
+  //   10:"price_1RYieyIoQix8s1JaoYhmXVBt",
+  //  // 10:  "price_1RYjXKIpBVdSQdgPNzGM6rFE",
+  //   15:  "price_1RYjYlIpBVdSQdgPieQFXJrs",
+  //   20:  "price_1RYjhMIpBVdSQdgPpztdKb9Q",
+  //   30:  "price_1RYjiFIpBVdSQdgPRtssYqZ3",
+  //   40:  "price_1RYjjUIpBVdSQdgPv3gmCaJd",
+  //   50:  "price_1RYjkWIpBVdSQdgP9OIlDeKk",
+  //   75:  "price_1RYjm0IpBVdSQdgPiPk1tej7",
+  //   100: "price_1RYjn6IpBVdSQdgP7dCfnYwk",
+  // };
   const PRICE_MAP = {
     10:"price_1RYieyIoQix8s1JaoYhmXVBt",
-   // 10:  "price_1RYjXKIpBVdSQdgPNzGM6rFE",
-    15:  "price_1RYjYlIpBVdSQdgPieQFXJrs",
-    20:  "price_1RYjhMIpBVdSQdgPpztdKb9Q",
-    30:  "price_1RYjiFIpBVdSQdgPRtssYqZ3",
-    40:  "price_1RYjjUIpBVdSQdgPv3gmCaJd",
-    50:  "price_1RYjkWIpBVdSQdgP9OIlDeKk",
-    75:  "price_1RYjm0IpBVdSQdgPiPk1tej7",
-    100: "price_1RYjn6IpBVdSQdgP7dCfnYwk",
+    15:  "price_1RYjHXIoQix8s1JaoZmDREVB",
+    20:  "price_1RYjIAIoQix8s1Ja9GZOolgV",
+    30:  "price_1RYjIsIoQix8s1JanZEhhJ5T",
+    40:  "price_1RYjJwIoQix8s1Ja8Z3J3LIO",
+    50:  "price_1RYjLGIoQix8s1JadBMS3PZ0",
+    75:  "price_1RYjMHIoQix8s1Jav9VnL4gh",
+    100: "price_1RYjMhIoQix8s1JageWsP4fM",
   };
   const priceId = PRICE_MAP[rechargeAmount];
   const fetchClientSecret = useCallback(() => {
