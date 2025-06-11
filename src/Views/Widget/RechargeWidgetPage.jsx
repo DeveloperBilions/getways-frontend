@@ -64,6 +64,7 @@ const RechargeWidgetPage = () => {
       remark={remark}
       platform={platform}
       type={type}
+      userId={userId}
       onOptionClick={(id, details) => {
         console.log("Clicked:", id, details);
       }}
