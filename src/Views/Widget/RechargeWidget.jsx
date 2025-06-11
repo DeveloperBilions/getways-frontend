@@ -34,7 +34,7 @@ const RechargeWidgetPopup = ({
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showWertWidget, setShowWertWidget] = useState(false);
-  const [actionType, setActionType] = useState(type || null ); // null | 'recharge' | 'redeem'
+  const [actionType, setActionType] = useState(type || null); // null | 'recharge' | 'redeem'
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isCoinbaseFlow, setIsCoinbaseFlow] = useState(false);
   const [wertLoading, setWertLoading] = useState(false);
@@ -46,7 +46,6 @@ const RechargeWidgetPopup = ({
   if (!open) return null;
 
   const rechargeAmount = 50;
-  const projectId = "64b19e33-9599-4a15-b3de-4728b5e8ead6";
 
   const handleOptionClick = async (id) => {
     if (id === "quick-debit") {
@@ -56,10 +55,9 @@ const RechargeWidgetPopup = ({
 
         // Open a blank tab immediately
 
-        const identity = { walletAddr: walletId };
         const partnerUserRef = `${userId}-${Date.now()}`;
         const sessionToken = await fetchCoinbaseSessionToken(
-          "0xb69b947183c5a4434bb028e295947a3496e12298",
+          walletId,
           rechargeAmount,
           partnerUserRef
         );
@@ -76,6 +74,20 @@ const RechargeWidgetPopup = ({
 
         const newWindow = window.open(referralUrl, "_blank");
 
+        const TransactionDetails = Parse.Object.extend("Transactions");
+        const transactionDetails = new TransactionDetails();
+
+        transactionDetails.set("type", "recharge");
+        transactionDetails.set("userId", userId);
+        transactionDetails.set("transactionDate", new Date());
+        transactionDetails.set("transactionAmount", amount);
+        transactionDetails.set("status", 1);
+        transactionDetails.set("portal", "Coinbase");
+        transactionDetails.set("referralLink", referralUrl);
+        transactionDetails.set("transactionIdFromStripe", partnerUserRef);
+        transactionDetails.set("walletAddr", walletId);
+        //transactionDetails.set("partnerUserRef",partnerUserRef)
+        await transactionDetails.save(null);
         if (
           !newWindow ||
           newWindow.closed ||
@@ -177,6 +189,47 @@ const RechargeWidgetPopup = ({
         autosize: false,
         width: 320,
         height: 500,
+        listeners: {
+          "payment-status": async (status) => {
+            try {
+              const Transaction = Parse.Object.extend("Transactions");
+              const query = new Parse.Query(Transaction);
+              query.equalTo("transactionIdFromStripe", clickId);
+              const existingTxn = await query.first();
+  
+              const transactionDate = new Date();
+              let newStatus = 1; // default to expired
+              if (existingTxn) {
+                existingTxn.set("status", newStatus);
+                existingTxn.set("transactionIdFromStripe", clickId);
+                existingTxn.set("transactionDate", transactionDate);
+                await existingTxn.save(null);
+              } else {
+                // Create new record if not found
+                const txn = new Transaction();
+                txn.set("transactionIdFromStripe", clickId);
+                txn.set("status", newStatus);
+                txn.set("userId", userId);
+                txn.set("type", "recharge");
+                txn.set("portal", "Wert");
+                txn.set("transactionAmount", parseFloat(amount));
+                txn.set("transactionDate", transactionDate);
+                txn.set("walletAddr", walletId);
+  
+                await txn.save(null);
+              }
+                if (status?.status === "success") {
+                wertWidget.close();
+                onClose();
+              }
+            } catch (err) {
+              console.error("Error handling Wert status:", err.message);
+            }
+          },
+          close: () => {
+            onClose();
+          },
+        }
       });
 
       const iframeSrc = wertWidget.getEmbedUrl();
@@ -221,11 +274,12 @@ const RechargeWidgetPopup = ({
   const getHeaderTitle = () => {
     if (iframeUrl) return "Complete Recharge";
     if (actionType === "recharge" || actionType === "redeem") {
-      return `Enter ${actionType === "recharge" ? "Recharge" : "Redeem"} Amount`;
+      return `Enter ${
+        actionType === "recharge" ? "Recharge" : "Redeem"
+      } Amount`;
     }
     return "Recharge Options";
   };
-  
 
   return (
     <>
@@ -262,39 +316,39 @@ const RechargeWidgetPopup = ({
         }}
       >
         <Box
-  sx={{
-    px: 2,
-    py: 1.5,
-    borderBottom: "1px solid #eee",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-  }}
->
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-    {(currentActionType || iframeUrl || actionType) && (
-      <IconButton
-        onClick={() => {
-          if (iframeUrl) {
-            setIframeUrl(null);
-          } else {
-            setConfirmedAmount(null);
-            setAmount("");
-            setCurrentActionType(null);
-          }
-        }}
-        size="small"
-      >
-        ←
-      </IconButton>
-    )}
-    <Typography variant="subtitle1" fontWeight={600}>
-      {getHeaderTitle()}
-    </Typography>
-  </Box>
+          sx={{
+            px: 2,
+            py: 1.5,
+            borderBottom: "1px solid #eee",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: "#F9FAFB",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {(currentActionType || iframeUrl || actionType) && (
+              <IconButton
+                onClick={() => {
+                  if (iframeUrl) {
+                    setIframeUrl(null);
+                  } else {
+                    setConfirmedAmount(null);
+                    setAmount("");
+                    setCurrentActionType(null);
+                  }
+                }}
+                size="small"
+              >
+                ←
+              </IconButton>
+            )}
+            <Typography variant="subtitle1" fontWeight={600}>
+              {getHeaderTitle()}
+            </Typography>
+          </Box>
 
-  {/* <IconButton  onClick={() => {
+          {/* <IconButton  onClick={() => {
     setIframeUrl(null);         // ✅ Unload the iframe
     setActionType(null);        // ✅ Reset flow state
     setAmount("");              // ✅ Reset input
@@ -304,7 +358,7 @@ const RechargeWidgetPopup = ({
   size="small">
     <CloseIcon />
   </IconButton> */}
-</Box>
+        </Box>
 
         <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
           {!actionType ? (
@@ -390,7 +444,6 @@ const RechargeWidgetPopup = ({
                 </Box>
               ) : iframeUrl ? (
                 <>
-
                   {wertLoading ? (
                     <Box
                       sx={{
@@ -472,9 +525,10 @@ const RechargeWidgetPopup = ({
               amount={amount}
               onClose
               onBack={() => {
-                setAmount(null)
-                setConfirmedAmount(null)
-                setActionType(null)}}
+                setAmount(null);
+                setConfirmedAmount(null);
+                setActionType(null);
+              }}
             />
           ) : (
             ""
