@@ -12,9 +12,7 @@ import { useGetIdentity } from "react-admin";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const stripePromise = loadStripe(
-  "pk_test_51RYLCFIxHcaBBdLXz5GogeLdo7j2FM6JVH8rhF95VmHFFGl7EA133DgL9rVPZ6DynqudayulWbotJfRrTNtyhDND00xeNV9vdC"
-);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE);
 
 export const CheckoutFormStripe = () => {
   const location = useLocation();
@@ -22,11 +20,27 @@ export const CheckoutFormStripe = () => {
   const { identity } = useGetIdentity();
   const rechargeAmount = location?.state?.rechargeAmount
   const remark = location?.state?.remark
+  const PRICE_MAP = {
+    10:  "price_1RYjXKIpBVdSQdgPNzGM6rFE",
+    15:  "price_1RYjYlIpBVdSQdgPieQFXJrs",
+    20:  "price_1RYjhMIpBVdSQdgPpztdKb9Q",
+    30:  "price_1RYjiFIpBVdSQdgPRtssYqZ3",
+    40:  "price_1RYjjUIpBVdSQdgPv3gmCaJd",
+    50:  "price_1RYjkWIpBVdSQdgP9OIlDeKk",
+    75:  "price_1RYjm0IpBVdSQdgPiPk1tej7",
+    100: "price_1RYjn6IpBVdSQdgP7dCfnYwk",
+  };
+  const priceId = PRICE_MAP[rechargeAmount];
   const fetchClientSecret = useCallback(() => {
+    if (!priceId) {
+      console.error(`Unsupported recharge amount: ${rechargeAmount}`);
+      return Promise.reject(new Error("Unsupported recharge amount"));
+    }
     return Parse.Cloud.run("createStripeCheckoutSession", {
+      priceID:priceId,
       amount: rechargeAmount, 
       currency: "usd",
-      productName: "Recharge AOG",
+      // productName: "Recharge AOG",
       returnBaseUrl: process.env.REACT_APP_REDIRECT_URL,
       userId:identity?.objectId,
       remark
@@ -37,7 +51,6 @@ export const CheckoutFormStripe = () => {
         return null;
       });
   }, []);
-
   const options = { fetchClientSecret };
   return (
     <Box className="container py-4">

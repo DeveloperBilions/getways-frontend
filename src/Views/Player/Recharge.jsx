@@ -373,7 +373,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const paymentOptions = [
     {
       id: "stripe",
-      title: "Pay By Stripe",
+      title: "Pay By Card",
       description: "Secure payment • No KYC needed",
       icon: <CreditCardIcon sx={{ color: "#32325D", fontSize: 24 }} />,
       color: "#32325D",         // Stripe brand dark blue
@@ -1516,7 +1516,7 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
                 if (option.id === "quick-debit" && !showCoinbase) return false;
                 if (option.id === "instant" && !showWert) return false;
                 if (option.id === "crypto" && !showLink) return false;
-                if (option.id === "payarc" && !showPayarc) return false;
+                if (option.id === "payarc" && (showStripe || !showPayarc)) return false;
                 if (option.id === "stripe" && !showStripe) return false;
                 return true;
               })
