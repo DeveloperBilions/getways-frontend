@@ -21,7 +21,8 @@ export const CheckoutFormStripe = () => {
   const rechargeAmount = location?.state?.rechargeAmount
   const remark = location?.state?.remark
   const PRICE_MAP = {
-    10:  "price_1RYjXKIpBVdSQdgPNzGM6rFE",
+    10:"price_1RYieyIoQix8s1JaoYhmXVBt",
+   // 10:  "price_1RYjXKIpBVdSQdgPNzGM6rFE",
     15:  "price_1RYjYlIpBVdSQdgPieQFXJrs",
     20:  "price_1RYjhMIpBVdSQdgPpztdKb9Q",
     30:  "price_1RYjiFIpBVdSQdgPRtssYqZ3",
