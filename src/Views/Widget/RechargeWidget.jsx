@@ -80,7 +80,7 @@ const RechargeWidgetPopup = ({
         transactionDetails.set("type", "recharge");
         transactionDetails.set("userId", userId);
         transactionDetails.set("transactionDate", new Date());
-        transactionDetails.set("transactionAmount", amount);
+        transactionDetails.set("transactionAmount", parseFloat(amount));
         transactionDetails.set("status", 1);
         transactionDetails.set("portal", "Coinbase");
         transactionDetails.set("platform", platform);
