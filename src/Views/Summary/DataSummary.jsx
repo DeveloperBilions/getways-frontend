@@ -1108,8 +1108,8 @@ export const DataSummary = React.memo(() => {
       <Dialog
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}
-        maxWidth="xs"
         fullWidth
+  maxWidth="sm"
       >
         <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
           Select Month to Export
@@ -1188,28 +1188,35 @@ export const DataSummary = React.memo(() => {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
+        <DialogActions className="custom-modal-footer">
+        
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
           <Button
-            variant="outlined"
             onClick={() => setExportDialogOpen(false)}
             disabled={isExporting}
-            fullWidth
-            sx={{ mr: 1 }}
+            className="custom-button cancel"
           >
             Cancel
           </Button>
           <Button
-            variant="contained"
-            onClick={() => {
+ className="custom-button confirm"            onClick={() => {
               const [type, format] = selectedExportOption?.split("-") || [];
               if (type && format) exportData(type, format, type === "redeem");
             }}
             disabled={!exportMonth || !selectedExportOption || isExporting}
-            fullWidth
-            sx={{ ml: 1 }}
+            
           >
             Export
           </Button>
+          </Box>
         </DialogActions>
       </Dialog>
     </>

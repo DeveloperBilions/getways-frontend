@@ -309,22 +309,23 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           <Col md={12}>
           <Box className="d-flex w-100 justify-content-between"
             sx={{
-              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
               alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
               gap: { xs: 2, sm: 2 }, // Add spacing between buttons
               marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
               width: "100% !important", // Ensure the container takes full width
               paddingRight: { xs: 0, sm: 1 },
             }}>
-              <Button
+             
+                    <Button  className="custom-button cancel" onClick={onClose}>
+                      Cancel
+                    </Button>
+                    <Button
                       onClick={handleConfirmClick}
                       className="custom-button confirm"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Confirm"}
-                    </Button>
-                    <Button  className="custom-button cancel" onClick={onClose}>
-                      Cancel
                     </Button>
             </Box>
             </Col>
@@ -345,21 +346,22 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
           <Col md={12}>
           <Box className="d-flex w-100 justify-content-between"
             sx={{
-              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
               alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
               gap: { xs: 2, sm: 2 }, // Add spacing between buttons
               marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
               width: "100% !important", // Ensure the container takes full width
               paddingRight: { xs: 0, sm: 1 },
             }}>
+
+            <Button  className="custom-button cancel"  onClick={cancelFeesChange}>
+              No, Cancel
+            </Button>
                <Button
                     className="custom-button confirm"
                     onClick={confirmFeesChange}
             >
               Yes, Proceed
-            </Button>
-            <Button  className="custom-button cancel"  onClick={cancelFeesChange}>
-              No, Cancel
             </Button>
               </Box>
             </Col>

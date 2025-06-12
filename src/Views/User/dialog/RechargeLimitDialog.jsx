@@ -13,8 +13,12 @@ import {
   Box,
   CircularProgress,
   Alert,
-  Switch
+  Switch,
+  
 } from "@mui/material";
+import {
+  Col
+} from "reactstrap";
 import { Parse } from "parse";
 import { useGetIdentity } from "react-admin";
 
@@ -231,19 +235,30 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ padding: 2 }}>
-        <Button onClick={onClose} variant="outlined" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
+      <DialogActions sx={{ padding: 2 }} className="custom-modal-footer">
+      <Col md={12}>
+      <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+        <Button onClick={onClose}  disabled={loading} className="custom-button cancel" >
           Cancel
         </Button>
         <Button 
           onClick={handleSave} 
-          variant="contained" 
-          color="primary" 
           disabled={loading}
-          sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}
+          className="custom-button confirm"
+
         >
           {loading ? <CircularProgress size={24} /> : "Save"}
         </Button>
+        </Box>
+        </Col>
       </DialogActions>
     </Dialog>
   );

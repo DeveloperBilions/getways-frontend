@@ -1175,6 +1175,8 @@ export const RechargeRecordsList = (props) => {
       <Dialog
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}
+        fullWidth
+  maxWidth="sm"
       >
         <DialogTitle>Select Month to Export</DialogTitle>
         <DialogContent>
@@ -1198,14 +1200,25 @@ export const RechargeRecordsList = (props) => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ padding: 2 }} className="custom-modal-footer">
+        <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
           <Button
             onClick={() => setExportDialogOpen(false)}
             disabled={isExporting}
+            className="custom-button cancel"
           >
             Cancel
           </Button>
           <Button
+           className="custom-button confirm"
             onClick={async () => {
               if (!exportMonth) return;
 
@@ -1253,6 +1266,7 @@ export const RechargeRecordsList = (props) => {
             Export PDF
           </Button>
           <Button
+          className="custom-button confirm"
             onClick={async () => {
               if (!exportMonth) return;
 
@@ -1298,6 +1312,7 @@ export const RechargeRecordsList = (props) => {
           >
             Export Excel
           </Button>
+          </Box>
         </DialogActions>
       </Dialog>
     </>

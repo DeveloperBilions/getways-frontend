@@ -3,11 +3,13 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   Button,
   ListGroup,
   ListGroupItem,
   Alert,
 } from "reactstrap";
+import { Box } from "@mui/material";
 import { FaCashRegister, FaPaypal } from "react-icons/fa";
 import { BiLogoVenmo } from "react-icons/bi";
 import { SiZelle } from "react-icons/si";
@@ -105,7 +107,7 @@ const DisablePaymentMethodDialog = ({ open, onClose }) => {
   };
 
   return (
-    <Modal isOpen={open} toggle={onClose} centered className="payment-modal">
+    <Modal isOpen={open} toggle={onClose} centered size="md">
       <ModalHeader toggle={onClose} className="payment-modal-header">Manage Payment Methods</ModalHeader>
       <ModalBody className="payment-modal-body">
         {error && (
@@ -155,12 +157,26 @@ const DisablePaymentMethodDialog = ({ open, onClose }) => {
             </ListGroupItem>
           ))}
         </ListGroup>
-        <div className="payment-footer">
-          <Button
-            className="payment-button primary"
+      </ModalBody>
+
+       <ModalFooter className="custom-modal-footer">
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+
+          <Button  className="custom-button cancel"  onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+              <Button
+             className="custom-button confirm" 
             onClick={handleSave}
             disabled={loading}
-            style={{display:"flex",alignItems:"center",justifyContent:"center"}}
           >
             {loading ? (
               <CircularProgress size={20} className="payment-loader" />
@@ -168,11 +184,8 @@ const DisablePaymentMethodDialog = ({ open, onClose }) => {
               "Save"
             )}
           </Button>
-          <Button className="payment-button secondary" style={{display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-        </div>
-      </ModalBody>
+            </Box>
+            </ModalFooter>
     </Modal>
   );
 };

@@ -3,11 +3,13 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   Button,
   ListGroup,
   ListGroupItem,
   Alert,
   Label,
+  Col
 } from "reactstrap";
 import { TextField, CircularProgress, IconButton, Box } from "@mui/material";
 import { Parse } from "parse";
@@ -212,28 +214,28 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
           </ListGroup>
         )}
 
-        <div className="emergency-footer">
-          <Button
-            className="emergency-button secondary"
-            onClick={onClose}
+      </ModalBody>
+      <ModalFooter className="custom-modal-footer">
+          <Col md={12}>
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+               <Button
+className="custom-button cancel"            onClick={onClose}
             disabled={loading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
           >
             Cancel
           </Button>
           <Button
-            className="emergency-button primary"
+             className="custom-button confirm"
             onClick={handleSave}
             disabled={loading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
           >
             {loading ? (
               <CircularProgress size={20} className="emergency-loader" />
@@ -241,8 +243,7 @@ const EmergencyMessageDialog = ({ open, onClose }) => {
               "Send message"
             )}
           </Button>
-        </div>
-      </ModalBody>
+              </Box></Col></ModalFooter>
     </Modal>
   );
 };

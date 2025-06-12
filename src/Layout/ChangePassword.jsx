@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   TextField,
-  Modal,
   Typography,
   Alert,
   CircularProgress,
@@ -14,7 +13,13 @@ import { Visibility, VisibilityOff } from "@mui/icons-material"; // Import icons
 import { changePassword } from "../Provider/parseAuthProvider";
 import { useNavigate } from "react-router-dom";
 import { validatePassword } from "../Validators/Password";
-
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Col
+} from "reactstrap";
 const ChangePassword = ({ open, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -84,19 +89,9 @@ if (trimmedNewPassword !== trimmedConfirmPassword) {
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal isOpen={open} toggle={onClose} size="md" centered>
+      <ModalBody>
       <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 400,
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 2,
-        }}
       >
         <Typography variant="h6" mb={2}>
           Change Password
@@ -192,22 +187,29 @@ if (trimmedNewPassword !== trimmedConfirmPassword) {
             ),
           }}
         />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 2,
-            mt: 3,
-          }}
-        >
-          <Button onClick={onClose} variant="outlined" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
+      </Box>
+      </ModalBody>
+      <ModalFooter className="custom-modal-footer">
+          <Col md={12}>
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+             
+             <Button onClick={onClose}  className="custom-button cancel" >
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disabled={loading} sx={{width: "50%",paddingBottom:"10px",paddingTop:"10px"}}>
+          <Button onClick={handleSave} className="custom-button confirm"  disabled={loading} >
           {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
           </Button>
-        </Box>
-      </Box>
+            </Box>
+            </Col>
+            </ModalFooter>
     </Modal>
   );
 };
