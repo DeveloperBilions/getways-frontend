@@ -2337,7 +2337,7 @@ export const dataProvider = {
   },
   retrieveCheckoutSessionNew: async (sessionId) => {
     const stripeSession = await Parse.Cloud.run("getStripeSessionStatus", { sessionId });
-  
+    console.log(stripeSession,"stripeSessionstripeSessionstripeSessionstripeSessionstripeSessionstripeSessionstripeSession")
     const Transaction = Parse.Object.extend("TransactionRecords");
     const query = new Parse.Query(Transaction);
     query.equalTo("transactionIdFromStripe", sessionId);
@@ -2345,9 +2345,17 @@ export const dataProvider = {
   
     const transaction = await query.first();
   
-    if (stripeSession?.session?.status === "complete" && transaction?.get("status") !== 2) {
-      transaction.set("status", 2); // 2 = Completed
+    if (stripeSession?.session?.status === "complete" ) {
+      if(transaction?.get("status") != 2){
+        const parentUserId = await getParentUserId(transaction.get("userId"));
+        await updatePotBalance(
+          parentUserId,
+          transaction.get("transactionAmount"),
+          "recharge"
+        );
+        transaction.set("status", 2); // 2 = Completed
       await transaction.save(null);
+        }
     }
     else if (stripeSession?.session.status === "pending" || stripeSession?.session.status === "open") {
       transaction.set("status", 1); // Pending
@@ -2356,6 +2364,7 @@ export const dataProvider = {
       transaction.set("status", 9); // Expired
       await transaction.save(null);
     } else {
+      console.log("Heello" , transaction )
       transaction.set("status", 10); // Failed or canceled
       await transaction.save(null);
       // Failed or canceled

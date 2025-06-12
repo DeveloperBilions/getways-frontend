@@ -16,7 +16,9 @@ import { Parse } from "parse";
 import { dataProvider } from "../../../Provider/parseDataProvider";
 import {
   checkActiveRechargeLimit,
+  getParentUserId,
   isRechargeEnabledForAgent,
+  updatePotBalance,
 } from "../../../Utils/utils";
 import WertWidget from "@wert-io/widget-initializer";
 import { signSmartContractData } from "@wert-io/widget-sc-signer";
@@ -409,8 +411,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               existingTxn.set("transactionIdFromStripe", clickId);
               existingTxn.set("transactionDate", transactionDate);
               await existingTxn.save(null, { useMasterKey: true });
-              console.log(
-                `Transaction ${existingTxn.id} updated to status ${newStatus}`
+              const parentUserId = await getParentUserId(existingTxn.get("userId"));
+              await updatePotBalance(
+                parentUserId,
+                existingTxn.get("transactionAmount"),
+                "recharge"
               );
             } else {
               // Create new record if not found
@@ -428,7 +433,11 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               txn.set("walletAddr", user.get("walletAddr"));
 
               await txn.save(null, { useMasterKey: true });
-              console.log("New transaction created with status:", newStatus);
+              await updatePotBalance(
+                user.get("userParentId"),
+                parseFloat(amount),
+                "recharge"
+              );
             }
 
             // Optionally close the widget on success

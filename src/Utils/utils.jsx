@@ -13,7 +13,7 @@ export const getParentUserId = async (userId) => {
       userQuery.equalTo("objectId", userId);
       userQuery.select("userParentId");
   
-      const user = await userQuery.first({ useMasterKey: true });
+      const user = await userQuery.first();
   
       if (!user) {
         throw new Error("User not found.");
@@ -33,6 +33,7 @@ export const getParentUserId = async (userId) => {
   
 export  async function updatePotBalance(userId, amount, type) {
     try {
+      console.log("updatePotBalance",userId, amount, type)
       if (!userId || !amount || amount <= 0 || !type) return;
   
       const userQuery = new Parse.Query(Parse.User);
