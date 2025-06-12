@@ -31,40 +31,37 @@ export const getParentUserId = async (userId) => {
     }
   };
   
-export  async function updatePotBalance(userId, amount, type) {
+  export async function updatePotBalance(userId, amount, type, useMasterKey = false) {
     try {
-      console.log("updatePotBalance",userId, amount, type)
       if (!userId || !amount || amount <= 0 || !type) return;
   
       const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", userId);
       userQuery.select("potBalance");
   
-      const user = await userQuery.first({ useMasterKey: true });
+      const user = await userQuery.first({ useMasterKey });
   
-      if (!user) {
-        throw new Error(`User not found: ${userId}`);
-      }
+      if (!user) throw new Error(`User not found: ${userId}`);
   
       const currentPotBalance = user.get("potBalance") || 0;
       const potChangeAmount = Math.floor(amount * 0.15);
   
       let newPotBalance;
       if (type === "redeem") {
-        newPotBalance = Math.max(0, currentPotBalance - amount); // Prevent negative balance
+        newPotBalance = Math.max(0, currentPotBalance - amount);
       } else if (type === "recharge") {
         newPotBalance = currentPotBalance + (amount - potChangeAmount);
-      }
-     else {
+      } else {
         throw new Error(`Invalid transaction type: ${type}`);
       }
   
       user.set("potBalance", newPotBalance);
-      await user.save(null, { useMasterKey: true });
+      await user.save(null, { useMasterKey });
     } catch (error) {
       console.error(`Error updating potBalance for user ${userId}: ${error.message}`);
     }
   }
+  
 
   export async function fetchTransactionSummary(userid) {
     const playerList = await fetchPlayerList(userid)
