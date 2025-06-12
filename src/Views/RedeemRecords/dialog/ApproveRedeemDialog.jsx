@@ -4,6 +4,7 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   Row,
   Col,
   FormGroup,
@@ -16,6 +17,7 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { useNotify } from "react-admin";
+import { Box } from "@mui/material";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -300,25 +302,33 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     />
                   </FormGroup>
                 </Col>
-
-                <Col md={12}>
-                  <div className="d-flex justify-content-end">
-                    <Button
-                      color="success"
+              </Row>
+            </Form>
+          </ModalBody>
+          <ModalFooter className="custom-modal-footer">
+          <Col md={12}>
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+              <Button
                       onClick={handleConfirmClick}
-                      className="mx-2"
+                      className="custom-button confirm"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Confirm"}
                     </Button>
-                    <Button color="secondary" onClick={onClose}>
+                    <Button  className="custom-button cancel" onClick={onClose}>
                       Cancel
                     </Button>
-                  </div>
-                </Col>
-              </Row>
-            </Form>
-          </ModalBody>
+            </Box>
+            </Col>
+            </ModalFooter>
         </Modal>
       )}
 
@@ -330,19 +340,30 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             You have changed the redeem service fee from {redeemFees}% to{" "}
             {editedFees}%. Do you want to proceed?
           </p>
-          <div className="d-flex justify-content-end">
-            <Button
-              color="success"
-              onClick={confirmFeesChange}
-              className="me-2"
+        </ModalBody>
+        <ModalFooter className="custom-modal-footer">
+          <Col md={12}>
+          <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+               <Button
+                    className="custom-button confirm"
+                    onClick={confirmFeesChange}
             >
               Yes, Proceed
             </Button>
-            <Button color="secondary" onClick={cancelFeesChange}>
+            <Button  className="custom-button cancel"  onClick={cancelFeesChange}>
               No, Cancel
             </Button>
-          </div>
-        </ModalBody>
+              </Box>
+            </Col>
+            </ModalFooter>
       </Modal>
     </React.Fragment>
   );
