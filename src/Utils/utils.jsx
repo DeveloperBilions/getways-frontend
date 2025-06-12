@@ -30,37 +30,23 @@ export const getParentUserId = async (userId) => {
       throw error;
     }
   };
-  
   export async function updatePotBalance(userId, amount, type) {
     try {
       if (!userId || !amount || amount <= 0 || !type) return;
   
-      const userQuery = new Parse.Query(Parse.User);
-      userQuery.equalTo("objectId", userId);
-      userQuery.select("potBalance");
+      const response = await Parse.Cloud.run("updatePotBalance", {
+        userId,
+        amount,
+        type,
+      });
   
-      const user = await userQuery.first({ useMasterKey:true });
-  
-      if (!user) throw new Error(`User not found: ${userId}`);
-  
-      const currentPotBalance = user.get("potBalance") || 0;
-      const potChangeAmount = Math.floor(amount * 0.15);
-  
-      let newPotBalance;
-      if (type === "redeem") {
-        newPotBalance = Math.max(0, currentPotBalance - amount);
-      } else if (type === "recharge") {
-        newPotBalance = currentPotBalance + (amount - potChangeAmount);
-      } else {
-        throw new Error(`Invalid transaction type: ${type}`);
-      }
-  
-      user.set("potBalance", newPotBalance);
-      await user.save(null, {  useMasterKey:true  });
+      console.log("Pot balance updated:", response);
+      return response;
     } catch (error) {
-      console.error(`Error updating potBalance for user ${userId}: ${error.message}`);
+      console.error(`Error calling updatePotBalance Cloud Function:`, error.message);
     }
   }
+  
   
 
   export async function fetchTransactionSummary(userid) {
