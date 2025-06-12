@@ -121,7 +121,7 @@ export const dataProvider = {
         "username",
         "userReferralCode",
         "email",
-        "isPasswordPermission"
+        "isPasswordPermission",
       );
       var results = await usrQuery.find({ useMasterKey: true });
       if (isMaster) {
@@ -247,6 +247,7 @@ export const dataProvider = {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
             rechargeDisabled: user.get("rechargeDisabled"),
+            isPasswordPermission: user.get("isPasswordPermission"),
           };
         });
 
