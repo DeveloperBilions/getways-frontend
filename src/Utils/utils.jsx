@@ -31,7 +31,7 @@ export const getParentUserId = async (userId) => {
     }
   };
   
-  export async function updatePotBalance(userId, amount, type, useMasterKey = false) {
+  export async function updatePotBalance(userId, amount, type) {
     try {
       if (!userId || !amount || amount <= 0 || !type) return;
   
@@ -39,7 +39,7 @@ export const getParentUserId = async (userId) => {
       userQuery.equalTo("objectId", userId);
       userQuery.select("potBalance");
   
-      const user = await userQuery.first({ useMasterKey });
+      const user = await userQuery.first({ useMasterKey:true });
   
       if (!user) throw new Error(`User not found: ${userId}`);
   
@@ -56,7 +56,7 @@ export const getParentUserId = async (userId) => {
       }
   
       user.set("potBalance", newPotBalance);
-      await user.save(null, { useMasterKey });
+      await user.save(null, {  useMasterKey:true  });
     } catch (error) {
       console.error(`Error updating potBalance for user ${userId}: ${error.message}`);
     }
