@@ -439,7 +439,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             </Form>
           </ModalBody>
           <ModalFooter className="custom-modal-footer">
-            <Col md={12}>
               <Box
                 className="d-flex w-100 justify-content-between"
                 sx={{
@@ -467,7 +466,6 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   Cancel
                 </Button>
               </Box>
-            </Col>
           </ModalFooter>
         </Modal>
       )}
@@ -486,21 +484,34 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
             <strong>{redeemFees}%</strong> to <strong>{editedFees}%</strong>. Do
             you want to proceed with this change?
           </p>
-          <div className="d-flex justify-content-end">
+        </ModalBody>
+        <ModalFooter className="custom-modal-footer">
+            <Col md={12} className="mt-3">
+              <Box
+                 className="d-flex w-100 justify-content-between"
+                 sx={{
+                   flexDirection: { xs: "column-reverse", sm: "row" }, // Column on small screens, row on larger screens
+                   alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                   gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                   marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                   width: "100% !important", // Ensure the container takes full width
+                   paddingRight: { xs: 0, sm: 1 },
+                 }}
+              >
+               
             <Button
-              color="success"
-              onClick={handleSubmit} // Proceed with submission
-            >
-              Yes, Proceed
-            </Button>
-            <Button
-              color="secondary"
+             className="custom-button cancel"
               onClick={() => setShowConfirmationModal(false)}
             >
               Cancel
             </Button>
-          </div>
-        </ModalBody>
+            <Button
+              className="custom-button confirm"
+              onClick={handleSubmit} // Proceed with submission
+            >
+              Yes, Proceed
+            </Button>
+                </Box></Col></ModalFooter>
       </Modal>
     </React.Fragment>
   );

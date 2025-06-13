@@ -6,10 +6,11 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const CoinsCreditDialog = ({ open, onClose, data, handleRefresh }) => {
+  console.log(data,"daudaoio")
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await Parse.Cloud.run("coinsCredit", data);
+      await Parse.Cloud.run("coinsCredit", { id: data?.id });
       onClose();
       handleRefresh();
     } catch (error) {
