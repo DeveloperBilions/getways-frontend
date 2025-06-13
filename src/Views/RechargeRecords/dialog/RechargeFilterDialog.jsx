@@ -117,6 +117,7 @@ export const RechargeFilterDialog = ({
             </Select>
           </FormControl>
         )}
+        {role === "Super-User" && 
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Mode</InputLabel>
           <Select
@@ -133,7 +134,7 @@ export const RechargeFilterDialog = ({
             <MenuItem value="Wallet">Wallet</MenuItem>
             <MenuItem value="Stripe">Stripe</MenuItem>
           </Select>
-        </FormControl>
+        </FormControl>}
       </DialogContent>
       <DialogActions
         className="p-16 d-flex w-100 justify-content-between"
