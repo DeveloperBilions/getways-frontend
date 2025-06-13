@@ -1180,7 +1180,7 @@ export const isRechargeEnabledForAgent = async (agentId) => {
     // Step 1: Fetch agent user
     const agentQuery = new Parse.Query(Parse.User);
     agentQuery.equalTo("objectId", agentId);
-    const agent = await agentQuery.first();
+    const agent = await agentQuery.first({ useMasterKey: true });
 
     if (!agent) {
       console.warn("Agent not found.");
@@ -1192,7 +1192,7 @@ export const isRechargeEnabledForAgent = async (agentId) => {
     // Step 2: Fetch allowed recharge IDs
     const settingsQuery = new Parse.Query("Settings");
     settingsQuery.equalTo("type", "allowedMasterAgentsForRecharge");
-    const setting = await settingsQuery.first();
+    const setting = await settingsQuery.first({ useMasterKey: true });
     const allowedIds = setting?.get("settings") || [];
 
     if (allowedIds.includes(agentId)) {
@@ -1204,7 +1204,7 @@ export const isRechargeEnabledForAgent = async (agentId) => {
     // Step 3: Fetch parent user
     const parentQuery = new Parse.Query(Parse.User);
     parentQuery.equalTo("objectId", parentId);
-    const parentUser = await parentQuery.first();
+    const parentUser = await parentQuery.first({ useMasterKey: true });
 
     if (!parentUser) return false;
 
