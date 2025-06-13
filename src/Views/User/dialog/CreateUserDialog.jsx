@@ -338,7 +338,11 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
         { id: identity?.objectId, name: identity?.name, role: identity?.role },
       ];
     }
-
+    if (userType === "Agent" && identity?.role === "Master-Agent") {
+      return [
+        { id: identity?.objectId, name: identity?.name, role: identity?.role },
+      ];
+    }
     // Player can only be created under Agent or Master-Agent (not Super-User)
     if (userType === "Player") {
       return parentOptions.filter(

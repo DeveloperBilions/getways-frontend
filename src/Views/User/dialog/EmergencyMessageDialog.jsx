@@ -240,7 +240,7 @@ className="custom-button cancel"            onClick={onClose}
             {loading ? (
               <CircularProgress size={20} className="emergency-loader" />
             ) : (
-              "Send message"
+              "Save"
             )}
           </Button>
               </Box></Col></ModalFooter>
