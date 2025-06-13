@@ -104,23 +104,28 @@ const UserGiftInfoDialog = ({ open, onClose, onSubmit, initialData }) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Box sx={{ display: "flex", gap: 2, width: "100%", px: 2, pb: 2 }}>
+        <Box className="d-flex w-100 justify-content-between"
+                  sx={{
+                    flexDirection: { xs: "column-reverse", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "stretch" },
+                    gap: { xs: 2, sm: 2 },
+                    marginBottom: { xs: 2, sm: 2 },
+                    width: "100% !important",
+                  }}>
           {isEditing ? (
             <>
               <Button
-                variant="outlined"
+                                   className="custom-button cancel"
                 onClick={() => {
                   setIsEditing(false);
                   setError("");
                 }}
-                sx={{ flex: 1 }}
               >
                 Cancel
               </Button>
               <Button
-                variant="contained"
+                                  className="custom-button confirm"
                 onClick={handleConfirm}
-                sx={{ flex: 1 }}
               >
                 {initialData?.firstName &&
                 initialData?.lastName &&
@@ -132,16 +137,14 @@ const UserGiftInfoDialog = ({ open, onClose, onSubmit, initialData }) => {
           ) : (
             <>
               <Button
-                variant="outlined"
+                                   className="custom-button cancel"
                 onClick={() => setIsEditing(true)}
-                sx={{ flex: 1 }}
               >
                 Edit Details
               </Button>
               <Button
-                variant="contained"
+                                 className="custom-button confirm"
                 onClick={handleConfirm}
-                sx={{ flex: 1 }}
               >
                 Confirm & Proceed
               </Button>

@@ -385,7 +385,7 @@ const SelectGiftCardDialog = ({
                 <Box
                   className="d-flex w-100 justify-content-between"
                   sx={{
-                    flexDirection: { xs: "column", sm: "row" },
+                    flexDirection: { xs: "column-reverse", sm: "row" },
                     alignItems: { xs: "stretch", sm: "stretch" },
                     gap: { xs: 2, sm: 2 },
                     marginBottom: { xs: 2, sm: 2 },
@@ -393,10 +393,8 @@ const SelectGiftCardDialog = ({
                   }}
                 >
                   <Button
-                      variant="outlined"
-
-                      sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
                     onClick={onBack}
+                    className="custom-button cancel"
                   >
                     <Typography
                       sx={{
@@ -410,9 +408,7 @@ const SelectGiftCardDialog = ({
                     </Typography>
                   </Button>
                   <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+                       className="custom-button confirm"
                     disabled={loading}
                     onClick={handleConfirm}
                   >

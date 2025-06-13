@@ -213,20 +213,22 @@ const CashOutModal = ({
             </Box>
           </ModalBody>
           <ModalFooter className="custom-modal-footer">
-            <Box sx={{display:"flex",gap:2,py:2}}>
+            <Box className="d-flex w-100 justify-content-between"
+                  sx={{
+                    flexDirection: { xs: "column-reverse", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "stretch" },
+                    gap: { xs: 2, sm: 2 },
+                    marginBottom: { xs: 2, sm: 2 },
+                    width: "100% !important",
+                  }}>
                 <Button
-                          variant="outlined"
-
-                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+                  className="custom-button cancel"
                   onClick={handleClose}
                 >
                   Cancel
                 </Button>
-                <Button
-                  
-                  variant="contained"
-                  color="primary"
-                  sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+                <Button 
+                  className="custom-button confirm"
                   onClick={handalOpenGiftCard}
                   disabled={cashoutDisabled}
                 >
