@@ -758,6 +758,7 @@ export const RechargeRecordsList = (props) => {
                         alignItems: "center",
                       }}
                     >
+                      {record?.referralLink && 
                       <Button
                         variant="outlined"
                         size="small"
@@ -771,8 +772,8 @@ export const RechargeRecordsList = (props) => {
                         onClick={() => handleUrlClick(record)}
                       >
                         Copy
-                      </Button>
-                      {identity?.role === "Player" && (
+                      </Button>}
+                      {identity?.role === "Player" && record?.referralLink && (
                         <Button
                           variant="outlined"
                           color="primary"
