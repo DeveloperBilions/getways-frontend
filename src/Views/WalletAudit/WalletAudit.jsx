@@ -126,7 +126,7 @@ const WalletAuditList = (props) => {
               $switch: {
                 branches: [
                   {
-                    case: { $regexMatch: { input: "$stripeId", regex: "txn", options: "i" } },
+                    case: { $regexMatch: { input: "$stripeId", regex: "txn-", options: "i" } },
                     then: "WERT",
                   },
                   {

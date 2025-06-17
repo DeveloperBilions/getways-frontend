@@ -1634,55 +1634,77 @@ export const dataProvider = {
         };
 
         return [mergedResults];
-      } else if (resource === "GiftCardHistory") {
+      }else if (resource === "GiftCardHistory") {
         const query = new Parse.Query(resource);
-
+      
         // 🔍 Filter by status
         if (params.filter?.status) {
           query.equalTo("status", params.filter.status);
         }
-
+      
+        // 🔍 Filter by username (search across users)
+        let userMap = {};
         if (params.filter?.username) {
           const userQuery = new Parse.Query(Parse.User);
-          userQuery.matches(
-            "username",
-            new RegExp(params.filter.username, "i")
-          ); // Case-insensitive, partial match
-          userQuery.limit(1000); // Set a reasonable limit to avoid performance issues
+          userQuery.matches("username", new RegExp(params.filter.username, "i"));
+          userQuery.limit(1000);
+      
           const users = await userQuery.find({ useMasterKey: true });
-
-          if (users.length > 0) {
-            const userIds = users.map((user) => user.id);
-            query.containedIn("userId", userIds);
-          } else {
-            return {
-              data: [],
-              total: 0,
-            };
+          if (users.length === 0) {
+            return { data: [], total: 0 };
           }
+      
+          const userIds = users.map((user) => user.id);
+          query.containedIn("userId", userIds);
+      
+          // Prepare map for attaching username later
+          users.forEach((user) => {
+            userMap[user.id] = user.get("username");
+          });
         }
-
+      
+        // 🔁 Sort
         if (params.sort?.field) {
-          const order =
-            params.sort.order === "DESC" ? "descending" : "ascending";
+          const order = params.sort.order === "DESC" ? "descending" : "ascending";
           query[order](params.sort.field);
         }
-
+      
         // 📄 Pagination
         query.limit(params.pagination.perPage);
         query.skip((params.pagination.page - 1) * params.pagination.perPage);
-
+      
         const results = await query.find({ useMasterKey: true });
         const count = await query.count({ useMasterKey: true });
-
+      
+        // Collect any remaining userIds (if filter.username wasn’t used)
+        const missingUserIds = [...new Set(results.map((r) => r.get("userId")))].filter(
+          (id) => !userMap[id]
+        );
+      
+        if (missingUserIds.length > 0) {
+          const extraUserQuery = new Parse.Query(Parse.User);
+          extraUserQuery.containedIn("objectId", missingUserIds);
+          const extraUsers = await extraUserQuery.find({ useMasterKey: true });
+      
+          extraUsers.forEach((user) => {
+            userMap[user.id] = user.get("username");
+          });
+        }
+      
         return {
-          data: results.map((record) => ({
-            id: record.id,
-            ...record.toJSON(),
-          })),
+          data: results.map((record) => {
+            const gift = record.toJSON();
+            return {
+              ...gift,
+              id: record.id,
+              username: userMap[record.get("userId")] || "",
+            };
+          }),
           total: count,
         };
-      }else if (resource === "walletAudit") {
+      }
+      
+      else if (resource === "walletAudit") {
         const page = params.pagination.page || 1;
         const perPage = params.pagination.perPage || 10;
         const usernameFilter = params.filter?.username;
@@ -1711,7 +1733,7 @@ export const dataProvider = {
                 $switch: {
                   branches: [
                     {
-                      case: { $regexMatch: { input: "$stripeId", regex: "txn", options: "i" } },
+                      case: { $regexMatch: { input: "$stripeId", regex: "txn-", options: "i" } },
                       then: "WERT",
                     },
                     {

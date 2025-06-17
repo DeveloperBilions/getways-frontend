@@ -714,9 +714,11 @@ export const UserList = (props) => {
   }, [identity]);
 
   useEffect(() => {
-    refresh(); // ✅ Forces a fresh request
     setFilters({ searchBy: "username" }, {}); // Clear filters when the component mounts
     setSort({ field: "createdAt", order: "DESC" });
+    setTimeout(() => {
+      refresh();
+    }, 100); // delay to let filters stabilize
   }, []);
 
   // useEffect(() => {

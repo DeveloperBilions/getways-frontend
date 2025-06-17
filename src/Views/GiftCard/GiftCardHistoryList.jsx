@@ -100,28 +100,7 @@ const GiftCardHistoryList = (props) => {
 
   const [userMap, setUserMap] = useState({});
   const isMobile = useMediaQuery("(max-width:600px)");
-
-  useEffect(() => {
-    if (!data || typeof data !== "object") return;
-
-    const userIds = [
-      ...new Set(Object.values(data).map((item) => item.userId)),
-    ];
-    if (!userIds.length) return;
-
-    const userQuery = new Parse.Query("_User");
-    userQuery.containedIn("objectId", userIds);
-    userQuery.limit(1000);
-
-    userQuery.find({ useMasterKey: true }).then((users) => {
-      const map = {};
-      users.forEach((u) => {
-        map[u.id] = u.get("username");
-      });
-      setUserMap(map);
-    });
-  }, [data]);
-
+  console.log(data,"datae")
   return (
     <>
       <Box
@@ -201,12 +180,7 @@ const GiftCardHistoryList = (props) => {
                   borderColor: "#CFD4DB",
                 }}
               >
-                <FunctionField
-                  label="Username"
-                  render={(record) =>
-                    userMap[record.userId] || record.userId || "-"
-                  }
-                />
+                <TextField source="username" label="Username" />
                 <TextField source="orderId" label="Order ID" />
                 <TextField source="price" label="Price" />
                 <TextField source="productId" label="Product ID" />
