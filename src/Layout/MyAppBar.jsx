@@ -46,6 +46,8 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import CustomUserMenu from "./CustomUserMenu";
 import RechargeMethodsDialog from "../Views/User/dialog/RechargeMethodsDialog";
 import SyncAltIcon from "@mui/icons-material/SyncAlt";
+import DrawerAgentHistoryModal from "../Views/User/dialog/DrawerAgentHistoryModal";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -61,6 +63,7 @@ export default function MyAppBar(props) {
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
     React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
 
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -248,7 +251,7 @@ export default function MyAppBar(props) {
                 setActiveTab("users");
                 window.location.href = "/users"; // causes full reload
               }
-            }}            
+            }}
           >
             <img
               src="/assets/company_logo.svg"
@@ -541,6 +544,19 @@ export default function MyAppBar(props) {
                     Agent Redeem Fees
                   </MenuItem>
                 )}
+                {role === "Agent" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTicketPaidModal(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Ticket Paid
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 <Box sx={{ mb: 1 }}>
                   <MenuItem
                     onClick={() => {
@@ -631,6 +647,11 @@ export default function MyAppBar(props) {
           open={openRechargeMethods}
           onClose={() => setOpenRechargeMethods(false)}
         />
+        <DrawerAgentHistoryModal
+        open={openTicketPaidModal}
+        onClose={() => setOpenTicketPaidModal(false)}
+        record={{id:identity?.objectId,username:identity?.username}}
+      />
       </AppBar>
     </>
   );
