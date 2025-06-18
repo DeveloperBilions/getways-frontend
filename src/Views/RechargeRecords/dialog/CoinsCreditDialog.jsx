@@ -1,6 +1,7 @@
 import React from "react";
-import { Button, Modal, ModalHeader, ModalBody, Col, Form } from "reactstrap";
+import { Button, Modal, ModalHeader, ModalBody, Col, Form,ModalFooter } from "reactstrap";
 import { Parse } from "parse";
+import { Box } from "@mui/material";
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -24,41 +25,39 @@ const CoinsCreditDialog = ({ open, onClose, data, handleRefresh }) => {
         Credit Coins
       </ModalHeader>
       <ModalBody>
-        <Form onSubmit={handleSubmit}>
+        <Form >
           <Col md={12}>
             Are you sure you have transferred the points/coins to this user?
             This action is not reversible.
           </Col>
-          <Col md={12}>
-            <div className="d-flex justify-content-end mt-3">
+        </Form>
+      </ModalBody>
+      <ModalFooter className="custom-modal-footer">
+            <Box
+              className="d-flex w-100 justify-content-between"
+              sx={{
+                flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+                alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                width: "100% !important", // Ensure the container takes full width
+                paddingRight: { xs: 0, sm: 1 },
+              }}
+            >
+     
               <Button
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "var(--primary-color)",
-                }}
-                type="submit"
-                className="mx-2"
-              >
-                Confirm
-              </Button>
-              <Button
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "var(--secondary-color)",
-                  color: "var(--primary-color)",
-                }}
+                className="custom-button cancel"
                 onClick={onClose}
               >
                 Cancel
               </Button>
-            </div>
-          </Col>
-        </Form>
-      </ModalBody>
+              <Button
+                className="custom-button confirm"
+                onClick={handleSubmit}
+              >
+                Confirm
+              </Button>
+            </Box></ModalFooter>
     </Modal>
   );
 };

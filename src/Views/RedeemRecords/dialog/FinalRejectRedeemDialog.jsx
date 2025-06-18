@@ -4,11 +4,13 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  ModalFooter,
   Col,
   Label,
   Form,
   Input,
 } from "reactstrap";
+import { Box } from "@mui/material";
 // loader
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
@@ -22,18 +24,16 @@ const FinalRejectRedeemDialog = ({
   onClose,
   handleRefresh,
   selectedRecord,
-  cashout
+  cashout,
 }) => {
   const [loading, setLoading] = useState(false);
   const [remark, setRemark] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
     setLoading(true);
     try {
-        
-      await dataProvider.finalReject(selectedRecord?.id,remark);
+      await dataProvider.finalReject(selectedRecord?.id, remark);
 
       onClose();
       handleRefresh();
@@ -63,7 +63,7 @@ const FinalRejectRedeemDialog = ({
             {cashout ? "Cashout Reject Request" : "Reject Redeem Amount"}
           </ModalHeader>
           <ModalBody>
-            <Form onSubmit={handleSubmit}>
+            <Form>
               <Col md={12}>
                 <Label for="remark">Remark</Label>
                 <Input
@@ -84,38 +84,32 @@ const FinalRejectRedeemDialog = ({
                 <br />
                 This action cannot be undone.
               </Label>
-
-              <Col md={12}>
-                <div className="d-flex justify-content-end">
-                  <Button
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "var(--primary-color)",
-                    }}
-                    type="submit"
-                    className="mx-2"
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Confirm"}
-                  </Button>
-                  <Button
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "var(--secondary-color)",
-                      color: "var(--primary-color)",
-                    }}
-                    onClick={onClose}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </Col>
             </Form>
           </ModalBody>
+          <ModalFooter className="custom-modal-footer">
+            <Box
+              className="d-flex w-100 justify-content-between"
+              sx={{
+                flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+                alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                width: "100% !important", // Ensure the container takes full width
+                paddingRight: { xs: 0, sm: 1 },
+              }}
+            >
+              <Button className="custom-button cancel" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                className="custom-button confirm"
+                disabled={loading}
+                onClick={handleSubmit}
+              >
+                {loading ? "Processing..." : "Confirm"}
+              </Button>
+            </Box>{" "}
+          </ModalFooter>
         </Modal>
       )}
     </React.Fragment>

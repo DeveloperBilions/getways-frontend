@@ -758,7 +758,7 @@ export const RechargeRecordsList = (props) => {
                         alignItems: "center",
                       }}
                     >
-                      {record?.referralLink && 
+                      {identity?.role === "Player" && record?.referralLink && 
                       <Button
                         variant="outlined"
                         size="small"
