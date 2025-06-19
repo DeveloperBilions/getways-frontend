@@ -48,6 +48,9 @@ import RechargeMethodsDialog from "../Views/User/dialog/RechargeMethodsDialog";
 import SyncAltIcon from "@mui/icons-material/SyncAlt";
 import DrawerAgentHistoryModal from "../Views/User/dialog/DrawerAgentHistoryModal";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import TierSettingsDialog from "../Views/User/dialog/TierSettingsDialog";
+import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
+import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -94,6 +97,8 @@ export default function MyAppBar(props) {
 
   const [activeTab, setActiveTab] = useState("users");
   const [openRechargeMethods, setOpenRechargeMethods] = React.useState(false);
+  const [openTierSettings, setOpenTierSettings] = React.useState(false);
+  const [openTierSettingsAgents, setOpenTierSettingsAgents] = React.useState(false);
 
   const getBalance = async () => {
     try {
@@ -485,7 +490,33 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
+                {/* {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTierSettings(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Tiers
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTierSettingsAgents(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Tier Settings
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )} */}
+                {/* {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setDisableDialogOpen(true)}
@@ -500,7 +531,7 @@ export default function MyAppBar(props) {
                       </Typography>
                     </MenuItem>
                   </Box>
-                )}
+                )} */}
                 {/* {role === "Super-User" && (
                   <MenuItem
                     onClick={() => {
@@ -544,7 +575,7 @@ export default function MyAppBar(props) {
                     Agent Redeem Fees
                   </MenuItem>
                 )}
-                {role === "Agent" && (
+                {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setOpenTicketPaidModal(true)}
@@ -556,7 +587,7 @@ export default function MyAppBar(props) {
                       </Typography>
                     </MenuItem>
                   </Box>
-                )}
+                )} */}
                 <Box sx={{ mb: 1 }}>
                   <MenuItem
                     onClick={() => {
@@ -646,6 +677,17 @@ export default function MyAppBar(props) {
         <RechargeMethodsDialog
           open={openRechargeMethods}
           onClose={() => setOpenRechargeMethods(false)}
+        />
+
+<TierSettingsDialog
+          open={openTierSettings}
+          onClose={() => setOpenTierSettings(false)}
+        />
+
+
+<AgentTierViewerDialogBulk
+          open={openTierSettingsAgents}
+          onClose={() => setOpenTierSettingsAgents(false)}
         />
         <DrawerAgentHistoryModal
         open={openTicketPaidModal}

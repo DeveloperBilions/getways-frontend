@@ -77,6 +77,29 @@ export const getParentUserId = async (userId) => {
               $group: { _id: null, total: { $sum: "$transactionAmount" } },
             },
           ],
+          totalRedeemServiceFee: [
+            {
+              $match: {
+                type: "redeem",
+                status: { $in: [4, 8] },
+                transactionAmount: { $gt: 0, $type: "number" },
+                redeemServiceFee: { $exists: true, $type: "number" },
+              },
+            },
+            {
+              $project: {
+                feeAmount: {
+                  $ceil: {
+                    $multiply: [
+                      "$transactionAmount",
+                      { $divide: ["$redeemServiceFee", 100] },
+                    ]
+                  }
+                }                
+              },
+            },
+            { $group: { _id: null, total: { $sum: "$feeAmount" } } },
+          ],
           totalRecords: [{ $count: "total" }],
         },
       },
@@ -85,7 +108,7 @@ export const getParentUserId = async (userId) => {
     const transactionResults = await new Parse.Query("TransactionRecords")
       .aggregate(queryPipeline, { useMasterKey: true });
   
-    const { totalRechargeAmount, totalRedeemAmount, totalRecords } =
+    const { totalRechargeAmount, totalRedeemAmount, totalRecords,totalRedeemServiceFee } =
       transactionResults[0];
   
       const drawerAgentQueryPipeline = [
@@ -106,6 +129,7 @@ export const getParentUserId = async (userId) => {
       totalRechargeAmount: totalRechargeAmount[0]?.total || 0,
       totalRedeemAmount: totalRedeemAmount[0]?.total || 0,
       totalRecords: totalRecords[0]?.total || 0,
+      totalRedeemServiceFee: totalRedeemServiceFee[0]?.total || 0,
       drawerAgentResults:drawerAgentResults[0]?.total || 0
     };
   }

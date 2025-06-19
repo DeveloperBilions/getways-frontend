@@ -161,11 +161,11 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
     return null;
   }
 
-  const { totalRechargeAmount, totalRedeemAmount, drawerAgentResults } =
+  const { totalRechargeAmount, totalRedeemAmount, drawerAgentResults,totalRedeemServiceFee } =
     summary;
   const conversionFee =
     (totalRechargeAmount * (Number(conversionFeePercent) || 0)) / 100;
-  const redeemServiceFee = (totalRedeemAmount * redeemServiceFeePercent) / 100;
+  const redeemServiceFee = totalRedeemServiceFee;
   const totalAgentTicketPaid =
     totalRechargeAmount -
     totalRedeemAmount -
