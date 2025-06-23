@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Paper } from "@mui/material";
+import { Box, Typography, Button, Paper, CircularProgress } from "@mui/material";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import { useGetIdentity, useRefresh } from "react-admin";
 import AddPaymentMethods from "./AddPayementMethods";
@@ -12,6 +12,7 @@ import CashOutModal from "./CashOutDialogCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Alert } from "@mui/material";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
+import { getAgentTierDetails } from "../../../Utils/tier";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -31,10 +32,41 @@ export const WalletDetails = ({
   const [cashOutDialogOpen, setcashOutDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [CheckoutError, setCheckoutError] = useState(false);
 
   const transformedIdentity = {
     id: identity?.objectId,
     ...identity,
+  };
+
+  const verifyPotBalance = async (checkType = "payout") => {
+    setCheckingEligibility(true); // start loader
+    try {
+      const result = await getAgentTierDetails(
+        identity?.userParentId,
+        checkType
+      );
+      if (!result) {
+        setCheckoutError(
+          "Unable to verify tier requirements. Try again later."
+        );
+        return false;
+      }
+      if (!result.isSufficient) {
+        setCheckoutError(
+          `Insufficient pot-balance Of Your Agent. Tier ${result.tier} requires ≥ ${result.requiredMin}.`
+        );
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Tier-check failed:", err);
+      setCheckoutError("Tier validation failed. Try again.");
+      return false;
+    } finally {
+      setCheckingEligibility(false); // ✅ fixes spinner
+    }
   };
 
   useEffect(() => {
@@ -154,6 +186,11 @@ export const WalletDetails = ({
             marginTop: 1,
           }}
         >
+          {CheckoutError && (
+            <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
+              {CheckoutError}
+            </Alert>
+          )}
           <Button
             sx={{
               bgcolor: "#2E5BFF",
@@ -175,15 +212,25 @@ export const WalletDetails = ({
                 color: "#E2E8F0", // Disabled text color (light gray)
               },
             }}
-            onClick={() => {
-              setIsOpen(true);
+            onClick={async () => {
+              setCheckoutError(""); // clear any previous errors
+              const isEligible = await verifyPotBalance("payout");
+              if (isEligible) {
+                setIsOpen(true);
+              }
             }}
-            disabled={identity?.isBlackListed || cashoutDisabled}
+            disabled={
+              identity?.isBlackListed || cashoutDisabled || checkingEligibility
+            }
           >
-            Cashout{" "}
-            <ArrowForwardIcon
-              style={{ width: "24px", height: "24px", marginLeft: "10px" }}
-            />
+            Cashout
+            {checkingEligibility ? (
+              <CircularProgress size={20} sx={{ color: "white", ml: 1 }} />
+            ) : (
+              <ArrowForwardIcon
+                style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+              />
+            )}
           </Button>
         </Box>
         <Box

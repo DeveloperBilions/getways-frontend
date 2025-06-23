@@ -51,7 +51,8 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import TierSettingsDialog from "../Views/User/dialog/TierSettingsDialog";
 import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
 import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
-
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import TuneIcon from "@mui/icons-material/Tune";
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -490,13 +491,13 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
-                {/* {role === "Super-User" && (
+                {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setOpenTierSettings(true)}
                       style={{ color: "#000000", gap: "8px" }}
                     >
-                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <LeaderboardIcon sx={{ fontSize: 20, color: "#000" }} />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                         Tiers
                       </Typography>
@@ -509,13 +510,13 @@ export default function MyAppBar(props) {
                       onClick={() => setOpenTierSettingsAgents(true)}
                       style={{ color: "#000000", gap: "8px" }}
                     >
-                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <TuneIcon sx={{ fontSize: 20, color: "#000" }} />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                         Tier Settings
                       </Typography>
                     </MenuItem>
                   </Box>
-                )} */}
+                )}
                 {/* {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem

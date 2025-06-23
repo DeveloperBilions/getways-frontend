@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, TextField, Alert } from "@mui/material";
+import { Box, Typography, Button, TextField, Alert,CircularProgress } from "@mui/material";
 import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import { useGetIdentity, useNotify, useRefresh } from "react-admin";
 import RedeemDialog from "./dialog/PlayerRedeemDialog";
@@ -28,6 +28,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { getTotalRechargeAmount } from "../../Utils/utils";
+import { getAgentTierDetails } from "../../Utils/tier";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -62,7 +63,8 @@ const Redeem = ({
     venmoId: "",
     zelleId: "",
   });
-
+  const [RedeemError, setRedeemError] = useState("");
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
   const resetFields = () => {
     setRedeemAmount(50);
     setRemark("");
@@ -124,8 +126,37 @@ const Redeem = ({
       handleConfirmDoublee();
     }
   };
+  const verifyPotBalance = async (checkType = "deposit") => {
+    setCheckingEligibility(true); // start loader
+    try {
+      const result = await getAgentTierDetails(
+        identity?.userParentId,
+        checkType
+      );
+      if (!result) {
+        setRedeemError("Unable to verify tier requirements. Try again later.");
+        return false;
+      }
+      if (!result.isSufficient) {
+        setRedeemError(
+          `Insufficient pot-balance Of Your Agent. Tier ${result.tier} requires ≥ ${result.requiredMin}.`
+        );
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Tier-check failed:", err);
+      setRedeemError("Tier validation failed. Try again.");
+      return false;
+    } finally {
+      setCheckingEligibility(false); // stop loader
+    }
+  };
   const handleConfirmDoublee = async () => {
     try {
+      const isEligible = await verifyPotBalance("deposit");
+      if (!isEligible) return; // ❌ Stop if agent’s pot balance is insufficient
+
       const total = await getTotalRechargeAmount(identity?.objectId);
       setLiveRechargeTotal(total);
       if (redeemAmount > total * 0.5) {
@@ -553,6 +584,11 @@ const Redeem = ({
             </Typography>
           </Box>
 
+          {RedeemError && (
+            <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
+              {RedeemError}
+            </Alert>
+          )}
           <Button
             onClick={handleConfirm}
             sx={{
@@ -580,12 +616,18 @@ const Redeem = ({
                 opacity: 0.7,
               },
             }}
-            disabled={isRedeemDisabled}
+            disabled={isRedeemDisabled || checkingEligibility}
           >
-            Redeem Request
-            <ArrowForwardIcon
-              style={{ width: "24px", height: "24px", marginLeft: "10px" }}
-            />{" "}
+            {checkingEligibility ? (
+              <CircularProgress size={24} sx={{ color: "#fff" }} />
+            ) : (
+              <>
+                Redeem Request
+                <ArrowForwardIcon
+                  style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+                />
+              </>
+            )}
             {/* Matches Recharge */}
           </Button>
         </Box>

@@ -248,6 +248,7 @@ export const dataProvider = {
             updatedAt: user.updatedAt,
             rechargeDisabled: user.get("rechargeDisabled"),
             isPasswordPermission: user.get("isPasswordPermission"),
+            potBalance: user.get("potBalance")
           };
         });
 
