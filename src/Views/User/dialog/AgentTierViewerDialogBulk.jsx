@@ -104,6 +104,8 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
     try {
       const countQuery = new Parse.Query(Parse.User);
       countQuery.equalTo("roleName", "Agent");
+      countQuery.notEqualTo("isDeleted", true);
+
       if (debouncedSearch.trim()) {
         countQuery.matches("username", new RegExp(debouncedSearch.trim(), "i"));
       }
@@ -112,6 +114,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
 
       const q = new Parse.Query(Parse.User);
       q.equalTo("roleName", "Agent");
+      q.notEqualTo("isDeleted", true);
       if (debouncedSearch.trim()) {
         q.matches("username", new RegExp(debouncedSearch.trim(), "i"));
       }
@@ -138,6 +141,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
     try {
       const q = new Parse.Query(Parse.User);
       q.equalTo("roleName", "Master-Agent");
+      q.notEqualTo("isDeleted", true);
       q.descending("createdAt");
       const results = await q.find({ useMasterKey: true });
       const mapped = results.map((user) => ({
@@ -158,6 +162,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
       const countQuery = new Parse.Query(Parse.User);
       countQuery.equalTo("roleName", "Agent");
       countQuery.equalTo("userParentId", masterId);
+      countQuery.notEqualTo("isDeleted", true);
       if (debouncedSearch.trim()) {
         countQuery.matches("username", new RegExp(debouncedSearch.trim(), "i"));
       }
@@ -167,6 +172,8 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
       const q = new Parse.Query(Parse.User);
       q.equalTo("roleName", "Agent");
       q.equalTo("userParentId", masterId);
+      q.notEqualTo("isDeleted", true);
+
       if (debouncedSearch.trim()) {
         q.matches("username", new RegExp(debouncedSearch.trim(), "i"));
       }
