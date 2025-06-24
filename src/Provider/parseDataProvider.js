@@ -101,7 +101,6 @@ export const dataProvider = {
     // delete filter.q;
     var query = new Parse.Query(Parse.Object);
     var count = null;
-
     Parse.masterKey = Parse.masterKey || process.env.REACT_APP_MASTER_KEY;
     const role = localStorage.getItem("role");
     const userid = localStorage.getItem("id");
@@ -110,6 +109,9 @@ export const dataProvider = {
 
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
+      if(resource === "summaryExport" || resource === "summaryExportSuperUser"){
+        usrQuery.notEqualTo("isDeleted", true);
+      }
       usrQuery.limit(100000);
       usrQuery.select(
         "objectId",
@@ -248,6 +250,7 @@ export const dataProvider = {
             updatedAt: user.updatedAt,
             rechargeDisabled: user.get("rechargeDisabled"),
             isPasswordPermission: user.get("isPasswordPermission"),
+            potBalance: user.get("potBalance")
           };
         });
 
@@ -930,12 +933,13 @@ export const dataProvider = {
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
+            userQuery.notEqualTo("isDeleted", true);
             userQuery.limit(150000);
             var results = await userQuery.find({ useMasterKey: true });
             data = results.map((o) => ({ id: o.id, ...o.attributes }));
             const currentUser = await Parse.User.current();
             data.push({ id: userid, ...currentUser.attributes });
-
+            const userIds = data.map((user) => user.id);
             //transaction
             const transactionQuery = new Parse.Query("TransactionRecords");
             transactionQuery.select(
@@ -951,6 +955,7 @@ export const dataProvider = {
               "username",
               "referralLink"
             );
+            transactionQuery.containedIn("userId", userIds);
             filter.startDate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
@@ -1118,9 +1123,9 @@ export const dataProvider = {
           }; */
         }
         return result;
-      } else if (resource === "summaryExportSuperUser") {
+      }else if (resource === "summaryExportSuperUser") {
         let result = null;
-
+      
         if (role === "Super-User") {
           // Fetch transactions first
           const transactionQuery = new Parse.Query("TransactionRecords");
@@ -1140,7 +1145,7 @@ export const dataProvider = {
             "redeemRemarks",
             "username"
           );
-
+      
           if (filter.startdate && filter.starttime) {
             transactionQuery.greaterThanOrEqualTo(
               "transactionDate",
@@ -1152,7 +1157,7 @@ export const dataProvider = {
               new Date(`${filter.startdate}T00:00:00Z`)
             );
           }
-
+      
           if (filter.enddate && filter.endtime) {
             transactionQuery.lessThanOrEqualTo(
               "transactionDate",
@@ -1164,30 +1169,37 @@ export const dataProvider = {
               new Date(`${filter.enddate}T23:59:59Z`)
             );
           }
-
+      
           transactionQuery.limit(500000);
           const transactions = await transactionQuery.find();
-
+      
           // Extract unique user IDs from transactions
           const userIds = [
             ...new Set(transactions.map((t) => t.get("userId"))),
           ];
-
+      
           // Fetch only relevant user data
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
+          userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
           userQuery.limit(50000);
           const userResults = await userQuery.find({ useMasterKey: true });
           const users = userResults.map((o) => ({ id: o.id, ...o.attributes }));
-
+      
+          // ✅ Filter transactions to exclude those linked to deleted users
+          const validUserIds = users.map((u) => u.id);
+          const filteredTransactions = transactions.filter((tx) =>
+            validUserIds.includes(tx.get("userId"))
+          );
+      
           // Create a user lookup map
           const userMap = new Map(users.map((user) => [user.id, user]));
-
+      
           // Extract unique parent IDs
           const parentIds = [
             ...new Set(users.map((u) => u.userParentId).filter(Boolean)),
           ];
-
+      
           // Fetch parent users in a single query
           let parentMap = new Map();
           if (parentIds.length > 0) {
@@ -1195,7 +1207,7 @@ export const dataProvider = {
             parentQuery.containedIn("objectId", parentIds);
             parentQuery.select("objectId", "userParentName");
             parentQuery.limit(50000);
-
+      
             const parentResults = await parentQuery.find({
               useMasterKey: true,
             });
@@ -1203,12 +1215,12 @@ export const dataProvider = {
               parentResults.map((p) => [p.id, p.get("userParentName")])
             );
           }
-
+      
           // Function to get the user's parent name
           const getUserParentName = (userId) => {
             return userMap.get(userId)?.userParentName || "Unknown";
           };
-
+      
           // Function to get the agent's parent name
           const getUserAgentParentName = (userId) => {
             const user = userMap.get(userId);
@@ -1216,9 +1228,9 @@ export const dataProvider = {
               ? parentMap.get(user.userParentId) || "Unknown"
               : "Unknown";
           };
-
+      
           // Format transaction data
-          const formattedTransactions = transactions.map((item) => ({
+          const formattedTransactions = filteredTransactions.map((item) => ({
             id: item.id,
             type: item.get("type"),
             transactionAmount: item.get("transactionAmount"),
@@ -1236,16 +1248,17 @@ export const dataProvider = {
             userName: item.get("username"),
             agentParentName: getUserAgentParentName(item.get("userId")),
           }));
-
+      
           result = {
             id: 0,
             users,
             data: formattedTransactions,
           };
         }
-
+      
         return result;
-      } else if (resource === "summaryData") {
+      }
+       else if (resource === "summaryData") {
         var result = null;
         const startDate = new Date("2025-03-01T00:00:00Z");
         const endDate = new Date("2025-03-03T23:59:59.999Z"); // Directly setting end of the day in UTC
