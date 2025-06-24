@@ -364,7 +364,12 @@ export const dataProvider = {
           var { ids } = await fetchUsers(null, true);
           query.containedIn("userId", ids);
         }
-
+        // if(role != "Player"){
+        //   console.log(filter,"filterfilterfilterfilterfilterfilter")
+        //   if (!filter?.status) {
+        //     query.notEqualTo("status", 9);
+        //   }
+        // }
         if (
           filter &&
           typeof filter === "object" &&
