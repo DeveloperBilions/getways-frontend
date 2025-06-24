@@ -246,6 +246,11 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
       setTierChanges({}); // ✅ Reset tracked changes
       setSelectedAgentIds([]); // ✅ Optional: Clear selections after save
       setTimeout(() => setSuccessMsg(""), 3000);
+      if (tab === 0) {
+        await loadAgents();
+      } else if (tab === 1 && selectedMasterId) {
+        await loadAgentsByMaster(selectedMasterId);
+      }
     } catch (e) {
       console.error("Error saving tiers:", e);
     } finally {
