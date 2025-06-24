@@ -47,6 +47,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
   const [selectedAgentIds, setSelectedAgentIds] = useState([]);
   const [bulkTier, setBulkTier] = useState("");
   const [tierChanges, setTierChanges] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (open) fetchTiers();
@@ -212,26 +213,39 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
       }
     });
   };
-  
 
   const handleBulkApply = () => {
     if (!bulkTier) return;
-  
+
     const updates = {};
     selectedAgentIds.forEach((id) => {
       updates[id] = bulkTier;
     });
-  
+
     setTierChanges((prev) => ({ ...prev, ...updates }));
-  
+
     const visibleIds = agents.map((a) => a.id);
-    setSelectedAgentIds((prev) =>
-      prev.filter((id) => !visibleIds.includes(id)) // ❗ remove only current page selections
+    setSelectedAgentIds(
+      (prev) => prev.filter((id) => !visibleIds.includes(id)) // ❗ remove only current page selections
     );
   };
-  
+
+  console.log(tierChanges,"tierChanges")
   const handleSave = async () => {
     setSaving(true);
+    setErrorMsg(""); // clear previous error
+    
+    if (!bulkTier) {
+      setErrorMsg("Please select a tier to assign before saving.");
+      setSaving(false);
+      return;
+    }
+    
+    if (Object.keys(tierChanges).length === 0) {
+      setErrorMsg("No agents have been assigned a tier. Please apply changes before saving.");
+      setSaving(false);
+      return;
+    }
     try {
       const updates = Object.entries(tierChanges).map(async ([id, newTier]) => {
         const user = await new Parse.Query(Parse.User).get(id, {
@@ -240,7 +254,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
         user.set("tier", newTier);
         return user.save(null, { useMasterKey: true });
       });
-  
+
       await Promise.all(updates);
       setSuccessMsg("Tier settings updated successfully.");
       setTierChanges({}); // ✅ Reset tracked changes
@@ -257,7 +271,6 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
       setSaving(false);
     }
   };
-  
 
   const shouldShowAgentsTable = tab === 0 || (tab === 1 && selectedMasterId);
   const currentPageIds = agents.map((a) => a.id);
@@ -284,7 +297,7 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
     setSelectedAgentIds([]);
     setBulkTier("");
     setTierChanges({});
-  
+
     onClose(); // call the parent-provided close
   };
   return (
@@ -344,6 +357,11 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
             {successMsg}
           </Alert>
         )}
+        {errorMsg && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMsg}
+          </Alert>
+        )}
 
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <Select
@@ -395,11 +413,13 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox">
-                  <Checkbox
-  checked={allSelectedThisPage}
-  indeterminate={!allSelectedThisPage && someSelectedThisPage}
-  onChange={(e) => handleSelectAll(e.target.checked)}
-/>
+                    <Checkbox
+                      checked={allSelectedThisPage}
+                      indeterminate={
+                        !allSelectedThisPage && someSelectedThisPage
+                      }
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                    />
                   </TableCell>
                   <TableCell>Username</TableCell>
                   <TableCell>Tier</TableCell>
@@ -407,8 +427,8 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
               </TableHead>
               <TableBody>
                 {agents.map((a) => {
-const displayedTier = tierChanges[a.id] ?? a.tier;
-return (
+                  const displayedTier = tierChanges[a.id] ?? a.tier;
+                  return (
                     <TableRow key={a.id}>
                       <TableCell padding="checkbox">
                         <Checkbox
