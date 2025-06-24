@@ -24,6 +24,8 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
 // mui
@@ -75,12 +77,10 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
+  const [showExpired, setShowExpired] = useState(false);
   const listContext = useListController({
     ...props,
-    filter:
-      // props.identity?.role === "Player"
-      //   ? { type: "recharge", status: 1 }:
-      { type: "recharge" },
+    filter: { type: "recharge" },
   });
   const {
     isLoading,
@@ -198,8 +198,9 @@ export const RechargeRecordsList = (props) => {
       : data?.referralLink?.toLowerCase().includes("transfi")
       ? "TransFi"
       : data?.useWallet
-      ? "Wallet" :
-      data?.portal === "Payarc" ? "Payarc"
+      ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
       : "Stripe";
   };
 
@@ -401,7 +402,15 @@ export const RechargeRecordsList = (props) => {
 
     setFilters({ ...cleanedFilters, ...newFilters }, false);
   }, [filterValues, searchBy, setFilters]);
+  useEffect(() => {
+    const newFilter = { type: "recharge" };
 
+    if (role !== "Player" && !showExpired) {
+      newFilter.status = { $ne: 9 };
+    }
+
+    setFilters(newFilter, false); // Don't push to history
+  }, [showExpired, role]);
   const dataFilters = [
     <Box
       key="search-filter"
@@ -445,6 +454,25 @@ export const RechargeRecordsList = (props) => {
         />{" "}
         Filter
       </Button>
+
+      {permissions !== "Player" && (
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={showExpired}
+              onChange={(e) => setShowExpired(e.target.checked)}
+              sx={{
+                color: "black",
+                "&.Mui-checked": {
+                  color: "black",
+                },
+              }}
+            />
+          }
+          label="Show Expired"
+          sx={{ ml: 1 }}
+        />
+      )}
     </Box>,
   ].filter(Boolean);
 
@@ -606,7 +634,6 @@ export const RechargeRecordsList = (props) => {
       </Menu>
     </TopToolbar>
   );
-
   if (isLoading || loading) {
     return (
       <>
@@ -758,21 +785,22 @@ export const RechargeRecordsList = (props) => {
                         alignItems: "center",
                       }}
                     >
-                      {identity?.role === "Player" && record?.referralLink && 
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          mr: 1,
-                          color: "black",
-                          backgroundColor: "#EBEEFF",
-                          border: "1px solid #607BFF",
-                        }}
-                        startIcon={<img src={CopyLink} alt="Copy Link" />}
-                        onClick={() => handleUrlClick(record)}
-                      >
-                        Copy
-                      </Button>}
+                      {identity?.role === "Player" && record?.referralLink && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            mr: 1,
+                            color: "black",
+                            backgroundColor: "#EBEEFF",
+                            border: "1px solid #607BFF",
+                          }}
+                          startIcon={<img src={CopyLink} alt="Copy Link" />}
+                          onClick={() => handleUrlClick(record)}
+                        >
+                          Copy
+                        </Button>
+                      )}
                       {identity?.role === "Player" && record?.referralLink && (
                         <Button
                           variant="outlined"
@@ -1115,8 +1143,9 @@ export const RechargeRecordsList = (props) => {
                                 .includes("transfi")
                             ? "TransFi"
                             : record?.useWallet
-                            ? "Wallet":
-                            record?.portal === "Payarc" ? "Payarc"
+                            ? "Wallet"
+                            : record?.portal === "Payarc"
+                            ? "Payarc"
                             : "Stripe"}
                         </Typography>
                       </Box>
@@ -1177,7 +1206,7 @@ export const RechargeRecordsList = (props) => {
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}
         fullWidth
-  maxWidth="sm"
+        maxWidth="sm"
       >
         <DialogTitle>Select Month to Export</DialogTitle>
         <DialogContent>
@@ -1202,7 +1231,8 @@ export const RechargeRecordsList = (props) => {
           )}
         </DialogContent>
         <DialogActions sx={{ padding: 2 }} className="custom-modal-footer">
-        <Box className="d-flex w-100 justify-content-between"
+          <Box
+            className="d-flex w-100 justify-content-between"
             sx={{
               flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
               alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
@@ -1210,109 +1240,110 @@ export const RechargeRecordsList = (props) => {
               marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
               width: "100% !important", // Ensure the container takes full width
               paddingRight: { xs: 0, sm: 1 },
-            }}>
-          <Button
-            onClick={() => setExportDialogOpen(false)}
-            disabled={isExporting}
-            className="custom-button cancel"
+            }}
           >
-            Cancel
-          </Button>
-          <Button
-           className="custom-button confirm"
-            onClick={async () => {
-              if (!exportMonth) return;
+            <Button
+              onClick={() => setExportDialogOpen(false)}
+              disabled={isExporting}
+              className="custom-button cancel"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="custom-button confirm"
+              onClick={async () => {
+                if (!exportMonth) return;
 
-              setIsExporting(true);
-              const filters = { ...filterValues, month: exportMonth };
-              const exportData = await fetchDataForExport(filters);
+                setIsExporting(true);
+                const filters = { ...filterValues, month: exportMonth };
+                const exportData = await fetchDataForExport(filters);
 
-              if (!exportData || exportData.length === 0) {
-                console.warn("No data to export.");
-                setIsExporting(false);
-                return;
-              }
+                if (!exportData || exportData.length === 0) {
+                  console.warn("No data to export.");
+                  setIsExporting(false);
+                  return;
+                }
 
-              const doc = new jsPDF();
-              doc.text("Recharge Records", 10, 10);
-              doc.autoTable({
-                head: [
-                  [
-                    "No",
-                    "Name",
-                    "Amount($)",
-                    "Remark",
-                    "Status",
-                    "Mode",
-                    "Date",
+                const doc = new jsPDF();
+                doc.text("Recharge Records", 10, 10);
+                doc.autoTable({
+                  head: [
+                    [
+                      "No",
+                      "Name",
+                      "Amount($)",
+                      "Remark",
+                      "Status",
+                      "Mode",
+                      "Date",
+                    ],
                   ],
-                ],
-                body: exportData.map((row, index) => [
-                  index + 1,
-                  row.username,
-                  row.transactionAmount,
-                  row.remark,
-                  mapStatus(row.status),
-                  getMode(row),
-                  new Date(row.transactionDate).toLocaleDateString(),
-                ]),
-              });
-              doc.save("RechargeRecords.pdf");
+                  body: exportData.map((row, index) => [
+                    index + 1,
+                    row.username,
+                    row.transactionAmount,
+                    row.remark,
+                    mapStatus(row.status),
+                    getMode(row),
+                    new Date(row.transactionDate).toLocaleDateString(),
+                  ]),
+                });
+                doc.save("RechargeRecords.pdf");
 
-              setIsExporting(false);
-              setExportDialogOpen(false);
-            }}
-            disabled={!exportMonth || isExporting}
-          >
-            Export PDF
-          </Button>
-          <Button
-          className="custom-button confirm"
-            onClick={async () => {
-              if (!exportMonth) return;
-
-              setIsExporting(true);
-              const filters = { ...filterValues, month: exportMonth };
-              const exportData = await fetchDataForExport(filters);
-
-              if (!exportData || exportData.length === 0) {
-                console.warn("No data to export.");
                 setIsExporting(false);
-                return;
-              }
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              Export PDF
+            </Button>
+            <Button
+              className="custom-button confirm"
+              onClick={async () => {
+                if (!exportMonth) return;
 
-              const selectedFields = exportData.map((item) => ({
-                Name: item.username,
-                "Amount($)": item.transactionAmount,
-                Remark: item.remark,
-                Status: mapStatus(item.status),
-                Mode: getMode(item),
-                Date: new Date(item.transactionDate).toLocaleDateString(),
-              }));
+                setIsExporting(true);
+                const filters = { ...filterValues, month: exportMonth };
+                const exportData = await fetchDataForExport(filters);
 
-              const worksheet = XLSX.utils.json_to_sheet(selectedFields);
-              const workbook = XLSX.utils.book_new();
-              XLSX.utils.book_append_sheet(
-                workbook,
-                worksheet,
-                "Recharge Records"
-              );
-              const xlsData = XLSX.write(workbook, {
-                bookType: "xlsx",
-                type: "array",
-              });
-              saveAs(
-                new Blob([xlsData], { type: "application/octet-stream" }),
-                "RechargeRecords.xlsx"
-              );
+                if (!exportData || exportData.length === 0) {
+                  console.warn("No data to export.");
+                  setIsExporting(false);
+                  return;
+                }
 
-              setIsExporting(false);
-              setExportDialogOpen(false);
-            }}
-            disabled={!exportMonth || isExporting}
-          >
-            Export Excel
-          </Button>
+                const selectedFields = exportData.map((item) => ({
+                  Name: item.username,
+                  "Amount($)": item.transactionAmount,
+                  Remark: item.remark,
+                  Status: mapStatus(item.status),
+                  Mode: getMode(item),
+                  Date: new Date(item.transactionDate).toLocaleDateString(),
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(selectedFields);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(
+                  workbook,
+                  worksheet,
+                  "Recharge Records"
+                );
+                const xlsData = XLSX.write(workbook, {
+                  bookType: "xlsx",
+                  type: "array",
+                });
+                saveAs(
+                  new Blob([xlsData], { type: "application/octet-stream" }),
+                  "RechargeRecords.xlsx"
+                );
+
+                setIsExporting(false);
+                setExportDialogOpen(false);
+              }}
+              disabled={!exportMonth || isExporting}
+            >
+              Export Excel
+            </Button>
           </Box>
         </DialogActions>
       </Dialog>

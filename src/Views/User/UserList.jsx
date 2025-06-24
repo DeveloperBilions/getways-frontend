@@ -53,6 +53,7 @@ import AddUser from "../../Assets/icons/AddUser.svg";
 import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
 import Snackbar from "@mui/material/Snackbar";
 import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
+import { debounce } from "lodash";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -714,11 +715,19 @@ export const UserList = (props) => {
   }, [identity]);
 
   useEffect(() => {
-    setFilters({ searchBy: "username" }, {}); // Clear filters when the component mounts
+    setFilters({ searchBy: "username" }, {});
     setSort({ field: "createdAt", order: "DESC" });
-    setTimeout(() => {
+
+    const debouncedRefresh = debounce(() => {
       refresh();
-    }, 100); // delay to let filters stabilize
+    }, 1000);
+
+    debouncedRefresh();
+
+    // Cleanup to avoid memory leaks
+    return () => {
+      debouncedRefresh.cancel();
+    };
   }, []);
 
   // useEffect(() => {
