@@ -78,18 +78,28 @@ const PayModal = ({ open, onClose, userId }) => {
           disabled={loading}
         />
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="secondary" disabled={loading}>
+      <DialogActions sx={{ px: 5, py: 2 }} className="custom-modal-footer">
+        <Box
+          className="d-flex w-100 justify-content-between"
+          sx={{
+            flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+            alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+            gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+            marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+            width: "100% !important", // Ensure the container takes full width
+            paddingRight: { xs: 0, sm: 1 },
+          }}
+        >
+        <Button onClick={onClose} className="custom-button cancel" disabled={loading}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit}
-          color="primary"
-          variant="contained"
+          className="custom-button confirm"
           disabled={loading}
         >
           {loading ? "Processing..." : "Submit"}
-        </Button>
+        </Button></Box>
       </DialogActions>
 
       {/* Success Message Snackbar */}
@@ -102,7 +112,7 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
   const redeemServiceFeePercent = 3;
-  const [redeemFeeEnabled, setRedeemFeeEnabled] = useState(true);
+  const [redeemFeeEnabled, setRedeemFeeEnabled] = useState(false);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false); // State for history modal
   const [conversionFeePercent, setConversionFeePercent] = useState(10); // default 10%
@@ -168,10 +178,17 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   const redeemServiceFee = totalRedeemServiceFee;
   const totalAgentTicketPaid =
     totalRechargeAmount -
+    drawerAgentResults-
     totalRedeemAmount -
-    conversionFee -
-    (redeemFeeEnabled ? redeemServiceFee : 0) -
-    drawerAgentResults;
+    conversionFee 
+    ;
+
+    const totalTicketAmount =
+    totalRechargeAmount -
+    totalRedeemAmount -
+    conversionFee  + (redeemFeeEnabled ? redeemServiceFee : 0)
+    ;
+    const toBePaidAmount = totalTicketAmount - drawerAgentResults;
 
   return (
     <>
@@ -224,33 +241,52 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
               label="Include Redeem Service Fee in Ticket Balance"
             />
             <Typography>
+              <strong>Total Agent Ticket Amount: </strong>{" "}
+              {totalTicketAmount.toFixed(2)}
+            </Typography>
+            <Typography>
               <strong>Total Agent Ticket Paid:</strong>{" "}
               {drawerAgentResults.toFixed(2)}
             </Typography>
+            
             <Typography>
               <strong>Total Agent Ticket To be Paid:</strong>{" "}
-              {totalAgentTicketPaid.toFixed(2)}
+              { (totalTicketAmount.toFixed(2) - drawerAgentResults.toFixed(2) ).toFixed(2)}
             </Typography>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ padding: 2 ,width:"100%"}}>
+        <DialogActions sx={{ px: 3, py: 2 }} className="custom-modal-footer">
+        <Box
+          className="d-flex w-100 justify-content-between"
+          sx={{
+            flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+            alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+            gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+            marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+            width: "100% !important", // Ensure the container takes full width
+            paddingRight: { xs: 0, sm: 1 },
+          }}
+        >
+
           <Button
             onClick={() => setShowHistoryModal(true)}
-            color="info"
-            variant="outlined"
-            sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
+            className="custom-button cancel"
           >
             View History
           </Button>
           <Button
-                    sx={{ width: "50%", paddingBottom: "10px", paddingTop: "10px" }}
-
+            className="custom-button confirm"
             onClick={() => setPayModalOpen(true)}
-            color="primary"
-            variant="contained"
+              disabled={toBePaidAmount <= 0} 
+              sx={{"&.Mui-disabled": {
+                backgroundColor: "#B0B0B0", // Light gray background
+                color: "#F0F0F0",            // Faded text
+                cursor: "not-allowed",
+              }}}
           >
             Pay
           </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 
