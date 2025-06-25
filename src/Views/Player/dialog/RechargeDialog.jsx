@@ -48,6 +48,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [autoSubmitted, setAutoSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
   const isMountedRef = useRef(false);
 
   const resetFields = () => {
@@ -65,6 +66,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         const wallet = await walletQuery.first();
         if (wallet) {
           setWalletBalance(wallet.get("balance") || 0);
+          setBalanceLoaded(true); // ✅ mark as loaded
+        } else {
+          setWalletBalance(0);
+          setBalanceLoaded(true);
         }
       } catch (error) {
         console.error("Error fetching wallet balance:", error);
@@ -94,6 +99,8 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     checkRechargeAccess();
   }, [identity]);
   useEffect(() => {
+    if (!open || !identity || !balanceLoaded || autoSubmitted) return;
+
     const allConditionsSatisfied = () => {
       const isAmountValid = parseFloat(rechargeAmount) >= redeemFees;
       const isWalletEnough =
@@ -168,6 +175,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     rechargeDisabled,
     paymentSource,
     autoSubmitted,
+    balanceLoaded
   ]);
 
   const handleSubmit = async (event) => {
@@ -411,7 +419,9 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
               existingTxn.set("transactionIdFromStripe", clickId);
               existingTxn.set("transactionDate", transactionDate);
               await existingTxn.save(null, { useMasterKey: true });
-              const parentUserId = await getParentUserId(existingTxn.get("userId"));
+              const parentUserId = await getParentUserId(
+                existingTxn.get("userId")
+              );
               await updatePotBalance(
                 parentUserId,
                 existingTxn.get("transactionAmount"),
@@ -523,13 +533,14 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
                 </ModalHeader>
 
                 <ModalBody>
-                  {errorMessage ? (
+                  {balanceLoaded && errorMessage ? (
                     <Alert severity="error">{errorMessage}</Alert>
                   ) : (
                     <Box className="text-center text-secondary mt-2">
                       Processing your recharge...
                     </Box>
                   )}
+
                   {rechargeDisabled && paymentSource === "stripe" && (
                     <Alert severity="warning" sx={{ my: 2 }}>
                       Recharges are not available at this time. Please try again

@@ -241,6 +241,7 @@ export const PlayerList = () => {
 
   const handleRechargeRefresh = () => {
     rechargeData();
+    WalletService()
   };
   const handleRedeemRefresh = () => {
     redeemData();

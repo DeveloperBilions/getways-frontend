@@ -59,6 +59,8 @@ import { CircularProgress } from "@mui/material";
 import PayArcHostedFields from "./PayArcHostedFields";
 import { useNavigate } from "react-router-dom";
 import { getAgentTierDetails } from "../../Utils/tier";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
 // const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
@@ -1580,189 +1582,224 @@ const Recharge = ({
             }} >Payarc</Button> */}
 
               {/* <PayArcHostedFields  rechargeAmount={rechargeAmount}/> */}
-              {paymentOptions
-                .filter((option) => {
-                  if (option.id === "quick-debit" && !showCoinbase)
-                    return false;
-                  if (option.id === "instant" && !showWert) return false;
-                  if (option.id === "crypto" && !showLink) return false;
-                  if (option.id === "payarc" && (showStripe || !showPayarc))
-                    return false;
-                  if (option.id === "stripe" && !showStripe) return false;
-                  return true;
-                })
-                .map((option) => (
-                  <Card
-                    key={option.id}
-                    sx={{
-                      borderRadius: 2,
-                      border: "1px solid #E2E8F0",
-                      boxShadow: "none",
-                      transition: "all 0.2s ease",
-                      cursor: "pointer",
-                      "&:hover": option.disabled
-                        ? ""
-                        : {
-                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                            bgcolor: option.hoverColor,
-                          },
-                      borderLeft: `4px solid ${option.color}`,
-                      bgcolor: option.disabled ? "#E7E7E7" : "",
-                    }}
-                    onMouseEnter={() => setHoveredOption(option.id)}
-                    onMouseLeave={() => setHoveredOption(null)}
-                    onClick={!option.disabled ? option.onClick : undefined}
-                  >
-                    <CardContent sx={{ p: "16px !important" }}>
-                      <Box
+              {paymentSource === "wallet"
+                ? !identity?.isBlackListed &&
+                  !rechargeDisabled && (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      sx={{
+                        height: "52px",
+                        borderRadius: "4px",
+                        backgroundColor: "#6C63FF",
+                        color: "#FFFFFF",
+                        textTransform: "none",
+                        fontWeight: 500,
+                        fontSize: "18px",
+                        ":hover": {
+                          backgroundColor: "#594EE2",
+                        },
+                        mb: 2,
+                      }}
+                      onClick={() => {
+                        setPaymentSource("wallet");
+                        setRechargeDialogOpen(true);
+                      }}
+                    >
+                      <AccountBalanceWalletOutlinedIcon
+                        sx={{ color: "white", mr: 1 }}
+                      />
+                      Wallet Recharge
+                      <ArrowForwardIcon style={{ marginLeft: 10 }} />
+                    </Button>
+                  )
+                : paymentOptions
+                    .filter((option) => {
+                      if (option.id === "quick-debit" && !showCoinbase)
+                        return false;
+                      if (option.id === "instant" && !showWert) return false;
+                      if (option.id === "crypto" && !showLink) return false;
+                      if (option.id === "payarc" && (showStripe || !showPayarc))
+                        return false;
+                      if (option.id === "stripe" && !showStripe) return false;
+                      return true;
+                    })
+                    .map((option) => (
+                      <Card
+                        key={option.id}
                         sx={{
-                          display: "flex",
-                          // flexDirection: {xs: "column", md: "row"},
-                          alignItems: "center",
-                          justifyContent: "space-between",
+                          borderRadius: 2,
+                          border: "1px solid #E2E8F0",
+                          boxShadow: "none",
+                          transition: "all 0.2s ease",
+                          cursor: "pointer",
+                          "&:hover": option.disabled
+                            ? ""
+                            : {
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                bgcolor: option.hoverColor,
+                              },
+                          borderLeft: `4px solid ${option.color}`,
+                          bgcolor: option.disabled ? "#E7E7E7" : "",
                         }}
+                        onMouseEnter={() => setHoveredOption(option.id)}
+                        onMouseLeave={() => setHoveredOption(null)}
+                        onClick={!option.disabled ? option.onClick : undefined}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                          }}
-                        >
+                        <CardContent sx={{ p: "16px !important" }}>
                           <Box
                             sx={{
-                              width: 40,
-                              height: 40,
                               display: "flex",
+                              // flexDirection: {xs: "column", md: "row"},
                               alignItems: "center",
-                              justifyContent: "center",
-                              mr: 1,
-                              fontSize: "24px",
+                              justifyContent: "space-between",
                             }}
                           >
-                            {option.icon}
-                          </Box>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 1,
-                            }}
-                          >
-                            <Box>
-                              <Typography
-                                sx={{ fontWeight: 500, fontSize: "16px" }}
-                              >
-                                {option.title}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontWeight: 400,
-                                  fontSize: "14px",
-                                  color: "#4B5563",
-                                }}
-                              >
-                                {option.description}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color={option.subtextColor || "text.secondary"}
-                                sx={{
-                                  fontWeight: 500,
-                                  fontSize: "14px",
-                                }}
-                              >
-                                {option.subtext}
-                              </Typography>
-                            </Box>
-                            {option.paymentIcons && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
                               <Box
                                 sx={{
-                                  display: { xs: "flex", md: "none" },
-                                  // flexDirection: { md: "row", xs: "column" },
+                                  width: 40,
+                                  height: 40,
+                                  display: "flex",
                                   alignItems: "center",
-                                  gap: 2,
+                                  justifyContent: "center",
+                                  mr: 1,
+                                  fontSize: "24px",
                                 }}
                               >
-                                {option.paymentIcons.map((icon, index) => (
-                                  <Box
-                                    key={index}
+                                {option.icon}
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 1,
+                                }}
+                              >
+                                <Box>
+                                  <Typography
+                                    sx={{ fontWeight: 500, fontSize: "16px" }}
+                                  >
+                                    {option.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
                                     sx={{
-                                      mr: 1,
-                                      color: "text.secondary",
-                                      fontWeight: "bold",
+                                      fontWeight: 400,
+                                      fontSize: "14px",
+                                      color: "#4B5563",
+                                    }}
+                                  >
+                                    {option.description}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    color={
+                                      option.subtextColor || "text.secondary"
+                                    }
+                                    sx={{
+                                      fontWeight: 500,
                                       fontSize: "14px",
                                     }}
                                   >
-                                    <img
-                                      src={icon}
-                                      alt={`Payment Icon ${index}`}
-                                      style={{
-                                        width: "100%",
-                                        padding:
-                                          icon === visa
-                                            ? "8px 12px"
-                                            : undefined,
-                                        border:
-                                          icon === visa
-                                            ? "1px solid #E7E7E7"
-                                            : undefined,
-                                        borderRadius:
-                                          icon === visa ? "4px" : undefined,
-                                      }}
-                                    />
+                                    {option.subtext}
+                                  </Typography>
+                                </Box>
+                                {option.paymentIcons && (
+                                  <Box
+                                    sx={{
+                                      display: { xs: "flex", md: "none" },
+                                      // flexDirection: { md: "row", xs: "column" },
+                                      alignItems: "center",
+                                      gap: 2,
+                                    }}
+                                  >
+                                    {option.paymentIcons.map((icon, index) => (
+                                      <Box
+                                        key={index}
+                                        sx={{
+                                          mr: 1,
+                                          color: "text.secondary",
+                                          fontWeight: "bold",
+                                          fontSize: "14px",
+                                        }}
+                                      >
+                                        <img
+                                          src={icon}
+                                          alt={`Payment Icon ${index}`}
+                                          style={{
+                                            width: "100%",
+                                            padding:
+                                              icon === visa
+                                                ? "8px 12px"
+                                                : undefined,
+                                            border:
+                                              icon === visa
+                                                ? "1px solid #E7E7E7"
+                                                : undefined,
+                                            borderRadius:
+                                              icon === visa ? "4px" : undefined,
+                                          }}
+                                        />
+                                      </Box>
+                                    ))}
                                   </Box>
-                                ))}
+                                )}
                               </Box>
-                            )}
-                          </Box>
-                        </Box>
+                            </Box>
 
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          {option.paymentIcons && (
-                            <Box
-                              sx={{
-                                display: { xs: "none", md: "flex" },
-                                // flexDirection: { md: "row", xs: "column" },
-                                alignItems: "center",
-                                gap: { xs: 1, md: 0 },
-                              }}
-                            >
-                              {option.paymentIcons.map((icon, index) => (
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {option.paymentIcons && (
                                 <Box
-                                  key={index}
                                   sx={{
-                                    mr: 2,
-                                    color: "text.secondary",
-                                    fontWeight: "bold",
-                                    fontSize: "14px",
+                                    display: { xs: "none", md: "flex" },
+                                    // flexDirection: { md: "row", xs: "column" },
+                                    alignItems: "center",
+                                    gap: { xs: 1, md: 0 },
                                   }}
                                 >
-                                  <img
-                                    src={icon}
-                                    alt={`Payment Icon ${index}`}
-                                    style={{
-                                      width: "100%",
-                                      padding:
-                                        icon === visa ? "8px 12px" : undefined,
-                                      border:
-                                        icon === visa
-                                          ? "1px solid #E7E7E7"
-                                          : undefined,
-                                      borderRadius:
-                                        icon === visa ? "4px" : undefined,
-                                    }}
-                                  />
+                                  {option.paymentIcons.map((icon, index) => (
+                                    <Box
+                                      key={index}
+                                      sx={{
+                                        mr: 2,
+                                        color: "text.secondary",
+                                        fontWeight: "bold",
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      <img
+                                        src={icon}
+                                        alt={`Payment Icon ${index}`}
+                                        style={{
+                                          width: "100%",
+                                          padding:
+                                            icon === visa
+                                              ? "8px 12px"
+                                              : undefined,
+                                          border:
+                                            icon === visa
+                                              ? "1px solid #E7E7E7"
+                                              : undefined,
+                                          borderRadius:
+                                            icon === visa ? "4px" : undefined,
+                                        }}
+                                      />
+                                    </Box>
+                                  ))}
                                 </Box>
-                              ))}
+                              )}
+                              <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
                             </Box>
-                          )}
-                          <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
             </Stack>
           )}
         </Box>
