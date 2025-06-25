@@ -1619,7 +1619,7 @@ const Recharge = ({
                         return false;
                       if (option.id === "instant" && !showWert) return false;
                       if (option.id === "crypto" && !showLink) return false;
-                      if (option.id === "payarc" && (showStripe || !showPayarc))
+                      if (option.id === "payarc" && !showPayarc)
                         return false;
                       if (option.id === "stripe" && !showStripe) return false;
                       return true;

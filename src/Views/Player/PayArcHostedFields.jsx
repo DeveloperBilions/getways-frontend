@@ -4,6 +4,8 @@ import { Parse } from "parse";
 import Gpay from "../../Assets/icons/google-pay.png";
 import applep from "../../Assets/icons/apple-pay.png";
 import { CircularProgress } from "@mui/material";
+import { Alert } from "@mui/material"; // Make sure this is imported
+
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const PayArcCheckout = ({ rechargeAmount }) => {
@@ -11,7 +13,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
   const { identity } = useGetIdentity();
   const [isLoading, setIsLoading] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
-
+  const [showError, setshowError] = useState("")
   const placeholderRef = useRef();
   const resultContentRef = useRef();
 
@@ -252,6 +254,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
     FIELDS_CONTAINER: "card-token-container",
     TOKEN_CALLBACK: {
       success: async (obj) => {
+        try {
         const response = JSON.parse(obj.response);
         const token = response.token;
         const el = document.getElementById("card-token");
@@ -266,8 +269,10 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             currency: "usd",
             description: `Recharge by ${identity?.username || "User"}`,
           });
+          console.log('Charge response:', chargeResponse);
 
-          if (chargeResponse && chargeResponse.status === "succeeded") {
+          const status = chargeResponse?.status || chargeResponse?.data?.status;
+          if (status && status.toLowerCase() === 'succeeded') {
             const user = await Parse.User.current()?.fetch();
             const identity = user?.toJSON();
 
@@ -293,22 +298,48 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             await transaction.save(null, { useMasterKey: true });
             alert("Recharge completed and transaction saved successfully!");
           } else {
-            alert("Charge failed or declined by PayArc");
+            alert('Charge status not succeeded:', status);
+            console.warn('Charge status not succeeded:', status);
+            setshowError('Charge received but not confirmed as successful. Please verify manually.');
           }
-        } catch (error) {
-          console.error("Charge or save failed:", error);
-          alert("Something went wrong during payment or saving transaction.");
-        } finally {
-          setIsLoading(false);
-        }
+        }  catch (chargeErr) {
+          console.error('Charge or backend error:', chargeErr);
+          setshowError('Something went wrong during payment processing. Please try again.');
+      }
+      }
+      catch (parseErr) {
+                console.error('Token parsing failed:', parseErr);
+                setshowError(`Tokenization failed: ${parseErr.message}`);
+            } finally {
+                setIsLoading(false); // Ensure this is defined in your outer scope
+            }
       },
       error: (obj) => {
-        setIsLoading(false); // ✅ STOP loading
-        alert(`ERROR: ${obj.status} - ${obj.responseText}`);
-        if (![422, 409].includes(obj.status)) {
-          alert("Payment gateway error. Please try again.");
+        setIsLoading(false);
+
+        console.error('Tokenization error:', obj);
+
+        let message = `An error occurred: ${obj.status} - ${obj.statusText || obj.responseText}`;
+
+        switch (obj.status) {
+            case 422:
+                message = 'Invalid card details. Please check and try again.';
+                break;
+            case 409:
+                message = 'Invalid card details. Please check and try again.';
+                break;
+            case 401:
+                message = 'Unauthorized. Please check your credentials.';
+                break;
+            case 500:
+                message = 'Server error. Please try again shortly.';
+                break;
+            default:
+                message = `Unexpected error (${obj.status}). Please try again.`;
         }
-      },
+
+        setshowError(message);
+    },
       paymentWindowClosed: () => {
         console.log("Payment window closed");
       },
@@ -390,6 +421,11 @@ const PayArcCheckout = ({ rechargeAmount }) => {
         id="payarc-styles"
         dangerouslySetInnerHTML={{ __html: payarcStyles }}
       />
+      {showError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {showError}
+            </Alert>
+          )}
       <div
         style={{ display: "flex", justifyContent: "center", padding: "20px" }}
       >
@@ -401,6 +437,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
           {clientId ? "" : "Waiting for Client ID..."}
         </div>
 
+        
         <div
           ref={resultContentRef}
           className="result-content"
