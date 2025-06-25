@@ -362,7 +362,7 @@ const RechargeWidgetPopup = ({
   </IconButton> */}
         </Box>
 
-        <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
+        <Box sx={{ p: 2, maxHeight: "100vh", overflowY: "auto" }}>
           {!actionType ? (
             <Stack spacing={2} alignItems="center" py={3}>
               <Typography variant="h6">What would you like to do?</Typography>
