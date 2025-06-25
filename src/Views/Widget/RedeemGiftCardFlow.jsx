@@ -145,7 +145,7 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
               ) : (
                 <Box
                   style={{
-                    maxHeight: "300px",
+                    maxHeight: "90vh",
                     overflowY: "auto",
                     overflowX: "hidden",
                     width: "100%",
