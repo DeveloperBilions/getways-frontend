@@ -2462,12 +2462,11 @@ export const dataProvider = {
           throw new Error("Insufficient wallet balance.");
         }
 
-        // const finalAmount = walletBalance - amountToDeduct;
+        const finalAmount = walletBalance - amountToDeduct;
 
         // // Update and save the new balance
-        // wallet.set("balance", finalAmount);
-        // await wallet.save(null, { useMasterKey: true });
-        // console.log(wallet);
+        wallet.set("balance", finalAmount);
+        await wallet.save(null, { useMasterKey: true });
       } else if (type === "recharge") {
         // Credit amount to user's balance (for non-wallet recharge)
         finalAmount += parseFloat(transactionAmount);
@@ -2505,7 +2504,7 @@ export const dataProvider = {
         const parentUserId = await getParentUserId(id);
         await updatePotBalance(
           parentUserId,
-          Math.floor(parseFloat(transactionAmount) * 100) / 100 / 100,
+          parseFloat(transactionAmount / 100),
           "recharge"
         );
       }

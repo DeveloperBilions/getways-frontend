@@ -24,7 +24,11 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
-import { checkActiveRechargeLimit, isPayarcAllowed, isRechargeEnabledForAgent } from "../../Utils/utils";
+import {
+  checkActiveRechargeLimit,
+  isPayarcAllowed,
+  isRechargeEnabledForAgent,
+} from "../../Utils/utils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -54,6 +58,8 @@ import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
 import { CircularProgress } from "@mui/material";
 import PayArcHostedFields from "./PayArcHostedFields";
 import { useNavigate } from "react-router-dom";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
 // const projectId = "9535b482-f3b2-4716-98e0-ad0ec3fe249e";
@@ -65,7 +71,12 @@ const projectId = "64b19e33-9599-4a15-b3de-4728b5e8ead6";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent }) => {
+const Recharge = ({
+  data,
+  totalData,
+  handleRechargeRefresh,
+  RechargeLimitOfAgent,
+}) => {
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -96,8 +107,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
   const [showWert, setShowWert] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [showPayarc, setshowPayarc] = useState(false);
-  const [showStripe, setshowStripe] = useState(false)
-  const [payarcLimit,setPayArcLimit] = useState(false)
+  const [showStripe, setshowStripe] = useState(false);
+  const [payarcLimit, setPayArcLimit] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -112,10 +123,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
         setPayArcLimit(false);
       }
     };
-  
+
     checkPayarcLimit();
   }, []);
-  
+
   useEffect(() => {
     const checkRechargeAccess = async () => {
       const disabled = !(await isRechargeEnabledForAgent(
@@ -174,8 +185,8 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
-      setshowPayarc(isPayarcAllowed)
-      setshowStripe(isStripeAllowed)
+      setshowPayarc(isPayarcAllowed);
+      setshowStripe(isStripeAllowed);
 
       setRechargeMethodLoading(false);
     };
@@ -376,35 +387,39 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       title: "Pay By Card",
       description: "Secure payment • No KYC needed",
       icon: <CreditCardIcon sx={{ color: "#32325D", fontSize: 24 }} />,
-      color: "#32325D",         // Stripe brand dark blue
-      hoverColor: "#F5F7FA",    // Soft grey tint            
+      color: "#32325D", // Stripe brand dark blue
+      hoverColor: "#F5F7FA", // Soft grey tint
       paymentIcons: [Logo1, visa, mastercard],
       onClick: debounce(async () => {
         try {
           setCheckingRechargeLimit(true);
-    
+
           // Validate minimum recharge
           if (rechargeAmount < RechargeLimitOfAgent) {
-            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
             return;
           }
-    
+
           // Check limit
           const transactionCheck = await checkActiveRechargeLimit(
             identity?.userParentId,
             rechargeAmount
           );
-    
+
           if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
             return;
           }
-    
+
           setRechargeError(""); // Clear old errors
-    
+
           // Everything good → navigate with rechargeAmount
           navigate("/stripe-payment", {
-            state: { rechargeAmount , remark}
+            state: { rechargeAmount, remark },
           });
         } catch (err) {
           console.error("Stripe error:", err);
@@ -413,9 +428,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
           setCheckingRechargeLimit(false);
         }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit
-    }
-    ,
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+    },
     payarcLimit && {
       id: "payarc",
       title: "Pay By card",
@@ -425,32 +440,34 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
-        navigate("/payment-checkout",{state:{rechargeAmount:rechargeAmount}})
+        navigate("/payment-checkout", {
+          state: { rechargeAmount: rechargeAmount },
+        });
         // try {
         //   setCheckingRechargeLimit(true);
-    
+
         //   if (rechargeAmount < RechargeLimitOfAgent) {
         //     setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
         //     return;
         //   }
-    
+
         //   const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
         //   if (!transactionCheck.success) {
         //     setRechargeError(transactionCheck.message || "Recharge Limit Reached");
         //     return;
         //   }
-    
+
         //   setRechargeError("");
-    
+
         //   const payarcResponse = await Parse.Cloud.run("createPayarcOrder", {
         //     amount: rechargeAmount * 100, // assuming Payarc expects cents
         //     surcharge_percent: 0
         //   });
-    
+
         //   const TransactionDetails = Parse.Object.extend("TransactionRecords");
         //   const transaction = new TransactionDetails();
         //   const user = await Parse.User.current()?.fetch();
-    
+
         //   transaction.set("type", "recharge");
         //   transaction.set("gameId", "786");
         //   transaction.set("username", identity?.username || "");
@@ -465,9 +482,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
         //   transaction.set("transactionIdFromStripe", payarcResponse?.id);
         //   transaction.set("referralLink", payarcResponse?.payment_form_url || "");
         //   transaction.set("walletAddr", identity?.walletAddr || "");
-    
+
         //   await transaction.save(null, { useMasterKey: true });
-    
+
         //   const popup = window.open(payarcResponse?.payment_form_url, "_blank");
         //   setStoredBuyUrl(payarcResponse?.payment_form_url); // Store for retry
 
@@ -482,8 +499,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
         //   setCheckingRechargeLimit(false);
         // }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit
-    },   
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+    },
     {
       id: "quick-debit",
       title: "Quick Debit Recharge",
@@ -497,7 +515,9 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
         try {
           setCheckingRechargeLimit(true);
           if (rechargeAmount < RechargeLimitOfAgent) {
-            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
             return;
           }
           const transactionCheck = await checkActiveRechargeLimit(
@@ -506,13 +526,14 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
           );
           if (!transactionCheck.success) {
             setCheckingRechargeLimit(false);
-            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
             return;
+          } else {
+            setCheckingRechargeLimit(false);
           }
-          else{
-            setCheckingRechargeLimit(false); 
-          }
-        
+
           setRechargeError(""); // Clear any previous error
           const testPopup = window.open("", "_blank", "width=1,height=1");
           if (
@@ -609,7 +630,11 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
           setWalletLoading(false);
         }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading || checkingRechargeLimit,
+      disabled:
+        identity?.isBlackListed ||
+        rechargeDisabled ||
+        walletLoading ||
+        checkingRechargeLimit,
     },
     {
       id: "instant",
@@ -644,22 +669,26 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
       onClick: debounce(async () => {
         setCheckingRechargeLimit(true);
         if (rechargeAmount < RechargeLimitOfAgent) {
-          setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+          setRechargeError(
+            `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+          );
           return;
         }
         const transactionCheck = await checkActiveRechargeLimit(
           identity?.userParentId,
           rechargeAmount
         );
-  
+
         if (!transactionCheck.success) {
           setCheckingRechargeLimit(false);
-          setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+          setRechargeError(
+            transactionCheck.message || "Recharge Limit Reached"
+          );
           return;
-        }else{
+        } else {
           setCheckingRechargeLimit(false);
         }
-        
+
         setRechargeError(""); // Clear any previous error
         if (walletLoading) return; // prevent spamming
 
@@ -692,8 +721,12 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
 
         setRechargeLinkDialogOpen(true);
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || walletLoading || checkingRechargeLimit,
-    } 
+      disabled:
+        identity?.isBlackListed ||
+        rechargeDisabled ||
+        walletLoading ||
+        checkingRechargeLimit,
+    },
     // {
     //   id: "bank",
     //   title: "Bank Transfer",
@@ -1071,10 +1104,10 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
             </Alert>
           )}
           {rechargeError && (
-  <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
-    {rechargeError}
-  </Alert>
-)}
+            <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
+              {rechargeError}
+            </Alert>
+          )}
 
           {/* {walletLoading ? (
   <CircularProgress />
@@ -1500,198 +1533,237 @@ const Recharge = ({ data, totalData, handleRechargeRefresh,RechargeLimitOfAgent 
           </Button>} */}
           {/* </>
 )} */}
-{rechargeMethodLoading ? 
- <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
- <CircularProgress size={32} />
-</Box>
-:
-          <Stack spacing={2}>
-            {/* <Button className="btn btn-theme-outline" onClick={()=>{
+          {rechargeMethodLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {/* <Button className="btn btn-theme-outline" onClick={()=>{
               navigate("/checkout",{state:{rechargeAmount}})
             }} >Payarc</Button> */}
-            
-            {/* <PayArcHostedFields  rechargeAmount={rechargeAmount}/> */}
-            {paymentOptions
-              .filter((option) => {
-                if (option.id === "quick-debit" && !showCoinbase) return false;
-                if (option.id === "instant" && !showWert) return false;
-                if (option.id === "crypto" && !showLink) return false;
-                if (option.id === "payarc" && (showStripe || !showPayarc)) return false;
-                if (option.id === "stripe" && !showStripe) return false;
-                return true;
-              })
-              .map((option) => (
-                <Card
-                  key={option.id}
-                  sx={{
-                    borderRadius: 2,
-                    border: "1px solid #E2E8F0",
-                    boxShadow: "none",
-                    transition: "all 0.2s ease",
-                    cursor: "pointer",
-                    "&:hover": option.disabled
-                      ? ""
-                      : {
-                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                          bgcolor: option.hoverColor,
-                        },
-                    borderLeft: `4px solid ${option.color}`,
-                    bgcolor: option.disabled ? "#E7E7E7" : "",
-                  }}
-                  onMouseEnter={() => setHoveredOption(option.id)}
-                  onMouseLeave={() => setHoveredOption(null)}
-                  onClick={!option.disabled ? option.onClick : undefined}
-                >
-                  <CardContent sx={{ p: "16px !important" }}>
-                    <Box
+
+              {/* <PayArcHostedFields  rechargeAmount={rechargeAmount}/> */}
+              {paymentSource === "wallet"
+                ? !identity?.isBlackListed &&
+                  !rechargeDisabled && (
+                    <Button
+                      variant="contained"
+                      fullWidth
                       sx={{
-                        display: "flex",
-                        // flexDirection: {xs: "column", md: "row"},
-                        alignItems: "center",
-                        justifyContent: "space-between",
+                        height: "52px",
+                        borderRadius: "4px",
+                        backgroundColor: "#6C63FF",
+                        color: "#FFFFFF",
+                        textTransform: "none",
+                        fontWeight: 500,
+                        fontSize: "18px",
+                        ":hover": {
+                          backgroundColor: "#594EE2",
+                        },
+                        mb: 2,
+                      }}
+                      onClick={() => {
+                        setPaymentSource("wallet");
+                        setRechargeDialogOpen(true);
                       }}
                     >
-                      <Box
+                      <AccountBalanceWalletOutlinedIcon
+                        sx={{ color: "white", mr: 1 }}
+                      />
+                      Wallet Recharge
+                      <ArrowForwardIcon style={{ marginLeft: 10 }} />
+                    </Button>
+                  )
+                : paymentOptions
+                    .filter((option) => {
+                      if (option.id === "quick-debit" && !showCoinbase)
+                        return false;
+                      if (option.id === "instant" && !showWert) return false;
+                      if (option.id === "crypto" && !showLink) return false;
+                      if (option.id === "payarc" && (showStripe || !showPayarc))
+                        return false;
+                      if (option.id === "stripe" && !showStripe) return false;
+                      return true;
+                    })
+                    .map((option) => (
+                      <Card
+                        key={option.id}
                         sx={{
-                          display: "flex",
-                          alignItems: "center",
+                          borderRadius: 2,
+                          border: "1px solid #E2E8F0",
+                          boxShadow: "none",
+                          transition: "all 0.2s ease",
+                          cursor: "pointer",
+                          "&:hover": option.disabled
+                            ? ""
+                            : {
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                bgcolor: option.hoverColor,
+                              },
+                          borderLeft: `4px solid ${option.color}`,
+                          bgcolor: option.disabled ? "#E7E7E7" : "",
                         }}
+                        onMouseEnter={() => setHoveredOption(option.id)}
+                        onMouseLeave={() => setHoveredOption(null)}
+                        onClick={!option.disabled ? option.onClick : undefined}
                       >
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            mr: 1,
-                            fontSize: "24px",
-                          }}
-                        >
-                          {option.icon}
-                        </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 1,
-                          }}
-                        >
-                          <Box>
-                            <Typography
-                              sx={{ fontWeight: 500, fontSize: "16px" }}
-                            >
-                              {option.title}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: "14px",
-                                color: "#4B5563",
-                              }}
-                            >
-                              {option.description}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              color={option.subtextColor || "text.secondary"}
-                              sx={{
-                                fontWeight: 500,
-                                fontSize: "14px",
-                              }}
-                            >
-                              {option.subtext}
-                            </Typography>
-                          </Box>
-                          {option.paymentIcons && (
-                            <Box
-                              sx={{
-                                display: { xs: "flex", md: "none" },
-                                // flexDirection: { md: "row", xs: "column" },
-                                alignItems: "center",
-                                gap: 2,
-                              }}
-                            >
-                              {option.paymentIcons.map((icon, index) => (
-                                <Box
-                                  key={index}
-                                  sx={{
-                                    mr: 1,
-                                    color: "text.secondary",
-                                    fontWeight: "bold",
-                                    fontSize: "14px",
-                                  }}
-                                >
-                                  <img
-                                    src={icon}
-                                    alt={`Payment Icon ${index}`}
-                                    style={{
-                                      width: "100%",
-                                      padding:
-                                        icon === visa ? "8px 12px" : undefined,
-                                      border:
-                                        icon === visa
-                                          ? "1px solid #E7E7E7"
-                                          : undefined,
-                                      borderRadius:
-                                        icon === visa ? "4px" : undefined,
-                                    }}
-                                  />
-                                </Box>
-                              ))}
-                            </Box>
-                          )}
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {option.paymentIcons && (
+                        <CardContent sx={{ p: "16px !important" }}>
                           <Box
                             sx={{
-                              display: { xs: "none", md: "flex" },
-                              // flexDirection: { md: "row", xs: "column" },
+                              display: "flex",
+                              // flexDirection: {xs: "column", md: "row"},
                               alignItems: "center",
-                              gap: { xs: 1, md: 0 },
+                              justifyContent: "space-between",
                             }}
                           >
-                            {option.paymentIcons.map((icon, index) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
                               <Box
-                                key={index}
                                 sx={{
-                                  mr: 2,
-                                  color: "text.secondary",
-                                  fontWeight: "bold",
-                                  fontSize: "14px",
+                                  width: 40,
+                                  height: 40,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  mr: 1,
+                                  fontSize: "24px",
                                 }}
                               >
-                                <img
-                                  src={icon}
-                                  alt={`Payment Icon ${index}`}
-                                  style={{
-                                    width: "100%",
-                                    padding:
-                                      icon === visa ? "8px 12px" : undefined,
-                                    border:
-                                      icon === visa
-                                        ? "1px solid #E7E7E7"
-                                        : undefined,
-                                    borderRadius:
-                                      icon === visa ? "4px" : undefined,
-                                  }}
-                                />
+                                {option.icon}
                               </Box>
-                            ))}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 1,
+                                }}
+                              >
+                                <Box>
+                                  <Typography
+                                    sx={{ fontWeight: 500, fontSize: "16px" }}
+                                  >
+                                    {option.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontWeight: 400,
+                                      fontSize: "14px",
+                                      color: "#4B5563",
+                                    }}
+                                  >
+                                    {option.description}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    color={
+                                      option.subtextColor || "text.secondary"
+                                    }
+                                    sx={{
+                                      fontWeight: 500,
+                                      fontSize: "14px",
+                                    }}
+                                  >
+                                    {option.subtext}
+                                  </Typography>
+                                </Box>
+                                {option.paymentIcons && (
+                                  <Box
+                                    sx={{
+                                      display: { xs: "flex", md: "none" },
+                                      // flexDirection: { md: "row", xs: "column" },
+                                      alignItems: "center",
+                                      gap: 2,
+                                    }}
+                                  >
+                                    {option.paymentIcons.map((icon, index) => (
+                                      <Box
+                                        key={index}
+                                        sx={{
+                                          mr: 1,
+                                          color: "text.secondary",
+                                          fontWeight: "bold",
+                                          fontSize: "14px",
+                                        }}
+                                      >
+                                        <img
+                                          src={icon}
+                                          alt={`Payment Icon ${index}`}
+                                          style={{
+                                            width: "100%",
+                                            padding:
+                                              icon === visa
+                                                ? "8px 12px"
+                                                : undefined,
+                                            border:
+                                              icon === visa
+                                                ? "1px solid #E7E7E7"
+                                                : undefined,
+                                            borderRadius:
+                                              icon === visa ? "4px" : undefined,
+                                          }}
+                                        />
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {option.paymentIcons && (
+                                <Box
+                                  sx={{
+                                    display: { xs: "none", md: "flex" },
+                                    // flexDirection: { md: "row", xs: "column" },
+                                    alignItems: "center",
+                                    gap: { xs: 1, md: 0 },
+                                  }}
+                                >
+                                  {option.paymentIcons.map((icon, index) => (
+                                    <Box
+                                      key={index}
+                                      sx={{
+                                        mr: 2,
+                                        color: "text.secondary",
+                                        fontWeight: "bold",
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      <img
+                                        src={icon}
+                                        alt={`Payment Icon ${index}`}
+                                        style={{
+                                          width: "100%",
+                                          padding:
+                                            icon === visa
+                                              ? "8px 12px"
+                                              : undefined,
+                                          border:
+                                            icon === visa
+                                              ? "1px solid #E7E7E7"
+                                              : undefined,
+                                          borderRadius:
+                                            icon === visa ? "4px" : undefined,
+                                        }}
+                                      />
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                              <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                            </Box>
                           </Box>
-                        )}
-                        <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-          </Stack>
-}
+                        </CardContent>
+                      </Card>
+                    ))}
+            </Stack>
+          )}
         </Box>
       </Box>
       {totalData > 0 && data.length !== 0 && (
