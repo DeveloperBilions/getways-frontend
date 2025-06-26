@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -35,7 +35,9 @@ import {
   useMediaQuery,
   Typography,
   Alert,
+  InputAdornment,
 } from "@mui/material";
+import { TextField as MuiTextField } from "@mui/material";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
@@ -54,6 +56,7 @@ import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
 import Snackbar from "@mui/material/Snackbar";
 import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
 import { debounce } from "lodash";
+import SearchIcon from "@mui/icons-material/Search";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -431,6 +434,7 @@ export const UserList = (props) => {
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const handleOpenFilterModal = () => {
     setFilterModalOpen(true);
@@ -482,32 +486,6 @@ export const UserList = (props) => {
 
   const searchFields = ["username", "email", "userParentName"];
 
-  const handleSearchByChange = (newSearchBy) => {
-    setSearchBy(newSearchBy);
-    setPrevSearchBy(newSearchBy);
-
-    const currentSearchValue = filterValues[prevSearchBy] || "";
-    const newFilters = {};
-
-    Object.keys(filterValues).forEach((key) => {
-      if (key !== prevSearchBy && !searchFields.includes(key)) {
-        newFilters[key] = filterValues[key];
-      }
-    });
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[newSearchBy] = currentSearchValue;
-    }
-
-    newFilters.searchBy = newSearchBy;
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    setFilters(newFilters, false);
-  };
-
   useEffect(() => {
     const prevFilterValues = prevFilterValuesRef.current;
     const filterValuesChanged =
@@ -538,6 +516,55 @@ export const UserList = (props) => {
     );
   }, [filterValues, searchBy, setFilters]);
 
+  const debouncedSearch = useCallback(
+    debounce((value, searchField) => {
+      setFilters({
+        ...filterValues,
+        [searchField]: value,
+        searchBy: searchField,
+      });
+    }, 1000),
+    [filterValues, setFilters] // Include dependencies
+  );
+
+  // Handle input change - update local state immediately and debounce the filter update
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value); // Update input value immediately for UI responsiveness
+    debouncedSearch(value, searchBy); // Debounce the actual filter update
+  };
+
+  // Update searchValue when searchBy changes or when filters are reset
+  useEffect(() => {
+    setSearchValue(filterValues[searchBy] || "");
+  }, [searchBy, filterValues[searchBy]]);
+
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = searchValue; // Use the current input value
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
+    }
+
+    newFilters.searchBy = newSearchBy;
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    setFilters(newFilters, false);
+  };
+
   const dataFilters = [
     <Box
       key="search-filter"
@@ -550,11 +577,19 @@ export const UserList = (props) => {
       }}
       alwaysOn
     >
-      <SearchInput
-        source={searchBy}
-        alwaysOn
-        resettable
+      <MuiTextField
         placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        variant="outlined"
+        size="small"
+        onChange={handleSearch}
+        value={searchValue}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <SearchIcon style={{ color: "#00000042" }} />
+            </InputAdornment>
+          ),
+        }}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
@@ -562,6 +597,7 @@ export const UserList = (props) => {
           borderRadius: "5px",
           borderColor: "#CFD4DB",
           maxWidth: "280px",
+          backgroundColor: "white",
         }}
       />
       <Button
@@ -689,9 +725,7 @@ export const UserList = (props) => {
               color: "var(--secondary-color)",
               mb: 0.5,
             }} // Full width on small screens
-            disabled={
-              (role === "Agent" && !identity?.allowUserCreation)
-            }
+            disabled={role === "Agent" && !identity?.allowUserCreation}
           >
             <Typography
               sx={{
@@ -715,19 +749,11 @@ export const UserList = (props) => {
   }, [identity]);
 
   useEffect(() => {
-    setFilters({ searchBy: "username" }, {});
+    setFilters({ searchBy: "username" }, {}); // Clear filters when the component mounts
     setSort({ field: "createdAt", order: "DESC" });
-
-    const debouncedRefresh = debounce(() => {
+    setTimeout(() => {
       refresh();
-    }, 1000);
-
-    debouncedRefresh();
-
-    // Cleanup to avoid memory leaks
-    return () => {
-      debouncedRefresh.cancel();
-    };
+    }, 100); // delay to let filters stabilize
   }, []);
 
   // useEffect(() => {
