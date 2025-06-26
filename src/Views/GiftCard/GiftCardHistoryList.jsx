@@ -188,7 +188,7 @@ const GiftCardHistoryList = (props) => {
                   label="Product Name"
                   render={(record) =>
                     record.apiResponse?.productName
-                      ? record.apiResponse.productName
+                      ? record.apiResponse.productName : record.productName ? record.productName
                       : "-"
                   }
                 />

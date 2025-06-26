@@ -149,6 +149,7 @@ const SelectGiftCardDialog = ({
         price: parseFloat(redeemAmount),
         productId: selectedGiftCard.productId,
         productImage:selectedGiftCard?.productImage,
+        productName: selectedGiftCard?.brandName,
         externalUserId: userId,
         externalUserFirstName: fname,
         externalUserLastName: lname,

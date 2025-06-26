@@ -130,7 +130,7 @@ const GiftCardHistory = () => {
                     <TableCell>{card.orderId}</TableCell>
                     <TableCell>{card.productId}</TableCell>
                     <TableCell>{card.price}</TableCell>
-                    <TableCell>{card.apiResponse?.productName}</TableCell>
+                    <TableCell>{card.apiResponse?.productName ? card.apiResponse?.productName :card?.productName}</TableCell>
 
                     <TableCell>
                       {new Date(card.createdAt).toLocaleString()}

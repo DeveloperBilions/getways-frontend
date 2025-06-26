@@ -156,24 +156,39 @@ const GiftCardsDisplay = ({
                   style={{ marginRight: 8 }}
                 />
                 <Typography sx={{ fontSize: 16, fontWeight: 400 }}>
-                  {card.apiResponse?.productName}
+                  {card?.apiResponse?.productName ? card?.apiResponse?.productName : card?.productName}
                 </Typography>
               </Box>
-              <Typography
-                sx={{ fontSize: 12, fontWeight: 400, color: "#808080" }}
-              >
-                Valid until{" "}
-                {new Date(
-                  card.apiResponse?.vouchers[0]?.validityDate
-                ).toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
-              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 400, color: "#808080" 
+            }}>
+  {card?.status === "failed" ? (
+    <span
+    style={{
+      backgroundColor: "#FF4D4F",
+      color: "#fff",
+      padding: "2px 8px",
+      borderRadius: "4px",
+      fontWeight: 600,
+      fontSize: "11px",
+    }}
+  >
+    Failed
+  </span>
+  ) : (
+    <>
+      Valid until{" "}
+      {new Date(card?.apiResponse?.vouchers?.[0]?.validityDate).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })}
+    </>
+  )}
+</Typography>
+
             </Box>
             <Box>
               <Typography
@@ -183,8 +198,8 @@ const GiftCardsDisplay = ({
                   mb: 1,
                 }}
               >
-                {card.apiResponse?.vouchers[0]?.voucherCurrency} &nbsp;
-                {card.price}
+                {card?.apiResponse?.vouchers ? card?.apiResponse?.vouchers[0]?.voucherCurrency  : "USD"} &nbsp;
+                {card?.price}
               </Typography>
             </Box>
           </Box>
@@ -201,18 +216,19 @@ const GiftCardsDisplay = ({
           >
             <Box>
               <Typography sx={{ fontSize: 12, fontWeight: 400 }}>
-                {card.orderId}
+                {card?.orderId}
               </Typography>
             </Box>
             <Box>
               <img
                 src={Copy}
                 alt="Copy"
-                onClick={() => handleCopyCode(card.orderId)}
+                onClick={() => handleCopyCode(card?.orderId)}
                 style={{ cursor: "pointer" }}
               />
             </Box>
           </Box>
+          {card?.status != "failed" && 
           <Box
             sx={{
               display: "flex",
@@ -238,8 +254,8 @@ const GiftCardsDisplay = ({
               Use now
             </Typography>
             <img src={LinkButton} alt="LinkButton" />
-          </Box>
-          {card.apiResponse?.howToUse && (
+          </Box>}
+          {card?.apiResponse?.howToUse && (
             <Box sx={{ mt: 1 }}>
               <Typography
                 sx={{ fontSize: 14 }}
