@@ -13,7 +13,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
   const { identity } = useGetIdentity();
   const [isLoading, setIsLoading] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
-  const [showError, setshowError] = useState("")
+  const [showError, setshowError] = useState("");
   const placeholderRef = useRef();
   const resultContentRef = useRef();
 
@@ -22,7 +22,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
     const loadScript = (src, id) => {
       return new Promise((resolve, reject) => {
         if (document.getElementById(id)) return resolve();
-  
+
         const script = document.createElement("script");
         script.src = src;
         script.id = id;
@@ -32,20 +32,26 @@ const PayArcCheckout = ({ rechargeAmount }) => {
         document.body.appendChild(script);
       });
     };
-  
+
     const loadScripts = async () => {
       try {
-        await loadScript("https://code.jquery.com/jquery-3.7.1.min.js", "jquery");
-        await loadScript("https://portal.payarc.net/js/iframeprocess.js", "payarc-iframe");
+        await loadScript(
+          "https://code.jquery.com/jquery-3.7.1.min.js",
+          "jquery"
+        );
+        await loadScript(
+          "https://portal.payarc.net/js/iframeprocess.js",
+          "payarc-iframe"
+        );
         setScriptsLoaded(true); // ✅ Mark scripts as ready
       } catch (error) {
         console.error("Failed to load scripts", error);
       }
     };
-  
+
     loadScripts();
   }, []);
-  
+
   const payarcStyles = `
 
 .checkout {
@@ -255,24 +261,64 @@ const PayArcCheckout = ({ rechargeAmount }) => {
     TOKEN_CALLBACK: {
       success: async (obj) => {
         try {
-        const response = JSON.parse(obj.response);
-        const token = response.token;
-        const el = document.getElementById("card-token");
-        if (el) el.textContent = token;
+          const response = JSON.parse(obj.response);
+          const token = response.token;
+          const el = document.getElementById("card-token");
+          if (el) el.textContent = token;
 
-        console.log("Tokenization successful!", token);
+          console.log("Tokenization successful!", token);
 
-        try {
-          const chargeResponse = await Parse.Cloud.run("createPayarcCharge", {
-            token_id: token,
-            amount: rechargeAmount * 100,
-            currency: "usd",
-            description: `Recharge by ${identity?.username || "User"}`,
-          });
-          console.log('Charge response:', chargeResponse);
+          try {
+            const chargeResponse = await Parse.Cloud.run("createPayarcCharge", {
+              token_id: token,
+              amount: rechargeAmount * 100,
+              currency: "usd",
+              description: `CM.US`,
+            });
+            console.log("Charge response:", chargeResponse);
 
-          const status = chargeResponse?.status || chargeResponse?.data?.status;
-          if (status && status.toLowerCase() === 'succeeded') {
+            const status =
+              chargeResponse?.status || chargeResponse?.data?.status;
+            if (status && status.toLowerCase() === "submitted_for_settlement") {
+              const user = await Parse.User.current()?.fetch();
+              const identity = user?.toJSON();
+
+              const TransactionDetails =
+                Parse.Object.extend("TransactionRecords");
+              const transaction = new TransactionDetails();
+
+              transaction.set("type", "recharge");
+              transaction.set("gameId", "786");
+              transaction.set("username", identity?.username || "");
+              transaction.set("userId", identity?.objectId);
+              transaction.set("transactionDate", new Date());
+              transaction.set("transactionAmount", rechargeAmount);
+              transaction.set("remark", "Payarc Recharge");
+              transaction.set("useWallet", false);
+              transaction.set("userParentId", user?.get("userParentId") || "");
+              transaction.set("status", 2); // Success
+              transaction.set("portal", "Payarc");
+              transaction.set(
+                "transactionIdFromStripe",
+                `${token}-${chargeResponse?.data?.id ?? "unknown"}`
+              );
+              transaction.set("referralLink", response?.payment_form_url || "");
+
+              await transaction.save(null, { useMasterKey: true });
+              alert("Recharge completed and transaction saved successfully!");
+            } else {
+              alert("Charge status not succeeded:", status);
+              console.warn("Charge status not succeeded:", status);
+              setshowError(
+                "Charge received but not confirmed as successful. Please verify manually."
+              );
+            }
+          } catch (chargeErr) {
+            console.error("Charge or backend error:", chargeErr);
+            setshowError(
+              "Something went wrong during payment processing. Please try again."
+            );
+
             const user = await Parse.User.current()?.fetch();
             const identity = user?.toJSON();
 
@@ -286,60 +332,51 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             transaction.set("userId", identity?.objectId);
             transaction.set("transactionDate", new Date());
             transaction.set("transactionAmount", rechargeAmount);
-            transaction.set("remark", "Payarc Recharge");
+            transaction.set("remark", "Payarc Recharge (Failed)");
             transaction.set("useWallet", false);
             transaction.set("userParentId", user?.get("userParentId") || "");
-            transaction.set("status", 2); // Success
+            transaction.set("status", 10); // Error
             transaction.set("portal", "Payarc");
-            transaction.set("transactionIdFromStripe", token);
+            transaction.set("transactionIdFromStripe", `${token}-failed`);
             transaction.set("referralLink", response?.payment_form_url || "");
-            transaction.set("walletAddr", identity?.walletAddr || "");
 
             await transaction.save(null, { useMasterKey: true });
-            alert("Recharge completed and transaction saved successfully!");
-          } else {
-            alert('Charge status not succeeded:', status);
-            console.warn('Charge status not succeeded:', status);
-            setshowError('Charge received but not confirmed as successful. Please verify manually.');
           }
-        }  catch (chargeErr) {
-          console.error('Charge or backend error:', chargeErr);
-          setshowError('Something went wrong during payment processing. Please try again.');
-      }
-      }
-      catch (parseErr) {
-                console.error('Token parsing failed:', parseErr);
-                setshowError(`Tokenization failed: ${parseErr.message}`);
-            } finally {
-                setIsLoading(false); // Ensure this is defined in your outer scope
-            }
+        } catch (parseErr) {
+          console.error("Token parsing failed:", parseErr);
+          setshowError(`Tokenization failed: ${parseErr.message}`);
+        } finally {
+          setIsLoading(false); // Ensure this is defined in your outer scope
+        }
       },
       error: (obj) => {
         setIsLoading(false);
 
-        console.error('Tokenization error:', obj);
+        console.error("Tokenization error:", obj);
 
-        let message = `An error occurred: ${obj.status} - ${obj.statusText || obj.responseText}`;
+        let message = `An error occurred: ${obj.status} - ${
+          obj.statusText || obj.responseText
+        }`;
 
         switch (obj.status) {
-            case 422:
-                message = 'Invalid card details. Please check and try again.';
-                break;
-            case 409:
-                message = 'Invalid card details. Please check and try again.';
-                break;
-            case 401:
-                message = 'Unauthorized. Please check your credentials.';
-                break;
-            case 500:
-                message = 'Server error. Please try again shortly.';
-                break;
-            default:
-                message = `Unexpected error (${obj.status}). Please try again.`;
+          case 422:
+            message = "Invalid card details. Please check and try again.";
+            break;
+          case 409:
+            message = "Invalid card details. Please check and try again.";
+            break;
+          case 401:
+            message = "Unauthorized. Please check your credentials.";
+            break;
+          case 500:
+            message = "Server error. Please try again shortly.";
+            break;
+          default:
+            message = `Unexpected error (${obj.status}). Please try again.`;
         }
 
         setshowError(message);
-    },
+      },
       paymentWindowClosed: () => {
         console.log("Payment window closed");
       },
@@ -422,10 +459,10 @@ const PayArcCheckout = ({ rechargeAmount }) => {
         dangerouslySetInnerHTML={{ __html: payarcStyles }}
       />
       {showError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {showError}
-            </Alert>
-          )}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {showError}
+        </Alert>
+      )}
       <div
         style={{ display: "flex", justifyContent: "center", padding: "20px" }}
       >
@@ -437,7 +474,6 @@ const PayArcCheckout = ({ rechargeAmount }) => {
           {clientId ? "" : "Waiting for Client ID..."}
         </div>
 
-        
         <div
           ref={resultContentRef}
           className="result-content"
