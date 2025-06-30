@@ -96,13 +96,21 @@ export const RechargeFilterDialog = ({
 
         {role !== "Player" && (
           <FormControl fullWidth>
-            <InputLabel>Status</InputLabel>
+            <InputLabel shrink>Status</InputLabel>
             <Select
               value={localStatus}
               label="Status"
               onChange={(e) => {
                 const value = e.target.value;
                 setLocalStatus(value === "" ? "" : value === "0" ? 0 : value);
+              }}
+              displayEmpty
+              renderValue={(selected) => {
+                if (selected === "" || selected?.$ne === 9) {
+                  return <em>All</em>;
+                }
+                const found = statusChoices.find((c) => c.id === selected);
+                return found ? found.name : selected;
               }}
             >
               <MenuItem value="">All</MenuItem>
@@ -119,9 +127,16 @@ export const RechargeFilterDialog = ({
         )}
         {role === "Super-User" && 
         <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel>Mode</InputLabel>
+          <InputLabel shrink>Mode</InputLabel>
           <Select
+            displayEmpty
             value={localMode}
+            renderValue={(selected) => {
+              if (selected === "") {
+                return <em>All</em>;
+              }
+              return selected;
+            }}
             label="Mode"
             onChange={(e) => setLocalMode(e.target.value)}
           >
