@@ -15,17 +15,20 @@ import {
   CircularProgress,
   TablePagination,
   Typography,
+  Box,
 } from "@mui/material";
 import { fetchDrawerAgentHistory } from "../../../Utils/utils";
 import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [exportloading, setExportLoading] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -59,6 +62,45 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
     setPage(0); // Reset to first page when changing rows per page
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setExportLoading(true);
+      // Fetch all data without pagination (assume you pass big perPage)
+      const { data } = await fetchDrawerAgentHistory(record?.id, 0, 100000);
+
+      if (!data || data.length === 0) {
+        alert("No records to export.");
+        return;
+      }
+
+      const formattedData = data.map((item) => ({
+        "Before Balance": item.beforeBalance.toFixed(2),
+        Amount: item.amount.toFixed(2),
+        "After Balance": item.afterBalance.toFixed(2),
+        Date: new Date(item.createdAt).toLocaleString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Drawer History");
+
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      saveAs(
+        new Blob([excelBuffer], { type: "application/octet-stream" }),
+        `Drawer_History_${record?.username}.xlsx`
+      );
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      alert("Failed to export.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle
@@ -70,15 +112,27 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
         }}
       >
         Drawer Agent ({record?.username}) History
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
       </DialogTitle>
       <DialogContent>
         {loading ? (
           <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />
         ) : history.length > 0 ? (
           <>
+          <Box sx={{ display: "flex", justifyContent:"end" ,mb:2 }}>
+          <Button
+            onClick={handleExportExcel}
+            disabled={exportloading}
+            variant="outlined"
+            size="small"
+          >
+            {exportloading ? "Exporting..." : "Download Excel"}
+          </Button>
+          </Box>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
