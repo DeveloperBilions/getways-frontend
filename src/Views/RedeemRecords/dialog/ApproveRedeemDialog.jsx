@@ -17,7 +17,9 @@ import {
 import { Loader } from "../../Loader";
 import { Parse } from "parse";
 import { useNotify } from "react-admin";
-import { Box } from "@mui/material";
+import { Box,Typography } from "@mui/material";
+import cancel from "../../../Assets/icons/cancel.svg";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -193,10 +195,56 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   </FormGroup>
                 </Col>
 
-                {isEditingFees ? (
+                
+               
+                  <Col md={12}>
+                  <p className="redeem-fees-text" style={{backgroundColor:"#F6F4F4"}}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <small>
+                      Redeem Service Fee @ {editedFees || redeemFees}%{" "}
+                    </small>
+
+                    {isEditingFees && (
+                      <Button
+                        color="secondary"
+                        className="cancel"
+                        onClick={handleCancelEditFees}
+                      >
+                        <img
+                          src={cancel}
+                          alt="cancel"
+                          style={{ width: 11, height: 11 }}
+                        />
+                      </Button>
+                    )}
+                      {(role === "Agent" || role === "Master-Agent")&& redeemEnabled && !isEditingFees &&(
+                        <Button
+                          color="link"
+                          className="ms-2"
+                          onClick={handleEditFees}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {role === "Super-User" && !isEditingFees && (
+                        <Button
+                          color="link"
+                          className="ms-2"
+                          onClick={handleEditFees}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </div>
+                    {isEditingFees && (
                   <Col md={12}>
                     <FormGroup>
-                      <Label for="redeemFees">Redeem Service Fee (%)</Label>
                       <div className="d-flex align-items-center">
                         <Input
                           id="redeemFees"
@@ -209,46 +257,17 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                         />
                         <Button
                           color="success"
-                          className="ms-2"
+                          className="btn-change ms-2"
                           onClick={handleSaveFees}
                         >
                           Save
                         </Button>
-                        <Button
-                          color="secondary"
-                          className="ms-2"
-                          onClick={handleCancelEditFees}
-                        >
-                          Cancel
-                        </Button>
                       </div>
                     </FormGroup>
-                  </Col>
-                ) : (
-                  <p className="mb-0">
-                    <small>
-                      Redeem Service Fee @ {editedFees || redeemFees}%{" "}
-                      {(role === "Agent" || role === "Master-Agent")&& redeemEnabled && (
-                        <Button
-                          color="link"
-                          className="ms-2"
-                          onClick={handleEditFees}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                      {role === "Super-User" && (
-                        <Button
-                          color="link"
-                          className="ms-2"
-                          onClick={handleEditFees}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                    </small>
+                  </Col>)}
                   </p>
-                )}
+                  </Col>
+                
                 {feeError && <small className="text-danger">{feeError}</small>}
 
                 <p className="mb-1">
@@ -264,17 +283,36 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                     )}
                   </small>
                 </p>
-                <span
+                <Box
                   style={{
-                    fontStyle: "italic",
-                    color: "#007BFF", // Bright blue for highlighting
-                    fontSize: "13px",
-                    fontWeight: "bold", // To make the text stand out
+                    width: "95%",
+                    height: "auto",
+                    borderRadius: "4px",
+                    gap: "8px",
+                    padding: "0 12px",
+                    marginLeft: "10px",
+                    marginBottom: "16px",
+                    background: "var(--semantic-warning-light, #FEF3C7)", // Parent div background
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  ** The amount has been rounded down to the nearest lower
-                  value. **
-                </span>
+                  <Typography
+                    style={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      lineHeight: "150%",
+                      letterSpacing: "1.2%",
+                      verticalAlign: "middle",
+                      color: "var(--semantic-warning, #F59E0B)",
+                      padding: "5px 4px",
+                    }}
+                  >
+                    "The amount has been rounded down to the nearest lower
+                    value."
+                  </Typography>
+                </Box>
                 <Col md={12}>
                   <FormGroup>
                     <Label for="remark">Remark</Label>
