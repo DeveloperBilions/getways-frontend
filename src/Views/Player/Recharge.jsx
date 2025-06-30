@@ -110,6 +110,8 @@ const Recharge = ({
   const [showPayarc, setshowPayarc] = useState(false);
   const [showStripe, setshowStripe] = useState(false);
   const [payarcLimit, setPayArcLimit] = useState(false);
+  const [showPaynearMe, setShowPaynearMe] = useState(false);
+
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -183,13 +185,14 @@ const Recharge = ({
       const isLinkAllowed = await isPaymentMethodAllowed(parentId, "link");
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
+      const isPaynearmeAllowed = await isPaymentMethodAllowed(parentId, "paynearme");
 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
-
+      setShowPaynearMe(isPaynearmeAllowed)
       setRechargeMethodLoading(false);
     };
 
@@ -412,6 +415,54 @@ const Recharge = ({
     }
   };
   const paymentOptions = [
+    {
+      id: "paynearme",
+      title: "PayNearMe",
+      description: "Pay with cash, card, or ACH via PayNearMe",
+      subtext: "No KYC needed",
+      icon: (
+        <AccountBalanceWalletOutlinedIcon sx={{ color: "#1D4ED8", fontSize: 24 }} />
+      ),
+      color: "#1D4ED8", // Tailwind Blue-700
+      hoverColor: "#EFF6FF",
+      paymentIcons: [visa, mastercard, payPal],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+    
+          setCheckingRechargeLimit(true);
+    
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+    
+          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+    
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+    
+          setRechargeError("");
+    
+          // Navigate to PayNearMe page (or open a modal)
+          navigate("/paynearme-payment", {
+            state: {
+              rechargeAmount,
+              remark,
+            },
+          });
+        } catch (err) {
+          console.error("PayNearMe error:", err);
+          alert("Something went wrong with PayNearMe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+          setWalletLoading(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },    
     {
       id: "stripe",
       title: "Pay By Card",
@@ -1622,6 +1673,7 @@ const Recharge = ({
                       if (option.id === "payarc" && !showPayarc)
                         return false;
                       if (option.id === "stripe" && !showStripe) return false;
+                      if (option.id === "paynearme" && !showPaynearMe) return false;
                       return true;
                     })
                     .map((option) => (

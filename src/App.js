@@ -46,6 +46,7 @@ import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import RedirectByRole from "./RedirectByRole";
+import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -388,6 +389,14 @@ function App() {
                     element={
                       <Authenticated>
                         <CheckoutFormStripe />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/paynearme-payment"
+                    element={
+                      <Authenticated>
+                        <PayNearMePay />
                       </Authenticated>
                     }
                   />

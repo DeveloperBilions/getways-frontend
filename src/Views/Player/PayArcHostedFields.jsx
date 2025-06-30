@@ -5,12 +5,14 @@ import Gpay from "../../Assets/icons/google-pay.png";
 import applep from "../../Assets/icons/apple-pay.png";
 import { CircularProgress } from "@mui/material";
 import { Alert } from "@mui/material"; // Make sure this is imported
+import { useNavigate } from "react-router-dom";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const PayArcCheckout = ({ rechargeAmount }) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [showError, setshowError] = useState("");
@@ -341,6 +343,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             transaction.set("referralLink", response?.payment_form_url || "");
 
             await transaction.save(null, { useMasterKey: true });
+            navigate("/playerDashboard")
           }
         } catch (parseErr) {
           console.error("Token parsing failed:", parseErr);
