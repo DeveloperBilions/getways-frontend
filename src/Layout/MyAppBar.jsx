@@ -1,74 +1,701 @@
 import * as React from "react";
-import { Toolbar, Typography, Box } from "@mui/material";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
+import {
+  Toolbar,
+  Typography,
+  Box,
+  IconButton,
+  MenuItem,
+  Backdrop,
+} from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import MenuIcon from "@mui/icons-material/Menu";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-
+import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AppBar from "@mui/material/AppBar";
 import {
-  TitlePortal,
-  RefreshIconButton,
+  RefreshButton,
   UserMenu,
-  Logout,
   useGetIdentity,
+  useSidebarState,
+  useLogout,
+  useRefresh,
 } from "react-admin";
-import { Title } from "react-admin";
-
-//to be used when we create custom user menu
-const MyUserMenu = React.forwardRef((props, ref) => {
-  return <></>;
-});
-
-export default function MyAppBar({ props }) {
+import ChangePassword from "./ChangePassword";
+import RechargeLimitDialog from "../Views/RechargeRecords/dialog/RechargeLimitDialog";
+import DisablePaymentMethodDialog from "../Views/User/dialog/DisablePaymentMethodDialog";
+import HelpVideoModal from "../Views/SignIn/HelpVideoModal";
+import AllRedeemService from "../Views/User/dialog/AllRedeemService";
+import EmergencyMessageDialog from "../Views/User/dialog/EmergencyMessageDialog";
+import { useMediaQuery } from "@mui/system";
+import { useState } from "react";
+import { walletService } from "../Provider/WalletManagement";
+import { useEffect } from "react";
+import AOG_Symbol from "../Assets/icons/AOGsymbol.png";
+import Account from "../Assets/icons/Account.svg";
+import globalRecharge from "../Assets/icons/globalRecharge.svg";
+import paymentMethods from "../Assets/icons/paymentMethods.svg";
+import emergencyMessage from "../Assets/icons/emergencyMessage.svg";
+import helpVideos from "../Assets/icons/helpVideos.svg";
+import logout_icon from "../Assets/icons/logout.svg";
+import GlobalSettingsDialog from "../Views/User/dialog/GlobalSettingsDialog";
+import { Loader } from "../Views/Loader";
+import { Parse } from "parse";
+import passwordChange from "../Assets/icons/passwordChange.svg";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import CustomUserMenu from "./CustomUserMenu";
+import RechargeMethodsDialog from "../Views/User/dialog/RechargeMethodsDialog";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
+import DrawerAgentHistoryModal from "../Views/User/dialog/DrawerAgentHistoryModal";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import TierSettingsDialog from "../Views/User/dialog/TierSettingsDialog";
+import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
+import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import TuneIcon from "@mui/icons-material/Tune";
+export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
+  const logout = useLogout();
+  const [openModal, setOpenModal] = React.useState(false);
+  const refresh = useRefresh();
+  const [isLoading, setIsLoading] = useState(false);
+  const [openRechargeLimit, setOpenRechargeLimit] = React.useState(false);
+  const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
+  const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
+  const [openRedeemService, setOpenRedeemService] = React.useState(false);
+  const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
+  const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
+    React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
+
+  const navigate = useNavigate();
+  const role = localStorage.getItem("role");
+  const [open, setOpen] = useSidebarState(); // Use the sidebar state
+  const [balance, setBalance] = useState(0);
+  const isSidebarOpen = role !== "Player";
+  const isMobile = useMediaQuery(
+    isSidebarOpen ? "(max-width:1023px)" : "(max-width: 900px)"
+  );
+  const isTablet = useMediaQuery(
+    isSidebarOpen
+      ? "(max-width:1023px)"
+      : "(min-width:901px) and (max-width:1100px)"
+  );
+
+  const handleOpenModal = () => {
+    setUserMenuOpen(false); // Close user menu
+    setOpenModal(true);
+  };
+  const handleCloseModal = () => setOpenModal(false);
+  const handleOpenRechargeLimit = () => setOpenRechargeLimit(true);
+  const handleOpenGlobalSettingsDialog = () =>
+    setOpenGlobalSettingsDialog(true);
+  const handleCloseRechargeLimit = () => setOpenRechargeLimit(false);
+  const handleCloseEmergencyModal = () => setOpenEmergencyModal(false);
+  const handleCloseGlobalSettingsDialog = () =>
+    setOpenGlobalSettingsDialog(false);
+
+  const [activeTab, setActiveTab] = useState("users");
+  const [openRechargeMethods, setOpenRechargeMethods] = React.useState(false);
+  const [openTierSettings, setOpenTierSettings] = React.useState(false);
+  const [openTierSettingsAgents, setOpenTierSettingsAgents] = React.useState(false);
+
+  const getBalance = async () => {
+    try {
+      // Initial fetch
+      const wallet = await walletService.getMyWalletData();
+      const walletObject = wallet?.wallet;
+
+      if (!walletObject) return;
+
+      setBalance(walletObject?.balance || 0);
+
+      // Set up LiveQuery to listen for balance changes
+      const Wallet = Parse.Object.extend("Wallet");
+      const query = new Parse.Query(Wallet);
+      query.equalTo("objectId", walletObject.objectId);
+
+      const subscription = await query.subscribe();
+
+      subscription.on("update", (updatedWallet) => {
+        const newBalance = updatedWallet.get("balance");
+        console.log(newBalance);
+        setBalance(newBalance);
+      });
+
+      // Optional: unsubscribe on component unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.log("Error fetching or subscribing to wallet:", error);
+    }
+  };
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    refresh();
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const pathSegments = path.split("/").filter(Boolean); // Removes empty strings
+    setActiveTab(pathSegments[pathSegments.length - 1] || "users");
+    getBalance();
+  }, []);
+
+  // Toggle sidebar state
+  const toggleSidebar = () => {
+    setOpen(!open);
+  };
+
+  if (!identity) return null;
+
+  // Generate menu items for the desktop navigation
+  const menuItems = [];
+  if (role && role !== "Player") {
+    menuItems.push(
+      {
+        key: "users",
+        label: "User Management",
+        onClick: () => navigate("/users"),
+      },
+      {
+        key: "rechargeRecords",
+        label: "Recharge Records",
+        onClick: () => navigate("/rechargeRecords"),
+      },
+      {
+        key: "redeemRecords",
+        label: "Redeem Records",
+        onClick: () => navigate("/redeemRecords"),
+      }
+    );
+    if (identity?.email != "cvgetways@get.com") {
+      menuItems.push({
+        key: "summary",
+        label: "Summary",
+        onClick: () => navigate("/summary"),
+      });
+    }
+    if (role === "Super-User" && identity?.email != "cvgetways@get.com") {
+      menuItems.push({
+        key: "Reports",
+        label: "Reports",
+        onClick: () => navigate("/Reports"),
+      });
+      menuItems.push({
+        key: "kycRecords",
+        label: "KYC",
+        onClick: () => navigate("/kycRecords"),
+      });
+      menuItems.push({
+        key: "GiftCardHistory",
+        label: "Giftcard",
+        onClick: () => navigate("/GiftCardHistory"),
+      });
+      menuItems.push({
+        key: "wlletAudit",
+        label: "Wallet Audit",
+        onClick: () => navigate("/walletAudit"),
+      });
+    }
+  }
+
   return (
-    <AppBar
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        gap: 1,
-        alignItems: "center",
-        paddingRight: "1em",
-        backgroundColor: "white",
-        // backgroundColor: "#272E35",
-        position: "fixed",
-        left: "15em",
-        top: 0,
-        right: 0,
-        width: "calc(100% - 15em)",
-        height: "4em",
-        color: "black",
-        // color: "white",
-      }}
-    >
-      <TitlePortal variant="h5" component="h3" sx={{ paddingLeft: 3 }} />
-      {/* <RefreshIconButton /> */}
-      {/* <NotificationsNoneIcon /> */}
-      {/* <AccountCircleIcon /> */}
-      <Box sx={{ ml: 0, minWidth: 0 }}>
-        <b
-          noWrap
-          variant="subtitle2"
-          sx={{ color: "text.secondary", fontWeight: 500 }}
+    <>
+      {" "}
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: 9999,
+          backgroundColor: "transparent",
+        }}
+        open={isLoading}
+      >
+        <Loader />
+      </Backdrop>
+      <AppBar
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0",
+          backgroundColor: "var(--primary-color)",
+          top: 0,
+          width: "100%",
+          height: role === "Player" ? "4em" : "3.5em",
+          color: "white",
+          zIndex: 1300,
+          paddingLeft:
+            role === "Player" && !isMobile ? (isTablet ? "16vw" : "22vw") : "0",
+          paddingRight:
+            role === "Player" && !isMobile ? (isTablet ? "16vw" : "22vw") : "0",
+        }}
+      >
+        <Box
+          sx={{ display: "flex", alignItems: "center", pl: { xs: 2, sm: 1 } }}
         >
-          {identity?.name}
-        </b>
-        {/* {identity?.role === "Player" && (
-          <Typography
-            noWrap
-            variant="subtitle2"
-            sx={{ color: "text.secondary", fontWeight: 500 }}
+          {/* Only show menu icon on mobile */}
+          <Toolbar
+            sx={{
+              width: "auto",
+              cursor: "pointer",
+              padding: 0,
+              minHeight: role === "Player" ? "4em" : "3.5em",
+            }}
+            onClick={() => {
+              if (role === "Player") {
+                setActiveTab("playerDashboard");
+                window.location.href = "/playerDashboard"; // causes full reload
+              } else {
+                setActiveTab("users");
+                window.location.href = "/users"; // causes full reload
+              }
+            }}
           >
-            Agent: {identity?.userParentName}
-          </Typography>
+            <img
+              src="/assets/company_logo.svg"
+              alt="Company Logo"
+              loading="lazy"
+              style={{
+                maxHeight: "3em",
+                width: "auto",
+              }}
+            />
+          </Toolbar>
+
+          {/* Desktop navigation - only show on non-mobile */}
+          {!isMobile && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "var(--primary-color)",
+                "& > *": {
+                  height: "3.5em",
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  fontWeight: 400,
+                  padding: "0 5px",
+                  // "&:hover": {
+                  //   backgroundColor: "#333",
+                  // },
+                },
+              }}
+            >
+              {menuItems.map((item) => (
+                <Box>
+                  <Box
+                    key={item.key}
+                    onClick={() => {
+                      setActiveTab(item.key);
+                      item.onClick();
+                    }}
+                    sx={{
+                      color: "white",
+                      textTransform: "none",
+                      bgcolor: activeTab === item.key ? "#292929" : "none",
+                      borderRadius: activeTab === item.key ? "4px" : "0px",
+                      padding: "0 1em",
+                      height: "2.5rem",
+                      display: "flex",
+                      alignItems: "center", // Vertically center the text
+                      ":hover": {
+                        backgroundColor: "#292929",
+                        borderRadius: "4px",
+                      },
+                    }}
+                  >
+                    {item.icon} {item.label}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+        {/* {role === "Player" && (
+          <Box
+            sx={{ width: "100%", display: "flex", justifyContent: "center" }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 0.2,
+              }}
+            >
+              {" "}
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#fff", // Gray color for "Available balance"
+                  fontSize: { xs: "14px", sm: "18px" },
+                  fontWeight: 400,
+                }}
+              >
+                Wallet balance:
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <img
+                  src={AOG_Symbol}
+                  alt="AOG Symbol"
+                  style={{ width: 24, height: 24 }}
+                />
+                <Typography
+                  sx={{
+                    color: "#fff", // Black for the balance
+                    fontWeight: "600",
+                    fontFamily: "Inter",
+                    fontSize: { xs: "20px", sm: "24px" },
+                  }}
+                >
+                  {balance}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         )} */}
-      </Box>
-      <UserMenu>
-        <Logout />
-      </UserMenu>
-    </AppBar>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            flexGrow: 1,
+            backgroundColor: "var(--primary-color)",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
+            {role === "Agent" && (
+              <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                <span
+                  style={{ fontWeight: 600, color: "var(--secondery-color)" }}
+                >
+                  Balance: {(identity.balance ?? 0).toFixed(2)}
+                </span>
+              </Box>
+            )}
+            {role === "Master-Agent" &&
+              identity?.totalPotBalanceOfChildren !== undefined && (
+                <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                  <AccountBalanceWalletIcon sx={{ fontSize: 18, mr: 0.5 }} />
+                  <span
+                    style={{ fontWeight: 600, color: "var(--secondery-color)" }}
+                  >
+                    Balance: {identity.totalPotBalanceOfChildren.toFixed(2)}
+                  </span>
+                </Box>
+              )}
+            {role !== "Player" && !isMobile && (
+              <RefreshButton
+                label=""
+                onClick={handleRefresh}
+                icon={
+                  <RefreshIcon
+                    sx={{
+                      fontSize: {
+                        xs: "20px !important",
+                        md: "24px !important",
+                      },
+                      marginRight: "-6px",
+                    }}
+                  />
+                }
+                sx={{
+                  color: "white",
+                  minWidth: { xs: "30px", md: "40px" },
+                  justifyContent: "flex-end",
+                  ml: 1,
+                }}
+              />
+            )}
+            <CustomUserMenu
+              icon={
+                <img
+                  src={Account}
+                  alt="Account"
+                  style={{ width: 19, height: 19 }}
+                />
+              }
+            >
+              <Box sx={{ width: "248px", height: "auto" }}>
+                {(role === "Agent" ||
+                  role === "Player" ||
+                  role === "Master-Agent") && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={handleOpenModal}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img
+                        src={passwordChange}
+                        alt="Change Password"
+                        style={{ height: "24px", width: "24px" }}
+                      />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Change Password
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {(role === "Agent" || role === "Master-Agent") && (
+                  <MenuItem
+                    onClick={handleOpenRechargeLimit}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                    }}
+                  >
+                    <FlashOnIcon sx={{ mr: 1, fontSize: "20px" }} />
+                    Recharge Limit
+                  </MenuItem>
+                )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={handleOpenGlobalSettingsDialog}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={globalRecharge} alt="Global Recharge" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Global Recharge
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenRechargeMethods(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Recharge Methods
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTierSettings(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <LeaderboardIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Tiers
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTierSettingsAgents(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <TuneIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Tier Settings
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {/* {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setDisableDialogOpen(true)}
+                      style={{
+                        color: "#000000",
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={paymentMethods} alt="Payment Methods" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Payment Methods
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )} */}
+                {/* {role === "Super-User" && (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("/transactionData");
+                    }}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                    }}
+                  >
+                    Transaction Export
+                  </MenuItem>
+                )} */}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenEmergencyModal(true)}
+                      style={{
+                        color: "#000000",
+
+                        gap: "8px",
+                      }}
+                    >
+                      <img src={emergencyMessage} alt="Emergency Message" />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Emergency Message
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
+                {identity?.redeemServiceEnabled && role === "Master-Agent" && (
+                  <MenuItem
+                    onClick={() => setOpenRedeemService(true)}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                    }}
+                  >
+                    Agent Redeem Fees
+                  </MenuItem>
+                )}
+                {/* {role === "Agent" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenTicketPaidModal(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Ticket Paid
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )} */}
+                <Box sx={{ mb: 1 }}>
+                  <MenuItem
+                    onClick={() => {
+                      setUserMenuOpen(false); // Close user menu
+                      setOpenHelpVideo(true);
+                    }}
+                    style={{
+                      color: "#000000",
+                      gap: "8px",
+                    }}
+                  >
+                    <img src={helpVideos} alt="Help Videos" />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Help Videos
+                    </Typography>
+                  </MenuItem>
+                </Box>
+                <MenuItem
+                  onClick={() => logout()}
+                  style={{
+                    color: "#000000",
+                    gap: "8px",
+                  }}
+                >
+                  <img src={logout_icon} alt="logout" />
+                  <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                    Logout
+                  </Typography>
+                </MenuItem>{" "}
+              </Box>
+            </CustomUserMenu>
+            {role !== "Player" && !isMobile && (
+              <Box sx={{ mr: 2, minWidth: 0 }}>
+                <Typography
+                  noWrap
+                  variant="subtitle2"
+                  sx={{
+                    color: "white",
+                    fontWeight: 500,
+                    fontSize: "16px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {identity?.name}
+                </Typography>
+              </Box>
+            )}
+            {isMobile && role !== "Player" && (
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={toggleSidebar}
+                sx={{ mr: 1, ml: 0.5 }}
+              >
+                {open ? <CloseIcon /> : <MenuIcon />}
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+        <ChangePassword open={openModal} onClose={handleCloseModal} />
+        <RechargeLimitDialog
+          open={openRechargeLimit}
+          onClose={handleCloseRechargeLimit}
+        />
+        <DisablePaymentMethodDialog
+          open={disableDialogOpen}
+          onClose={() => setDisableDialogOpen(false)}
+        />
+        <HelpVideoModal
+          open={openHelpVideo}
+          handleClose={() => setOpenHelpVideo(false)}
+        />
+        <AllRedeemService
+          open={openRedeemService}
+          onClose={() => setOpenRedeemService(false)}
+        />
+        <EmergencyMessageDialog
+          open={openEmergencyModal}
+          onClose={handleCloseEmergencyModal}
+        />
+        <GlobalSettingsDialog
+          open={openGlobalSettingsDialog}
+          onClose={handleCloseGlobalSettingsDialog}
+        />
+        <RechargeMethodsDialog
+          open={openRechargeMethods}
+          onClose={() => setOpenRechargeMethods(false)}
+        />
+
+<TierSettingsDialog
+          open={openTierSettings}
+          onClose={() => setOpenTierSettings(false)}
+        />
+
+
+<AgentTierViewerDialogBulk
+          open={openTierSettingsAgents}
+          onClose={() => setOpenTierSettingsAgents(false)}
+        />
+        <DrawerAgentHistoryModal
+        open={openTicketPaidModal}
+        onClose={() => setOpenTicketPaidModal(false)}
+        record={{id:identity?.objectId,username:identity?.username}}
+      />
+      </AppBar>
+    </>
   );
 }

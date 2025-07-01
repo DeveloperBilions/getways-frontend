@@ -1,163 +1,245 @@
 import React, { useState, useEffect } from "react";
 import {
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    Row,
-    Col,
-    FormGroup,
-    Label,
-    Form,
-    Input,
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Row,
+  Col,
+  FormGroup,
+  Label,
+  Form,
+  Input,
+  ModalFooter,
 } from "reactstrap";
+// loader
+import { Loader } from "../../Loader";
 import { Parse } from "parse";
+import { dataProvider } from "../../../Provider/parseDataProvider";
+import "../../../Assets/css/Dialog.css";
+import { checkActiveRechargeLimit, isRechargeEnabledForAgent } from "../../../Utils/utils";
+import { Box } from "@mui/material";
+import { Alert } from "@mui/material"; 
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const RechargeDialog = ({ open, onClose, record, fetchAllUsers }) => {
-    const [userName, setUserName] = useState("");
-    const [balance, setBalance] = useState();
-    const [rechargeAmount, setRechargeAmount] = useState();
-    const [remark, setRemark] = useState();
-    const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [rechargeAmount, setRechargeAmount] = useState();
+  const [remark, setRemark] = useState();
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // New state for error message
+  const [rechargeDisabled, setRechargeDisabled] = useState(false);
 
-    const resetFields = () => {
-        setUserName("");
-        setBalance("");
-        setRechargeAmount("");
-        setRemark("");
+  const resetFields = () => {
+    setUserName("");
+    setRechargeAmount("");
+    setRemark("");
+  };
+
+  useEffect(() => {
+    if (record && open) {
+      setUserName(record.username || "");
+      setErrorMessage("");
+    } else {
+      resetFields();
+    }
+  }, [record, open]);
+
+  useEffect(() => {
+    const checkRechargeAccess = async () => {
+        const disabled = !(await isRechargeEnabledForAgent(record?.userParentId));
+        setRechargeDisabled(disabled);
     };
-
-    useEffect(() => {
-        if (record && open) {
-            // Populate fields when modal opens
-            setUserName(record.username || "");
-            setBalance(record.balance || "");
-        } else {
-            // Reset fields when modal closes
-            resetFields();
-        }
-    }, [record, open]);
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const rawData = {
-            ...record,
-            transactionAmount: rechargeAmount,
-            remark,
-            type: "recharge",
-        };
-        setLoading(true);
-        try {
-            await Parse.Cloud.run("userTransaction", rawData);
-            onClose();
-            fetchAllUsers();
-            setRechargeAmount("");
-            setRemark("");
-        } catch (error) {
-            console.error("Error Recharge Record details:", error);
-        } finally {
-            setLoading(false);
-        }
+  
+    checkRechargeAccess();
+  }, [record]);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (rechargeAmount <= 0) {
+      setErrorMessage(
+        "Recharge Amount cannot be negative or 0. Please enter a valid amount."
+      );
+      return;
+    }
+    if (rechargeAmount < 10) {
+      setErrorMessage("Non-Wallet transaction must be at least $10.");
+      return;
+    }
+    const rawData = {
+      ...record,
+      transactionAmount: rechargeAmount * 100,
+      remark,
+      type: "recharge",
     };
+    const transactionCheck = await checkActiveRechargeLimit(record.userParentId, rechargeAmount);
+    if (!transactionCheck.success) {
+      setErrorMessage(transactionCheck.message); // Show error if the limit is exceeded
+      return;
+    }
+    setLoading(true);
+    
+    try {
+      await dataProvider.userTransaction(rawData);
+      onClose();
+      fetchAllUsers();
+      setLoading(false);
+      setRechargeAmount("");
+      setRemark("");
+    } catch (error) {
+      console.error("Error Recharge Record details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <Modal isOpen={open} toggle={onClose} size="md" centered>
-            <ModalHeader toggle={onClose} className="border-bottom-0">Recharge Amount</ModalHeader>
-            <ModalBody>
-                <Form onSubmit={handleSubmit}>
-                    <Row>
-                        <Col md={12}>
-                            <FormGroup>
-                                <Label for="userName">Account</Label>
-                                <Input
-                                    id="userName"
-                                    name="userName"
-                                    type="text"
-                                    value={userName}
-                                    required
-                                    disabled
-                                />
-                            </FormGroup>
-                        </Col>
+  return (
+    <React.Fragment>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Modal
+          isOpen={open}
+          toggle={onClose}
+          // size="md"
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={onClose}
+            className="custom-modal-header border-bottom-0"
+          >
+            Recharge Amount
+          </ModalHeader>
+          <ModalBody className="custom-modal-body">
+          {rechargeDisabled && (
+  <Alert severity="warning" sx={{ my: 2 }}>
+  Recharges are not available at this time. Please try again later.
+  </Alert>
+)}
+            {errorMessage && (
+              <Alert severity="danger" className="mt-2">
+                {errorMessage}
+              </Alert>
+            )}
+            <Form>
+              <Row>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="userName" className="custom-label">
+                      Account
+                    </Label>
+                    <Input
+                      id="userName"
+                      name="userName"
+                      type="text"
+                      className="custom-input"
+                      style={{
+                        backgroundColor: "#DEDEDE",
+                        border: "1px solid #A5AFBC",
+                      }}
+                      value={userName}
+                      required
+                      disabled
+                    />
+                  </FormGroup>
+                </Col>
 
-                        {/* <Col md={12}>
-                            <FormGroup>
-                                <Label for="gameId">Game ID</Label>
-                                <Input
-                                    id="gameId"
-                                    name="gameId"
-                                    type="text"
-                                    value={786}
-                                    required
-                                    disabled
-                                />
-                            </FormGroup>
-                        </Col> */}
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="rechargeAmount" className="custom-label">
+                      Recharge Amount
+                    </Label>
+                    <Input
+                      id="rechargeAmount"
+                      name="rechargeAmount"
+                      type="text"
+                      autoComplete="off"
+                      placeholder="e.g. 500"
+                      className="custom-input"
+                      value={rechargeAmount}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        if (value === "" || /^\d*$/.test(value)) {
+                          if (value === "") {
+                            setRechargeAmount(value);
+                          } else if (value.includes(".")) {
+                            value = Math.floor(parseFloat(value));
+                            setRechargeAmount(value);
+                          } else if (/^\d*$/.test(value)) {
+                            setRechargeAmount(value);
+                          }
+                        }
+                      }}
+                      required
+                      onKeyDown={(e) => {
+                        if (e.keyCode === 190) {
+                          // Prevent the default behavior of typing a decimal
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                  </FormGroup>
+                </Col>
 
-                        {/* <Col md={12}>
-                            <FormGroup>
-                                <Label for="balance">Balance</Label>
-                                <Input
-                                    id="balance"
-                                    name="balance"
-                                    type="number"
-                                    value={balance || 0}
-                                    required
-                                    disabled
-                                />
-                            </FormGroup>
-                        </Col> */}
-
-                        <Col md={12}>
-                            <FormGroup>
-                                <Label for="rechargeAmount">Recharge Amount</Label>
-                                <Input
-                                    id="rechargeAmount"
-                                    name="rechargeAmount"
-                                    type="number"
-                                    autoComplete="off"
-                                    onChange={(e) => setRechargeAmount(e.target.value)}
-                                    required
-                                />
-                            </FormGroup>
-                        </Col>
-
-                        <Col md={12}>
-                            <FormGroup>
-                                <Label for="remark">Remark</Label>
-                                <Input
-                                    id="remark"
-                                    name="remark"
-                                    type="textarea"
-                                    autoComplete="off"
-                                    onChange={(e) => setRemark(e.target.value)}
-                                />
-                            </FormGroup>
-                        </Col>
-
-                        <Col md={12}>
-                            <div className="d-flex justify-content-end">
-                                <Button
-                                    color="success"
-                                    type="submit"
-                                    className="mx-2"
-                                    disabled={loading}
-                                >
-                                    {loading ? "Processing..." : "Confirm"}
-                                </Button>
-                                <Button color="secondary" onClick={onClose}>
-                                    Cancel
-                                </Button>
-                            </div>
-                        </Col>
-                    </Row>
-                </Form>
-            </ModalBody>
+                <Col md={12}>
+                  <FormGroup>
+                    <Label for="remark" className="custom-label">
+                      Remark
+                    </Label>
+                    <Input
+                      id="remark"
+                      name="remark"
+                      type="textarea"
+                      autoComplete="off"
+                      placeholder="e.g. Recharge text"
+                      className="custom-input"
+                      maxLength={30}
+                      onChange={(e) => setRemark(e.target.value)}
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
+            </Form>
+          </ModalBody>
+          <ModalFooter className="custom-modal-footer">
+            <Col md={12}>
+              <Box
+                className="d-flex w-100 justify-content-between"
+                sx={{
+                  flexDirection: { xs: "column", sm: "row" }, // Column on small screens, row on larger screens
+                  alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+                  gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+                  marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+                  width: "100% !important", // Ensure the container takes full width
+                  paddingRight: { xs: 0, sm: 1 },
+                }}
+              >
+                <Button
+                  className="custom-button confirm"
+                  onClick={handleSubmit}
+                  disabled={loading || rechargeDisabled || !record?.kycVerified }
+                >
+                  {loading ? "Processing..." : "Confirm"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClose();
+                    setErrorMessage("");
+                  }}
+                  className="custom-button cancel"
+                >
+                  Cancel
+                </Button>
+              </Box>
+            </Col>
+          </ModalFooter>
         </Modal>
-    );
+      )}
+    </React.Fragment>
+  );
 };
 
 export default RechargeDialog;

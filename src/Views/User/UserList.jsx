@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
   List,
   TextField,
-  SearchInput,
   TopToolbar,
   DateField,
   WrapperField,
   useRecordContext,
   useResourceContext,
   useGetIdentity,
-  useCreate,
-  SortButton
+  SearchInput,
+  useRefresh,
+  useListController,
 } from "react-admin";
 import { useNavigate } from "react-router-dom";
 // dialog
@@ -25,15 +25,45 @@ import ReferralDialog from "./dialog/ReferralDialog";
 import RedeemServiceDialog from "./dialog/RedeemService";
 // mui icon
 import AddIcon from "@mui/icons-material/Add";
+import FilterListIcon from "@mui/icons-material/FilterList";
 // mui
-import { Menu, MenuItem, Button } from "@mui/material";
-
+import {
+  Menu,
+  MenuItem,
+  Button,
+  Box,
+  useMediaQuery,
+  Typography,
+  Alert,
+  InputAdornment,
+} from "@mui/material";
+import { TextField as MuiTextField } from "@mui/material";
+// loader
+import { Loader } from "../Loader";
 import { Parse } from "parse";
+import WalletDialog from "./dialog/WalletDialog";
+import PasswordPermissionDialog from "./dialog/PasswordPermissionDialog";
+import BlacklistUserDialog from "./dialog/BlacklistUserDialog";
+import EmergencyNotices from "../../Layout/EmergencyNotices";
+import TransactionSummaryModal from "./dialog/TransactionSummaryModal";
+import setting from "../../Assets/icons/setting.svg";
+import RechargeLimitDialog from "./dialog/RechargeLimitDialog";
+import PersistentMessage from "../../Utils/View/PersistentMessage";
+import CustomPagination from "../Common/CustomPagination";
+import { UserFilterDialog } from "./dialog/UserFilterDialog";
+import AddUser from "../../Assets/icons/AddUser.svg";
+import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
+import Snackbar from "@mui/material/Snackbar";
+import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
+import { debounce } from "lodash";
+import SearchIcon from "@mui/icons-material/Search";
+
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CustomButton = ({ fetchAllUsers }) => {
+const CustomButton = ({ fetchAllUsers, identity }) => {
+  const refresh = useRefresh();
   // const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -41,9 +71,23 @@ const CustomButton = ({ fetchAllUsers }) => {
   const [redeemServiceDialogOpen, setRedeemServiceDialogOpen] = useState(false);
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
-
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false); // Wallet Dialog state
+  const [passwordPermissionDialogOpen, setPasswordPermissionDialogOpen] =
+    useState(false);
+  const [blacklistDialogOpen, setBlacklistDialogOpen] = useState(false);
+  const [drawerDialogOpen, setDrawerDialogOpen] = useState(false);
+  const [rechargeLimitDialogOpen, setRechargeLimitDialogOpen] = useState(false); // State for Recharge Limit Dialog
+  const [disableRechargeDialogOpen, setDisableRechargeDialogOpen] =
+    useState(false);
+  const role = localStorage.getItem("role");
   const record = useRecordContext();
   const resource = useResourceContext();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success or error
+  const [toggleUserCreationDialogOpen, setToggleUserCreationDialogOpen] =
+    useState(false);
+
   if (!record) return null;
 
   const open = Boolean(anchorEl);
@@ -54,6 +98,10 @@ const CustomButton = ({ fetchAllUsers }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleRefresh = async () => {
+    refresh();
   };
 
   const handleRedeem = () => {
@@ -74,32 +122,56 @@ const CustomButton = ({ fetchAllUsers }) => {
   const handleEdit = () => {
     handleClose();
     setEditUserDialogOpen(true);
-    // handleClose();
-    // navigate(`/users/${record.id}`);
   };
 
   const handleDelete = async () => {
     handleClose();
     setDeleteUserDialogOpen(true);
-    // const userId = record.id;
-    // handleClose();
-    // await Parse.Cloud.run("deleteUser", { userId });
-    // fetchAllUsers();
   };
 
+  const handleWallet = () => {
+    handleClose();
+    setWalletDialogOpen(true); // Open the wallet modal
+  };
+  const handleDrawer = () => {
+    handleClose();
+    setDrawerDialogOpen(true);
+  };
+  const handleViewKey = async () => {
+    handleClose();
+    if (record?.walletAddr) {
+      try {
+        await navigator.clipboard.writeText(record.walletAddr);
+        setSnackbarMsg("Wallet address copied");
+        setSnackbarSeverity("success");
+      } catch (error) {
+        setSnackbarMsg("Failed to copy wallet address");
+        setSnackbarSeverity("error");
+      }
+    } else {
+      setSnackbarMsg("No wallet address found");
+      setSnackbarSeverity("error");
+    }
+    setSnackbarOpen(true);
+  };
+
+  const handleRechargeLimit = () => {
+    handleClose();
+    setRechargeLimitDialogOpen(true); // Open Recharge Limit Dialog
+  };
   return (
     <React.Fragment>
-      <Button
-        variant="outlined"
+      <Box
         id="basic-button"
         size="small"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        className="settings-button"
       >
-        Editor
-      </Button>
+        <img src={setting} alt="setting" width={20} height={20} />
+      </Box>
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
@@ -108,21 +180,136 @@ const CustomButton = ({ fetchAllUsers }) => {
         MenuListProps={{
           "aria-labelledby": "basic-button",
         }}
+        sx={{
+          "& .MuiMenu-paper": {
+            width: "240px",
+          },
+        }}
       >
-        <MenuItem onClick={handleRedeem}>Redeem</MenuItem>
-        {record?.roleName === "Agent" && (
-          <MenuItem onClick={handleRedeemService}>Redeem Service Fee</MenuItem>
+        {/* {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setDisableRechargeDialogOpen(true);
+            }}
+          >
+            Disable Recharge
+          </MenuItem>
+        )} */}
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleRedeem} sx={{ width: "100%" }}>
+            Redeem
+          </MenuItem>
         )}
-        <MenuItem onClick={handleRecharge}>Recharge</MenuItem>
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          (role === "Super-User" || role === "Master-Agent") && (
+            <MenuItem onClick={handleRechargeLimit}>Recharge Limit</MenuItem> // New Menu Item
+          )}
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
+            role === "Super-User") && (
+            <MenuItem onClick={handleRedeemService}>
+              Redeem Service Fee
+            </MenuItem>
+          )}
+
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") && (
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setPasswordPermissionDialogOpen(true);
+            }}
+          >
+            Password Permission
+          </MenuItem>
+        )}
+        {record?.roleName === "Player" && (
+          <MenuItem
+            onClick={handleRecharge}
+            disabled={identity?.rechargeDisabled || !record?.kycVerified || true}
+          >
+            Recharge
+          </MenuItem>
+        )}
+        {record?.roleName === "Agent" && (
+          <MenuItem
+            onClick={() => {
+              handleClose();
+              setToggleUserCreationDialogOpen(true);
+            }}
+          >
+            Allow Creation Permission
+          </MenuItem>
+        )}
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          ((role === "Master-Agent" && identity?.redeemServiceEnabled) ||
+            role === "Super-User") && (
+            <MenuItem onClick={handleDrawer}>Drawer</MenuItem>
+          )}
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleWallet}>Wallet</MenuItem>
+        )}
+        {record?.roleName === "Player" && (
+          <MenuItem onClick={handleViewKey}>View Key 🔑</MenuItem>
+        )}
+        {record?.roleName === "Player" && record?.walletAddr && (
+          <MenuItem
+            onClick={() =>
+              window.open(
+                `https://basescan.org/address/${record.walletAddr}`,
+                "_blank"
+              )
+            }
+          >
+            Go to BaseScan
+          </MenuItem>
+        )}
+
+        {record?.roleName === "Player" && record?.walletAddr && (
+          <MenuItem
+            onClick={() =>
+              window.open(
+                `https://etherscan.io/address/${record.walletAddr}`,
+                "_blank"
+              )
+            }
+          >
+            Go to EtherScan
+          </MenuItem>
+        )}
+
         <MenuItem onClick={handleEdit}>Edit</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        {record?.roleName === "Player" && role === "Super-User" && (
+          <MenuItem
+            onClick={(e) => {
+              handleClose();
+              setBlacklistDialogOpen(true);
+            }}
+            sx={{ color: "red" }}
+          >
+            Blacklist User
+          </MenuItem>
+        )}
       </Menu>
+      <AllowUserCreationDialog
+        open={toggleUserCreationDialogOpen}
+        onClose={() => setToggleUserCreationDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
       <RedeemDialog
         open={redeemDialogOpen}
         onClose={() => setRedeemDialogOpen(false)}
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
       <RedeemServiceDialog
         open={redeemServiceDialogOpen}
@@ -144,6 +331,7 @@ const CustomButton = ({ fetchAllUsers }) => {
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
       <DeleteUserDialog
         open={deleteUserDialogOpen}
@@ -151,29 +339,112 @@ const CustomButton = ({ fetchAllUsers }) => {
         record={record}
         resource={resource}
         fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
       />
+      <BlacklistUserDialog
+        open={blacklistDialogOpen}
+        onClose={() => setBlacklistDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
+      <WalletDialog
+        open={walletDialogOpen}
+        onClose={() => setWalletDialogOpen(false)}
+        record={record} // Pass the record to fetch wallet details
+      />
+      <PasswordPermissionDialog
+        open={passwordPermissionDialogOpen}
+        onClose={() => setPasswordPermissionDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
+      <RechargeLimitDialog
+        open={rechargeLimitDialogOpen}
+        onClose={() => setRechargeLimitDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />{" "}
+      {/* Recharge Limit Dialog */}
+      <TransactionSummaryModal
+        open={drawerDialogOpen}
+        onClose={() => setDrawerDialogOpen(false)}
+        record={record}
+      />
+      <DisableRechargeDialog
+        open={disableRechargeDialogOpen}
+        onClose={() => setDisableRechargeDialogOpen(false)}
+        record={record}
+        handleRefresh={handleRefresh}
+      />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
     </React.Fragment>
   );
 };
 
-export const UserList = () => {
+export const UserList = (props) => {
+  const listContext = useListController(props); // ✅ Use useListController
+  const {
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    filterValues,
+    setFilters,
+    setSort,
+  } = listContext;
+
   const navigate = useNavigate();
+  const refresh = useRefresh();
   const { identity } = useGetIdentity();
-  const [create, { isPending, error }] = useCreate();
-
+  // const [create, { isPending, error }] = useCreate();
   const role = localStorage.getItem("role");
-
+  const isMobile = useMediaQuery("(max-width:600px)");
   if (!role) {
     navigate("/login");
   }
+  // const { data, isLoading, total } = useGetList("users", {
+  //   pagination: { page, perPage }, // Ensure correct pagination parameters
+  //   sort: { field: "createdAt", order: "DESC" },
+  //   filter: {
+  //     ...filterValues,
+  //     $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+  //   },
+  // });
 
   const [userData, setUserData] = useState();
   const [referralCode, setReferralCode] = useState();
   const [userCreateDialogOpen, setUserCreateDialogOpen] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+  const [searchBy, setSearchBy] = useState("username");
+  const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
+  const prevFilterValuesRef = useRef();
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleOpenFilterModal = () => {
+    setFilterModalOpen(true);
+  };
 
   const handleCreateUser = () => {
     setUserCreateDialogOpen(true);
+  };
+  const handleRefresh = async () => {
+    refresh();
   };
 
   function generateRandomString() {
@@ -213,76 +484,451 @@ export const UserList = () => {
     }
   };
 
+  const searchFields = ["username", "email", "userParentName"];
+
+  useEffect(() => {
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+    prevFilterValuesRef.current = filterValues;
+
+    if (!filterValuesChanged) return;
+
+    const newFilters = {
+      searchBy,
+      ...(filterValues[searchBy] && { [searchBy]: filterValues[searchBy] }),
+      ...(filterValues.role && { role: filterValues.role }),
+    };
+
+    // Apply comprehensive filters
+    setFilters(
+      {
+        ...Object.fromEntries(
+          Object.entries(filterValues).filter(
+            ([key]) => !searchFields.includes(key) || key === "role"
+          )
+        ),
+        ...newFilters,
+        $or: [{ userReferralCode: "" }, { userReferralCode: null }],
+      },
+      false
+    );
+  }, [filterValues, searchBy, setFilters]);
+
+  const debouncedSearch = useCallback(
+    debounce((value, searchField) => {
+      setFilters({
+        ...filterValues,
+        [searchField]: value,
+        searchBy: searchField,
+      });
+    }, 1000),
+    [filterValues, setFilters] // Include dependencies
+  );
+
+  // Handle input change - update local state immediately and debounce the filter update
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value); // Update input value immediately for UI responsiveness
+    debouncedSearch(value, searchBy); // Debounce the actual filter update
+  };
+
+  // Update searchValue when searchBy changes or when filters are reset
+  useEffect(() => {
+    setSearchValue(filterValues[searchBy] || "");
+  }, [searchBy, filterValues[searchBy]]);
+
+  const handleSearchByChange = (newSearchBy) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = searchValue; // Use the current input value
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
+    }
+
+    newFilters.searchBy = newSearchBy;
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    setFilters(newFilters, false);
+  };
+
   const dataFilters = [
-    <SearchInput source="username" alwaysOn resettable variant="outlined" />,
+    <Box
+      key="search-filter"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        width: "100%",
+        justifyContent: "space-between",
+      }}
+      alwaysOn
+    >
+      <MuiTextField
+        placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        variant="outlined"
+        size="small"
+        onChange={handleSearch}
+        value={searchValue}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <SearchIcon style={{ color: "#00000042" }} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{
+          width: { xs: "100%", sm: "auto" },
+          minWidth: "200px",
+          marginBottom: 1,
+          borderRadius: "5px",
+          borderColor: "#CFD4DB",
+          maxWidth: "280px",
+          backgroundColor: "white",
+        }}
+      />
+      <Button
+        variant="outlined"
+        onClick={handleOpenFilterModal}
+        sx={{
+          height: "40px",
+          borderRadius: "5px",
+          border: "1px solid #CFD4DB",
+          fontWeight: 400,
+          fontSize: "14px",
+          textTransform: "capitalize",
+        }}
+      >
+        <FilterListIcon
+          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+        />{" "}
+        Filter
+      </Button>
+    </Box>,
   ];
 
   const PostListActions = () => (
-    <TopToolbar>
-      <SortButton fields={['username','email','createdAt']} />
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={handleGenerateLink}
-      >
-        Referral Link
-      </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={handleCreateUser}
-      >
-        Add New User
-      </Button>
+    <TopToolbar
+      sx={{
+        display: "flex",
+        // flexDirection: { xs: "column", sm: "row" }, // Stack elements on small screens
+        alignItems: "space-between",
+        justifyContent: isMobile ? "space-between" : "flex-end",
+        gap: 2, // Add space between buttons
+        // p: { xs: 1, sm: 2 }, // Adjust padding for different screen sizes
+        width: "100%", // Ensure full width for the toolbar
+      }}
+    >
+      {isMobile && (
+        <Box>
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            User management
+          </Typography>
+        </Box>
+      )}
+      <Box sx={{ display: "flex", gap: 1 }}>
+        {role !== "Super-User" &&
+          role !== "Master-Agent" &&
+          (isMobile ? (
+            <Box
+              onClick={handleGenerateLink}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                width: "60px",
+                height: "40px",
+                borderRadius: "4px",
+              }}
+            >
+              <AddIcon />
+            </Box>
+          ) : (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleGenerateLink}
+              sx={{
+                width: { xs: "100%", sm: "191px" },
+                height: { xs: "100%", sm: "40px" },
+                backgroundColor: "var(--primary-color)",
+                color: "var(--secondary-color)",
+                mb: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  color: "var(--secondary-color)",
+                }}
+              >
+                Referral Link
+              </Typography>
+            </Button>
+          ))}
+        {isMobile && role !== "Master-Agent" ? (
+          <Box
+            onClick={handleCreateUser}
+            sx={{
+              cursor: "pointer",
+              display:
+                role === "Agent" && !identity?.allowUserCreation
+                  ? "none"
+                  : "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "var(--primary-color)",
+              color: "var(--secondary-color)",
+              width: "60px",
+              height: "40px",
+              borderRadius: "4px",
+            }}
+          >
+            <img src={AddUser} alt="Add User" width="20px" height="20px" />
+          </Box>
+        ) : (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={
+              <img src={AddUser} alt="Add User" width="20px" height="20px" />
+            }
+            onClick={handleCreateUser}
+            sx={{
+              width: { xs: "100%", sm: "191px" },
+              height: { xs: "100%", sm: "40px" },
+              backgroundColor: "var(--primary-color)",
+              color: "var(--secondary-color)",
+              mb: 0.5,
+            }} // Full width on small screens
+            disabled={role === "Agent" && !identity?.allowUserCreation}
+          >
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 500,
+                color: "var(--secondary-color)",
+              }}
+            >
+              Add New User
+            </Typography>
+          </Button>
+        )}
+      </Box>
     </TopToolbar>
   );
 
-  // useEffect(() => {
-  //   if (identity) {
-  //     fetchAllUsers();
-  //   }
-  // }, [identity]);
+  useEffect(() => {
+    if (identity) {
+      fetchAllUsers();
+    }
+  }, [identity]);
 
   useEffect(() => {
-    fetchAllUsers();
+    setFilters({ searchBy: "username" }, {}); // Clear filters when the component mounts
+    setSort({ field: "createdAt", order: "DESC" });
+    setTimeout(() => {
+      refresh();
+    }, 100); // delay to let filters stabilize
   }, []);
 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     refresh();
+  //   }, 60000); // Refresh every 60 seconds
+
+  //   return () => clearInterval(interval);
+  // }, [refresh]);
+
+  if (isLoading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
+  }
+
   return (
-    <List
-      title="User Management"
-      filters={dataFilters}
-      sx={{ pt: 1 }}
-      actions={<PostListActions />}
-      empty={false}
-      filter={{ userReferralCode: null }}
-    >
-      <Datagrid size="small" rowClick={false} bulkActionButtons={false}>
-        <TextField source="username" label="User Name" />
-        <TextField source="email" label="Email" />
-        {/* <TextField source="balance" label="Balance" /> */}
-        <DateField source="createdAt" label="Date" showTime />
-        {identity?.role === "Super-User" && (
-          <TextField source="roleName" label="User Type" />
-        )}
-        <WrapperField label="Actions">
-          <CustomButton fetchAllUsers={fetchAllUsers} />
-        </WrapperField>
-      </Datagrid>
-      <CreateUserDialog
-        open={userCreateDialogOpen}
-        onClose={() => setUserCreateDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
+    <>
+      {(role === "Master-Agent" || role === "Agent") && <EmergencyNotices />}
+      {(role === "Master-Agent" || role === "Agent") && <PersistentMessage />}
+      {!isMobile && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: "8px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "24px",
+              fontWeight: 400,
+              color: "var(--primary-color)",
+            }}
+          >
+            User management
+          </Typography>
+        </Box>
+      )}
+      <List
+        title="User Management"
+        filters={dataFilters}
+        actions={<PostListActions />}
+        emptyWhileLoading={true}
+        empty={false}
+        filter={{
+          $or: [
+            { userReferralCode: "" },
+            { userReferralCode: null },
+            { username: "" },
+          ],
+        }}
+        {...props}
+        sort={{ field: "createdAt", order: "DESC" }}
+        pagination={false}
+        sx={{
+          "& .RaList-actions": {
+            flexWrap: "nowrap", // Ensures table fills the available space
+          },
+          "& .RaFilterFormInput-spacer": { display: "none" },
+        }}
+      >
+        <Box
+          style={{
+            width: "100%",
+            overflowX: "auto",
+          }}
+        >
+          <Box
+            style={{
+              width: "100%",
+              position: "absolute",
+            }}
+          >
+            <Datagrid
+              size="small"
+              bulkActionButtons={false}
+              sx={{
+                overflowX: "auto",
+                overflowY: "hidden",
+                width: "100%",
+                maxHeight: "100%",
+                "& .RaDatagrid-row": {
+                  borderBottom: "1px solid #eaeaea",
+                  "&:hover": {
+                    backgroundColor: "#f9f9f9",
+                  },
+                },
+                "& .RaDatagrid-header": {
+                  backgroundColor: "#f5f5f5",
+                  fontWeight: 600,
+                  borderBottom: "2px solid #dedede",
+                },
+                "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                  padding: "8px 12px",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                },
+                "@media (max-width: 600px)": {
+                  "& .RaDatagrid-row > div, & .RaDatagrid-header > div": {
+                    padding: "6px", // Reduce padding on mobile
+                    height: "620px",
+                  },
+                },
+                "& .MuiTableCell-head": {
+                  fontWeight: 600,
+                },
+                borderRadius: "8px",
+                borderColor: "#CFD4DB",
+              }}
+            >
+              <WrapperField label="Actions">
+                <CustomButton
+                  fetchAllUsers={fetchAllUsers}
+                  identity={identity}
+                />
+              </WrapperField>
+              <TextField source="username" label="User Name" />
+              <TextField source="email" label="Email" />
+              {(identity?.role === "Super-User" ||
+                identity?.role === "Master-Agent") && (
+                <TextField source="userParentName" label="Parent User" />
+              )}
+              {(identity?.role === "Super-User" ||
+                identity?.role === "Master-Agent") && (
+                <TextField source="roleName" label="User Type" />
+              )}
+              <DateField source="createdAt" label="Date" showTime sortable />
+            </Datagrid>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                width: "100% !important",
+                mt: 1,
+              }}
+            >
+              <CustomPagination
+                page={page}
+                perPage={perPage}
+                total={total}
+                setPage={setPage}
+                setPerPage={setPerPage}
+              />
+            </Box>
+          </Box>
+        </Box>
+        <CreateUserDialog
+          open={userCreateDialogOpen}
+          onClose={() => setUserCreateDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+          handleRefresh={handleRefresh}
+        />
+        <ReferralDialog
+          open={referralDialogOpen}
+          onClose={() => setReferralDialogOpen(false)}
+          fetchAllUsers={fetchAllUsers}
+          referralCode={referralCode}
+        />
+      </List>
+      <UserFilterDialog
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        searchBy={searchBy}
+        setSearchBy={setSearchBy}
+        role={role}
+        filterValues={filterValues}
+        setFilters={setFilters}
+        handleSearchByChange={handleSearchByChange}
       />
-      <ReferralDialog
-        open={referralDialogOpen}
-        onClose={() => setReferralDialogOpen(false)}
-        fetchAllUsers={fetchAllUsers}
-        referralCode={referralCode}
-      />
-    </List>
+    </>
   );
 };

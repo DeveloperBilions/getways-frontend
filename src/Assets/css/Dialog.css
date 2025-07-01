@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+.custom-modal-header {
+  width: 100%; /* Set the width */
+  height: 100%; /* Set the height */
+  justify-content: space-between; /* Align content with space between */
+  display: flex; /* Ensure flexbox layout for justify-content */
+  align-items: center; /* Vertically align content */
+  padding: 16px; /* Set the padding */
+  font-family: 'Inter', sans-serif; /* Keep the Inter font */
+  border-bottom: 0; /* Remove bottom border */
+  font-weight:400;
+}
+
+.custom-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 12px; /* You mentioned "font-size: label" which should likely be "12px" based on standard practice */
+  line-height: 14px;
+  letter-spacing: 1.2%;
+  vertical-align: middle;
+  color: var(--text-color); /* Hex color value for text */
+  padding-bottom: 0px; /* Same as pb-1 in Bootstrap */
+  margin-bottom: 4px !important; /* Same as mb-0 in Bootstrap */
+}
+
+.custom-button {    
+  width: 100% !important;
+  height: 48px;
+  border-radius: 4px !important;
+  border-width: 1px !important; 
+  border-style: solid !important;
+  border-color: grey !important;
+  gap: 8px;
+  padding: 14px 20px;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box !important;
+}
+
+.cancel{
+    background-color: var(--secondary-color) !important;
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.confirm{
+    background-color: var(--primary-color) !important;
+    color: var(--secondary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.confirm.Mui-disabled {
+  background-color: #b0b0b0 !important;
+  color: #f0f0f0 !important;
+  cursor: not-allowed;
+  border:none !important;
+}
+
+.custom-modal .modal-dialog {
+  width: 100%; /* Set modal width */
+  height: 100%; /* Set modal height */
+  min-height: 88px; /* Set the minimum height */
+  gap: 16px; /* Gap between elements inside (if applicable) */
+  padding: 0 16px;
+}
+
+.custom-modal .modal-content {
+  height: 100%; /* Ensures content takes full height */
+  width: 100%;
+}
+
+.redeem-fees-text {
+  width: 100%;
+  border-radius: 4px;
+  padding: 8px 16px;
+  background: var(--secondary-color);
+  font-family: 'Inter', sans-serif; /* Keep the Inter font */
+  margin-bottom: 0px !important;
+}
+
+.custom-input {
+  width: 100%; /* Set the width */
+  height: 100%; /* Set the height */
+  border-radius: 5px; /* Set the border radius */
+  border-width: 1px; /* Set the border width */
+  border-style: solid; /* Add a solid border style */
+  padding-right: 12px; /* Set padding on the right */
+  padding-left: 12px; /* Set padding on the left */
+  padding-top: 0; /* Set top padding if necessary */
+  padding-bottom: 0; /* Set bottom padding if necessary */
+  box-sizing: border-box; /* Ensure padding is included in the element’s total width and height */
+}
+
+.custom-modal-body {
+  width: 100%;
+  height: 100%;
+  min-height: 88px;
+  padding: 0 16px !important; /* Adjust padding as needed */
+  display: flex; /* To apply the gap between elements inside */
+  flex-direction: column; /* If you want vertical alignment of items */
+}
+
+.custom-modal-footer {
+ border-top: 0px !important; /* Remove the top border */
+  margin-left: 0 !important; /* Remove unnecessary margin */
+  width: 100% !important;
+  height: 100% !important;
+  gap: 8px;
+  padding: 0px 12px !important; /* Consistent padding */
+  display: flex;
+  flex-direction: column !important; /* Ensure buttons stack vertically */
+  align-items: stretch !important; /* Stretch buttons to full width */
+  justify-content: center !important;
+}
+
+.fee-edit-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.btn-change {
+  background-color: #22C55E !important; /* Green color for the button */
+  color: var(--secondary-color) !important;
+  font-weight: bold;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 4px;
+}
+
+.green-switch:checked {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.green-switch:focus {
+  box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.black-checkbox:checked {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.settings-button {
+  background-color: #F4F4F5; /* White background */
+  border: 1px solid #F4F4F5; /* Light grey border */
+  border-radius: 10px; /* Rounded corners */
+  padding: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px; /* Square dimensions */
+  height: 32px;
+  margin-left: 10px !important;
+  cursor: pointer;
+}
+
+.settings-button:hover {
+  background-color: #f5f5f5; /* Slight grey on hover */
+}
+
+.setting-menu {
+  padding-right: 40px !important;
+}

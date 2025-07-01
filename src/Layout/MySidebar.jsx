@@ -1,76 +1,128 @@
 import * as React from "react";
-import { SidebarClasses, useLocales, useSidebarState } from "react-admin";
-import Box from "@mui/material/Box";
+import { useSidebarState } from "react-admin";
 import Drawer from "@mui/material/Drawer";
-import CssBaseline from "@mui/material/CssBaseline";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import { useNavigate } from "react-router-dom";
+import { useGetIdentity } from "react-admin";
+import { useMediaQuery } from "@mui/system";
 
-const drawerWidth = "15em";
+export const MySidebar = () => {
+  const { identity } = useGetIdentity();
+  const [open, setOpen] = useSidebarState();
+  const isMobile = useMediaQuery("(max-width:1023px)");
+  const navigate = useNavigate();
+  const role = localStorage.getItem("role");
 
-export const MySidebar = ({ children }) => {
+  if (!identity || !isMobile) {
+    // Don't render sidebar on larger screens
+    return null;
+  }
+
+  // Generate menu items
+  const menuItems = [];
+  if (role && role !== "Player") {
+    menuItems.push(
+      {
+        key: "users",
+        label: "User Management",
+        // icon: <PersonIcon />,
+        onClick: () => navigate("/users"),
+      },
+      {
+        key: "rechargeRecords",
+        label: "Recharge Records",
+        // icon: <LocalAtmIcon />,
+        onClick: () => navigate("/rechargeRecords"),
+      },
+      {
+        key: "redeemRecords",
+        label: "Redeem Records",
+        // icon: <LocalAtmIcon />,
+        onClick: () => navigate("/redeemRecords"),
+      },
+      {
+        key: "summary",
+        label: "Summary",
+        // icon: <SummarizeIcon />,
+        onClick: () => navigate("/summary"),
+      }
+    );
+    if (role === "Super-User") {
+      menuItems.push({
+        key: "reports",
+        label: "Reports",
+        // icon: <SummarizeIcon />,
+        onClick: () => navigate("/Reports"),
+      });
+      menuItems.push({
+        key: "KYC",
+        label: "KYC",
+        onClick: () => navigate("/kycRecords"),
+      });
+      menuItems.push({
+        key: "GiftCardHistory",
+        label: "Giftcard",
+        onClick: () => navigate("/GiftCardHistory"),
+      });
+      menuItems.push({
+        key: "wlletAudit",
+        label: "Wallet Audit",
+        onClick: () => navigate("/walletAudit"),
+      });
+    }
+  }
+
+  const handleMenuItemClick = (onClick) => {
+    if (onClick) onClick();
+    setOpen(false);
+  };
+
   return (
     <Drawer
-      variant="permanent"
+      variant="temporary"
       anchor="left"
+      open={open}
+      onClose={() => setOpen(false)}
       sx={{
-        width: drawerWidth,
+        width: open ? "100%" : 0,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: drawerWidth,
+          width: "100%",
           boxSizing: "border-box",
-          backgroundColor: "#272E3E",
-          //   backgroundColor: "#272E3E",
-          overflow: "hidden",
+          backgroundColor: "var(--secondary-color)",
+          color: "var(--primery-color)",
+          zIndex: 1200,
+          marginTop: "3.5em",
         },
-        "& .MuiMenuItem-root": {
-          color: "#c0c7d8",
-          //   color: "#272E35",
-          fontSize: 18,
-          // '&:active': {
-          //     backgroundColor: "blue",
-          // },
+        "& .MuiModal-backdrop": {
+          backgroundColor: "transparent !important",
         },
-        "& .MuiSvgIcon-root": {
-          color: "#d0d5e2",
-          //   color: "#272E35",
-        },
-        // '& .RaMenuItemLink-active': {
-        //     color: "#ffffFF",
-        // },
-        // '& .MuiMenuItem.Mui-selected': {
-        //     backgroundColor: "red",
-        // }
       }}
     >
-      <Toolbar>
-        <img src="/assets/company_logo.svg" alt="Company Logo" loading="lazy" />
-
-        {/* <Typography
-          variant="h4"
-          component="div"
-          align="center"
-          noWrap
-          sx={{
-            alignSelf: "center",
-            justifySelf: "center",
-            color: "white",
-          }}
-        >
-          GETWAYS
-        </Typography> */}
-      </Toolbar>
-      <Divider sx={{ borderColor: "#45516e" }} />
-      {children}
+      <List sx={{ padding: "8px 0" }}>
+        {menuItems.map((item) => (
+          <ListItem
+            button
+            key={item.key}
+            onClick={() => handleMenuItemClick(item.onClick)}
+            sx={{
+              padding: "12px 20px",
+            }}
+          >
+            <ListItemText
+              primary={item.label}
+              sx={{
+                "& .MuiTypography-root": {
+                  fontSize: "16px",
+                  fontWeight: 400,
+                },
+              }}
+            />
+          </ListItem>
+        ))}
+      </List>
     </Drawer>
   );
 };

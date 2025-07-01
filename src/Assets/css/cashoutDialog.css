@@ -1,0 +1,12 @@
+.cashout .form-check-input {
+    height: 1.5em !important;
+    width: 1.5em !important;
+    cursor: pointer;
+}
+
+.cashout .form-check-input:checked {
+    background-color: gray;
+    border-color: gray;
+    box-shadow: 0 0 3px gray;
+}
+
