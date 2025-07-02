@@ -1274,7 +1274,7 @@ export const RechargeRecordsList = (props) => {
                       "Amount($)",
                       "Remark",
                       "Status",
-                      "Mode",
+                      ...(role === "Super-User" ? ["Mode"] : []),
                       "Date",
                     ],
                   ],
@@ -1284,10 +1284,11 @@ export const RechargeRecordsList = (props) => {
                     row.transactionAmount,
                     row.remark,
                     mapStatus(row.status),
-                    getMode(row),
+                    ...(role === "Super-User" ? [getMode(row)] : []),
                     new Date(row.transactionDate).toLocaleDateString(),
                   ]),
                 });
+                
                 doc.save("RechargeRecords.pdf");
 
                 setIsExporting(false);
@@ -1312,14 +1313,21 @@ export const RechargeRecordsList = (props) => {
                   return;
                 }
 
-                const selectedFields = exportData.map((item) => ({
-                  Name: item.username,
-                  "Amount($)": item.transactionAmount,
-                  Remark: item.remark,
-                  Status: mapStatus(item.status),
-                  Mode: getMode(item),
-                  Date: new Date(item.transactionDate).toLocaleDateString(),
-                }));
+                const selectedFields = exportData.map((item) => {
+                  const row = {
+                    Name: item.username,
+                    "Amount($)": item.transactionAmount,
+                    Remark: item.remark,
+                    Status: mapStatus(item.status),
+                    Date: new Date(item.transactionDate).toLocaleDateString(),
+                  };
+                
+                  if (role === "Super-User") {
+                    row.Mode = getMode(item);
+                  }
+                
+                  return row;
+                });
 
                 const worksheet = XLSX.utils.json_to_sheet(selectedFields);
                 const workbook = XLSX.utils.book_new();
