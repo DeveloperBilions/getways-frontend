@@ -23,8 +23,7 @@ export const TransactionData = (props) => {
 
   const loadAndExportData = async () => {
     const filters = {
-      startdate:
-      tempStartDate || "2025-05-01",
+      startdate: tempStartDate || "2025-05-01",
       enddate: tempEndDate || "2025-05-17",
       starttime: tempStartTime || null,
       endtime: tempEndTime || null,
@@ -74,10 +73,10 @@ export const TransactionData = (props) => {
       ? "Wallet"
       : "Stripe";
   };
-  
+
   const handleExportAllDataXLS = async () => {
     const exportData = await loadAndExportData(); // Fetch data
-  
+
     // Flatten and combine all data
     const combinedData = exportData.map((item) => ({
       "Transaction ID": item.id,
@@ -97,12 +96,12 @@ export const TransactionData = (props) => {
       "Redeem Remark": item?.redeemRemarks,
       Mode: getMode(item), // <-- Add Mode using helper
     }));
-  
+
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(combinedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "All Data");
-  
+
     // Write Excel file
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
@@ -110,7 +109,6 @@ export const TransactionData = (props) => {
       "AllData.xlsx"
     );
   };
-  
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
@@ -152,7 +150,10 @@ export const TransactionData = (props) => {
                 type="date"
                 key={"startdate"}
                 value={tempStartDate}
-                onChange={(event) => setTempStartDate(event.target.value)}
+                onChange={(event) => {
+                  setTempStartDate(event.target.value)
+                  setTempEndDate("")
+                }}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{
                   min: startDateLimit,
@@ -213,7 +214,14 @@ export const TransactionData = (props) => {
                 InputLabelProps={{ shrink: true }}
                 inputProps={{
                   min: tempStartDate || startDateLimit,
-                  max: today,
+                  max: tempStartDate
+                    ? new Date(
+                        new Date(tempStartDate).getTime() +
+                          31 * 24 * 60 * 60 * 1000
+                      )
+                        .toISOString()
+                        .split("T")[0]
+                    : today,
                 }}
                 required
                 sx={{
