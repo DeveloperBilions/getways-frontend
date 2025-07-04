@@ -47,6 +47,7 @@ import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import RedirectByRole from "./RedirectByRole";
 import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
+import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -338,7 +339,7 @@ function App() {
                     path="/rechargeRecords"
                     element={
                       <Authenticated>
-                        <RechargeRecordsList resource="rechargeRecords" />
+                        <PlayerRechargeRecordsList resource="rechargeRecords" />
                       </Authenticated>
                     }
                   />
