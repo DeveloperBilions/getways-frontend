@@ -326,6 +326,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
       }
     } finally {
       setLoading(false);
+      fetchUsersByRole();
     }
   };
   // Combine parentOptions with identity
