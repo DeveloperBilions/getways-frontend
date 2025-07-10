@@ -684,7 +684,7 @@ export const DataSummary = React.memo(() => {
       ? "AOG"
       : data?.stripeId?.toLowerCase().includes("or-")
       ? "TransFi"
-      : data?.paymentType
+      : data?.paymentType === "wallet"
       ? "Wallet"
       : "Stripe";
   };  
