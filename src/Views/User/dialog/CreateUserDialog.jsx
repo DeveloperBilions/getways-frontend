@@ -367,7 +367,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
     setParentType({
       id: selectedParent?.id || identity?.objectId,
-      name: selectedParent?.name || identity?.name,
+      name: selectedParent?.username || identity?.username,
       type: selectedParent?.role || identity?.role,
     });
   };
