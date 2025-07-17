@@ -47,22 +47,35 @@ const RechargeLimitDialog = ({ open, onClose, record, handleRefresh }) => {
   // Validate only if user enters data
   const validateInputs = () => {
     let errors = {};
-
+  
     if (limitEnabled) {
-      if (monthlyLimit !== "" && (isNaN(monthlyLimit) || monthlyLimit < 0)) {
-        errors.monthlyLimit = "Monthly limit must be at least 0.";
-      }
-      if (dailyLimit !== "" && (isNaN(dailyLimit) || dailyLimit < 0 || dailyLimit > 50000)) {
+      const daily = Number(dailyLimit);
+      const monthly = Number(monthlyLimit);
+  
+      if (dailyLimit !== "" && (isNaN(daily) || daily < 0 || daily > 50000)) {
         errors.dailyLimit = "Daily limit must be between 0 and 50000.";
       }
+  
+      if (monthlyLimit !== "" && (isNaN(monthly) || monthly < 0)) {
+        errors.monthlyLimit = "Monthly limit must be at least 0.";
+      }
+  
       if (!activeLimit) {
         errors.activeLimit = "Please select an active recharge limit.";
+      } else {
+        if (activeLimit === "daily" && (!daily || daily <= 0)) {
+          errors.dailyLimit = "Active Daily limit must be greater than 0.";
+        }
+        if (activeLimit === "monthly" && (!monthly || monthly <= 0)) {
+          errors.monthlyLimit = "Active Monthly limit must be greater than 0.";
+        }
       }
     }
-
+  
     setInputErrors(errors);
-    return Object.keys(errors).length === 0; // Return true if no errors
+    return Object.keys(errors).length === 0;
   };
+  
 
   // Handle Save
   const handleSave = async () => {
