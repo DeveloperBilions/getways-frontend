@@ -12,7 +12,7 @@ import {
 import { Parse } from "parse";
 import { useGetIdentity } from "react-admin";
 
-export default function BillingAddressForm({ onSubmit, aog }) {
+export default function BillingAddressFormAOG({ onSubmit, aog, userId }) {
   const usStates = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
     "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
@@ -53,7 +53,7 @@ export default function BillingAddressForm({ onSubmit, aog }) {
           BillingInfo = Parse.Object.extend("BillingInfo");
         }
         const query = new Parse.Query(BillingInfo);
-        query.equalTo("userId", identity?.objectId);
+        query.equalTo("userId", userId);
         const result = await query.first();
 
         if (result) {
@@ -78,10 +78,10 @@ export default function BillingAddressForm({ onSubmit, aog }) {
       }
     };
 
-    if (identity?.objectId) {
+    if (userId) {
       loadBillingInfo();
     }
-  }, [identity?.objectId]);
+  }, [userId]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -131,7 +131,7 @@ export default function BillingAddressForm({ onSubmit, aog }) {
         ? await new Parse.Query(BillingInfo).get(objectId)
         : new BillingInfo();
 
-      billingInfo.set("userId", identity?.objectId);
+      billingInfo.set("userId", userId);
       Object.entries(form).forEach(([key, value]) => {
         billingInfo.set(key, value.trim());
       });

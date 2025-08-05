@@ -47,6 +47,8 @@ import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import RedirectByRole from "./RedirectByRole";
 import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
+import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
+import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -338,7 +340,7 @@ function App() {
                     path="/rechargeRecords"
                     element={
                       <Authenticated>
-                        <RechargeRecordsList resource="rechargeRecords" />
+                        <PlayerRechargeRecordsList resource="rechargeRecords" />
                       </Authenticated>
                     }
                   />
@@ -440,6 +442,7 @@ function App() {
         <Route path="/" element={<RedirectByRole />} />
           <Route path="/buyWert" element={<AutoWertWidget />} />
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
+          <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
         </CustomRoutes>
       </Admin>
     </BrowserRouter>

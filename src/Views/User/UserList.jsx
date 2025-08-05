@@ -57,6 +57,7 @@ import Snackbar from "@mui/material/Snackbar";
 import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
 import { debounce } from "lodash";
 import SearchIcon from "@mui/icons-material/Search";
+import CommissionRateModal from "./dialog/CommissionRateModal";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -87,6 +88,7 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success or error
   const [toggleUserCreationDialogOpen, setToggleUserCreationDialogOpen] =
     useState(false);
+    const [commissionRateDialogOpen, setCommissionRateDialogOpen] = useState(false);
 
   if (!record) return null;
 
@@ -202,6 +204,18 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
             Redeem
           </MenuItem>
         )}
+        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") &&
+  (role === "Super-User") && (
+    <MenuItem
+      onClick={() => {
+        handleClose();
+        setCommissionRateDialogOpen(true);
+      }}
+    >
+      Commission Rate
+    </MenuItem>
+  )}
+
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
           (role === "Super-User" || role === "Master-Agent") && (
@@ -390,6 +404,13 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
           {snackbarMsg}
         </Alert>
       </Snackbar>
+      <CommissionRateModal
+  open={commissionRateDialogOpen}
+  onClose={() => setCommissionRateDialogOpen(false)}
+  record={record}
+  fetchAllUsers={fetchAllUsers}
+/>
+
     </React.Fragment>
   );
 };

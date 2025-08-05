@@ -129,7 +129,10 @@ const RechargeWidgetPopup = ({
       }
     } else if (id === "wert") {
       handleOpenWert(amount);
-    } else {
+    } else if(id === "payarc"){
+      const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}`;
+      setIframeUrl(checkoutUrl);
+    }else {
       onOptionClick(id, { userId, walletId, remark });
     }
   };
@@ -264,6 +267,13 @@ const RechargeWidgetPopup = ({
       color: "#3B82F6",
       hoverColor: "#EFF6FF",
     },
+    {
+      id: "payarc",
+      title: "Pay By card",
+      description: "Secure payment • No KYC needed",
+      color: "#FF9900",
+      hoverColor: "#FFF7E6",
+    }
     // {
     //   id: "crypto",
     //   title: "Standard Recharge",

@@ -45,29 +45,56 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
   const fetchGiftCards = async (search, page = 1) => {
     setLoadingGiftCards(true);
     setErrorMessage("");
+  
     try {
-      const masterResponse = await Parse.Cloud.run("fetchGiftCards", {
-        searchTerm: "Mastercard",
-        currentPage: page,
-        perPage,
-      });
-      const allResponse = await Parse.Cloud.run("fetchGiftCards", {
-        searchTerm: search.trim(),
-        currentPage: page,
-        perPage,
-      });
-      const allCards = [...masterResponse.result, ...allResponse.result];
-      const unique = Array.from(
-        new Map(allCards.map((card) => [card.productId, card])).values()
-      );
-      setGiftCards(unique);
-      setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+      let combinedResults = [];
+  
+      if ((!search || search.trim() === "") && page <= 1) {
+        // Fetch "Mastercard" results
+        const masterResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "Mastercard",
+          currentPage: page,
+          perPage,
+        });
+        const masterCards = masterResponse.result || [];
+  
+        // Fetch all results
+        const allResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "",
+          currentPage: page,
+          perPage,
+        });
+        const allCards = allResponse.result || [];
+  
+        // Deduplicate based on productId
+        const productIds = new Set();
+        combinedResults = [...masterCards, ...allCards].filter((card) => {
+          if (productIds.has(card.productId)) return false;
+          productIds.add(card.productId);
+          return true;
+        });
+  
+        setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+      } else {
+        // Search-based fetch
+        const response = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: search.trim(),
+          currentPage: page,
+          perPage,
+        });
+        combinedResults = response.result || [];
+        setTotalPages(Math.ceil(response.totalCount / perPage));
+      }
+  
+      setGiftCards(combinedResults);
     } catch (err) {
+      console.error("Error fetching gift cards:", err);
       setErrorMessage("Failed to load gift cards.");
     } finally {
       setLoadingGiftCards(false);
     }
   };
+  
 
   const handleConfirm = async () => {
     if (!selectedGiftCard) return setErrorMessage("Select a gift card first.");

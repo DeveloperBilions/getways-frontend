@@ -13,6 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AppBar from "@mui/material/AppBar";
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import {
   RefreshButton,
   UserMenu,
@@ -56,6 +57,9 @@ import TuneIcon from "@mui/icons-material/Tune";
 import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 
+
+import ChatbotDialog from "../Views/User/dialog/ChatbotDialog";
+
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -72,6 +76,8 @@ export default function MyAppBar(props) {
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
   const [openShufflDialog, setShufflDialog] = React.useState(false);
+  const [openChatbotDialog, setOpenChatbotDialog] = useState(false);
+
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
@@ -568,6 +574,19 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenChatbotDialog(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <ChatOutlinedIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Chatbot Settings
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {identity?.redeemServiceEnabled && role === "Master-Agent" && (
                   <MenuItem
                     onClick={() => setOpenRedeemService(true)}
@@ -701,7 +720,13 @@ export default function MyAppBar(props) {
           onClose={() => setOpenRechargeMethods(false)}
         />
 
-        <TierSettingsDialog
+
+        <ChatbotDialog
+          open={openChatbotDialog}
+          onClose={() => setOpenChatbotDialog(false)}
+        />
+
+<TierSettingsDialog
           open={openTierSettings}
           onClose={() => setOpenTierSettings(false)}
         />
