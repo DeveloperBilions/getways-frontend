@@ -1181,7 +1181,7 @@ export const dataProvider = {
           // Fetch only relevant user data
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
-          userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
+          ///userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
           userQuery.limit(50000);
           const userResults = await userQuery.find({ useMasterKey: true });
           const users = userResults.map((o) => ({ id: o.id, ...o.attributes }));
