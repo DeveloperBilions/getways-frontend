@@ -54,7 +54,12 @@ import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
 import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import TuneIcon from "@mui/icons-material/Tune";
+import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+
+
 import ChatbotDialog from "../Views/User/dialog/ChatbotDialog";
+
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -70,6 +75,7 @@ export default function MyAppBar(props) {
     React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
+  const [openShufflDialog, setShufflDialog] = React.useState(false);
   const [openChatbotDialog, setOpenChatbotDialog] = useState(false);
 
   const navigate = useNavigate();
@@ -102,7 +108,8 @@ export default function MyAppBar(props) {
   const [activeTab, setActiveTab] = useState("users");
   const [openRechargeMethods, setOpenRechargeMethods] = React.useState(false);
   const [openTierSettings, setOpenTierSettings] = React.useState(false);
-  const [openTierSettingsAgents, setOpenTierSettingsAgents] = React.useState(false);
+  const [openTierSettingsAgents, setOpenTierSettingsAgents] =
+    React.useState(false);
 
   const getBalance = async () => {
     try {
@@ -592,6 +599,23 @@ export default function MyAppBar(props) {
                     Agent Redeem Fees
                   </MenuItem>
                 )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setShufflDialog(true)}
+                      style={{
+                        color: "#000000",
+
+                        gap: "8px",
+                      }}
+                    >
+                      <ShuffleIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Shuffle recharge
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -696,6 +720,7 @@ export default function MyAppBar(props) {
           onClose={() => setOpenRechargeMethods(false)}
         />
 
+
         <ChatbotDialog
           open={openChatbotDialog}
           onClose={() => setOpenChatbotDialog(false)}
@@ -706,16 +731,19 @@ export default function MyAppBar(props) {
           onClose={() => setOpenTierSettings(false)}
         />
 
-
-<AgentTierViewerDialogBulk
+        <AgentTierViewerDialogBulk
           open={openTierSettingsAgents}
           onClose={() => setOpenTierSettingsAgents(false)}
         />
         <DrawerAgentHistoryModal
-        open={openTicketPaidModal}
-        onClose={() => setOpenTicketPaidModal(false)}
-        record={{id:identity?.objectId,username:identity?.username}}
-      />
+          open={openTicketPaidModal}
+          onClose={() => setOpenTicketPaidModal(false)}
+          record={{ id: identity?.objectId, username: identity?.username }}
+        />
+        <ShuffleConfigModal
+          open={openShufflDialog}
+          onClose={() => setShufflDialog(false)}
+        />
       </AppBar>
     </>
   );
