@@ -292,7 +292,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
               transaction.set("type", "recharge");
               transaction.set("userId", userId);
               transaction.set("transactionDate", new Date());
-              transaction.set("amount", rechargeAmount);
+              transaction.set("transactionAmount", rechargeAmount);
               transaction.set("remark", "Payarc Recharge");
               transaction.set("status", 2); // Success
               transaction.set("portal", "Payarc");
@@ -328,7 +328,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             transaction.set("type", "recharge");
             transaction.set("userId", userId);
             transaction.set("transactionDate", new Date());
-            transaction.set("amount", rechargeAmount);
+            transaction.set("transactionAmount", rechargeAmount);
             transaction.set("remark", "Payarc Recharge (Failed)");
             transaction.set("status", 10); // Error
             transaction.set("portal", "Payarc");
