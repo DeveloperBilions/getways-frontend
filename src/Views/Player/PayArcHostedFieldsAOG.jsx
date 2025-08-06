@@ -292,10 +292,8 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
               transaction.set("type", "recharge");
               transaction.set("userId", userId);
               transaction.set("transactionDate", new Date());
-              transaction.set("transactionAmount", rechargeAmount);
+              transaction.set("amount", rechargeAmount);
               transaction.set("remark", "Payarc Recharge");
-              transaction.set("useWallet", false);
-              transaction.set("userParentId", user?.get("userParentId") || "");
               transaction.set("status", 2); // Success
               transaction.set("portal", "Payarc");
               transaction.set(
@@ -331,10 +329,8 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             transaction.set("username", identity?.username || "");
             transaction.set("userId", identity?.objectId);
             transaction.set("transactionDate", new Date());
-            transaction.set("transactionAmount", rechargeAmount);
+            transaction.set("amount", rechargeAmount);
             transaction.set("remark", "Payarc Recharge (Failed)");
-            transaction.set("useWallet", false);
-            transaction.set("userParentId", user?.get("userParentId") || "");
             transaction.set("status", 10); // Error
             transaction.set("portal", "Payarc");
             transaction.set("transactionIdFromStripe", `${token}-failed`);
