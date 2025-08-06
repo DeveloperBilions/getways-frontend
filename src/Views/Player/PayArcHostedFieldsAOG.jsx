@@ -337,7 +337,6 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             transaction.set("referralLink", response?.payment_form_url || "");
 
             await transaction.save(null, { useMasterKey: true });
-            navigate("/playerDashboard")
           }
         } catch (parseErr) {
           console.error("Token parsing failed:", parseErr);
