@@ -251,22 +251,22 @@ const RechargeWidgetPopup = ({
   };
 
   const paymentOptions = [
-    {
-      id: "quick-debit",
-      title: "Quick Debit Recharge",
-      subtext: "No KYC needed",
-      description: "Instant • Most debit cards supported",
-      color: "#14B8A6",
-      hoverColor: "#F6FEFD",
-    },
-    {
-      id: "wert",
-      title: "Instant Crypto Recharge",
-      subtext: "No KYC required",
-      description: "Visa / Mastercard / Apple Pay",
-      color: "#3B82F6",
-      hoverColor: "#EFF6FF",
-    },
+    // {
+    //   id: "quick-debit",
+    //   title: "Quick Debit Recharge",
+    //   subtext: "No KYC needed",
+    //   description: "Instant • Most debit cards supported",
+    //   color: "#14B8A6",
+    //   hoverColor: "#F6FEFD",
+    // },
+    // {
+    //   id: "wert",
+    //   title: "Instant Crypto Recharge",
+    //   subtext: "No KYC required",
+    //   description: "Visa / Mastercard / Apple Pay",
+    //   color: "#3B82F6",
+    //   hoverColor: "#EFF6FF",
+    // },
     {
       id: "payarc",
       title: "Pay By card",
