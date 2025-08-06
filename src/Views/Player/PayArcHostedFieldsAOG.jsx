@@ -286,7 +286,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
               const identity = user?.toJSON();
 
               const TransactionDetails =
-                Parse.Object.extend("AOGTransaction");
+                Parse.Object.extend("Transactions");
               const transaction = new TransactionDetails();
 
               transaction.set("type", "recharge");
@@ -296,6 +296,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
               transaction.set("remark", "Payarc Recharge");
               transaction.set("status", 2); // Success
               transaction.set("portal", "Payarc");
+              transaction.set("platform","AOGCOINCLUB")
               transaction.set(
                 "transactionIdFromStripe",
                 `${token}-${chargeResponse?.data?.id ?? "unknown"}`
@@ -321,13 +322,11 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             const identity = user?.toJSON();
 
             const TransactionDetails =
-              Parse.Object.extend("TransactionRecords");
+              Parse.Object.extend("Transactions");
             const transaction = new TransactionDetails();
 
             transaction.set("type", "recharge");
-            transaction.set("gameId", "786");
-            transaction.set("username", identity?.username || "");
-            transaction.set("userId", identity?.objectId);
+            transaction.set("userId", userId);
             transaction.set("transactionDate", new Date());
             transaction.set("amount", rechargeAmount);
             transaction.set("remark", "Payarc Recharge (Failed)");
@@ -335,6 +334,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             transaction.set("portal", "Payarc");
             transaction.set("transactionIdFromStripe", `${token}-failed`);
             transaction.set("referralLink", response?.payment_form_url || "");
+            transaction.set("platform","AOGCOINCLUB")
 
             await transaction.save(null, { useMasterKey: true });
           }
