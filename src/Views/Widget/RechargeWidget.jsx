@@ -270,7 +270,7 @@ const RechargeWidgetPopup = ({
     {
       id: "payarc",
       title: "Pay By card",
-      description: "Secure payment • No KYC needed",
+      description: "Secure payment",
       color: "#FF9900",
       hoverColor: "#FFF7E6",
     }
