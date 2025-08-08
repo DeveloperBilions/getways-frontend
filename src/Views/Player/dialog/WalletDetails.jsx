@@ -93,7 +93,14 @@ export const WalletDetails = ({
     refresh();
     handleCashoutRefresh();
   };
-
+  const hasAnyPaymentMethod = (w) => {
+    if (!w) return false;
+    const { cashAppId, paypalId, venmoId, zelleId } = w;
+    return [cashAppId, paypalId, venmoId, zelleId].some((v) =>
+      typeof v === "string" ? v.trim().length > 0 : !!v
+    );
+  };
+  console.log(wallet,"walleeety")
   return (
     <React.Fragment>
       <Paper
@@ -216,7 +223,17 @@ export const WalletDetails = ({
               setCheckoutError(""); // clear any previous errors
               const isEligible = await verifyPotBalance("payout");
               if (isEligible) {
-                setIsOpen(true);
+                if(identity?.userParentId === "PY6MQUOJtH")
+                {
+                  if (!hasAnyPaymentMethod(wallet)) {
+                    setPaymentDialogOpen(true);
+                    return;
+                  }else{
+                    setcashOutDialogOpen(true)
+                  }
+                }else{
+                  setIsOpen(true);
+                }
               }
             }}
             disabled={
@@ -293,9 +310,14 @@ export const WalletDetails = ({
       <AddPaymentMethods
         wallet={wallet}
         open={paymentDialogOpen}
-        onClose={() => setPaymentDialogOpen(false)}
+        onClose={() => {
+          setPaymentDialogOpen(false)
+        }}
         record={transformedIdentity}
         handleRefresh={handleRefresh}
+        onSucces={() => {
+          setcashOutDialogOpen(true)
+        }}
       />
     </React.Fragment>
   );
