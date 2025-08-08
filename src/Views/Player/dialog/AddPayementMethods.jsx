@@ -14,8 +14,9 @@ import {
   Spinner,
 } from "reactstrap";
 import { Alert } from "reactstrap";
+import { Box } from "@mui/material";
 
-const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
+const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet,onSucces }) => {
   const [originalPaymentMethods, setOriginalPaymentMethods] = useState({...wallet});
   const [paymentMethods, setPaymentMethods] = useState({...wallet});
   const [loading, setLoading] = useState(false); // State to track loading status
@@ -72,9 +73,7 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
       await walletService.updatePaymentMethods(trimmedMethods);
       setPaymentMethods(newMethods);
       setOriginalPaymentMethods(newMethods);
-      if (handleRefresh) {
-        handleRefresh(); // Refresh parent data if necessary
-      }
+      onSucces()
       onClose(); // Close the modal
     } catch (error) {
       console.error("Error updating payment methods:", error);
@@ -165,18 +164,17 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
                 </FormGroup>
               </Col>
             <Col md={12} className="d-flex justify-content-end">
-              <Button color="primary" type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Spinner size="sm" className="me-2" /> Saving...
-                  </>
-                ) : (
-                  "Save"
-                )}
-              </Button>
-              <Button
-                  color="secondary"
-                  className="ms-2"
+
+            <Box className="d-flex w-100 justify-content-between"
+                  sx={{
+                    flexDirection: { xs: "column-reverse", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "stretch" },
+                    gap: { xs: 2, sm: 2 },
+                    marginBottom: { xs: 2, sm: 2 },
+                    width: "100% !important",
+                  }}>
+                <Button
+                  className="custom-button cancel"
                   onClick={() => {
                     setPaymentMethods(originalPaymentMethods);
                     onClose();
@@ -185,6 +183,18 @@ const AddPaymentMethods = ({ open, onClose, handleRefresh,wallet }) => {
                 >
                   Cancel
                 </Button>
+                <Button 
+                  className="custom-button confirm"
+                  type="submit" disabled={loading}
+                >
+                   {loading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" /> Saving...
+                  </>
+                ) : (
+                  "Save"
+                )}
+                </Button></Box>
             </Col>
           </Row>
         </Form>
