@@ -80,9 +80,16 @@ export const UserFilterDialog = ({
 
         {role === "Super-User" && (
           <FormControl fullWidth>
-            <InputLabel>Role</InputLabel>
+            <InputLabel shrink>Role</InputLabel>
             <Select
-              value={localRole}
+            displayEmpty
+            value={localRole}
+            renderValue={(selected) => {
+              if (selected === "") {
+                return <em>All</em>;
+              }
+              return selected;
+            }}
               label="Role"
               onChange={(e) => setLocalRole(e.target.value)}
             >

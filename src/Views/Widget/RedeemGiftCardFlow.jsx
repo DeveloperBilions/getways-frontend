@@ -45,29 +45,56 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
   const fetchGiftCards = async (search, page = 1) => {
     setLoadingGiftCards(true);
     setErrorMessage("");
+  
     try {
-      const masterResponse = await Parse.Cloud.run("fetchGiftCards", {
-        searchTerm: "Mastercard",
-        currentPage: page,
-        perPage,
-      });
-      const allResponse = await Parse.Cloud.run("fetchGiftCards", {
-        searchTerm: search.trim(),
-        currentPage: page,
-        perPage,
-      });
-      const allCards = [...masterResponse.result, ...allResponse.result];
-      const unique = Array.from(
-        new Map(allCards.map((card) => [card.productId, card])).values()
-      );
-      setGiftCards(unique);
-      setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+      let combinedResults = [];
+  
+      if ((!search || search.trim() === "") && page <= 1) {
+        // Fetch "Mastercard" results
+        const masterResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "Mastercard",
+          currentPage: page,
+          perPage,
+        });
+        const masterCards = masterResponse.result || [];
+  
+        // Fetch all results
+        const allResponse = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: "",
+          currentPage: page,
+          perPage,
+        });
+        const allCards = allResponse.result || [];
+  
+        // Deduplicate based on productId
+        const productIds = new Set();
+        combinedResults = [...masterCards, ...allCards].filter((card) => {
+          if (productIds.has(card.productId)) return false;
+          productIds.add(card.productId);
+          return true;
+        });
+  
+        setTotalPages(Math.ceil(allResponse.totalCount / perPage));
+      } else {
+        // Search-based fetch
+        const response = await Parse.Cloud.run("fetchGiftCards", {
+          searchTerm: search.trim(),
+          currentPage: page,
+          perPage,
+        });
+        combinedResults = response.result || [];
+        setTotalPages(Math.ceil(response.totalCount / perPage));
+      }
+  
+      setGiftCards(combinedResults);
     } catch (err) {
+      console.error("Error fetching gift cards:", err);
       setErrorMessage("Failed to load gift cards.");
     } finally {
       setLoadingGiftCards(false);
     }
   };
+  
 
   const handleConfirm = async () => {
     if (!selectedGiftCard) return setErrorMessage("Select a gift card first.");
@@ -111,7 +138,7 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
   };
 
   return (
-    <Box p={3}>
+    <Box className="TEEST" p={3} sx={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
       {success ? (
         <Box textAlign="center">
           <Typography variant="h6" color="success.main" gutterBottom>
@@ -121,115 +148,120 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
         </Box>
       ) : (
         <>
-         <FormGroup>
-                <Label style={{ fontWeight: "600", fontSize: "14px" }}>
-                  Find your Gift card
-                </Label>
-                <Input
-                  type="text"
-                  placeholder="Search gift cards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="rounded"
-                />
-              </FormGroup>
-
-              {errorMessage && (
-                <Box className="alert alert-danger mt-2">{errorMessage}</Box>
-              )}
-
-              {loadingGiftCards ? (
-                <Box style={{ textAlign: "center", marginTop: "20px" }}>
-                  <Spinner size="sm" color="primary" /> Loading gift cards...
-                </Box>
-              ) : (
-                <Box
-                  style={{
-                    maxHeight: "90vh",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    width: "100%",
-                  }}
-                >
-                  <Row>
-                    {giftCards.map((card) => (
-                      <Col md={4} key={card.productId} className="mb-3">
-                        <Card
-                          onClick={() => setSelectedGiftCard(card)}
+          {/* Search Section (Sticky Top) */}
+          <FormGroup>
+            <Label style={{ fontWeight: "600", fontSize: "14px" }}>
+              Find your Gift card
+            </Label>
+            <Input
+              type="text"
+              placeholder="Search gift cards..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="rounded"
+            />
+          </FormGroup>
+  
+          {errorMessage && (
+            <Box className="alert alert-danger mt-2">{errorMessage}</Box>
+          )}
+  
+          {/* Scrollable Cards */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflowY: "auto",
+              mt: 2,
+              pr: 1,
+            }}
+          >
+            {loadingGiftCards ? (
+              <Box textAlign="center" mt={2}>
+                <Spinner size="sm" color="primary" /> Loading gift cards...
+              </Box>
+            ) : (
+              <Row style={{maxHeight:"70vh"}}>
+                {giftCards.map((card) => (
+                  <Col md={4} key={card.productId} className="mb-3">
+                    <Card
+                      onClick={() => setSelectedGiftCard(card)}
+                      style={{
+                        cursor: "pointer",
+                        border:
+                          selectedGiftCard?.productId === card.productId
+                            ? "2px solid #007bff"
+                            : "1px solid #ddd",
+                        transition: "all 0.3s ease-in-out",
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <CardImg
+                        top
+                        width="100%"
+                        src={card.productImage}
+                        alt={card.brandName}
+                        style={{
+                          objectFit: "contain",
+                          padding: "10px 10px 0px 10px",
+                          borderRadius: "15px",
+                        }}
+                      />
+                      <CardBody>
+                        <CardTitle
+                          tag="h6"
                           style={{
-                            cursor: "pointer",
-                            border:
-                              selectedGiftCard?.productId === card.productId
-                                ? "2px solid #007bff"
-                                : "1px solid #ddd",
-                            transition: "all 0.3s ease-in-out",
-                            borderRadius: "10px",
+                            fontWeight: "600",
+                            color: "#222",
+                            fontSize: "16px",
+                            marginBottom: "8px",
                           }}
                         >
-                          <CardImg
-                            top
-                            width="100%"
-                            src={card.productImage}
-                            alt={card.brandName}
-                            style={{
-                              // height: "120px",
-                              objectFit: "contain",
-                              padding: "10px 10px 0px 10px",
-                              borderRadius: "15px",
-                            }}
-                          />
-                          <CardBody>
-                            <CardTitle
-                              tag="h6"
-                              style={{
-                                fontWeight: "600",
-                                color: "#222",
-                                fontSize: "16px",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              {card.brandName}
-                            </CardTitle>
-                            <CardText>
-                              <small>
-                                Value Range: ${card.valueRestrictions.minVal} -
-                                ${card.valueRestrictions.maxVal}
-                              </small>
-                            </CardText>
-                          </CardBody>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                </Box>
-              )}
-              <Col md={12} className="d-flex justify-content-center mt-3">
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  disabled={currentPage === 1}
-                  onClick={() => {
-                    setCurrentPage(currentPage - 1);
-                    fetchGiftCards(searchTerm, currentPage - 1);
-                  }}
-                >
-                  Previous
-                </Button>
-                <span style={{ margin: "0 10px", alignSelf: "center" }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => {
-                    setCurrentPage(currentPage + 1);
-                    fetchGiftCards(searchTerm, currentPage + 1);
-                  }}
-                >
-                  Next
-                </Button>
-              </Col>
+                          {card.brandName}
+                        </CardTitle>
+                        <CardText>
+                          <small>
+                            Value Range: ${card.valueRestrictions.minVal} - $
+                            {card.valueRestrictions.maxVal}
+                          </small>
+                        </CardText>
+                      </CardBody>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </Box>
+  
+          {/* Pagination */}
+          <Col md={12} className="d-flex justify-content-center mt-3">
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => {
+                setCurrentPage(currentPage - 1);
+                fetchGiftCards(searchTerm, currentPage - 1);
+              }}
+            >
+              Previous
+            </Button>
+            <span style={{ margin: "0 10px", alignSelf: "center" }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => {
+                setCurrentPage(currentPage + 1);
+                fetchGiftCards(searchTerm, currentPage + 1);
+              }}
+            >
+              Next
+            </Button>
+          </Col>
+  
+          {/* Action Buttons */}
           <Box mt={3} display="flex" justifyContent="space-between">
             <Button variant="outlined" fullWidth sx={{ mr: 1 }} onClick={onBack}>
               Back
@@ -245,7 +277,8 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
           </Box>
         </>
       )}
-
+  
+      {/* Info Dialog */}
       <UserGiftInfoDialog
         open={showInfoDialog}
         onClose={() => setShowInfoDialog(false)}
@@ -260,6 +293,7 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
       />
     </Box>
   );
+  
 };
 
 export default RedeemGiftCardFlow;

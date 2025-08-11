@@ -129,7 +129,10 @@ const RechargeWidgetPopup = ({
       }
     } else if (id === "wert") {
       handleOpenWert(amount);
-    } else {
+    } else if(id === "payarc"){
+      const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}`;
+      setIframeUrl(checkoutUrl);
+    }else {
       onOptionClick(id, { userId, walletId, remark });
     }
   };
@@ -248,22 +251,29 @@ const RechargeWidgetPopup = ({
   };
 
   const paymentOptions = [
+    // {
+    //   id: "quick-debit",
+    //   title: "Quick Debit Recharge",
+    //   subtext: "No KYC needed",
+    //   description: "Instant • Most debit cards supported",
+    //   color: "#14B8A6",
+    //   hoverColor: "#F6FEFD",
+    // },
+    // {
+    //   id: "wert",
+    //   title: "Instant Crypto Recharge",
+    //   subtext: "No KYC required",
+    //   description: "Visa / Mastercard / Apple Pay",
+    //   color: "#3B82F6",
+    //   hoverColor: "#EFF6FF",
+    // },
     {
-      id: "quick-debit",
-      title: "Quick Debit Recharge",
-      subtext: "No KYC needed",
-      description: "Instant • Most debit cards supported",
-      color: "#14B8A6",
-      hoverColor: "#F6FEFD",
-    },
-    {
-      id: "wert",
-      title: "Instant Crypto Recharge",
-      subtext: "No KYC required",
-      description: "Visa / Mastercard / Apple Pay",
-      color: "#3B82F6",
-      hoverColor: "#EFF6FF",
-    },
+      id: "payarc",
+      title: "Pay By card",
+      description: "Secure payment",
+      color: "#FF9900",
+      hoverColor: "#FFF7E6",
+    }
     // {
     //   id: "crypto",
     //   title: "Standard Recharge",
@@ -362,7 +372,7 @@ const RechargeWidgetPopup = ({
   </IconButton> */}
         </Box>
 
-        <Box sx={{ p: 2, maxHeight: "460px", overflowY: "auto" }}>
+        <Box sx={{ p: 2, maxHeight: "100vh", overflowY: "auto" }}>
           {!actionType ? (
             <Stack spacing={2} alignItems="center" py={3}>
               <Typography variant="h6">What would you like to do?</Typography>

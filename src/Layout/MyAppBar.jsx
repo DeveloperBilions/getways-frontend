@@ -13,6 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AppBar from "@mui/material/AppBar";
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import {
   RefreshButton,
   UserMenu,
@@ -54,6 +55,14 @@ import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialo
 import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
 
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import TuneIcon from "@mui/icons-material/Tune";
+import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+
+
+import ChatbotDialog from "../Views/User/dialog/ChatbotDialog";
+
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -71,6 +80,8 @@ export default function MyAppBar(props) {
     React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
+  const [openShufflDialog, setShufflDialog] = React.useState(false);
+  const [openChatbotDialog, setOpenChatbotDialog] = useState(false);
 
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -495,13 +506,13 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
-                {/* {role === "Super-User" && (
+                {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setOpenTierSettings(true)}
                       style={{ color: "#000000", gap: "8px" }}
                     >
-                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <LeaderboardIcon sx={{ fontSize: 20, color: "#000" }} />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                         Tiers
                       </Typography>
@@ -514,13 +525,13 @@ export default function MyAppBar(props) {
                       onClick={() => setOpenTierSettingsAgents(true)}
                       style={{ color: "#000000", gap: "8px" }}
                     >
-                      <SyncAltIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <TuneIcon sx={{ fontSize: 20, color: "#000" }} />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                         Tier Settings
                       </Typography>
                     </MenuItem>
                   </Box>
-                )} */}
+                )}
                 {/* {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -568,6 +579,19 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenChatbotDialog(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <ChatOutlinedIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Chatbot Settings
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {identity?.redeemServiceEnabled && role === "Master-Agent" && (
                   <MenuItem
                     onClick={() => setOpenRedeemService(true)}
@@ -595,6 +619,22 @@ export default function MyAppBar(props) {
                       Accounting
                     </Typography>
                   </MenuItem>
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setShufflDialog(true)}
+                      style={{
+                        color: "#000000",
+
+                        gap: "8px",
+                      }}
+                    >
+                      <ShuffleIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Shuffle recharge
+                      </Typography>
+                    </MenuItem>
+                  </Box>
                 )}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
@@ -704,7 +744,14 @@ export default function MyAppBar(props) {
           onClose={() => setOpenRechargeMethods(false)}
         />
 
-        <TierSettingsDialog
+
+        <ChatbotDialog
+          open={openChatbotDialog}
+          onClose={() => setOpenChatbotDialog(false)}
+        />
+
+<TierSettingsDialog
+
           open={openTierSettings}
           onClose={() => setOpenTierSettings(false)}
         />
@@ -717,6 +764,10 @@ export default function MyAppBar(props) {
           open={openTicketPaidModal}
           onClose={() => setOpenTicketPaidModal(false)}
           record={{ id: identity?.objectId, username: identity?.username }}
+        />
+        <ShuffleConfigModal
+          open={openShufflDialog}
+          onClose={() => setShufflDialog(false)}
         />
       </AppBar>
     </>

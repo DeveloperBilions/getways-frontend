@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const PayArcCheckout = ({ rechargeAmount }) => {
+const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
   const navigate = useNavigate()
@@ -286,20 +286,17 @@ const PayArcCheckout = ({ rechargeAmount }) => {
               const identity = user?.toJSON();
 
               const TransactionDetails =
-                Parse.Object.extend("TransactionRecords");
+                Parse.Object.extend("Transactions");
               const transaction = new TransactionDetails();
 
               transaction.set("type", "recharge");
-              transaction.set("gameId", "786");
-              transaction.set("username", identity?.username || "");
-              transaction.set("userId", identity?.objectId);
+              transaction.set("userId", userId);
               transaction.set("transactionDate", new Date());
               transaction.set("transactionAmount", rechargeAmount);
               transaction.set("remark", "Payarc Recharge");
-              transaction.set("useWallet", false);
-              transaction.set("userParentId", user?.get("userParentId") || "");
               transaction.set("status", 2); // Success
               transaction.set("portal", "Payarc");
+              transaction.set("platform","AOGCOINCLUB")
               transaction.set(
                 "transactionIdFromStripe",
                 `${token}-${chargeResponse?.data?.id ?? "unknown"}`
@@ -325,25 +322,21 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             const identity = user?.toJSON();
 
             const TransactionDetails =
-              Parse.Object.extend("TransactionRecords");
+              Parse.Object.extend("Transactions");
             const transaction = new TransactionDetails();
 
             transaction.set("type", "recharge");
-            transaction.set("gameId", "786");
-            transaction.set("username", identity?.username || "");
-            transaction.set("userId", identity?.objectId);
+            transaction.set("userId", userId);
             transaction.set("transactionDate", new Date());
             transaction.set("transactionAmount", rechargeAmount);
             transaction.set("remark", "Payarc Recharge (Failed)");
-            transaction.set("useWallet", false);
-            transaction.set("userParentId", user?.get("userParentId") || "");
             transaction.set("status", 10); // Error
             transaction.set("portal", "Payarc");
             transaction.set("transactionIdFromStripe", `${token}-failed`);
             transaction.set("referralLink", response?.payment_form_url || "");
+            transaction.set("platform","AOGCOINCLUB")
 
             await transaction.save(null, { useMasterKey: true });
-            navigate("/playerDashboard")
           }
         } catch (parseErr) {
           console.error("Token parsing failed:", parseErr);
@@ -683,4 +676,4 @@ function walletCss() {
 `;
 }
 
-export default PayArcCheckout;
+export default PayArcCheckoutAOG;

@@ -45,6 +45,10 @@ import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
+import RedirectByRole from "./RedirectByRole";
+import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
+import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
+import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -122,57 +126,57 @@ function App() {
     );
   }
 
-  const currentPath = window.location.pathname;
+  // const currentPath = window.location.pathname;
 
-  const allowedPaths = [
-    "/",
-    "/users",
-    "/summary",
-    "/Reports",
-    "/kycRecords",
-    "/login",
-    "/loginEmail",
-    "/updateUser",
-    "/signup",
-    "/reset-email-sent",
-    "/reset-password",
-    "/reset-email",
-    "/create-user",
-    "/checkout",
-    "/checkout-version2",
-    "/success",
-    "/maintenance",
-    "/playerDashboard",
-    "/rechargeRecords",
-    "/redeemRecords",
-    "/gift-card-history",
-    "/wallet-details",
-    "/transactionData",
-    "/buyWert",
-    "/GiftCardHistory",
-    "/walletAudit",
-    "/404",
-    "/payment-checkout",
-    "/recharge-widget",
-    "/stripe-payment"
-  ];
-  if (!allowedPaths.includes(currentPath)) {
-    return (
-      <BrowserRouter>
-        <Admin
-          dataProvider={dataProvider}
-          authProvider={authProvider}
-          loginPage={LoginPage}
-          layout={MyLayout}
-          theme={MyTheme}
-        >
-          <CustomRoutes>
-            <Route path="/404" element={<NotFoundPage />} />
-          </CustomRoutes>
-        </Admin>
-      </BrowserRouter>
-    );
-  }
+  // const allowedPaths = [
+  //   "/",
+  //   "/users",
+  //   "/summary",
+  //   "/Reports",
+  //   "/kycRecords",
+  //   "/login",
+  //   "/loginEmail",
+  //   "/updateUser",
+  //   "/signup",
+  //   "/reset-email-sent",
+  //   "/reset-password",
+  //   "/reset-email",
+  //   "/create-user",
+  //   "/checkout",
+  //   "/checkout-version2",
+  //   "/success",
+  //   "/maintenance",
+  //   "/playerDashboard",
+  //   "/rechargeRecords",
+  //   "/redeemRecords",
+  //   "/gift-card-history",
+  //   "/wallet-details",
+  //   "/transactionData",
+  //   "/buyWert",
+  //   "/GiftCardHistory",
+  //   "/walletAudit",
+  //   "/404",
+  //   "/payment-checkout",
+  //   "/recharge-widget",
+  //   "/stripe-payment"
+  // ];
+  // if (!allowedPaths.includes(currentPath)) {
+  //   return (
+  //     <BrowserRouter>
+  //       <Admin
+  //         dataProvider={dataProvider}
+  //         authProvider={authProvider}
+  //         loginPage={LoginPage}
+  //         layout={MyLayout}
+  //         theme={MyTheme}
+  //       >
+  //         <CustomRoutes>
+  //           <Route path="/404" element={<NotFoundPage />} />
+  //         </CustomRoutes>
+  //       </Admin>
+  //     </BrowserRouter>
+  //   );
+  // }
 
   return (
     <BrowserRouter>
@@ -182,6 +186,7 @@ function App() {
         loginPage={LoginPage}
         layout={MyLayout}
         theme={MyTheme}
+        catchAll={RedirectByRole}
       >
         {(permissions) => {
           if (permissions && permissions !== "Player") {
@@ -335,7 +340,7 @@ function App() {
                     path="/rechargeRecords"
                     element={
                       <Authenticated>
-                        <RechargeRecordsList resource="rechargeRecords" />
+                        <PlayerRechargeRecordsList resource="rechargeRecords" />
                       </Authenticated>
                     }
                   />
@@ -389,6 +394,14 @@ function App() {
                       </Authenticated>
                     }
                   />
+                  <Route
+                    path="/paynearme-payment"
+                    element={
+                      <Authenticated>
+                        <PayNearMePay />
+                      </Authenticated>
+                    }
+                  />
 
                 </CustomRoutes>
               </>
@@ -426,10 +439,10 @@ function App() {
           }
         }}
         <CustomRoutes noLayout>
+        <Route path="/" element={<RedirectByRole />} />
           <Route path="/buyWert" element={<AutoWertWidget />} />
-        </CustomRoutes>
-        <CustomRoutes noLayout>
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
+          <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
         </CustomRoutes>
       </Admin>
     </BrowserRouter>

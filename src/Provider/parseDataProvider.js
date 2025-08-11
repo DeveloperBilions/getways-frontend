@@ -1181,7 +1181,7 @@ export const dataProvider = {
           // Fetch only relevant user data
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
-          userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
+          ///userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
           userQuery.limit(50000);
           const userResults = await userQuery.find({ useMasterKey: true });
           const users = userResults.map((o) => ({ id: o.id, ...o.attributes }));
@@ -1797,13 +1797,55 @@ export const dataProvider = {
           { $skip: (page - 1) * perPage },
           { $limit: perPage },
         ], { useMasterKey: true });
-      
+        const countPipeline = [
+          { $match: matchStage },
+          {
+            $addFields: {
+              stripeId: { $ifNull: ["$transactionIdFromStripe", ""] },
+              referralLink: { $ifNull: ["$referralLink", ""] },
+            },
+          },
+          {
+            $addFields: {
+              mode: {
+                $switch: {
+                  branches: [
+                    {
+                      case: { $regexMatch: { input: "$stripeId", regex: "txn-", options: "i" } },
+                      then: "WERT",
+                    },
+                    {
+                      case: { $regexMatch: { input: "$referralLink", regex: "pay.coinbase.com", options: "i" } },
+                      then: "CoinBase",
+                    },
+                    {
+                      case: { $regexMatch: { input: "$stripeId", regex: "crypto.link.com", options: "i" } },
+                      then: "Link",
+                    },
+                  ],
+                  default: "Other",
+                },
+              },
+            },
+          },
+          { $match: { mode: { $in: ["WERT", "CoinBase", "Link"] } } },
+          {
+            $group: {
+              _id: "$userId",
+            },
+          },
+          { $count: "totalCount" }
+        ];
+        const countResult = await new Parse.Query("TransactionRecords").aggregate(countPipeline, {
+          useMasterKey: true,
+        });
+                
         const userQueryForCount = new Parse.Query(Parse.User);
         userQueryForCount.exists("walletAddr");
         if (usernameFilter) {
           userQueryForCount.matches("username", new RegExp(usernameFilter, "i"));
         }
-        const totalUserCount = await userQueryForCount.count({ useMasterKey: true });
+        //const totalUserCount = await transactionAgg.count({ useMasterKey: true });
       
         const API_KEY = process.env.REACT_APP_KEYBSCAN;
         const API_KEY_ETH = process.env.REACT_APP_KEYBSCAN;
@@ -1890,7 +1932,7 @@ export const dataProvider = {
       
         return {
           data: enriched,
-          total: totalUserCount,
+          total: countResult[0]?.totalCount || 0,
         };
       }      
       else {

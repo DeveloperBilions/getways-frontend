@@ -1,3 +1,22 @@
+import {
+  agentFinalAnswers,
+  agentFinalOptions,
+  agentMainOptions,
+  agentSubOptions,
+  masterAgentFinalAnswers,
+  masterAgentFinalOptions,
+  masterAgentMainOptions,
+  masterAgentSubOptions,
+  playerFinalAnswers,
+  playerFinalOptions,
+  playerMainOptions,
+  playerSubOptions,
+  superUserFinalAnswers,
+  superUserFinalOptions,
+  superUserMainOptions,
+  superUserSubOptions,
+} from "./chatConst";
+
 export const mapTransactionStatus = (status) => {
   switch (status) {
     case 0:
@@ -256,5 +275,54 @@ export const calculateDataSummariesForSummary = ({ id, users,walletBalances }) =
       },
     ],
     total: null,
+  };
+};
+
+
+// Function to get role-based options
+export const getRoleBasedOptions = (role) => {
+  let mainOptions, subOptions, finalOptions, finalAnswer;
+
+  switch (role) {
+    case "Player":
+      mainOptions = playerMainOptions;
+      subOptions = playerSubOptions;
+      finalOptions = playerFinalOptions;
+      finalAnswer = playerFinalAnswers;
+      break;
+
+    case "Agent":
+      mainOptions = agentMainOptions;
+      subOptions = agentSubOptions
+      finalOptions = agentFinalOptions;
+      finalAnswer = agentFinalAnswers
+      break;
+
+    case "Master-Agent":
+      mainOptions = masterAgentMainOptions;
+      subOptions = masterAgentSubOptions;
+      finalOptions = masterAgentFinalOptions;
+      finalAnswer = masterAgentFinalAnswers;
+      break;
+
+    case "Super-User":
+      mainOptions = superUserMainOptions;
+      subOptions = superUserSubOptions;
+      finalOptions = superUserFinalOptions;
+      finalAnswer = superUserFinalAnswers;
+      break;
+
+    default:
+      mainOptions = playerMainOptions;
+      subOptions = playerSubOptions;
+      finalOptions = playerFinalOptions ;
+      finalAnswer = playerFinalAnswers ;
+  }
+
+  return {
+    mainOptions,
+    subOptions,
+    finalOptions,
+    finalAnswer,
   };
 };

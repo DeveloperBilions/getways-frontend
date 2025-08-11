@@ -58,7 +58,9 @@ import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
 import { CircularProgress } from "@mui/material";
 import PayArcHostedFields from "./PayArcHostedFields";
 import { useNavigate } from "react-router-dom";
+import { getAgentTierDetails } from "../../Utils/tier";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import { getAllActiveThresholdsWithActiveMethod, validateThresholdBeforeRecharge } from "../../Utils/rechargeThreshold";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -109,10 +111,17 @@ const Recharge = ({
   const [showPayarc, setshowPayarc] = useState(false);
   const [showStripe, setshowStripe] = useState(false);
   const [payarcLimit, setPayArcLimit] = useState(false);
+  const [showPaynearMe, setShowPaynearMe] = useState(false);
+
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
-
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [activeThresholds, setActiveThresholds] = useState([]);
+  const [loadingThresholds, setLoadingThresholds] = useState(true);
+  const [matchingThreshold, setMatchingThreshold] = useState(null);
+  const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
+  
   useEffect(() => {
     const checkPayarcLimit = async () => {
       try {
@@ -181,13 +190,14 @@ const Recharge = ({
       const isLinkAllowed = await isPaymentMethodAllowed(parentId, "link");
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
+      const isPaynearmeAllowed = await isPaymentMethodAllowed(parentId, "paynearme");
 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
-
+      setShowPaynearMe(isPaynearmeAllowed)
       setRechargeMethodLoading(false);
     };
 
@@ -195,6 +205,46 @@ const Recharge = ({
       checkAccess();
     }
   }, [identity]);
+  useEffect(() => {
+    loadThresholds();
+  }, []);
+  const loadThresholds = async () => {
+    try {
+      setLoadingThresholds(true);
+      const results = await getAllActiveThresholdsWithActiveMethod();
+      console.log(results, "resultsresultsresultsresultsresults");
+      setActiveThresholds(results);
+
+      // Find all thresholds where activeMethod is among the methods
+      const matches = results.filter(
+        (t) =>
+          typeof t.activeMethod === "string" &&
+          Array.isArray(t.methods) &&
+          t.methods.some(
+            (m) => m.toLowerCase() === t.activeMethod.toLowerCase()
+          )
+      );
+
+      setMatchingThreshold(matches.length ? matches : null);
+
+      // Build array of allowed methods from all matching thresholds
+      const allowedMethods = matches.length
+        ? matches
+            .map((m) => m.activeMethod?.toLowerCase())
+            .filter(Boolean) // remove undefined/null
+        : null;
+
+      setAllowedActiveMethods(allowedMethods && allowedMethods.length ? allowedMethods : null);
+    } catch (err) {
+      console.error("Error loading thresholds:", err);
+      setActiveThresholds([]);
+      setMatchingThreshold(null);
+      setAllowedActiveMethods(null);
+    } finally {
+      setLoadingThresholds(false);
+    }
+  };
+  
   // useEffect(() => {
   //   const interval = setInterval(() => {
   //     handlecheck();
@@ -381,7 +431,83 @@ const Recharge = ({
     }
   };
   const [hoveredOption, setHoveredOption] = useState(null);
+  const verifyPotBalance = async (checkType = "recharge") => {
+    try {
+      setCheckingEligibility(true); // start loader
+      const result = await getAgentTierDetails(
+        identity?.userParentId,
+        checkType
+      );
+      if (!result) {
+        setRechargeError(
+          "Unable to verify tier requirements. Try again later."
+        );
+        return false;
+      }
+      if (!result.isSufficient) {
+        setRechargeError(
+          `Insufficient pot-balance Of Your Agent. Tier ${result.tier} requires ≥ ${result.requiredMin}.`
+        );
+        return false;
+      }
+      return true; // ✅ OK – continue with recharge flow
+    } catch (err) {
+      console.error("Tier-check failed:", err);
+      setRechargeError("Tier validation failed. Try again.");
+      return false;
+    } finally{
+      setCheckingEligibility(false); // start loader
+    }
+  };
   const paymentOptions = [
+    {
+      id: "paynearme",
+      title: "PayNearMe",
+      description: "Pay with cash, card, or ACH via PayNearMe",
+      subtext: "No KYC needed",
+      icon: (
+        <AccountBalanceWalletOutlinedIcon sx={{ color: "#1D4ED8", fontSize: 24 }} />
+      ),
+      color: "#1D4ED8", // Tailwind Blue-700
+      hoverColor: "#EFF6FF",
+      paymentIcons: [visa, mastercard, payPal],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+    
+          setCheckingRechargeLimit(true);
+    
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+    
+          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+    
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+    
+          setRechargeError("");
+    
+          // Navigate to PayNearMe page (or open a modal)
+          navigate("/paynearme-payment", {
+            state: {
+              rechargeAmount,
+              remark,
+            },
+          });
+        } catch (err) {
+          console.error("PayNearMe error:", err);
+          alert("Something went wrong with PayNearMe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+          setWalletLoading(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },    
     {
       id: "stripe",
       title: "Pay By Card",
@@ -392,6 +518,7 @@ const Recharge = ({
       paymentIcons: [Logo1, visa, mastercard],
       onClick: debounce(async () => {
         try {
+          if (!(await verifyPotBalance("recharge"))) return;
           setCheckingRechargeLimit(true);
 
           // Validate minimum recharge
@@ -429,7 +556,7 @@ const Recharge = ({
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     payarcLimit && {
       id: "payarc",
@@ -440,6 +567,8 @@ const Recharge = ({
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
+        if (!(await verifyPotBalance("recharge"))) return;
+
         navigate("/payment-checkout", {
           state: { rechargeAmount: rechargeAmount },
         });
@@ -500,10 +629,10 @@ const Recharge = ({
         // }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     {
-      id: "quick-debit",
+      id: "coinbase",
       title: "Quick Debit Recharge",
       description: "Instant • Most debit cards supported",
       subtext: "No KYC needed",
@@ -513,6 +642,7 @@ const Recharge = ({
       paymentIcons: [venmo, payPal, visa, mastercard],
       onClick: debounce(async () => {
         try {
+          if (!(await verifyPotBalance("recharge"))) return;
           setCheckingRechargeLimit(true);
           if (rechargeAmount < RechargeLimitOfAgent) {
             setRechargeError(
@@ -634,7 +764,7 @@ const Recharge = ({
         identity?.isBlackListed ||
         rechargeDisabled ||
         walletLoading ||
-        checkingRechargeLimit,
+        checkingRechargeLimit || checkingEligibility,
     },
     {
       id: "instant",
@@ -645,8 +775,10 @@ const Recharge = ({
       color: "#3B82F6",
       hoverColor: "#F5F9FF",
       paymentIcons: [Chime, venmo, payPal, visa, mastercard],
-      onClick: debounce(() => {
+      onClick: debounce(async () => {
         if (!identity?.isBlackListed) {
+          if (!(await verifyPotBalance("recharge"))) return;
+
           if (paymentSource === "stripe") {
             handleRechargeClick();
           } else {
@@ -654,10 +786,10 @@ const Recharge = ({
           }
         }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled,
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingEligibility,
     },
     {
-      id: "crypto",
+      id: "link",
       title: "Standard Recharge",
       description: "",
       subtext: "KYC Required",
@@ -668,6 +800,8 @@ const Recharge = ({
       hoverColor: "#FAF5FF",
       onClick: debounce(async () => {
         setCheckingRechargeLimit(true);
+        if (!(await verifyPotBalance("recharge"))) return;
+
         if (rechargeAmount < RechargeLimitOfAgent) {
           setRechargeError(
             `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
@@ -725,7 +859,7 @@ const Recharge = ({
         identity?.isBlackListed ||
         rechargeDisabled ||
         walletLoading ||
-        checkingRechargeLimit,
+        checkingRechargeLimit || checkingEligibility,
     },
     // {
     //   id: "bank",
@@ -740,6 +874,62 @@ const Recharge = ({
     // },
   ].filter(Boolean);
 
+  const methodHandlers = {
+    stripe: async () => {
+      navigate("/stripe-payment", { state: { rechargeAmount, remark } });
+    },
+  
+    paynearme: async () => {
+      navigate("/paynearme-payment", { state: { rechargeAmount, remark } });
+    },
+  
+    payarc: async () => {
+      navigate("/payment-checkout", { state: { rechargeAmount } });
+    },
+  
+    coinbase: async () => {
+      const encodedAddresses = encodeURIComponent(
+        JSON.stringify({ [identity.walletAddr]: ["base"] })
+      );
+      const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+  
+      const TransactionDetails = Parse.Object.extend("TransactionRecords");
+      const transactionDetails = new TransactionDetails();
+      const user = await Parse.User.current()?.fetch();
+  
+      transactionDetails.set("type", "recharge");
+      transactionDetails.set("gameId", "786");
+      transactionDetails.set("username", identity?.username || "");
+      transactionDetails.set("userId", identity?.objectId);
+      transactionDetails.set("transactionDate", new Date());
+      transactionDetails.set("transactionAmount", rechargeAmount);
+      transactionDetails.set("remark", remark);
+      transactionDetails.set("useWallet", false);
+      transactionDetails.set("userParentId", user?.get("userParentId") || "");
+      transactionDetails.set("status", 1);
+      transactionDetails.set("portal", "Coinbase");
+      transactionDetails.set("referralLink", buyUrl);
+      transactionDetails.set("transactionIdFromStripe", buyUrl);
+      transactionDetails.set("walletAddr", identity?.walletAddr);
+  
+      await transactionDetails.save(null, { useMasterKey: true });
+  
+      const popup = window.open(buyUrl, "_blank");
+      if (!popup || popup.closed || typeof popup.closed === "undefined") {
+        setPopupBlocked(true);
+        setPopupDialogOpen(true);
+      }
+    },
+  
+    instant: async () => {
+      setRechargeDialogOpen(true);
+    },
+  
+    crypto: async () => {
+      setRechargeLinkDialogOpen(true);
+    },
+  };
+  console.log(allowedActiveMethods,"allowedActiveMethodsallowedActiveMethods")
   return (
     <>
       <Box
@@ -1544,6 +1734,195 @@ const Recharge = ({
             }} >Payarc</Button> */}
 
               {/* <PayArcHostedFields  rechargeAmount={rechargeAmount}/> */}
+              {paymentSource != "Wallet" &&
+              allowedActiveMethods?.length > 0 && (
+                <Stack spacing={2}>
+                  {allowedActiveMethods?.map((method) => {
+                    const option = paymentOptions.find((o) => o.id === method);
+                    if (!option) return null;
+              
+                    return (
+                      <Card
+                        key={option.id}
+                        sx={{
+                          borderRadius: 2,
+                          border: "1px solid #E2E8F0",
+                          boxShadow: "none",
+                          transition: "all 0.2s ease",
+                          cursor: "pointer",
+                          "&:hover": option.disabled
+                            ? ""
+                            : {
+                                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                bgcolor: option.hoverColor,
+                              },
+                          borderLeft: `4px solid ${option.color}`,
+                          bgcolor: option.disabled ? "#E7E7E7" : "",
+                        }}
+                        onMouseEnter={() => setHoveredOption(option.id)}
+                        onMouseLeave={() => setHoveredOption(null)}
+                        onClick={async () => {
+                          // Validate threshold before proceeding
+                          const result = await validateThresholdBeforeRecharge(rechargeAmount, method);
+                        
+                          if (!result.ok) {
+                            // Optionally show error
+                            if (result.error) alert(result.error);
+                            return;
+                          }
+                        
+                          if (result.shuffled && result.newMethod) {
+                            // If shuffled, find the new option
+                            const newOption = paymentOptions.find((o) => o.id === result.newMethod);
+                            if (newOption) {
+                              await newOption.onClick();
+                              loadThresholds()
+                            } else {
+                              alert("Payment method changed, but new method not found.");
+                            }
+                            return;
+                          }
+                        
+                          // If not shuffled, proceed as normal
+                          await option.onClick();
+                        }}                        
+                      >
+                        <CardContent sx={{ p: "16px !important" }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            {/* Left side */}
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <Box
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  mr: 1,
+                                  fontSize: "24px",
+                                }}
+                              >
+                                {option.icon}
+                              </Box>
+                              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                <Box>
+                                  <Typography sx={{ fontWeight: 500, fontSize: "16px" }}>
+                                    {option.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontWeight: 400,
+                                      fontSize: "14px",
+                                      color: "#4B5563",
+                                    }}
+                                  >
+                                    {option.description}
+                                  </Typography>
+                                  {option.subtext && (
+                                    <Typography
+                                      variant="body2"
+                                      color={option.subtextColor || "text.secondary"}
+                                      sx={{
+                                        fontWeight: 500,
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      {option.subtext}
+                                    </Typography>
+                                  )}
+                                </Box>
+                                {option.paymentIcons && (
+                                  <Box
+                                    sx={{
+                                      display: { xs: "flex", md: "none" },
+                                      alignItems: "center",
+                                      gap: 2,
+                                    }}
+                                  >
+                                    {option.paymentIcons.map((icon, index) => (
+                                      <Box
+                                        key={index}
+                                        sx={{
+                                          mr: 1,
+                                          color: "text.secondary",
+                                          fontWeight: "bold",
+                                          fontSize: "14px",
+                                        }}
+                                      >
+                                        <img
+                                          src={icon}
+                                          alt={`Payment Icon ${index}`}
+                                          style={{
+                                            width: "100%",
+                                            padding:
+                                              icon === visa ? "8px 12px" : undefined,
+                                            border:
+                                              icon === visa ? "1px solid #E7E7E7" : undefined,
+                                            borderRadius:
+                                              icon === visa ? "4px" : undefined,
+                                          }}
+                                        />
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+              
+                            {/* Right side */}
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {option.paymentIcons && (
+                                <Box
+                                  sx={{
+                                    display: { xs: "none", md: "flex" },
+                                    alignItems: "center",
+                                    gap: { xs: 1, md: 0 },
+                                  }}
+                                >
+                                  {option.paymentIcons.map((icon, index) => (
+                                    <Box
+                                      key={index}
+                                      sx={{
+                                        mr: 2,
+                                        color: "text.secondary",
+                                        fontWeight: "bold",
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      <img
+                                        src={icon}
+                                        alt={`Payment Icon ${index}`}
+                                        style={{
+                                          width: "100%",
+                                          padding:
+                                            icon === visa ? "8px 12px" : undefined,
+                                          border:
+                                            icon === visa ? "1px solid #E7E7E7" : undefined,
+                                          borderRadius:
+                                            icon === visa ? "4px" : undefined,
+                                        }}
+                                      />
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                              <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </Stack>
+              )
+              }
               {paymentSource === "wallet"
                 ? !identity?.isBlackListed &&
                   !rechargeDisabled && (
@@ -1575,18 +1954,22 @@ const Recharge = ({
                       <ArrowForwardIcon style={{ marginLeft: 10 }} />
                     </Button>
                   )
-                : paymentOptions
-                    .filter((option) => {
-                      if (option.id === "quick-debit" && !showCoinbase)
-                        return false;
-                      if (option.id === "instant" && !showWert) return false;
-                      if (option.id === "crypto" && !showLink) return false;
-                      if (option.id === "payarc" && !showPayarc)
-                        return false;
-                      if (option.id === "stripe" && !showStripe) return false;
-                      return true;
-                    })
-                    .map((option) => (
+                :paymentOptions.filter((option) => {
+                  if (allowedActiveMethods) {
+                    if (matchingThreshold?.some(t => t.methods.includes(option.id))) return false;
+                    //!allowedActiveMethods.includes(option.id)&& 
+                  }
+
+                
+                  if (option.id === "quick-debit" && !showCoinbase) return false;
+                  if (option.id === "instant" && !showWert) return false;
+                  if (option.id === "link" && !showLink) return false;
+                  if (option.id === "stripe" && !showStripe) return false;
+                  if (option.id === "payarc" && !showPayarc) return false;
+                  if (option.id === "paynearme" && !showPaynearMe) return false;
+                
+                  return true;
+                }).map((option) => (
                       <Card
                         key={option.id}
                         sx={{
@@ -1762,6 +2145,7 @@ const Recharge = ({
                         </CardContent>
                       </Card>
                     ))}
+                    
             </Stack>
           )}
         </Box>

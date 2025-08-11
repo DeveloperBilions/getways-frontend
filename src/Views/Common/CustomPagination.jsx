@@ -1,6 +1,6 @@
 import { Box, Button, Select, MenuItem, Typography } from "@mui/material";
 
-const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
+const CustomPagination = ({ page, perPage, total, setPage, setPerPage, player = false }) => {
   const totalPages = Math.ceil(total / perPage);
 
   const start = (page - 1) * perPage + 1;
@@ -42,16 +42,17 @@ const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
         justifyContent: "space-between",
         padding: "8px 16px",
         borderTop: "1px solid #e0e0e0",
-        backgroundColor: "#F6F4F4",
+        backgroundColor: !player ? "#F6F4F4" : "#FFFFFF",
         width: "100% !important",
         borderRadius: "8px",
-        flexDirection: { xs: "column", sm: "row" },
+        flexDirection: { xs: "column", sm: player ? "column" : "row", md : "row" },
+        border: "1px solid #E7E7E7",
         gap: { xs: 1, sm: 2 },
       }}
     >
       <Box
         sx={{
-          display: { xs: "flex", sm: "none" },
+          display: { xs: "flex", sm: player ? "flex" : "none", md: "none" },
           width: "100%",
           justifyContent: "space-between",
           alignItems: "center",
@@ -101,7 +102,7 @@ const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
         sx={{
           fontSize: { xs: "12px", sm: "14px" },
           whiteSpace: "nowrap",
-          display: { xs: "none", sm: "block" },
+          display: { xs: "none", sm: player ? "none" : "block", md: "block"},
         }}
       >
         {start}-{end} of {total}
@@ -111,7 +112,7 @@ const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: { xs: "center", sm: "flex-start" },
+          justifyContent: { xs: "center", sm: player ? "center": "flex-start", md: "center" },
           gap: { xs: 0.5, sm: 1 },
           width: { xs: "100%", sm: "auto" },
           order: { xs: 2, sm: 2 },
@@ -150,11 +151,11 @@ const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
               padding: "4px",
               fontSize: "14px",
               backgroundColor:
-                page === pageNumber ? "var(--primary-color)" : "transparent",
+                page === pageNumber ? player ? "#2E5BFF" : "black" : "transparent",
               color: page === pageNumber ? "#fff" : "#000",
               "&:hover": {
                 backgroundColor:
-                  page === pageNumber ? "var(--primary-color)" : "#e0e0e0",
+                  page === pageNumber ? player ? "#2E5BFF" : "black" : "#e0e0e0",
               },
             }}
           >
@@ -192,7 +193,7 @@ const CustomPagination = ({ page, perPage, total, setPage, setPerPage }) => {
       {/* Desktop view: Items per page dropdown - right */}
       <Box
         sx={{
-          display: { xs: "none", sm: "flex" },
+          display: { xs: "none", sm: player ? "none" : "flex", md: "flex" },
           alignItems: "center",
           gap: 1,
           flexShrink: 0,

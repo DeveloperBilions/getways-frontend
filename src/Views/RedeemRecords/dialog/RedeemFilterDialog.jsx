@@ -98,9 +98,17 @@ export const ReedemFilterDialog = ({
 
         {role !== "Player" && (
           <FormControl fullWidth>
-            <InputLabel>Status</InputLabel>
+            <InputLabel shrink>Status</InputLabel>
             <Select
-              value={localStatus}
+            displayEmpty
+            value={localStatus}
+            renderValue={(selected) => {
+              if (selected === "") {
+                return <em>All</em>;
+              }
+              const found = statusChoices.find((c) => c.id === selected);
+                return found ? found.name : selected;
+            }}
               label="Status"
               onChange={(e) => setLocalStatus(e.target.value)}
             >

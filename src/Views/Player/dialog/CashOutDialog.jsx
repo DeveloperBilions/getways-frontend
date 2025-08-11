@@ -22,7 +22,8 @@ import { Parse } from "parse";
 import { walletService } from "../../../Provider/WalletManagement";
 import "../../../Assets/css/cashoutDialog.css";
 import {
-  Button
+  Button,
+  Box
 } from "@mui/material";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -49,7 +50,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     paypalId: "",
     venmoId: "",
     zelleId: "",
-    virtualCardId: "Gift Card",
+    //virtualCardId: "Gift Card",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
@@ -61,7 +62,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     paypalId: "",
     venmoId: "",
     zelleId: "",
-    virtualCardId: "Gift Card",
+    //virtualCardId: "Gift Card",
     isCashAppDisabled: false,
     isPaypalDisabled: false,
     isVenmoDisabled: false,
@@ -407,27 +408,26 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
     }
   };
   const paymentOptions = [
-    // {
-    //   key: "cashAppId",
-    //   label: "CashApp",
-    //   disabled: paymentMethods.isCashAppDisabled,
-    // },
-    // {
-    //   key: "paypalId",
-    //   label: "PayPal",
-    //   disabled: paymentMethods.isPaypalDisabled,
-    // },
-    // {
-    //   key: "venmoId",
-    //   label: "Venmo",
-    //   disabled: paymentMethods.isVenmoDisabled,
-    // },
-    // {
-    //   key: "zelleId",
-    //   label: "Zelle",
-    //   disabled: paymentMethods.isZelleDisabled,
-    // },
-    { key: "virtualCardId", label: "Gift Card", disabled: false },
+    {
+      key: "cashAppId",
+      label: "CashApp",
+      disabled: paymentMethods.isCashAppDisabled,
+    },
+    {
+      key: "paypalId",
+      label: "PayPal",
+      disabled: paymentMethods.isPaypalDisabled,
+    },
+    {
+      key: "venmoId",
+      label: "Venmo",
+      disabled: paymentMethods.isVenmoDisabled,
+    },
+    {
+      key: "zelleId",
+      label: "Zelle",
+      disabled: paymentMethods.isZelleDisabled,
+    },
   ];
   return (
     <React.Fragment>
@@ -664,10 +664,7 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                         </div>
                       )}
                     </Col>
-                  </>
-                )}
-
-                <Col md={12} className="d-flex justify-content-center mt-3">
+                    <Col md={12} className="d-flex justify-content-center mt-3">
                   <Button
                   variant="outlined"
                     size="sm"
@@ -695,6 +692,10 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   </Button>
                 </Col>
 
+                  </>
+                )}
+
+                
                 {/* <Col md={12} className="d-flex justify-content-end my-2">
                   <span
                     style={{
@@ -710,19 +711,28 @@ const CashOutDialog = ({ open, onClose, record, handleRefresh }) => {
                   </span>
                 </Col> */}
                 <Col md={12} >
-                  <div className="d-flex justify-content-end mt-3">
-                    <Button
-                      variant="contained" color="success"
-                      className="mx-2"
-                      onClick={handleConfirm}
-                      disabled={loading}
-                    >
-                      {loading ? "Processing..." : "Confirm"}
-                    </Button>
-                    <Button variant="outlined" onClick={onClose}>
-                      Cancel
-                    </Button>
-                  </div>
+
+                <Box className="d-flex w-100 justify-content-between"
+                  sx={{
+                    flexDirection: { xs: "column-reverse", sm: "row" },
+                    alignItems: { xs: "stretch", sm: "stretch" },
+                    gap: { xs: 2, sm: 2 },
+                    marginBottom: { xs: 2, sm: 2 },
+                    width: "100% !important",
+                  }}>
+                <Button
+                  className="custom-button cancel"
+                  onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  className="custom-button confirm"
+                  onClick={handleConfirm}
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Confirm"}
+                </Button></Box>
+
                 </Col>
               </Row>
             </Form>
