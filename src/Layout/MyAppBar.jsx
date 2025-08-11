@@ -51,6 +51,8 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import TierSettingsDialog from "../Views/User/dialog/TierSettingsDialog";
 import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
 import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
+import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
+import CalculateIcon from "@mui/icons-material/Calculate";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -62,6 +64,8 @@ export default function MyAppBar(props) {
   const [disableDialogOpen, setDisableDialogOpen] = React.useState(false);
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
+  const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
+
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
     React.useState(false);
@@ -98,7 +102,8 @@ export default function MyAppBar(props) {
   const [activeTab, setActiveTab] = useState("users");
   const [openRechargeMethods, setOpenRechargeMethods] = React.useState(false);
   const [openTierSettings, setOpenTierSettings] = React.useState(false);
-  const [openTierSettingsAgents, setOpenTierSettingsAgents] = React.useState(false);
+  const [openTierSettingsAgents, setOpenTierSettingsAgents] =
+    React.useState(false);
 
   const getBalance = async () => {
     try {
@@ -575,6 +580,22 @@ export default function MyAppBar(props) {
                     Agent Redeem Fees
                   </MenuItem>
                 )}
+                {identity?.email === "zen@zen.com" && role === "Super-User" && (
+                  <MenuItem
+                    onClick={() => setOpenAccountingModal(true)}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      gap: "8px",
+                    }}
+                  >
+                    <CalculateIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Accounting
+                    </Typography>
+                  </MenuItem>
+                )}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -666,6 +687,10 @@ export default function MyAppBar(props) {
           open={openRedeemService}
           onClose={() => setOpenRedeemService(false)}
         />
+        <AgentAccountingModal
+          open={openAccountingModal}
+          onClose={() => setOpenAccountingModal(false)}
+        />
         <EmergencyMessageDialog
           open={openEmergencyModal}
           onClose={handleCloseEmergencyModal}
@@ -679,21 +704,20 @@ export default function MyAppBar(props) {
           onClose={() => setOpenRechargeMethods(false)}
         />
 
-<TierSettingsDialog
+        <TierSettingsDialog
           open={openTierSettings}
           onClose={() => setOpenTierSettings(false)}
         />
 
-
-<AgentTierViewerDialogBulk
+        <AgentTierViewerDialogBulk
           open={openTierSettingsAgents}
           onClose={() => setOpenTierSettingsAgents(false)}
         />
         <DrawerAgentHistoryModal
-        open={openTicketPaidModal}
-        onClose={() => setOpenTicketPaidModal(false)}
-        record={{id:identity?.objectId,username:identity?.username}}
-      />
+          open={openTicketPaidModal}
+          onClose={() => setOpenTicketPaidModal(false)}
+          record={{ id: identity?.objectId, username: identity?.username }}
+        />
       </AppBar>
     </>
   );
