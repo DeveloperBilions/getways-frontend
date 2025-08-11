@@ -155,6 +155,23 @@ export async function fetchAccountingSummary(
       previousBalance + periodRecharges - periodRedeems - commissionAmount - periodPayments
     );
   
+    // Collect unique userIds present in transactions (players) + the selected entity (for payments)
+const userIds = new Set();
+txRows.forEach(r => r.userId && userIds.add(r.userId));
+payTxRows.forEach(r => r.userId && userIds.add(r.userId));
+
+if (userIds.size) {
+  const userQ = new Parse.Query(Parse.User);
+  userQ.containedIn("objectId", Array.from(userIds));
+  userQ.select(["isDeleted", "username", "name"]); // (optional extra fields)
+  const users = await userQ.find({ useMasterKey: true });
+  const isDeletedMap = new Map(users.map(u => [u.id, !!u.get("isDeleted")]));
+
+  // decorate both lists so CSV includes the flag
+  txRows.forEach(r => (r.userIsDeleted = isDeletedMap.get(r.userId) ?? false));
+  payTxRows.forEach(r => (r.userIsDeleted = isDeletedMap.get(r.userId) ?? false));
+}
+
     // Merge export rows
     const transactions = [...txRows, ...payTxRows].sort((a, b) =>
       a.date.localeCompare(b.date)
