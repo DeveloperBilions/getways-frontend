@@ -9,9 +9,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { fetchAccountingSummary } from "../../../Utils/Accounting";
-// 👇 adjust this import to your Parse setup
 import { Parse } from "parse";
-// Initialize Parse
+
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
@@ -21,19 +20,19 @@ export default function AgentAccountingModal({
   defaultCommission = 12,
   defaultType = "",
 }) {
-  const [selectedType, setSelectedType] = useState(defaultType || ""); // "agent" | "master"
+  const [selectedType, setSelectedType] = useState(defaultType || "");
   const [selectedEntity, setSelectedEntity] = useState(null);
-
   const [commissionPct, setCommissionPct] = useState(defaultCommission);
   const [startDate, setStartDate] = useState(() => isoDateNDaysAgo(7));
   const [endDate, setEndDate] = useState(() => isoDateNDaysAgo(0));
   const [includeCommissionOnRecharges, setIncludeCommissionOnRecharges] = useState(true);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
-
-  // DB-backed options + search
+  const [dateErrStart, setDateErrStart] = useState("");
+  const [dateErrEnd, setDateErrEnd] = useState("");
+  const [lastDateChanged, setLastDateChanged] = useState(null);
+  const [commissionError, setCommissionError] = useState("");
   const [options, setOptions] = useState([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -46,11 +45,12 @@ export default function AgentAccountingModal({
       setSelectedEntity(null);
       setOptions([]);
       setInputValue("");
+      validateDates(startDate, endDate);
+      validateCommission(commissionPct);
     }
   }, [open, defaultType]);
 
   useEffect(() => {
-    // when type changes, clear entity and load a fresh list
     setSelectedEntity(null);
     setSummary(null);
     setOptions([]);
@@ -60,7 +60,6 @@ export default function AgentAccountingModal({
     }
   }, [selectedType]);
 
-  // Debounced search
   useEffect(() => {
     if (!selectedType) return;
     const t = setTimeout(() => {
@@ -69,11 +68,20 @@ export default function AgentAccountingModal({
     return () => clearTimeout(t);
   }, [inputValue, selectedType]);
 
+  useEffect(() => {
+    validateDates(startDate, endDate);
+  }, [startDate, endDate, lastDateChanged]);
+
+  useEffect(() => {
+    validateCommission(commissionPct);
+  }, [commissionPct]);
+
   const totals = useMemo(() => {
     const tr = safe(summary?.totalRecharges);
     const td = safe(summary?.totalRedeems);
     const prev = safe(summary?.previousBalance);
-    const commission = includeCommissionOnRecharges ? (tr * safe(commissionPct)) / 100 : 0;
+    const pct = clamp(Number(commissionPct) || 0, 0, 1000);
+    const commission = includeCommissionOnRecharges ? (tr * pct) / 100 : 0;
     const finalBalance = prev + tr - td - commission;
     return { totalRecharges: tr, totalRedeems: td, previousBalance: prev, commission, finalBalance };
   }, [summary, commissionPct, includeCommissionOnRecharges]);
@@ -83,22 +91,31 @@ export default function AgentAccountingModal({
     selectedEntity &&
     startDate &&
     endDate &&
-    new Date(startDate) <= new Date(endDate);
+    !dateErrStart &&
+    !dateErrEnd &&
+    !commissionError;
 
   const handleFetch = async () => {
     if (!canFetch) {
-      setError("Please select type, entity, and a valid date range.");
+      setError(
+        dateErrStart ||
+          dateErrEnd ||
+          commissionError ||
+          "Please select type, entity, and a valid date range."
+      );
       return;
     }
     setLoading(true);
     setError("");
     try {
+      const startAtISO = toStartOfDayUTC(startDate);
+      const endExclusiveISO = toEndOfDayExclusiveUTC(endDate);
       const res = await fetchAccountingSummary(
-        selectedType,          // "agent" | "master"
-        selectedEntity.id,     // _User id
-        startDate,
-        endDate,
-        Number(commissionPct) || 0
+        selectedType,
+        selectedEntity.id,
+        startAtISO,
+        endExclusiveISO,
+        clamp(Number(commissionPct) || 0, 0, 1000)
       );
       if (!res?.success) throw new Error(res?.message || "Failed to fetch summary");
       setSummary(res.data || null);
@@ -130,7 +147,6 @@ export default function AgentAccountingModal({
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {/* Type + Entity (both from DB) */}
         <Box sx={{ display: "grid", my: 2, gap: 2, gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" } }}>
           <TextField
             select
@@ -181,7 +197,6 @@ export default function AgentAccountingModal({
           />
         </Box>
 
-        {/* Rest only after both picked */}
         {!selectedType || !selectedEntity ? (
           <Typography variant="body2" sx={{ color: "text.secondary", mt: 2 }}>
             Choose <strong>Type</strong> and then pick an <strong>{selectedType || "entity"}</strong> to continue.
@@ -198,28 +213,37 @@ export default function AgentAccountingModal({
                 label="Start Date"
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => { setStartDate(e.target.value); setLastDateChanged("start"); }}
                 InputLabelProps={{ shrink: true }}
                 size="small"
                 fullWidth
+                inputProps={{ max: endDate || undefined }}
+                error={Boolean(dateErrStart)}
+                helperText={dateErrStart || " "}
               />
               <TextField
                 label="End Date"
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => { setEndDate(e.target.value); setLastDateChanged("end"); }}
                 InputLabelProps={{ shrink: true }}
                 size="small"
                 fullWidth
+                inputProps={{ min: startDate || undefined }}
+                error={Boolean(dateErrEnd)}
+                helperText={dateErrEnd || " "}
               />
               <TextField
                 label="Commission (%)"
                 type="number"
                 value={commissionPct}
-                onChange={(e) => setCommissionPct(Number(e.target.value))}
-                InputProps={{ inputProps: { min: 0, step: 0.1 } }}
+                onChange={(e) => setCommissionPct(e.target.value === "" ? "" : Number(e.target.value))}
+                onBlur={() => setCommissionPct((v) => clamp(Number(v) || 0, 0, 1000))}
+                InputProps={{ inputProps: { min: 0, max: 100 } }}
                 size="small"
                 fullWidth
+                error={Boolean(commissionError)}
+                helperText={commissionError || " "}
               />
               <FormControlLabel
                 sx={{ ml: 0 }}
@@ -264,8 +288,6 @@ export default function AgentAccountingModal({
                   startIcon={<DownloadIcon />}
                   onClick={handleExport}
                   disabled={!summary?.transactions?.length}
-                  className="custom-button confirm"
-                  sx={{ "&.Mui-disabled": { backgroundColor: "#B0B0B0", color: "#F0F0F0", cursor: "not-allowed" } }}
                 >
                   Export Transactions (CSV)
                 </Button>
@@ -280,12 +302,10 @@ export default function AgentAccountingModal({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} className="custom-button cancel">Close</Button>
+        <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>
   );
-
-  /* ------- local helpers ------- */
 
   async function loadEntities(type, search = "") {
     try {
@@ -293,25 +313,63 @@ export default function AgentAccountingModal({
       const rows = await fetchEntitiesFromDB(type, search);
       setOptions(rows);
     } catch (e) {
-      console.error(e);
       setError("Failed to load list.");
       setOptions([]);
     } finally {
       setOptionsLoading(false);
     }
   }
+
+  function validateDates(s, e) {
+    setDateErrStart("");
+    setDateErrEnd("");
+
+    if (!s) setDateErrStart("Select start date.");
+    if (!e) setDateErrEnd("Select end date.");
+    if (!s || !e) return;
+
+    if (!isValidDateStr(s)) setDateErrStart("Use valid date (YYYY-MM-DD).");
+    if (!isValidDateStr(e)) setDateErrEnd("Use valid date (YYYY-MM-DD).");
+    if (!isValidDateStr(s) || !isValidDateStr(e)) return;
+
+    const sd = new Date(s);
+    const ed = new Date(e);
+    if (Number.isNaN(sd.getTime()) || Number.isNaN(ed.getTime())) {
+      if (Number.isNaN(sd.getTime())) setDateErrStart("Invalid date.");
+      if (Number.isNaN(ed.getTime())) setDateErrEnd("Invalid date.");
+      return;
+    }
+
+    if (sd > ed) {
+      if (lastDateChanged === "end") {
+        setDateErrEnd("End date cannot be before start date.");
+        setDateErrStart("");
+      } else {
+        setDateErrStart("Start date cannot be after end date.");
+        setDateErrEnd("");
+      }
+    }
+  }
+
+  function validateCommission(val) {
+    const n = Number(val);
+    if (!Number.isFinite(n)) return setCommissionError("Enter a valid number.");
+    if (n < 0 || n > 1000) return setCommissionError("Commission must be between 0 and 100.");
+    setCommissionError("");
+  }
 }
 
-/* Helpers */
 function isoDateNDaysAgo(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
 }
+
 function safe(n) {
   const x = Number(n);
   return Number.isFinite(x) ? x : 0;
 }
+
 function toCSV(rows) {
   if (!rows?.length) return "";
   const cols = Object.keys(rows[0]);
@@ -319,6 +377,7 @@ function toCSV(rows) {
   const lines = rows.map((r) => cols.map((c) => csvEscape(r[c])).join(","));
   return [header, ...lines].join("\n");
 }
+
 function csvEscape(val) {
   if (val == null) return "";
   const s = String(val);
@@ -327,6 +386,7 @@ function csvEscape(val) {
   }
   return s;
 }
+
 function downloadTextFile(text, filename, mime = "text/plain;charset=utf-8;") {
   const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -337,14 +397,33 @@ function downloadTextFile(text, filename, mime = "text/plain;charset=utf-8;") {
   URL.revokeObjectURL(url);
 }
 
-// helpers
+function toStartOfDayUTC(dateStr) {
+  return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+}
+
+function toEndOfDayExclusiveUTC(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString();
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function isValidDateStr(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(s);
+  return !Number.isNaN(d.getTime()) && s === d.toISOString().slice(0, 10);
+}
+
 function mapUser(u) {
   const username = u.get("username") || "";
   const name = u.get("name") || username || u.id;
   return {
     id: u.id,
-    name,                // used by getOptionLabel
-    username,            // useful if you need to show both
+    name,
+    username,
     label: username && name !== username ? `${name} (${username})` : name,
   };
 }
@@ -355,35 +434,23 @@ function escapeRegex(s) {
 
 export async function fetchEntitiesFromDB(type, search = "") {
   const roleValue = type === "master" ? "Master-Agent" : "Agent";
-
-  // Base query by role
   const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
-
-  // If no search term, return first page ordered by name
   const term = (search || "").trim();
   if (!term) {
     base.limit(50).ascending("name").select(["name", "username"]);
     const rows = await base.find({ useMasterKey: true });
     return rows.map(mapUser);
   }
-
-  // Prefix, case-insensitive search on name OR username
   const rx = `^${escapeRegex(term)}`;
-
   const qName = new Parse.Query(Parse.User)
     .equalTo("roleName", roleValue)
     .matches("name", rx, "i");
-
   const qUser = new Parse.Query(Parse.User)
     .equalTo("roleName", roleValue)
     .matches("username", rx, "i");
-
   const q = Parse.Query.or(qName, qUser);
   q.limit(50).ascending("name").select(["name", "username"]);
-
   const results = await q.find({ useMasterKey: true });
-
-  // De-duplicate (may match both fields)
   const uniq = new Map();
   for (const u of results) uniq.set(u.id, mapUser(u));
   return [...uniq.values()];
