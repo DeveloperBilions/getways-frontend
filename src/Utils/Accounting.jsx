@@ -38,15 +38,22 @@ export async function fetchAccountingSummary(
   }
 
   const prevPipeline = [
-    { $match: { userParentId: { $in: agentIds } } },
+    { $match: {
+      userParentId: { $in: agentIds },
+      transactionDate: {  $lt: start },
+      $or: [
+        { type: "recharge", status: { $in: [2, 3] } },
+        { type: "redeem", status: { $in: [4, 8] } }
+      ]
+    }},
     {
       $facet: {
         prevRecharges: [
-          { $match: { type: "recharge", status: { $in: [2, 3] }, transactionDate: { $lt: start } } },
+          { $match: { type: "recharge", status: { $in: [2, 3] } } },
           { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
         ],
         prevRedeems: [
-          { $match: { type: "redeem", status: { $in: [4, 8] }, transactionDate: { $lt: start }, transactionAmount: { $gt: 0, $type: "number" } } },
+          { $match: { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0, $type: "number" } } },
           { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
         ]
       }
@@ -57,7 +64,7 @@ export async function fetchAccountingSummary(
   const prevRedeems = safe(prevAgg?.[0]?.prevRedeems?.[0]?.total);
 
   const prevPayPipeline = [
-    { $match: { userId: entityId, createdAt: { $lt: start } } },
+    { $match: { userId: entityId } },
     { $group: { _id: null, total: { $sum: "$amount" } } }
   ];
   const prevPayAgg = await new Parse.Query("DrawerAgent").aggregate(prevPayPipeline, { useMasterKey: true });

@@ -9,6 +9,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { fetchAccountingSummary, fetchAccountingTransactions } from "../../../Utils/Accounting";
+const { Parse } = await import("parse");
+Parse.initialize(
+  process.env.REACT_APP_APPID,
+  process.env.REACT_APP_JAVASCRIPT_KEY,
+  process.env.REACT_APP_MASTER_KEY
+);
+Parse.serverURL = process.env.REACT_APP_URL;
+Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
 
 export default function AgentAccountingModal({
   open,
@@ -321,6 +329,7 @@ export default function AgentAccountingModal({
       const rows = await fetchEntitiesFromDB(type, search);
       setOptions(rows);
     } catch (e) {
+      console.log(e,"Failed to load list.")
       setError("Failed to load list.");
       setOptions([]);
     } finally {
@@ -430,7 +439,6 @@ function escapeRegex(s) {
 }
 
 export async function fetchEntitiesFromDB(type, search = "") {
-  const { Parse } = await import("parse");
   const roleValue = type === "master" ? "Master-Agent" : "Agent";
   const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
   const term = (search || "").trim();
