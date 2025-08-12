@@ -62,6 +62,14 @@ export const WalletDetails = ({
     handleCashoutRefresh();
   };
 
+    const hasAnyPaymentMethod = (w) => {
+    if (!w) return false;
+    const { cashAppId, paypalId, venmoId, zelleId } = w;
+    return [cashAppId, paypalId, venmoId, zelleId].some((v) =>
+      typeof v === "string" ? v.trim().length > 0 : !!v
+    );
+  };
+
   return (
     <React.Fragment>
       <Paper
@@ -176,7 +184,17 @@ export const WalletDetails = ({
               },
             }}
             onClick={() => {
-              setIsOpen(true);
+               if(identity?.userParentId === "PY6MQUOJtH")
+                {
+                  if (!hasAnyPaymentMethod(wallet)) {
+                    setPaymentDialogOpen(true);
+                    return;
+                  }else{
+                    setcashOutDialogOpen(true)
+                  }
+                }else{
+                  setIsOpen(true);
+                }
             }}
             disabled={identity?.isBlackListed || cashoutDisabled}
           >
@@ -249,6 +267,9 @@ export const WalletDetails = ({
         onClose={() => setPaymentDialogOpen(false)}
         record={transformedIdentity}
         handleRefresh={handleRefresh}
+        onSucces={() => {
+          setcashOutDialogOpen(true)
+        }}
       />
     </React.Fragment>
   );
