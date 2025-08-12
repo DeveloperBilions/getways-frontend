@@ -64,7 +64,7 @@ export async function fetchAccountingSummary(
   const prevRedeems = safe(prevAgg?.[0]?.prevRedeems?.[0]?.total);
 
   const prevPayPipeline = [
-    { $match: { userId: entityId } },
+    { $match: { userId: entityId ,createdAt: { $lt: start } } },
     { $group: { _id: null, total: { $sum: "$amount" } } }
   ];
   const prevPayAgg = await new Parse.Query("DrawerAgent").aggregate(prevPayPipeline, { useMasterKey: true });

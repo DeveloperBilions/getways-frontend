@@ -303,7 +303,18 @@ export default function AgentAccountingModal({
                 <Typography><strong>Total Recharges:</strong> {totals.totalRecharges.toFixed(2)}</Typography>
                 <Typography><strong>Total Redeems:</strong> {totals.totalRedeems.toFixed(2)}</Typography>
                 <Typography><strong>Commission:</strong> {totals.commission.toFixed(2)}</Typography>
-                <Typography><strong>Previous Balance:</strong> {totals.previousBalance.toFixed(2)}</Typography>
+                <Typography
+  sx={{
+    color:
+      totals.previousBalance > 0
+        ? 'success.main'
+        : totals.previousBalance < 0
+        ? 'error.main'
+        : 'text.primary',
+  }}
+>
+  <strong>Previous Balance:</strong> {totals.previousBalance.toFixed(2)}
+</Typography>
                 <Typography variant="h6" sx={{ mt: 1 }}>
                   Final Balance To Pay: {totals.finalBalance.toFixed(2)}
                 </Typography>
