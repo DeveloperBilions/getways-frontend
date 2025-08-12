@@ -8,11 +8,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { fetchAccountingSummary } from "../../../Utils/Accounting";
-import { Parse } from "parse";
-
-Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
-Parse.serverURL = process.env.REACT_APP_URL;
+import { fetchAccountingSummary, fetchAccountingTransactions } from "../../../Utils/Accounting";
 
 export default function AgentAccountingModal({
   open,
@@ -27,6 +23,7 @@ export default function AgentAccountingModal({
   const [endDate, setEndDate] = useState(() => isoDateNDaysAgo(0));
   const [includeCommissionOnRecharges, setIncludeCommissionOnRecharges] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
   const [dateErrStart, setDateErrStart] = useState("");
@@ -55,16 +52,12 @@ export default function AgentAccountingModal({
     setSummary(null);
     setOptions([]);
     setInputValue("");
-    if (selectedType) {
-      loadEntities(selectedType, "");
-    }
+    if (selectedType) loadEntities(selectedType, "");
   }, [selectedType]);
 
   useEffect(() => {
     if (!selectedType) return;
-    const t = setTimeout(() => {
-      loadEntities(selectedType, inputValue);
-    }, 350);
+    const t = setTimeout(() => loadEntities(selectedType, inputValue), 350);
     return () => clearTimeout(t);
   }, [inputValue, selectedType]);
 
@@ -98,10 +91,7 @@ export default function AgentAccountingModal({
   const handleFetch = async () => {
     if (!canFetch) {
       setError(
-        dateErrStart ||
-          dateErrEnd ||
-          commissionError ||
-          "Please select type, entity, and a valid date range."
+        dateErrStart || dateErrEnd || commissionError || "Please select type, entity, and a valid date range."
       );
       return;
     }
@@ -127,14 +117,32 @@ export default function AgentAccountingModal({
     }
   };
 
-  const handleExport = () => {
-    if (!summary?.transactions?.length) {
-      setError("No transactions to export for the selected range.");
-      return;
+  const handleExport = async () => {
+    if (!summary) return;
+    setExporting(true);
+    setError("");
+    try {
+      const startAtISO = toStartOfDayUTC(startDate);
+      const endExclusiveISO = toEndOfDayExclusiveUTC(endDate);
+      const rows = await fetchAccountingTransactions(
+        selectedType,
+        selectedEntity.id,
+        startAtISO,
+        endExclusiveISO
+      );
+      if (!rows?.length) {
+        setError("No transactions found for the selected range.");
+        setExporting(false);
+        return;
+      }
+      const csv = toCSV(rows);
+      const name = selectedEntity?.name || selectedEntity?.id || "entity";
+      downloadTextFile(csv, `accounting_${selectedType}_${name}_${startDate}_${endDate}.csv`);
+    } catch (e) {
+      setError(e.message || "Export failed. Please try again.");
+    } finally {
+      setExporting(false);
     }
-    const csv = toCSV(summary.transactions);
-    const name = selectedEntity?.name || selectedEntity?.id || "entity";
-    downloadTextFile(csv, `accounting_${selectedType}_${name}_${startDate}_${endDate}.csv`);
   };
 
   return (
@@ -239,7 +247,7 @@ export default function AgentAccountingModal({
                 value={commissionPct}
                 onChange={(e) => setCommissionPct(e.target.value === "" ? "" : Number(e.target.value))}
                 onBlur={() => setCommissionPct((v) => clamp(Number(v) || 0, 0, 1000))}
-                InputProps={{ inputProps: { min: 0, max: 100 } }}
+                InputProps={{ inputProps: { min: 0, max: 1000, step: 0.1 } }}
                 size="small"
                 fullWidth
                 error={Boolean(commissionError)}
@@ -257,7 +265,7 @@ export default function AgentAccountingModal({
               />
             </Box>
 
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
               <Button
                 onClick={handleFetch}
                 variant="outlined"
@@ -265,6 +273,14 @@ export default function AgentAccountingModal({
                 disabled={loading || !canFetch}
               >
                 {loading ? "Fetching..." : "Fetch"}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={handleExport}
+                disabled={!summary || exporting}
+              >
+                {exporting ? "Exporting..." : "Export Transactions (CSV)"}
               </Button>
             </Box>
 
@@ -283,14 +299,6 @@ export default function AgentAccountingModal({
                 <Typography variant="h6" sx={{ mt: 1 }}>
                   Final Balance To Pay: {totals.finalBalance.toFixed(2)}
                 </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<DownloadIcon />}
-                  onClick={handleExport}
-                  disabled={!summary?.transactions?.length}
-                >
-                  Export Transactions (CSV)
-                </Button>
               </Box>
             ) : (
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
@@ -323,23 +331,17 @@ export default function AgentAccountingModal({
   function validateDates(s, e) {
     setDateErrStart("");
     setDateErrEnd("");
-
     if (!s) setDateErrStart("Select start date.");
     if (!e) setDateErrEnd("Select end date.");
     if (!s || !e) return;
-
     if (!isValidDateStr(s)) setDateErrStart("Use valid date (YYYY-MM-DD).");
     if (!isValidDateStr(e)) setDateErrEnd("Use valid date (YYYY-MM-DD).");
     if (!isValidDateStr(s) || !isValidDateStr(e)) return;
-
     const sd = new Date(s);
     const ed = new Date(e);
-    if (Number.isNaN(sd.getTime()) || Number.isNaN(ed.getTime())) {
-      if (Number.isNaN(sd.getTime())) setDateErrStart("Invalid date.");
-      if (Number.isNaN(ed.getTime())) setDateErrEnd("Invalid date.");
-      return;
-    }
-
+    if (Number.isNaN(sd.getTime())) setDateErrStart("Invalid date.");
+    if (Number.isNaN(ed.getTime())) setDateErrEnd("Invalid date.");
+    if (Number.isNaN(sd.getTime()) || Number.isNaN(ed.getTime())) return;
     if (sd > ed) {
       if (lastDateChanged === "end") {
         setDateErrEnd("End date cannot be before start date.");
@@ -354,7 +356,7 @@ export default function AgentAccountingModal({
   function validateCommission(val) {
     const n = Number(val);
     if (!Number.isFinite(n)) return setCommissionError("Enter a valid number.");
-    if (n < 0 || n > 1000) return setCommissionError("Commission must be between 0 and 100.");
+    if (n < 0 || n > 1000) return setCommissionError("Commission must be between 0 and 1000.");
     setCommissionError("");
   }
 }
@@ -420,12 +422,7 @@ function isValidDateStr(s) {
 function mapUser(u) {
   const username = u.get("username") || "";
   const name = u.get("name") || username || u.id;
-  return {
-    id: u.id,
-    name,
-    username,
-    label: username && name !== username ? `${name} (${username})` : name,
-  };
+  return { id: u.id, name, username, label: username && name !== username ? `${name} (${username})` : name };
 }
 
 function escapeRegex(s) {
@@ -433,6 +430,7 @@ function escapeRegex(s) {
 }
 
 export async function fetchEntitiesFromDB(type, search = "") {
+  const { Parse } = await import("parse");
   const roleValue = type === "master" ? "Master-Agent" : "Agent";
   const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
   const term = (search || "").trim();
@@ -442,12 +440,8 @@ export async function fetchEntitiesFromDB(type, search = "") {
     return rows.map(mapUser);
   }
   const rx = `^${escapeRegex(term)}`;
-  const qName = new Parse.Query(Parse.User)
-    .equalTo("roleName", roleValue)
-    .matches("name", rx, "i");
-  const qUser = new Parse.Query(Parse.User)
-    .equalTo("roleName", roleValue)
-    .matches("username", rx, "i");
+  const qName = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("name", rx, "i");
+  const qUser = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("username", rx, "i");
   const q = Parse.Query.or(qName, qUser);
   q.limit(50).ascending("name").select(["name", "username"]);
   const results = await q.find({ useMasterKey: true });

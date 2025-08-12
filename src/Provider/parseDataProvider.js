@@ -577,9 +577,9 @@ export const dataProvider = {
         if (filter.startDate && filter.endDate) {
           matchConditions.push({
             transactionDate: {
-              $gte: new Date(new Date(filter.startDate).setHours(0, 0, 0, 0)),
+              $gte: new Date(new Date(filter.startDate)),
               $lte: new Date(
-                new Date(filter.endDate).setHours(23, 59, 59, 999)
+                new Date(filter.endDate).setUTCHours(23, 59, 59, 999)
               ),
             },
           });
