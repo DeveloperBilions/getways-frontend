@@ -109,10 +109,9 @@ export const dataProvider = {
 
       const usrQuery = new Parse.Query(Parse.User);
       usrQuery.equalTo("userParentId", user.id);
-      if(resource === "summaryExport" || resource === "summaryExportSuperUser"){
-        usrQuery.notEqualTo("isDeleted", true);
-      }
-      usrQuery.limit(100000);
+      // if(resource === "summaryExport" || resource === "summaryExportSuperUser"){
+      //   usrQuery.notEqualTo("isDeleted", true);
+      // }
       usrQuery.select(
         "objectId",
         "userParentId",
@@ -125,7 +124,7 @@ export const dataProvider = {
         "email",
         "isPasswordPermission",
       );
-      var results = await usrQuery.find({ useMasterKey: true });
+      var results = await usrQuery.findAll({ useMasterKey: true });
       if (isMaster) {
         const agentIds = results
           .filter((user) => user.get("roleName") === "Agent") // Only Agents
@@ -1181,9 +1180,9 @@ export const dataProvider = {
           // Fetch only relevant user data
           const userQuery = new Parse.Query(Parse.User);
           userQuery.containedIn("objectId", userIds); // Fetch only users in transactions
-          userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
-          userQuery.limit(50000);
-          const userResults = await userQuery.find({ useMasterKey: true });
+          //userQuery.notEqualTo("isDeleted", true); // ✅ exclude deleted users
+          userQuery.select("isDeleted", "userParentId", "userParentName", "username");
+          const userResults = await userQuery.findAll({ useMasterKey: true });
           const users = userResults.map((o) => ({ id: o.id, ...o.attributes }));
       
           // ✅ Filter transactions to exclude those linked to deleted users
@@ -1194,7 +1193,6 @@ export const dataProvider = {
       
           // Create a user lookup map
           const userMap = new Map(users.map((user) => [user.id, user]));
-      
           // Extract unique parent IDs
           const parentIds = [
             ...new Set(users.map((u) => u.userParentId).filter(Boolean)),
@@ -1219,6 +1217,10 @@ export const dataProvider = {
           // Function to get the user's parent name
           const getUserParentName = (userId) => {
             return userMap.get(userId)?.userParentName || "Unknown";
+          };
+
+          const getUserStatus = (userId) => {
+            return userMap.get(userId)?.isDeleted || "FALSE";
           };
       
           // Function to get the agent's parent name
@@ -1247,6 +1249,7 @@ export const dataProvider = {
             agentName: getUserParentName(item.get("userId")),
             userName: item.get("username"),
             agentParentName: getUserAgentParentName(item.get("userId")),
+            isDeleted:getUserStatus(item.get("userId"))
           }));
       
           result = {
