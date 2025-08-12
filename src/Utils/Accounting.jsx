@@ -16,9 +16,9 @@ Parse.initialize(
     commissionPct = 12
   ) {
     if (!entityId) throw new Error("entityId required");
-    if (!isISODate(startDate) || !isISODate(endDate)) {
-      throw new Error("startDate/endDate must be YYYY-MM-DD");
-    }
+    // if (!isISODate(startDate) || !isISODate(endDate)) {
+    //   throw new Error("startDate/endDate must be YYYY-MM-DD");
+    // }
     const start = new Date(startDate);     
     start.setHours(0, 0, 0, 0);            
     
