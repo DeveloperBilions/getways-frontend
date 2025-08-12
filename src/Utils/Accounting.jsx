@@ -8,26 +8,25 @@ Parse.initialize(
   );
   Parse.serverURL = process.env.REACT_APP_URL;
   Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
-// utils/accounting.js
-export async function fetchAccountingSummary(
-    entityType,            // "agent" | "master" (for your logic/rbac; not used in queries except for clarity)
-    entityId,              // agent or master id (used for DrawerAgent.userId)
-    startDate,             // "YYYY-MM-DD"
-    endDate,               // "YYYY-MM-DD"
+  export async function fetchAccountingSummary(
+    entityType,
+    entityId,
+    startDate,
+    endDate,
     commissionPct = 12
   ) {
     if (!entityId) throw new Error("entityId required");
     if (!isISODate(startDate) || !isISODate(endDate)) {
       throw new Error("startDate/endDate must be YYYY-MM-DD");
     }
-  
-    // Inclusive date range: [startDate, endDate 23:59:59.999] by using exclusive end+1d
-    const start = new Date(`${startDate}T00:00:00.000Z`);
-    const endExclusive = addDays(new Date(`${endDate}T00:00:00.000Z`), 1);
-  
+    const start = new Date(startDate);     
+    start.setHours(0, 0, 0, 0);            
+    
+    const endExclusive = new Date(endDate); 
+    endExclusive.setHours(23, 59, 59, 999)     
     // All players under this entity
-    let  playerList = [entityId];
-    if(entityType === "master"){
+    let playerList = [entityId];
+    if (entityType === "master") {
       playerList = await fetchAgentList(entityId); // must return array of _User objectIds
       if (!Array.isArray(playerList) || playerList.length === 0) {
         return {
@@ -43,15 +42,12 @@ export async function fetchAccountingSummary(
         };
       }
     }
-   
-  
-    // ---------- PREVIOUS (before start) ----------
-    const prevPipeline = [
+      const prevPipeline = [
       { $match: { userParentId: { $in: playerList } } },
       {
         $facet: {
           prevRecharges: [
-            { $match: { type: "recharge", status: { $in: [2, 3] }, createdAt: { $lt: start } } },
+            { $match: { type: "recharge", status: { $in: [2, 3] }, transactionDate: { $lt: start } } },
             { $group: { _id: null, total: { $sum: "$transactionAmount" } } },
           ],
           prevRedeems: [
@@ -59,7 +55,7 @@ export async function fetchAccountingSummary(
               $match: {
                 type: "redeem",
                 status: { $in: [4, 8] },
-                _created_at: { $lt: start },
+                transactionDate: { $lt: start },
                 transactionAmount: { $gt: 0, $type: "number" },
               },
             },
@@ -68,28 +64,31 @@ export async function fetchAccountingSummary(
         },
       },
     ];
-  
     const prevAgg = await new Parse.Query("TransactionRecords")
       .aggregate(prevPipeline, { useMasterKey: true });
   
     const prevRecharges = safe(prevAgg?.[0]?.prevRecharges?.[0]?.total);
     const prevRedeems = safe(prevAgg?.[0]?.prevRedeems?.[0]?.total);
   
-    // Payments to this entity BEFORE the period
     const prevPayPipeline = [
-      { $match: { userId: entityId, _created_at: { $lt: start } } },
+      { $match: { userId: { $in: playerList }, createdAt: { $lt: start } } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ];
     const prevPayAgg = await new Parse.Query("DrawerAgent")
       .aggregate(prevPayPipeline, { useMasterKey: true });
     const prevPayments = safe(prevPayAgg?.[0]?.total);
-  
-    // Carry-forward before period (no commission applied here)
-    const previousBalance = prevRecharges - prevRedeems - prevPayments;
-  
-    // ---------- PERIOD (between start..end) ----------
+    const prevCommissionAmount = round2(
+      (prevRecharges * (Number(commissionPct) || 0)) / 100
+    );
+    const previousBalance = round2(
+      prevRecharges - prevRedeems - prevPayments - prevCommissionAmount
+    );  
     const periodPipeline = [
-      { $match: { userParentId: { $in: playerList }, createdAt: { $gte: start, $lt: endExclusive } } },
+      { $match: { userParentId: { $in: playerList }, transactionDate: { $gte: start, $lt: endExclusive },
+      $or: [
+        { type: "recharge", status: { $in: [2, 3] } },
+        { type: "redeem",   status: { $in: [4, 8] } }
+     ] } },
       {
         $facet: {
           periodRecharges: [
@@ -106,18 +105,33 @@ export async function fetchAccountingSummary(
             },
             { $group: { _id: null, total: { $sum: "$transactionAmount" } } },
           ],
-          // For CSV export
           transactions: [
+            {
+              $match: {
+                $or: [
+                  { type: "recharge", status: { $in: [2, 3, "2", "3"] } },
+                  { type: "redeem",   status: { $in: [4, 8, "4", "8"] } },
+                ],
+              },
+            },
             {
               $project: {
                 _id: 0,
-                date: {
-                  $dateToString: { format: "%Y-%m-%d", date: "$_created_at" },
-                },
+                // your original fields
+                date: { $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" } },
                 type: 1,
                 status: 1,
                 amount: "$transactionAmount",
                 userId: 1,
+                portal: 1,
+                username: 1,
+  
+                // ADDED fields
+                transactionId: "$_id",
+                transactionDateISO: {
+                  $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$transactionDate", timezone: "UTC" },
+                },
+                userParentId: 1,
               },
             },
           ],
@@ -134,46 +148,83 @@ export async function fetchAccountingSummary(
       ? periodAgg[0].transactions
       : [];
   
-    // Payments INSIDE the period (reduce final balance)
     const periodPayPipeline = [
-      { $match: { userId: entityId, _created_at: { $gte: start, $lt: endExclusive } } },
+      { $match: { userId: entityId, createdAt: { $gte: start, $lt: endExclusive } } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ];
     const periodPayAgg = await new Parse.Query("DrawerAgent")
       .aggregate(periodPayPipeline, { useMasterKey: true });
     const periodPayments = safe(periodPayAgg?.[0]?.total);
   
-    // Add payments into export rows
-    const payTxRows = await buildPaymentRows(entityId, start, endExclusive);
   
-    // Commission applies only on period recharges
     const commissionAmount = round2((periodRecharges * (Number(commissionPct) || 0)) / 100);
   
-    // Final balance:
-    // previous + periodRecharges - periodRedeems - commission - periodPayments
     const finalBalance = round2(
       previousBalance + periodRecharges - periodRedeems - commissionAmount - periodPayments
     );
   
-    // Collect unique userIds present in transactions (players) + the selected entity (for payments)
-const userIds = new Set();
-txRows.forEach(r => r.userId && userIds.add(r.userId));
-payTxRows.forEach(r => r.userId && userIds.add(r.userId));
-
-if (userIds.size) {
-  const userQ = new Parse.Query(Parse.User);
-  userQ.containedIn("objectId", Array.from(userIds));
-  userQ.select(["isDeleted", "username", "name"]); // (optional extra fields)
-  const users = await userQ.find({ useMasterKey: true });
-  const isDeletedMap = new Map(users.map(u => [u.id, !!u.get("isDeleted")]));
-
-  // decorate both lists so CSV includes the flag
-  txRows.forEach(r => (r.userIsDeleted = isDeletedMap.get(r.userId) ?? false));
-  payTxRows.forEach(r => (r.userIsDeleted = isDeletedMap.get(r.userId) ?? false));
-}
-
-    // Merge export rows
-    const transactions = [...txRows, ...payTxRows].sort((a, b) =>
+    const userIds = new Set();
+    txRows.forEach(r => r.userId && userIds.add(r.userId));
+  
+    if (userIds.size) {
+      const userQ = new Parse.Query(Parse.User);
+      userQ.containedIn("objectId", Array.from(userIds));
+      userQ.select(["isDeleted", "username", "name"]);
+      const users = await userQ.find({ useMasterKey: true });
+      const isDeletedMap = new Map(users.map(u => [u.id, !!u.get("isDeleted")]));
+  
+      txRows.forEach(r => (r.userIsDeleted = isDeletedMap.get(r.userId) ?? false));
+    }
+    let fixedAgentName = null;
+    let fixedMasterName = null;
+  
+    if (entityType === "agent") {
+      try {
+        const agentObj = await new Parse.Query(Parse.User).get(entityId, { useMasterKey: true });
+        fixedAgentName = agentObj.get("name") || agentObj.get("username") || agentObj.id;
+        const masterId = agentObj.get("userParentId");
+        if (masterId) {
+          try {
+            const m = await new Parse.Query(Parse.User).get(masterId, { useMasterKey: true });
+            fixedMasterName = m.get("name") || m.get("username") || m.id;
+          } catch {}
+        }
+      } catch {}
+    } else if (entityType === "master") {
+      try {
+        const m = await new Parse.Query(Parse.User).get(entityId, { useMasterKey: true });
+        fixedMasterName = m.get("name") || m.get("username") || m.id;
+      } catch {}
+    }
+  
+    const nameIds = new Set(txRows.map(r => r.userId).filter(Boolean));
+    if (entityType === "master") {
+      txRows.forEach(r => r.userParentId && nameIds.add(r.userParentId));
+    }
+  
+    let nameMap = new Map();
+    if (nameIds.size) {
+      const q = new Parse.Query(Parse.User);
+      q.containedIn("objectId", Array.from(nameIds));
+      q.select(["name", "username"]);
+      const rows = await q.find({ useMasterKey: true });
+      nameMap = new Map(rows.map(u => [u.id, (u.get("name") || u.get("username") || u.id)]));
+    }
+  
+    txRows.forEach(r => {
+      r.customerName = nameMap.get(r.userId) || r.username || r.userId || "";
+      if (entityType === "agent") {
+        r.agentName = fixedAgentName || "";
+        r.masterAgentName = fixedMasterName || "";
+      } else {
+        r.agentName = nameMap.get(r.userParentId) || r.userParentId || "";
+        r.masterAgentName = fixedMasterName || "";
+      }
+      r.transactionType = r.type === "recharge" ? "Recharge" : "Redeem";
+      // transactionId, transactionDateISO, mode already projected above
+    });
+  
+    const transactions = [...txRows].sort((a, b) =>
       a.date.localeCompare(b.date)
     );
   
@@ -189,6 +240,7 @@ if (userIds.size) {
       },
     };
   }
+  
   
   /* ---------------- helpers ---------------- */
   function isISODate(s) {
@@ -206,23 +258,7 @@ if (userIds.size) {
   function round2(n) {
     return Math.round((Number(n) || 0) * 100) / 100;
   }
-  
-  async function buildPaymentRows(entityId, start, endExclusive) {
-    const payList = await new Parse.Query("DrawerAgent")
-      .greaterThanOrEqualTo("_created_at", start)
-      .lessThan("_created_at", endExclusive)
-      .equalTo("userId", entityId)
-      .find({ useMasterKey: true });
-  
-    return payList.map((p) => ({
-      date: toYMD(p.get("createdAt") || p.get("_created_at") || p.createdAt),
-      type: "payment",
-      status: "paid",
-      amount: Number(p.get("amount") || 0),
-      userId: entityId,
-      reference: p.id,
-    }));
-  }
+
   
   function toYMD(d) {
     const dt = d instanceof Date ? d : new Date(d);
