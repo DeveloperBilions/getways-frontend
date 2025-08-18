@@ -57,6 +57,8 @@ import TuneIcon from "@mui/icons-material/Tune";
 import ChatbotDialog from "../Views/User/dialog/ChatbotDialog";
 import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -77,6 +79,7 @@ export default function MyAppBar(props) {
   const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
   const [openChatbotDialog, setOpenChatbotDialog] = useState(false);
 
+  const [openShufflDialog, setShufflDialog] = React.useState(false);
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
@@ -612,7 +615,23 @@ export default function MyAppBar(props) {
                     <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                       Accounting
                     </Typography>
-                  </MenuItem>
+                  </MenuItem>)}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setShufflDialog(true)}
+                      style={{
+                        color: "#000000",
+
+                        gap: "8px",
+                      }}
+                    >
+                      <ShuffleIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Shuffle recharge
+                      </Typography>
+                    </MenuItem>
+                  </Box>
                 )}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
@@ -740,6 +759,10 @@ export default function MyAppBar(props) {
           open={openTicketPaidModal}
           onClose={() => setOpenTicketPaidModal(false)}
           record={{ id: identity?.objectId, username: identity?.username }}
+        />
+        <ShuffleConfigModal
+          open={openShufflDialog}
+          onClose={() => setShufflDialog(false)}
         />
       </AppBar>
     </>
