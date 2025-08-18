@@ -63,6 +63,7 @@ export default function ShuffleConfigModal({
         });
 
         const mappedEntries = thresholdsResults.map((t) => ({
+          objectId: t.id,                              // <-- add this
           min: t.get("minAmount").toString(),
           max: t.get("maxAmount").toString(),
           methods: t.get("targetPaymentMethods") || [],
