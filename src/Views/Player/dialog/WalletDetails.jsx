@@ -93,14 +93,14 @@ export const WalletDetails = ({
     refresh();
     handleCashoutRefresh();
   };
-  const hasAnyPaymentMethod = (w) => {
+
+    const hasAnyPaymentMethod = (w) => {
     if (!w) return false;
     const { cashAppId, paypalId, venmoId, zelleId } = w;
     return [cashAppId, paypalId, venmoId, zelleId].some((v) =>
       typeof v === "string" ? v.trim().length > 0 : !!v
     );
   };
-  console.log(wallet,"walleeety")
   return (
     <React.Fragment>
       <Paper
@@ -219,11 +219,8 @@ export const WalletDetails = ({
                 color: "#E2E8F0", // Disabled text color (light gray)
               },
             }}
-            onClick={async () => {
-              setCheckoutError(""); // clear any previous errors
-              const isEligible = await verifyPotBalance("payout");
-              if (isEligible) {
-                if(identity?.userParentId === "PY6MQUOJtH")
+            onClick={() => {
+               if(identity?.userParentId === "PY6MQUOJtH")
                 {
                   if (!hasAnyPaymentMethod(wallet)) {
                     setPaymentDialogOpen(true);
@@ -234,7 +231,6 @@ export const WalletDetails = ({
                 }else{
                   setIsOpen(true);
                 }
-              }
             }}
             disabled={
               identity?.isBlackListed || cashoutDisabled || checkingEligibility

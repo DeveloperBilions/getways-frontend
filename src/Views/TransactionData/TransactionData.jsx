@@ -94,6 +94,7 @@ export const TransactionData = (props) => {
       paymentMethodType: item?.paymentMethodType,
       remark: item?.remark,
       "Redeem Remark": item?.redeemRemarks,
+      isDeleted:item?.isDeleted,
       Mode: getMode(item), // <-- Add Mode using helper
     }));
 
