@@ -137,198 +137,124 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
   // Function to create a new user in Parse
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    const validationData = {
-      username: userName,
-      name,
+  
+    // ---- normalize inputs ----
+    const username = (userName || "").trim();
+    const fullName = (name || "").trim();
+    const emailNorm = (email || "").trim().toLowerCase();
+    const roleRequested = (userType || "").trim();
+    const myPermission = (permissions || "").trim();
+  
+    // ---- common validation ----
+    const validationResponse = validateCreateUser({
+      username,
+      name: fullName,
       phoneNumber,
-      email,
+      email: emailNorm,
       password,
-    };
-
-    const validationResponse = validateCreateUser(validationData);
+    });
     if (!validationResponse.isValid) {
       setErrorMessage(Object.values(validationResponse.errors).join(" "));
       return;
     }
-
-    if (!validateUserName(userName)) {
+  
+    if (!validateUserName(username)) {
       setErrorMessage(
         "Username can only contain letters, numbers, spaces, underscores (_), and dots (.)"
       );
       return;
     }
-
+  
     if (!validatePassword(password, setPasswordErrors)) {
       setErrorMessage("Please fix all password requirements.");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match.");
       return;
     }
-
-    if (userType === "Player" && email.toLowerCase().endsWith("@get.com")) {
+  
+    // Players cannot use @get.com
+    if (roleRequested === "Player" && emailNorm.endsWith("@get.com")) {
+      setErrorMessage("Players are not allowed to use @get.com email addresses.");
+      return;
+    }
+  
+    // ---- permission matrix ----
+    const ALLOWED_CHILDREN = {
+      "Super-User": new Set(["Master-Agent", "Agent", "Player"]),
+      "Master-Agent": new Set(["Agent", "Player"]),
+      "Agent": new Set(["Player"]),
+    };
+  
+    const allowedForMe = ALLOWED_CHILDREN[myPermission] || new Set();
+    if (!allowedForMe.has(roleRequested)) {
       setErrorMessage(
-        "Players are not allowed to use @get.com email addresses."
+        `You are not allowed to create a ${roleRequested} as ${myPermission}.`
       );
       return;
     }
-
+  
+    // Agents can only create Players; enforce defensively
+    const roleName = myPermission === "Agent" ? "Player" : roleRequested;
+  
+    // ---- resolve parent once ----
+    const resolveParent = () => {
+      if (myPermission === "Agent") {
+        // parent is the logged-in Agent (identity)
+        if (!identity?.objectId || !identity?.name) return null;
+        return { id: identity.objectId, name: identity.name };
+      }
+      // Super-User / Master-Agent choose parentType in UI
+      if (!parentType?.id || !parentType?.name) return null;
+      return { id: parentType.id, name: parentType.name };
+    };
+  
+    const parent = resolveParent();
+    if (!parent) {
+      setErrorMessage("Parent User data is not valid");
+      return;
+    }
+  
+    // ---- build payload once ----
+    const payload = {
+      roleName,
+      username,
+      name: fullName,
+      phoneNumber,
+      email: emailNorm,
+      password,
+      userParentId: parent.id,
+      userParentName: parent.name,
+      ...(roleName === "Agent" ? { redeemService: 5 } : {}),
+    };
+  
     setLoading(true);
     try {
-      let response;
-      if (permissions === "Super-User") {
-        if (userType === "Agent") {
-          if (!identity?.objectId && !identity?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-            redeemService: 5,
-          });
-        } else if (userType === "Player") {
-          if (!parentType?.id && !parentType?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-          });
-        } else if (userType === "Master-Agent") {
-          if (!parentType?.id && !parentType?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-          });
-        } else if (permissions === "Master-Agent") {
-          if (userType === "Agent") {
-            if (!identity?.objectId && !identity?.name) {
-              setErrorMessage("Parent User data is not valid");
-              return;
-            }
-            response = await Parse.Cloud.run("createUser", {
-              roleName: userType,
-              username: userName,
-              name,
-              phoneNumber,
-              email,
-              password,
-              userParentId: parentType?.id,
-              userParentName: parentType?.name,
-              redeemService: 5,
-            });
-          } else if (userType === "Player") {
-            if (!parentType?.id && !parentType?.name) {
-              setErrorMessage("Parent User data is not valid");
-              return;
-            }
-            response = await Parse.Cloud.run("createUser", {
-              roleName: userType,
-              username: userName,
-              name,
-              phoneNumber,
-              email,
-              password,
-              userParentId: parentType?.id,
-              userParentName: parentType?.name,
-            });
-          }
-        }
-      } else if (permissions === "Agent") {
-        response = await Parse.Cloud.run("createUser", {
-          roleName: "Player",
-          username: userName,
-          name,
-          phoneNumber,
-          email,
-          password,
-          userParentId: identity?.objectId,
-          userParentName: identity?.name,
-        });
-      } else if (permissions === "Master-Agent") {
-        if (userType === "Agent") {
-          if (!identity?.objectId && !identity?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-            redeemService: 5,
-          });
-        } else if (userType === "Player") {
-          if (!parentType?.id && !parentType?.name) {
-            setErrorMessage("Parent User data is not valid");
-            return;
-          }
-          response = await Parse.Cloud.run("createUser", {
-            roleName: userType,
-            username: userName,
-            name,
-            phoneNumber,
-            email,
-            password,
-            userParentId: parentType?.id,
-            userParentName: parentType?.name,
-          });
-        }
-      }
+      const response = await Parse.Cloud.run("createUser", payload);
+  
       if (!response?.success) {
-        setErrorMessage(response?.message);
+        setErrorMessage(response?.message || "Failed to create user.");
         return;
-      } else {
-        onClose();
-        fetchAllUsers();
-        resetFields();
-        refresh();
-        handleRefresh();
       }
+  
+      // success
+      onClose?.();
+      fetchAllUsers?.();
+      resetFields?.();
+      refresh?.();
+      handleRefresh?.();
     } catch (error) {
       console.error("Error Creating User:", error);
-
-      // Handle Parse-specific errors
-      if (error?.code && error?.message) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("An unexpected error occurred. Please try again.");
-      }
+      setErrorMessage(error?.message || "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
-      fetchUsersByRole();
+      // if you only want this on success, move it above into the success block
+      fetchUsersByRole?.();
     }
   };
+  
   // Combine parentOptions with identity
   const combinedOptions = (() => {
     if (!userType) return [];
@@ -364,10 +290,9 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
     const selectedParent = combinedOptions.find(
       (option) => option.id === selectedId
     );
-
     setParentType({
       id: selectedParent?.id || identity?.objectId,
-      name: selectedParent?.username || identity?.username,
+      name: selectedParent?.name || identity?.username,
       type: selectedParent?.role || identity?.role,
     });
   };

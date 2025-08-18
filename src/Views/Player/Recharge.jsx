@@ -665,7 +665,7 @@ const Recharge = ({
             JSON.stringify({ [identity.walletAddr]: ["base"] })
           );
 
-          const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=${projectId}&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
+          const buyUrl = `https://pay.coinbase.com/buy/select-asset?appId=981aec85-7141-44af-929c-51c2954b6c64&addresses=${encodedAddresses}&defaultAsset=USDC&defaultPaymentMethod=CARD&presetCryptoAmount=${rechargeAmount}`;
 
           //           const partnerUserRef = `${identity.objectId}-${Date.now()}`;
 
