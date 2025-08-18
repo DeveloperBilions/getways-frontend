@@ -145,7 +145,7 @@ export async function fetchAccountingTransactions(
         transactionDate: { $gte: start, $lt: endExclusive },
         $or: [
           { type: "recharge", status: { $in: [2, 3, "2", "3"] } },
-          { type: "redeem", status: { $in: [4, 8, "4", "8"] } }
+          { type: "redeem",  status: { $in: [4, 8, "4", "8"] } }
         ]
       }
     },
@@ -157,11 +157,22 @@ export async function fetchAccountingTransactions(
         status: 1,
         amount: "$transactionAmount",
         userId: 1,
-        portal: 1,
         username: 1,
+        userParentId: 1,
+        portal: 1,
+        // needed for mode
+        transactionIdFromStripe: 1,
+        referralLink: 1,
+        useWallet: 1,
+        // keep these if you still use them elsewhere
         transactionId: "$_id",
-        transactionDateISO: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$transactionDate", timezone: "UTC" } },
-        userParentId: 1
+        transactionDateISO: {
+          $dateToString: {
+            format: "%Y-%m-%dT%H:%M:%S.%LZ",
+            date: "$transactionDate",
+            timezone: "UTC"
+          }
+        }
       }
     }
   ];
@@ -200,6 +211,28 @@ export async function fetchAccountingTransactions(
     } catch {}
   }
 
+  // helper for mode
+  const lower = v => (typeof v === "string" ? v.toLowerCase() : "");
+  const getMode = (data) => {
+    const id = lower(data?.transactionIdFromStripe);
+    const ref = lower(data?.referralLink);
+    return id.includes("txn")
+      ? "WERT"
+      : id.includes("crypto.link.com")
+      ? "Link"
+      : ref.includes("pay.coinbase.com")
+      ? "CoinBase"
+      : ref.includes("aog")
+      ? "AOG"
+      : ref.includes("transfi")
+      ? "TransFi"
+      : data?.useWallet
+      ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
+      : "Stripe";
+  };
+
   txRows.forEach(r => {
     r.customerName = nameMap.get(r.userId) || r.username || r.userId || "";
     if (entityType === "agent") {
@@ -210,11 +243,13 @@ export async function fetchAccountingTransactions(
       r.masterAgentName = fixedMasterName || "";
     }
     r.transactionType = r.type === "recharge" ? "Recharge" : "Redeem";
+    r.mode = getMode(r);
   });
 
   txRows.sort((a, b) => a.date.localeCompare(b.date));
   return txRows;
 }
+
 
 export const fetchAgentList = async (userid) => {
   const userQuery = new Parse.Query(Parse.User);
