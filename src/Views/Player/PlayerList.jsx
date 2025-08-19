@@ -145,7 +145,7 @@ export const PlayerList = () => {
     try {
       const { data, totalCount } = await dataProvider.getList("rechargeRecords", {
         pagination: { page: 1, perPage: 5 },
-        sort: { field: "id", order: "DESC" },
+        sort: { field: "createdAt", order: "DESC" },
       });
       const rechargeResponse = convertTransactions(data,true);
       if (rechargeData) {

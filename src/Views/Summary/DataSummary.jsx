@@ -686,6 +686,11 @@ export const DataSummary = React.memo(() => {
       ? "TransFi"
       : data?.paymentType === "wallet"
       ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
+      :
+      data?.portal === "PayNearMe" ?
+      "PayNearMe"
       : "Stripe";
   };  
   // Generic export function

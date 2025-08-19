@@ -71,6 +71,11 @@ export const TransactionData = (props) => {
       ? "TransFi"
       : data?.useWallet
       ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
+      :
+      data?.portal === "PayNearMe" ?
+      "PayNearMe"
       : "Stripe";
   };
 

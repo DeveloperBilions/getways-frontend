@@ -24,14 +24,31 @@ import Parse from "parse";
 import CloseIcon from "@mui/icons-material/Close";
 
 const getModeFromTransaction = (tx) => {
-  const stripeId = tx.get("transactionIdFromStripe") || "";
-  const referralLink = tx.get("referralLink") || "";
+  // Safely read from Parse.Object or plain object
+  const stripeId = (
+    tx?.get?.("transactionIdFromStripe") ?? tx?.transactionIdFromStripe ?? ""
+  ).toString().toLowerCase();
 
-  if (/txn/i.test(stripeId)) return "WERT";
-  if (/pay\.coinbase\.com/i.test(referralLink)) return "CoinBase";
-  if (/crypto\.link\.com/i.test(stripeId)) return "Link";
-  return "Other";
+  const referralLink = (
+    tx?.get?.("referralLink") ?? tx?.referralLink ?? ""
+  ).toString().toLowerCase();
+
+  const portalRaw = tx?.get?.("portal") ?? tx?.portal ?? "";
+  const portal = portalRaw.toString().toLowerCase();
+
+  const useWallet = Boolean(tx?.get?.("useWallet") ?? tx?.useWallet);
+
+  if (stripeId.includes("txn")) return "WERT";
+  if (stripeId.includes("crypto.link.com")) return "Link";
+  if (referralLink.includes("pay.coinbase.com")) return "CoinBase";
+  if (referralLink.includes("aog")) return "AOG";
+  if (referralLink.includes("transfi")) return "TransFi";
+  if (useWallet) return "Wallet";
+  if (portal === "payarc") return "Payarc";
+  if (portal === "paynearme") return "PayNearMe";
+  return "Stripe";
 };
+
 
 const TransactionDialog = ({ user, open, onClose }) => {
   const [transactions, setTransactions] = useState([]);

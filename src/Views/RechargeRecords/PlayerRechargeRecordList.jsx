@@ -63,6 +63,7 @@ export const PlayerRechargeRecordsList = (props) => {
     const listContext = useListController({
         ...props,
         filter: { type: "recharge" },
+        sort:   { field: "createdAt", order: "DESC" }
     });
     const {
         data,

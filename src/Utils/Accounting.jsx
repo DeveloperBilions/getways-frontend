@@ -230,6 +230,9 @@ export async function fetchAccountingTransactions(
       ? "Wallet"
       : data?.portal === "Payarc"
       ? "Payarc"
+      :
+      data?.portal === "PayNearMe" ?
+      "PayNearMe"
       : "Stripe";
   };
 

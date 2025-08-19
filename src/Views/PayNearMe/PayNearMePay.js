@@ -5,6 +5,7 @@ import "./pay.css"
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetIdentity } from "react-admin";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { updatePotBalance } from "../../Utils/utils";
 
 export default function PayNearMePay() {
   const location = useLocation();  
@@ -17,6 +18,8 @@ export default function PayNearMePay() {
   const [loading, setLoading] = useState(true);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const siteOrderIdentifierRef = useRef("")
+  const handledRef = useRef(false);
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -96,7 +99,19 @@ export default function PayNearMePay() {
         console.log("Missing status field");
         return;
       }
+      const txnId = siteOrderIdentifierRef.current;
+      if (!txnId) return;
+      await new Promise((r) => setTimeout(r, 2500));
 
+      const Transactionf = Parse.Object.extend("TransactionRecords");
+      const dup = await new Parse.Query(Transactionf)
+        .equalTo("transactionIdFromStripe", txnId)
+        .first({ useMasterKey: true }); 
+  
+      if (dup) {
+        console.log("Duplicate transaction, skipping save:", txnId);
+        return;
+      }
       // Save transaction in Parse
       const Transaction = Parse.Object.extend("TransactionRecords");
       const transaction = new Transaction();
@@ -118,6 +133,11 @@ export default function PayNearMePay() {
       if (data.status === "complete") {
         transaction.set("status", 2);
         await transaction.save(null, { useMasterKey: true });
+        await updatePotBalance(
+          identity?.userParentId,
+          amount,
+          "recharge"
+        );
         alert("Payment completed successfully!");
         navigate("/playerDashboard");
       } else if (data.status === "error") {
