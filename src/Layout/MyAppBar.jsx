@@ -59,6 +59,7 @@ import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
+import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -71,6 +72,7 @@ export default function MyAppBar(props) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
+  const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
 
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
@@ -616,6 +618,21 @@ export default function MyAppBar(props) {
                       Accounting
                     </Typography>
                   </MenuItem>)}
+                  {role === "Master-Agent" && (
+                  <MenuItem
+                    onClick={() => setMasterOpenAccountingModal(true)}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      gap: "8px",
+                    }}
+                  >
+                    <CalculateIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Accounting
+                    </Typography>
+                  </MenuItem>)}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -727,6 +744,10 @@ export default function MyAppBar(props) {
         <AgentAccountingModal
           open={openAccountingModal}
           onClose={() => setOpenAccountingModal(false)}
+        />
+        <MasterAgentAccountingModal
+          open={openMasterAccountingModal}
+          onClose={() => setMasterOpenAccountingModal(false)}
         />
         <EmergencyMessageDialog
           open={openEmergencyModal}

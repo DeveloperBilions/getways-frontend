@@ -263,6 +263,100 @@ export const fetchAgentList = async (userid) => {
   return players.map(p => p.id);
 };
 
+export async function fetchAgentAccountingForMaster(masterId, startISO, endExclusiveISO, page = 1, limit = 10, agentId = null) {
+  if (!masterId) throw new Error("masterId required");
+
+  const start = new Date(startISO);
+  const endExclusive = new Date(endExclusiveISO);
+
+  // Step 1: Determine agent IDs to process
+  let allAgentIds = [];
+  if (agentId) {
+    allAgentIds = [agentId];
+  } else {
+    allAgentIds = await fetchAgentList(masterId);
+  }
+
+  const totalAgents = allAgentIds.length;
+  if (!totalAgents) {
+    return {
+      success: true,
+      data: {
+        agents: [],
+        totalPages: 0,
+      },
+    };
+  }
+
+  const totalPages = Math.ceil(totalAgents / limit);
+  const paginatedIds = agentId ? allAgentIds : allAgentIds.slice((page - 1) * limit, page * limit);
+
+  // Step 2: Fetch users to get agent names
+  const agentUserQuery = new Parse.Query(Parse.User);
+  agentUserQuery.containedIn("objectId", paginatedIds);
+  agentUserQuery.select("name", "username");
+  const agentUsers = await agentUserQuery.find({ useMasterKey: true });
+
+  const agentMetaMap = new Map();
+  agentUsers.forEach((u) => {
+    agentMetaMap.set(u.id, {
+      id: u.id,
+      name: u.get("name") || u.get("username") || u.id,
+    });
+  });
+
+  // Step 3: Aggregate recharges/redeems for agents
+  const aggPipeline = [
+    {
+      $match: {
+        userParentId: { $in: paginatedIds },
+        transactionDate: { $gte: start, $lt: endExclusive },
+        $or: [
+          { type: "recharge", status: { $in: [2, 3] } },
+          { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0, $type: "number" } }
+        ]
+      },
+    },
+    {
+      $group: {
+        _id: { agentId: "$userParentId", type: "$type" },
+        total: { $sum: "$transactionAmount" },
+      },
+    },
+  ];
+
+  const aggResults = await new Parse.Query("TransactionRecords").aggregate(aggPipeline, { useMasterKey: true });
+
+  // Step 4: Structure totals by agent
+  const agentData = new Map();
+  for (const row of aggResults) {
+    const agentId = row.objectId.agentId;
+    const type = row.objectId.type;
+    const total = safe(row.total);
+    if (!agentData.has(agentId)) agentData.set(agentId, { id: agentId, totalRecharges: 0, totalRedeems: 0 });
+
+    if (type === "recharge") agentData.get(agentId).totalRecharges += total;
+    if (type === "redeem") agentData.get(agentId).totalRedeems += total;
+  }
+
+  // Step 5: Combine with user metadata
+  const finalList = paginatedIds.map((id) => ({
+    id,
+    name: agentMetaMap.get(id)?.name || id,
+    totalRecharges: round2(agentData.get(id)?.totalRecharges || 0),
+    totalRedeems: round2(agentData.get(id)?.totalRedeems || 0),
+  }));
+
+  return {
+    success: true,
+    data: {
+      agents: finalList,
+      totalPages,
+    },
+  };
+}
+
+
 function safe(n) {
   const x = Number(n);
   return Number.isFinite(x) ? x : 0;
