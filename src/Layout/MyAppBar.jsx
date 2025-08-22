@@ -53,6 +53,7 @@ import AgentTierViewerDialog from "../Views/User/dialog/AgentTierViewerDialog";
 import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialogBulk";
 import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -65,6 +66,7 @@ export default function MyAppBar(props) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
+  const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
 
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
@@ -596,6 +598,21 @@ export default function MyAppBar(props) {
                     </Typography>
                   </MenuItem>
                 )}
+                {role === "Master-Agent" && (
+    <MenuItem
+      onClick={() => setMasterOpenAccountingModal(true)}
+      style={{
+        color: "#000000",
+        fontWeight: 400,
+        fontSize: "16px",
+        gap: "8px",
+      }}
+    >
+      <CalculateIcon sx={{ fontSize: 20, color: "#000" }} />
+      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+        Accounting
+      </Typography>
+    </MenuItem>)}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -718,6 +735,10 @@ export default function MyAppBar(props) {
           onClose={() => setOpenTicketPaidModal(false)}
           record={{ id: identity?.objectId, username: identity?.username }}
         />
+          <MasterAgentAccountingModal
+  open={openMasterAccountingModal}
+  onClose={() => setMasterOpenAccountingModal(false)}
+/>
       </AppBar>
     </>
   );
