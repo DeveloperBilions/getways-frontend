@@ -60,7 +60,7 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
-
+import SchemaIcon  from '@mui/icons-material/BusinessCenter';
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -618,7 +618,7 @@ export default function MyAppBar(props) {
                       Accounting
                     </Typography>
                   </MenuItem>)}
-                  {role === "Master-Agent" && (
+                  {(role === "Master-Agent" || role === "Super-User") && (
                   <MenuItem
                     onClick={() => setMasterOpenAccountingModal(true)}
                     style={{
@@ -628,9 +628,9 @@ export default function MyAppBar(props) {
                       gap: "8px",
                     }}
                   >
-                    <CalculateIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <SchemaIcon sx={{ fontSize: 20, color: "#000" }} />
                     <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
-                      Accounting
+                      Master Accounting
                     </Typography>
                   </MenuItem>)}
                 {role === "Super-User" && (

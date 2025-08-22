@@ -1,32 +1,17 @@
+// ⬇️ Updated version of MasterAgentAccountingModal with conditional master-agent selection for super-users
 import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  CircularProgress,
-  Alert,
-  Box,
-  Typography,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Pagination,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button,
+  TextField, CircularProgress, Alert, Box, Typography, IconButton,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, Pagination
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import Autocomplete from "@mui/material/Autocomplete";
 import { fetchAgentAccountingForMaster } from "../../../Utils/Accounting";
 import { useGetIdentity } from "react-admin";
-import Autocomplete from "@mui/material/Autocomplete";
 
 const { Parse } = await import("parse");
-
 Parse.initialize(
   process.env.REACT_APP_APPID,
   process.env.REACT_APP_JAVASCRIPT_KEY,
@@ -34,6 +19,7 @@ Parse.initialize(
 );
 Parse.serverURL = process.env.REACT_APP_URL;
 Parse.masterKey = process.env.REACT_APP_MASTER_KEY;
+
 export default function MasterAgentAccountingModal({ open, onClose }) {
   const [startDate, setStartDate] = useState(isoDateNDaysAgo(7));
   const [endDate, setEndDate] = useState(isoDateNDaysAgo(0));
@@ -47,20 +33,32 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
   const [agentOptions, setAgentOptions] = useState([]);
   const [agentInput, setAgentInput] = useState("");
   const [agentLoading, setAgentLoading] = useState(false);
-  
+  const [masterSelected, setMasterSelected] = useState(null);
+  const [masterOptions, setMasterOptions] = useState([]);
+  const [masterInput, setMasterInput] = useState("");
+
+  const isSuperUser = identity?.role === "Super-User";
+  const effectiveMasterId = isSuperUser ? masterSelected?.id : identity?.objectId;
+
   useEffect(() => {
     if (open) {
       resetState();
+      if (isSuperUser) loadMasters("");
     }
   }, [open]);
+
   useEffect(() => {
-    if (!open) return;
-    if (agentInput === "") return;
-    const t = setTimeout(() => {
-      loadAgentOptions(agentInput);
-    }, 350);
+    if (!open || !isSuperUser || masterInput === "") return;
+    const t = setTimeout(() => loadMasters(masterInput), 350);
     return () => clearTimeout(t);
-  }, [agentInput]);
+  }, [masterInput]);
+
+  useEffect(() => {
+    if (!open || !effectiveMasterId) return;
+    if (agentInput === "") return;
+    const t = setTimeout(() => loadAgentOptions(agentInput), 350);
+    return () => clearTimeout(t);
+  }, [agentInput, effectiveMasterId]);
 
   async function loadAgentOptions(search = "") {
     try {
@@ -72,17 +70,31 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
     } finally {
       setAgentLoading(false);
     }
-  }  
+  }
+
+  async function loadMasters(search = "") {
+    try {
+      const masters = await fetchEntitiesFromDB("master", search);
+      setMasterOptions(masters);
+    } catch (e) {
+      console.error("Master search failed", e);
+    }
+  }
+
   const resetState = () => {
     setError("");
     setAgentsData([]);
     setPage(1);
     setTotalPages(1);
+    setSelectedAgent(null);
+    setAgentOptions([]);
+    setAgentInput("");
+    setMasterSelected(null);
   };
 
   const handleFetch = async () => {
-    if (!startDate || !endDate) {
-      setError("Please select valid start and end dates.");
+    if (!startDate || !endDate || !effectiveMasterId) {
+      setError("Please select valid dates and master agent.");
       return;
     }
     setLoading(true);
@@ -91,7 +103,7 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
       const startAtISO = toStartOfDayUTC(startDate);
       const endExclusiveISO = toEndOfDayExclusiveUTC(endDate);
       const res = await fetchAgentAccountingForMaster(
-        identity?.objectId,
+        effectiveMasterId,
         startAtISO,
         endExclusiveISO,
         page,
@@ -108,93 +120,84 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
     }
   };
 
-  function toStartOfDayUTC(dateStr) {
-    return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
-  }
-
-  function toEndOfDayExclusiveUTC(dateStr) {
-    const d = new Date(`${dateStr}T00:00:00.000Z`);
-    d.setUTCDate(d.getUTCDate() + 1);
-    return d.toISOString();
-  }
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         Master Agent Overview
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
+        <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
 
       <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <Box  sx={{
-    display: "flex",
-    flexDirection: { xs: "column", sm: "row" }, // ⬅️ Stack on xs, row on sm and up
-    gap: 2,
-    my: 2,
-    alignItems: "flex-start", // prevents vertical stretching
-    flexWrap: "wrap", // optional: allows wrap on small-to-mid widths
-  }}>
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-          />
-          <Autocomplete
-  value={selectedAgent}
-  onChange={(_, val) => setSelectedAgent(val)}
-  inputValue={agentInput}
-  onInputChange={(_, val) => setAgentInput(val)}
-  options={agentOptions}
-  loading={agentLoading}
-  getOptionLabel={(o) => o?.name || o?.id || ""}
-  isOptionEqualToValue={(o, v) => o?.id === v?.id}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      label="Filter by Agent (Optional)"
-      size="small"
-      sx={{ minWidth: 230 }}
-      InputProps={{
-        ...params.InputProps,
-        endAdornment: (
-          <>
-            {agentLoading ? <CircularProgress size={18} /> : null}
-            {params.InputProps.endAdornment}
-          </>
-        ),
-      }}
-    />
-  )}
-/>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, my: 2 }}>
+          {isSuperUser && (
+            <Autocomplete
+              value={masterSelected}
+              onChange={(_, val) => setMasterSelected(val)}
+              inputValue={masterInput}
+              onInputChange={(_, val) => setMasterInput(val)}
+              options={masterOptions}
+              getOptionLabel={(o) => o?.name || o?.id || ""}
+              isOptionEqualToValue={(o, v) => o?.id === v?.id}
+              renderInput={(params) => (
+                <TextField {...params} label="Select Master Agent" size="small" />
+              )}
+            />
+          )}
 
-          <Button variant="outlined" onClick={handleFetch} disabled={loading}>
-            {loading ? "Loading..." : "Fetch"}
-          </Button>
+          {(!isSuperUser || (isSuperUser && masterSelected)) && (
+            <>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                <TextField
+                  label="Start Date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+                <TextField
+                  label="End Date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+                <Autocomplete
+                  value={selectedAgent}
+                  onChange={(_, val) => setSelectedAgent(val)}
+                  inputValue={agentInput}
+                  onInputChange={(_, val) => setAgentInput(val)}
+                  options={agentOptions}
+                  loading={agentLoading}
+                  getOptionLabel={(o) => o?.name || o?.id || ""}
+                  isOptionEqualToValue={(o, v) => o?.id === v?.id}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Filter by Agent (Optional)"
+                      size="small"
+                      sx={{ minWidth: 230 }}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {agentLoading ? <CircularProgress size={18} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+                <Button variant="outlined" onClick={handleFetch} disabled={loading}>
+                  {loading ? "Loading..." : "Fetch"}
+                </Button>
+              </Box>
+            </>
+          )}
         </Box>
 
         {loading ? (
@@ -207,53 +210,31 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>
-                      <strong>Agent Name</strong>
-                    </TableCell>
-                    <TableCell align="right">
-                      <strong>Total Recharges</strong>
-                    </TableCell>
-                    <TableCell align="right">
-                      <strong>Total Redeems</strong>
-                    </TableCell>
+                    <TableCell><strong>Agent Name</strong></TableCell>
+                    <TableCell align="right"><strong>Total Recharges</strong></TableCell>
+                    <TableCell align="right"><strong>Total Redeems</strong></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {agentsData.map((agent) => (
                     <TableRow key={agent.id}>
                       <TableCell>{agent.name}</TableCell>
-                      <TableCell align="right">
-                        {agent.totalRecharges.toFixed(2)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {agent.totalRedeems.toFixed(2)}
-                      </TableCell>
+                      <TableCell align="right">{agent.totalRecharges.toFixed(2)}</TableCell>
+                      <TableCell align="right">{agent.totalRedeems.toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
-                  {/* Totals Row */}
                   <TableRow>
-                    <TableCell>
-                      <strong>Grand Total</strong>
+                    <TableCell><strong>Grand Total</strong></TableCell>
+                    <TableCell align="right">
+                      <strong>{agentsData.reduce((acc, a) => acc + a.totalRecharges, 0).toFixed(2)}</strong>
                     </TableCell>
                     <TableCell align="right">
-                      <strong>
-                        {agentsData
-                          .reduce((acc, a) => acc + a.totalRecharges, 0)
-                          .toFixed(2)}
-                      </strong>
-                    </TableCell>
-                    <TableCell align="right">
-                      <strong>
-                        {agentsData
-                          .reduce((acc, a) => acc + a.totalRedeems, 0)
-                          .toFixed(2)}
-                      </strong>
+                      <strong>{agentsData.reduce((acc, a) => acc + a.totalRedeems, 0).toFixed(2)}</strong>
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
-
             <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
               <Pagination
                 count={totalPages}
@@ -281,31 +262,44 @@ function isoDateNDaysAgo(n) {
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
 }
+
+function toStartOfDayUTC(dateStr) {
+  return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+}
+
+function toEndOfDayExclusiveUTC(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString();
+}
+
+
+function mapUser(u) {
+  const username = u.get("username") || "";
+  const name = u.get("name") || username || u.id;
+  return { id: u.id, name, username, label: username && name !== username ? `${name} (${username})` : name };
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function fetchEntitiesFromDB(type, search = "") {
-    const roleValue = type === "master" ? "Master-Agent" : "Agent";
-    const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
-    const term = (search || "").trim();
-    if (!term) {
-      base.limit(50).ascending("name").select(["name", "username"]);
-      const rows = await base.find({ useMasterKey: true });
-      return rows.map(mapUser);
-    }
-    const rx = `^${escapeRegex(term)}`;
-    const qName = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("name", rx, "i");
-    const qUser = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("username", rx, "i");
-    const q = Parse.Query.or(qName, qUser);
-    q.limit(50).ascending("name").select(["name", "username"]);
-    const results = await q.find({ useMasterKey: true });
-    const uniq = new Map();
-    for (const u of results) uniq.set(u.id, mapUser(u));
-    return [...uniq.values()];
+  const roleValue = type === "master" ? "Master-Agent" : "Agent";
+  const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
+  const term = (search || "").trim();
+  if (!term) {
+    base.limit(50).ascending("name").select(["name", "username"]);
+    const rows = await base.find({ useMasterKey: true });
+    return rows.map(mapUser);
   }
-  function mapUser(u) {
-    const username = u.get("username") || "";
-    const name = u.get("name") || username || u.id;
-    return { id: u.id, name, username, label: username && name !== username ? `${name} (${username})` : name };
-  }
-  
-  function escapeRegex(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
+  const rx = `^${escapeRegex(term)}`;
+  const qName = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("name", rx, "i");
+  const qUser = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("username", rx, "i");
+  const q = Parse.Query.or(qName, qUser);
+  q.limit(50).ascending("name").select(["name", "username"]);
+  const results = await q.find({ useMasterKey: true });
+  const uniq = new Map();
+  for (const u of results) uniq.set(u.id, mapUser(u));
+  return [...uniq.values()];
+}
