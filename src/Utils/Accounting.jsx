@@ -246,7 +246,7 @@ export async function fetchAccountingTransactions(
       r.masterAgentName = fixedMasterName || "";
     }
     r.transactionType = r.type === "recharge" ? "Recharge" : "Redeem";
-    r.mode = getMode(r);
+    r.mode = r.type  === "recharge" ? getMode(r) : "N/A";
   });
 
   txRows.sort((a, b) => a.date.localeCompare(b.date));
