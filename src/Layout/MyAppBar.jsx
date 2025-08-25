@@ -54,6 +54,7 @@ import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialo
 import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
+import SchemaIcon  from '@mui/icons-material/BusinessCenter';
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -598,21 +599,21 @@ export default function MyAppBar(props) {
                     </Typography>
                   </MenuItem>
                 )}
-                {role === "Master-Agent" && (
-    <MenuItem
-      onClick={() => setMasterOpenAccountingModal(true)}
-      style={{
-        color: "#000000",
-        fontWeight: 400,
-        fontSize: "16px",
-        gap: "8px",
-      }}
-    >
-      <CalculateIcon sx={{ fontSize: 20, color: "#000" }} />
-      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
-        Accounting
-      </Typography>
-    </MenuItem>)}
+               {(role === "Master-Agent" || role === "Super-User") && (
+  <MenuItem
+    onClick={() => setMasterOpenAccountingModal(true)}
+    style={{
+      color: "#000000",
+      fontWeight: 400,
+      fontSize: "16px",
+      gap: "8px",
+    }}
+  >
+    <SchemaIcon sx={{ fontSize: 20, color: "#000" }} />
+    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+      Master Accounting
+    </Typography>
+  </MenuItem>)}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
