@@ -1,4 +1,3 @@
-// ⬇️ Updated version of MasterAgentAccountingModal with conditional master-agent selection for super-users
 import React, { useState, useEffect } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
@@ -63,7 +62,8 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
   async function loadAgentOptions(search = "") {
     try {
       setAgentLoading(true);
-      const agents = await fetchEntitiesFromDB("agent", search);
+      const id = !isSuperUser ? identity?.objectId : null;
+      const agents = await fetchEntitiesFromDB("agent", search ,effectiveMasterId);
       setAgentOptions(agents);
     } catch (e) {
       console.error("Agent search failed", e);
@@ -284,20 +284,47 @@ function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function fetchEntitiesFromDB(type, search = "") {
+export async function fetchEntitiesFromDB(type, search = "", id) {
   const roleValue = type === "master" ? "Master-Agent" : "Agent";
-  const base = new Parse.Query(Parse.User).equalTo("roleName", roleValue);
   const term = (search || "").trim();
+  const isAgentWithParent = type === "agent" && id;
+
   if (!term) {
-    base.limit(50).ascending("name").select(["name", "username"]);
+    const base = new Parse.Query(Parse.User)
+      .equalTo("roleName", roleValue)
+      .ascending("name")
+      .limit(50)
+      .select(["name", "username"]);
+
+    if (isAgentWithParent) {
+      base.equalTo("userParentId", id);
+    }
+
     const rows = await base.find({ useMasterKey: true });
     return rows.map(mapUser);
   }
+
   const rx = `^${escapeRegex(term)}`;
-  const qName = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("name", rx, "i");
-  const qUser = new Parse.Query(Parse.User).equalTo("roleName", roleValue).matches("username", rx, "i");
+  const qName = new Parse.Query(Parse.User)
+    .equalTo("roleName", roleValue)
+    .matches("name", rx, "i")
+    .ascending("name")
+    .limit(50)
+    .select(["name", "username"]);
+
+  const qUser = new Parse.Query(Parse.User)
+    .equalTo("roleName", roleValue)
+    .matches("username", rx, "i")
+    .ascending("name")
+    .limit(50)
+    .select(["name", "username"]);
+
+  if (isAgentWithParent) {
+    qName.equalTo("userParentId", id);
+    qUser.equalTo("userParentId", id);
+  }
+
   const q = Parse.Query.or(qName, qUser);
-  q.limit(50).ascending("name").select(["name", "username"]);
   const results = await q.find({ useMasterKey: true });
   const uniq = new Map();
   for (const u of results) uniq.set(u.id, mapUser(u));
