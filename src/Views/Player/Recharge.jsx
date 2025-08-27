@@ -461,6 +461,79 @@ const Recharge = ({
   };
   const paymentOptions = [
     {
+      id: "CLKK",
+      title: "CLKK",
+      description: "Pay with cash, card, or ACH via CLKK",
+      subtext: "No KYC needed",
+      icon: (
+        <AccountBalanceWalletOutlinedIcon sx={{ color: "#1D4ED8", fontSize: 24 }} />
+      ),
+      color: "#1D4ED8", // Tailwind Blue-700
+      hoverColor: "#EFF6FF",
+      paymentIcons: [visa, mastercard, payPal],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+    
+          setCheckingRechargeLimit(true);
+    
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+    
+          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+    
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+    
+          setRechargeError("");
+          
+          const response = await Parse.Cloud.run("createCheckoutSession", {
+            amount: rechargeAmount,
+            // successUrl: "https://yourapp.com/pay/success",
+            // cancelUrl: "https://yourapp.com/pay/cancel",
+            // metadata: { orderId: "abc123" },
+          }); 
+
+          const TransactionDetails = Parse.Object.extend("TransactionRecords");
+          const transactionDetails = new TransactionDetails();
+          const user = await Parse.User.current()?.fetch();
+
+          transactionDetails.set("type", "recharge");
+          transactionDetails.set("gameId", "786");
+          transactionDetails.set("username", identity?.username || "");
+          transactionDetails.set("userId", identity?.objectId);
+          transactionDetails.set("transactionDate", new Date());
+          transactionDetails.set("transactionAmount", rechargeAmount);
+          transactionDetails.set("remark", remark);
+          transactionDetails.set("useWallet", false);
+          transactionDetails.set(
+            "userParentId",
+            user?.get("userParentId") || ""
+          );
+          transactionDetails.set("status", 1); // pending
+          transactionDetails.set("portal", "CLK");
+          transactionDetails.set("referralLink", response?.publicUrl);
+          transactionDetails.set("transactionIdFromStripe", response?.id);
+          transactionDetails.set("walletAddr", identity?.walletAddr);
+          //transactionDetails.set("partnerUserRef",partnerUserRef)
+          await transactionDetails.save(null, { useMasterKey: true });
+          const popup = window.open(response?.publicUrl, "_blank");
+          
+        } catch (err) {
+          console.error("PayNearMe error:", err);
+          alert("Something went wrong with PayNearMe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+          setWalletLoading(false);
+        }
+      }),
+      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
       id: "paynearme",
       title: "PayNearMe",
       description: "Pay with cash, card, or ACH via PayNearMe",
