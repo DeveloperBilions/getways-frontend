@@ -158,18 +158,22 @@ export const RechargeRecordsList = (props) => {
     try {
       const exportFilters = { ...currentFilterValues };
 
-      if (exportFilters.month) {
-        const [year, month] = exportFilters.month.split("-");
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59);
+     // helper to wrap JS Date into Parse Date object
+const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
 
-        exportFilters.transactionDate = {
-          $gte: startDate.toISOString(),
-          $lte: endDate.toISOString(),
-        };
+if (exportFilters.month) {
+  const [year, month] = exportFilters.month.split("-");
+  const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0); // first day @ 00:00:00
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999);  // last day @ 23:59:59
 
-        delete exportFilters.month; // remove 'month' key as it's transformed
-      }
+  exportFilters.createdAt = {
+    $gte: toParseDate(startDate),
+    $lte: toParseDate(endDate),
+  };
+
+  delete exportFilters.month; // remove 'month' key as it's transformed
+}
+
 
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
         pagination: { page: 1, perPage: 1000 },

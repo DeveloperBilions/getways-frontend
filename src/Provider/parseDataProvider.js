@@ -1451,25 +1451,28 @@ export const dataProvider = {
                 } else {
                   query.containedIn("userId", []);
                 }
+              } else if (f === "mode") {
+                const modeValue = filter[f].toLowerCase();
+
+                if (modeValue === "wert") {
+                  query.matches("transactionIdFromStripe", /^txn/i);
+                } else if (modeValue === "link") {
+                  query.matches("referralLink", /crypto\.link\.com/i);
+                } else if (modeValue === "coinbase") {
+                  query.matches("referralLink", /pay\.coinbase\.com/i);
+                } else if (modeValue === "aog") {
+                  query.matches("referralLink", /aog/i);
+                } else if (modeValue === "transfi") {
+                  query.matches("referralLink", /transfi/i);
+                } else if (modeValue === "wallet") {
+                  query.equalTo("useWallet", true);
+                } else if (modeValue === "stripe") {
+                  query.equalTo("useWallet", false);
+                }else if (modeValue === "payarc") {
+                  query.equalTo("portal", "Payarc");
+                }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
-              } else if (
-                f === "transactionDate" &&
-                typeof filter[f] === "object"
-              ) {
-                const dateFilter = filter[f];
-                if (dateFilter.$gte) {
-                  query.greaterThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$gte)
-                  );
-                }
-                if (dateFilter.$lte) {
-                  query.lessThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$lte)
-                  );
-                }
               } else {
                 query.equalTo(f, filter[f]);
               }
@@ -1477,10 +1480,12 @@ export const dataProvider = {
           }
         }
 
-        const response = await query.find();
+        const response = await query.find({useMasterKey:true});
+        console.log(response,"response",query)
+        
         const res = {
           data: response.map((o) => ({ id: o.id, ...o.attributes })),
-          total: count,
+          total:await query.count({useMasterKey:true}),
         };
 
         return res;
