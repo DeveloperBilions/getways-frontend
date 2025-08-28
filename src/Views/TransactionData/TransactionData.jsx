@@ -100,6 +100,7 @@ export const TransactionData = (props) => {
       remark: item?.remark,
       "Redeem Remark": item?.redeemRemarks,
       isDeleted:item?.isDeleted,
+      useWallet:item?.useWallet ? "Yes" : "No",
       Mode: getMode(item), // <-- Add Mode using helper
     }));
 
