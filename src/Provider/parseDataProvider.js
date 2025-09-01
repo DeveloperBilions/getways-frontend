@@ -249,7 +249,9 @@ export const dataProvider = {
             updatedAt: user.updatedAt,
             rechargeDisabled: user.get("rechargeDisabled"),
             isPasswordPermission: user.get("isPasswordPermission"),
-            potBalance: user.get("potBalance")
+            potBalance: user.get("potBalance"),
+            isBlackListed: user.get("isBlackListed"),
+            blacklistReason: user.get("blacklistReason")
           };
         });
 
