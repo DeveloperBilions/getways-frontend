@@ -648,7 +648,7 @@ const Recharge = ({
         if (!(await verifyPotBalance("recharge"))) return;
 
         navigate("/payment-checkout", {
-          state: { rechargeAmount: rechargeAmount },
+          state: { rechargeAmount: rechargeAmount,remark:remark },
         });
         // try {
         //   setCheckingRechargeLimit(true);
