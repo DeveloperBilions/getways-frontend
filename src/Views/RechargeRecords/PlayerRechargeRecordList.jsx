@@ -726,12 +726,6 @@ export const PlayerRechargeRecordsList = (props) => {
                                             Amount
                                         </TableCell>
                                         <TableCell
-                                            className="column-remark"
-                                            sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
-                                        >
-                                            Remark
-                                        </TableCell>
-                                        <TableCell
                                             className="column-status"
                                             sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                                         >
@@ -765,20 +759,6 @@ export const PlayerRechargeRecordsList = (props) => {
                                             <TableCell className="column-amount">
                                                 <Typography sx={{ fontSize: "14px" }}>
                                                     {record.transactionAmount}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell className="column-remark">
-                                                <Typography
-                                                    sx={{
-                                                        fontSize: "14px",
-                                                        color: "#808080",
-                                                        maxWidth: "200px",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                        whiteSpace: "nowrap"
-                                                    }}
-                                                >
-                                                    {!record.remark ? "-" : record.remark}
                                                 </Typography>
                                             </TableCell>
                                             <TableCell className="column-status">
@@ -833,9 +813,6 @@ export const PlayerRechargeRecordsList = (props) => {
                                         Amount
                                     </TableCell>
                                     <TableCell sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}>
-                                        Remark
-                                    </TableCell>
-                                    <TableCell sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}>
                                         Status
                                     </TableCell>
                                     <TableCell sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}>
@@ -863,11 +840,6 @@ export const PlayerRechargeRecordsList = (props) => {
                                         <TableCell>
                                             <Typography sx={{ fontSize: "14px" }}>
                                                 {record.transactionAmount}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Typography sx={{ fontSize: "14px", color: "#808080" }}>
-                                                {!record.remark ? "-" : record.remark}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
