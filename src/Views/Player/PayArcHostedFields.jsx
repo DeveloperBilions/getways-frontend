@@ -8,7 +8,7 @@ import { Alert } from "@mui/material"; // Make sure this is imported
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const PayArcCheckout = ({ rechargeAmount }) => {
+const PayArcCheckout = ({ rechargeAmount , remark }) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
   const [isLoading, setIsLoading] = useState(false);
@@ -293,7 +293,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
               transaction.set("userId", identity?.objectId);
               transaction.set("transactionDate", new Date());
               transaction.set("transactionAmount", rechargeAmount);
-              transaction.set("remark", "Payarc Recharge");
+              transaction.set("remark", remark);
               transaction.set("useWallet", false);
               transaction.set("userParentId", user?.get("userParentId") || "");
               transaction.set("status", 2); // Success
@@ -332,7 +332,7 @@ const PayArcCheckout = ({ rechargeAmount }) => {
             transaction.set("userId", identity?.objectId);
             transaction.set("transactionDate", new Date());
             transaction.set("transactionAmount", rechargeAmount);
-            transaction.set("remark", "Payarc Recharge (Failed)");
+            transaction.set("remark", remark);
             transaction.set("useWallet", false);
             transaction.set("userParentId", user?.get("userParentId") || "");
             transaction.set("status", 10); // Error

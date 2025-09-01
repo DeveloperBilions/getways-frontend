@@ -66,7 +66,7 @@ export default function CheckoutPayARC() {
             )}
 
             {activeStep === 1 && (
-              <PayArcCheckout rechargeAmount={location?.state?.rechargeAmount} />
+              <PayArcCheckout rechargeAmount={location?.state?.rechargeAmount} remark={location?.state?.remark} />
             )}
           </CardContent>
         </Card>

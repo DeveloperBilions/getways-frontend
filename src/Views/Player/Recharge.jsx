@@ -431,7 +431,7 @@ const Recharge = ({
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
     },
-    payarcLimit && {
+    {
       id: "payarc",
       title: "Pay By card",
       description: "Secure payment • No KYC needed",
@@ -441,7 +441,7 @@ const Recharge = ({
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         navigate("/payment-checkout", {
-          state: { rechargeAmount: rechargeAmount },
+          state: { rechargeAmount: rechargeAmount,remark:remark },
         });
         // try {
         //   setCheckingRechargeLimit(true);

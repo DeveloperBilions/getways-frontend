@@ -420,6 +420,8 @@ export const dataProvider = {
                   query.equalTo("useWallet", true);
                 } else if (modeValue === "stripe") {
                   query.equalTo("useWallet", false);
+                }else if (modeValue === "payarc") {
+                  query.equalTo("portal", "Payarc");
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
