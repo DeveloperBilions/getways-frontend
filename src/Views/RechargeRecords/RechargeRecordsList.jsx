@@ -863,6 +863,7 @@ export const RechargeRecordsList = (props) => {
                 label="Recharged"
                 textAlign="left"
               />
+              {role != "Player" && 
               <FunctionField
                 source="remark"
                 label="Remark"
@@ -896,7 +897,7 @@ export const RechargeRecordsList = (props) => {
                     </Tooltip>
                   );
                 }}
-              />
+              />}
               {/* {role === "Player" && 
               <FunctionField
               label="Failed reason"
@@ -1094,12 +1095,13 @@ export const RechargeRecordsList = (props) => {
                   }}
                 />
               )}
+              {role != "Player" && 
               <FunctionField
                 label="Parent"
                 render={(record) => {
                   return record?.userParentName;
                 }}
-              />
+              />}
 
               {role === "Super-User" && (
                 <FunctionField
