@@ -912,12 +912,13 @@ export const RedeemRecordsList = (props) => {
                 label="Redeemed"
                 textAlign="left"
               />
+              {role != "Player" &&
               <FunctionField
                 label="Parent"
                 render={(record) => {
                   return record?.userParentName;
                 }}
-              />
+              />}
               <FunctionField
                 source="redeemServiceFee"
                 label="ServiceFee"
@@ -925,7 +926,8 @@ export const RedeemRecordsList = (props) => {
                   record.redeemServiceFee ? `${record.redeemServiceFee}%` : null
                 }
               />
-              <TextField source="remark" label="Remark" />
+              {role != "Player" &&
+              <TextField source="remark" label="Remark" /> }
               <FunctionField
                 label="Status"
                 source="status"

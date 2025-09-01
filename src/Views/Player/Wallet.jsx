@@ -291,7 +291,6 @@ export const Wallet = () => {
                       label="Date Created"
                       showTime
                     />
-                    <TextField source="remark" label="Remark" />
                     <TextField
                       source="redeemRemarks"
                       label="Redeem / Cashout Remark"
