@@ -492,7 +492,7 @@ const Recharge = ({
           setRechargeError("");
           
           const response = await Parse.Cloud.run("createCheckoutSession", {
-            amount: rechargeAmount,
+            amount: rechargeAmount ,
             // successUrl: "https://yourapp.com/pay/success",
             // cancelUrl: "https://yourapp.com/pay/cancel",
             // metadata: { orderId: "abc123" },
@@ -530,7 +530,7 @@ const Recharge = ({
           }
         } catch (err) {
           console.error("PayNearMe error:", err);
-          alert("Something went wrong with PayNearMe Recharge.");
+          alert("Something went wrong with CLKK Recharge.");
         } finally {
           setCheckingRechargeLimit(false);
           setWalletLoading(false);
