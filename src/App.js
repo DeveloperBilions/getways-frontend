@@ -49,6 +49,7 @@ import RedirectByRole from "./RedirectByRole";
 import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
 import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
 import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
+import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -391,6 +392,15 @@ function App() {
                     element={
                       <Authenticated>
                         <CheckoutFormStripe />
+                      </Authenticated>
+                    }
+                  />
+
+<Route
+                    path="/clkk-payment"
+                    element={
+                      <Authenticated>
+                        <CLKKWidget />
                       </Authenticated>
                     }
                   />

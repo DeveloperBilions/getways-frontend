@@ -521,13 +521,9 @@ const Recharge = ({
           transactionDetails.set("walletAddr", identity?.walletAddr);
           //transactionDetails.set("partnerUserRef",partnerUserRef)
           await transactionDetails.save(null, { useMasterKey: true });
-
-          setStoredBuyUrl(response?.publicUrl); // Store for retry
-          const popup = window.open(response?.publicUrl, "_blank");
-          if (!popup || popup.closed || typeof popup.closed === "undefined") {
-            setPopupBlocked(true);
-            setPopupDialogOpen(true);
-          }
+            navigate("/clkk-payment",{state:{response:response}})
+          //setStoredBuyUrl(response?.publicUrl); // Store for retry
+          
         } catch (err) {
           console.error("PayNearMe error:", err);
           alert("Something went wrong with CLKK Recharge.");
