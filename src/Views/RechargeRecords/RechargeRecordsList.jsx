@@ -1153,7 +1153,7 @@ if (exportFilters.month) {
                             ? "Wallet"
                             : record?.portal === "Payarc"
                             ? "Payarc" :
-                            data?.portal === "PayNearMe" ?
+                            record?.portal === "PayNearMe" ?
                             "PayNearMe" :
                             record?.portal === "CLK" ? "CLKK" 
                             : "Stripe"}
