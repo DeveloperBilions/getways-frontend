@@ -106,6 +106,7 @@ const Recharge = ({
   const [showSafariHelp, setShowSafariHelp] = useState(false);
   const [loadingSessionToken, setLoadingSessionToken] = useState(false);
   const [showCoinbase, setShowCoinbase] = useState(false);
+  const [showClkk, setShowClkk] = useState(false);
   const [showWert, setShowWert] = useState(false);
   const [showLink, setShowLink] = useState(false);
   const [showPayarc, setshowPayarc] = useState(false);
@@ -191,13 +192,14 @@ const Recharge = ({
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
       const isPaynearmeAllowed = await isPaymentMethodAllowed(parentId, "paynearme");
-
+      const isCLKKAllowed = await isPaymentMethodAllowed(parentId, "clkk");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
       setShowPaynearMe(isPaynearmeAllowed)
+      setShowClkk(isCLKKAllowed)
       setRechargeMethodLoading(false);
     };
 
@@ -1853,7 +1855,9 @@ const Recharge = ({
                   if (option.id === "stripe" && !showStripe) return false;
                   if (option.id === "payarc" && !showPayarc) return false;
                   if (option.id === "paynearme" && !showPaynearMe) return false;
-                
+                  if (option.id === "CLKK" && !showClkk) return false;
+
+                  
                   return true;
                 }).map((option) => (
                       <Card

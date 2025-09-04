@@ -194,7 +194,10 @@ export const PlayerRechargeRecordsList = (props) => {
     };
 
     const handleUrlRedirect = (record) => {
-        if (record?.referralLink) {
+        if(record?.portal === "CLK"){
+            navigate("/clkk-payment",{state:{response:{publicUrl:record?.referralLink}}})
+        }
+        else if (record?.referralLink) {
             window.open(record.referralLink, "_blank");
         }
     };
