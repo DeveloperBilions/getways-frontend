@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useGetIdentity } from "react-admin";
+import { updatePotBalance } from "../../Utils/utils";
 
 // Parse init
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -38,7 +39,11 @@ export const CLKKWidget = () => {
       const query = new Parse.Query(TransactionRecords);
       query.equalTo("transactionIdFromStripe", sessionId);
       const txn = await query.first({ useMasterKey: true });
-
+      await updatePotBalance(
+        identity?.userParentId,
+        txn.get("transactionAmount"),
+        "recharge"
+      );
       if (!txn) {
         console.warn("⚠️ No transaction found for session:", sessionId);
         return;
