@@ -814,12 +814,13 @@ export const dataProvider = {
           useMasterKey: true,
         });
 
-        const roles = ["Agent", "Master-Agent"];
+        const roles = ["Agent"];
 
         let totalAgents;
         if (role === "Super-User" && !filter?.username) {
           totalAgents = await new Parse.Query(Parse.User)
             .containedIn("roleName", roles)
+            .notEqualTo("isDeleted", true) 
             .count({ useMasterKey: true });
         } else {
           totalAgents = selectedUser
