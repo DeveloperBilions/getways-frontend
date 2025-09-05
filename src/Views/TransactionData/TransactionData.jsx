@@ -97,6 +97,7 @@ export const TransactionData = (props) => {
       "Redeem Remark": item?.redeemRemarks,
       isDeleted:item?.isDeleted,
       Mode: getMode(item), // <-- Add Mode using helper
+      useWallet:item?.useWallet
     }));
   
     // Create worksheet and workbook
