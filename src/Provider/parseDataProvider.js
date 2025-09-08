@@ -1147,7 +1147,7 @@ export const dataProvider = {
             "paymentMethodType",
             "remark",
             "redeemRemarks",
-            "username","useWallet","referralLink"
+            "username","useWallet","referralLink","portal"
           );
       
           if (filter.startdate && filter.starttime) {
@@ -1256,7 +1256,8 @@ export const dataProvider = {
             agentParentName: getUserAgentParentName(item.get("userId")),
             isDeleted:getUserStatus(item.get("userId")),
             useWallet:item.get("useWallet"),
-            referralLink:item.get("referralLink")
+            referralLink:item.get("referralLink"),
+            portal:item.get("portal")
           }));
       
           result = {

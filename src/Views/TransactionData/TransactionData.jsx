@@ -71,7 +71,9 @@ export const TransactionData = (props) => {
       : data?.referralLink?.toLowerCase().includes("transfi")
       ? "TransFi"
       : data?.useWallet
-      ? "Wallet"
+      ? "Wallet" :
+      data?.portal === "Payarc"
+      ? "Payarc"
       : "Stripe";
   };
   
