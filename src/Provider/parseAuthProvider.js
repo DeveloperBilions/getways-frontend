@@ -126,7 +126,7 @@ if (user.get("roleName") === "Master-Agent") {
     {
       $group: {
         _id: null,
-        totalPotBalance: { $sum: { $ifNull: ["$potBalance", 0] } },
+        totalPotBalance: { $sum: { $ifNull: ["$balance", 0] } },
       },
     },
   ];
@@ -151,7 +151,7 @@ if (user.get("roleName") === "Master-Agent") {
         redeemServiceEnabled: user.get("redeemServiceEnabled"),
         isDeleted: user.get("isDeleted"),
         isBlackListed:user.get("isBlackListed"),
-        balance:user.get("potBalance"),
+        balance:user.get("balance"),
         totalPotBalanceOfChildren,
         rechargeDisabled:user.get("rechargeDisabled") || false,
         walletAddr:user.get("walletAddr"),
