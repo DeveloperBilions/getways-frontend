@@ -27,7 +27,7 @@ const getModeFromTransaction = (tx) => {
   const stripeId = tx.get("transactionIdFromStripe") || "";
   const referralLink = tx.get("referralLink") || "";
 
-  if (/txn/i.test(stripeId)) return "WERT";
+  if (/txn-/i.test(stripeId)) return "WERT";
   if (/pay\.coinbase\.com/i.test(referralLink)) return "CoinBase";
   if (/crypto\.link\.com/i.test(stripeId)) return "Link";
   return "Other";

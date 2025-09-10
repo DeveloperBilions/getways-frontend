@@ -187,7 +187,7 @@ export const RechargeRecordsList = (props) => {
   };
 
   const getMode = (data) => {
-    return data?.transactionIdFromStripe?.toLowerCase().includes("txn")
+    return data?.transactionIdFromStripe?.toLowerCase().includes("txn-")
       ? "WERT"
       : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")
       ? "Link"
