@@ -326,10 +326,10 @@ export const fetchTransactionsofAgent = async ({
   try {
     // Step 1: Set start and end date with correct hours
     const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0); // Start of the day in UTC
+    start.setUTCHours(0, 0, 0, 0); // Start of the day in UTC
 
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // End of the day in UTC
+    end.setUTCHours(23, 59, 59, 999); // End of the day in UTC
 
     // Step 2: Fetch transactions grouped by userParentId
     const pipeline = [
@@ -595,10 +595,10 @@ export const fetchTransactionsofPlayer = async ({
   try {
     // Step 1: Set start and end date with correct hours
     const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0); // Start of the day
+    start.setUTCHours(0, 0, 0, 0); // Start of the day
 
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // End of the day
+    end.setUTCHours(23, 59, 59, 999); // End of the day
 
     // Step 2: Fetch transactions grouped by username
     const pipeline = [
@@ -708,10 +708,10 @@ export const fetchTransactionsofAgentByDate = async ({
   try {
     // Step 1: Normalize start and end dates
     const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0); 
+    start.setUTCHours(0, 0, 0, 0); 
 
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); 
+    end.setUTCHours(23, 59, 59, 999); 
 
     // Step 2: Build match conditions
     const matchConditions = {
@@ -865,9 +865,9 @@ export const checkActiveRechargeLimit = async (userId, transactionAmount) => {
 
     if (activeRechargeLimit === "monthly") {
       startDateCST.setDate(1); // Set to 1st day of the month
-      startDateCST.setHours(0, 0, 0, 0); // Reset time to midnight CST
+      startDateCST.setUTCHours(0, 0, 0, 0); // Reset time to midnight CST
     } else {
-      startDateCST.setHours(0, 0, 0, 0); // Reset time to midnight CST
+      startDateCST.setUTCHours(0, 0, 0, 0); // Reset time to midnight CST
     }
 
     // Convert CST start date back to UTC for querying
