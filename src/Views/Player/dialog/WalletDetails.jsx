@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Paper, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import { useGetIdentity, useRefresh } from "react-admin";
 import AddPaymentMethods from "./AddPayementMethods";
@@ -13,6 +19,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Alert } from "@mui/material";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 import { getAgentTierDetails } from "../../../Utils/tier";
+import ClkkDialog from "../ClkkDialog";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -34,6 +41,7 @@ export const WalletDetails = ({
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
   const [checkingEligibility, setCheckingEligibility] = useState(false);
   const [CheckoutError, setCheckoutError] = useState(false);
+  const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
 
   const transformedIdentity = {
     id: identity?.objectId,
@@ -94,7 +102,7 @@ export const WalletDetails = ({
     handleCashoutRefresh();
   };
 
-    const hasAnyPaymentMethod = (w) => {
+  const hasAnyPaymentMethod = (w) => {
     if (!w) return false;
     const { cashAppId, paypalId, venmoId, zelleId } = w;
     return [cashAppId, paypalId, venmoId, zelleId].some((v) =>
@@ -220,17 +228,16 @@ export const WalletDetails = ({
               },
             }}
             onClick={() => {
-               if(identity?.userParentId === "PY6MQUOJtH")
-                {
-                  if (!hasAnyPaymentMethod(wallet)) {
-                    setPaymentDialogOpen(true);
-                    return;
-                  }else{
-                    setcashOutDialogOpen(true)
-                  }
-                }else{
-                  setIsOpen(true);
+              if (identity?.userParentId === "PY6MQUOJtH") {
+                if (!hasAnyPaymentMethod(wallet)) {
+                  setPaymentDialogOpen(true);
+                  return;
+                } else {
+                  setcashOutDialogOpen(true);
                 }
+              } else {
+                setIsOpen(true);
+              }
             }}
             disabled={
               identity?.isBlackListed || cashoutDisabled || checkingEligibility
@@ -245,6 +252,48 @@ export const WalletDetails = ({
               />
             )}
           </Button>
+        </Box>
+        <Box
+          sx={{
+            marginLeft: "16px",
+            marginRight: "16px",
+            height: "52px",
+            marginTop: 1,
+          }}
+        >
+          <Button
+            onClick={() => setClkkDialogOpen(true)}
+            sx={{
+              bgcolor: "#2E5BFF",
+              color: "white",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              fontWeight: 500,
+              fontSize: "18px",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              "&:hover": {
+                bgcolor: "#1D4ED8",
+              },
+              "&.Mui-disabled": {
+                bgcolor: "#A0AEC0", // Disabled background color (grayish)
+                color: "#E2E8F0", // Disabled text color (light gray)
+              },
+            }}
+          >
+            CLKK Cashout
+          </Button>
+
+          <ClkkDialog
+            open={clkkDialogOpen}
+            onClose={() => setClkkDialogOpen(false)}
+            handleRefresh={() => {
+              handleCashoutRefresh();
+            }}
+          />
         </Box>
         <Box
           sx={{
@@ -307,12 +356,12 @@ export const WalletDetails = ({
         wallet={wallet}
         open={paymentDialogOpen}
         onClose={() => {
-          setPaymentDialogOpen(false)
+          setPaymentDialogOpen(false);
         }}
         record={transformedIdentity}
         handleRefresh={handleRefresh}
         onSucces={() => {
-          setcashOutDialogOpen(true)
+          setcashOutDialogOpen(true);
         }}
       />
     </React.Fragment>

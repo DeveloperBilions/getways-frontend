@@ -50,6 +50,7 @@ import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
 import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
 import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
+import ClkkCashout from "./Views/Player/ClkkCashout";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -397,6 +398,14 @@ function App() {
                   />
 
 <Route
+                    path="/clkk-cashout"
+                    element={
+                      <Authenticated>
+                        <ClkkCashout />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
                     path="/clkk-payment"
                     element={
                       <Authenticated>

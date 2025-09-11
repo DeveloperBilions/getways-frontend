@@ -492,9 +492,10 @@ const Recharge = ({
           }
     
           setRechargeError("");
-          
+          const finalAmount = parseFloat((rechargeAmount * 1.04).toFixed(2));
+
           const response = await Parse.Cloud.run("createCheckoutSession", {
-            amount: rechargeAmount ,
+            amount: finalAmount ,
             // successUrl: "https://yourapp.com/pay/success",
             // cancelUrl: "https://yourapp.com/pay/cancel",
             // metadata: { orderId: "abc123" },
