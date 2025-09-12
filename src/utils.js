@@ -127,6 +127,10 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+        referralLink: item?.referralLink,
+    useWallet: item?.useWallet,
+    portal: item?.portal,
+    transactionIdFromStripe: item?.transactionIdFromStripe
       })),
     others: transactions
       .filter((item) => item.type === "redeem" && item.status === 12)
@@ -146,6 +150,11 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+
+        referralLink: item?.referralLink,
+    useWallet: item?.useWallet,
+    portal: item?.portal,
+    transactionIdFromStripe: item?.transactionIdFromStripe
       })),
   };
   const totalRechargeByTypeData = {
@@ -173,6 +182,11 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+
+        referralLink: item?.referralLink,
+    useWallet: item?.useWallet,
+    portal: item?.portal,
+    transactionIdFromStripe: item?.transactionIdFromStripe
       })),
     others: transactions
       .filter(
@@ -200,6 +214,11 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+
+        referralLink: item?.referralLink,
+    useWallet: item?.useWallet,
+    portal: item?.portal,
+    transactionIdFromStripe: item?.transactionIdFromStripe
       })),
   };
   const totalFeesCharged = transactions

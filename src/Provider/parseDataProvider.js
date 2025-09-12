@@ -913,31 +913,35 @@ export const dataProvider = {
             transactionQuery.limit(150000);
             transactionQuery.select(
               "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate",
-              "username"
+            "status",
+            "transactionAmount",
+            "type",
+            "useWallet",
+            "redeemServiceFee",
+            "isCashOut",
+            "transactionIdFromStripe",
+            "transactionDate",
+            "paymentMode",
+            "paymentMethodType",
+            "remark",
+            "redeemRemarks",
+            "username","useWallet","referralLink","portal"
             );
             transactionQuery.containedIn("userId", userIds);
             filter.startDate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(new Date(filter.startDate).setHours(0, 0, 0, 0))
+                new Date(new Date(filter.startDate).setUTCHours(0, 0, 0, 0))
               );
             filter.endDate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
+                new Date(new Date(filter.endDate).setUTCHours(23, 59, 59, 999))
               );
             var results = await transactionQuery.find();
           } else {
             var userQuery = new Parse.Query(Parse.User);
-            userQuery.notEqualTo("isDeleted", true);
+            //userQuery.notEqualTo("isDeleted", true);
             userQuery.limit(150000);
             var results = await userQuery.find({ useMasterKey: true });
             data = results.map((o) => ({ id: o.id, ...o.attributes }));
@@ -948,27 +952,30 @@ export const dataProvider = {
             const transactionQuery = new Parse.Query("TransactionRecords");
             transactionQuery.select(
               "userId",
-              "status",
-              "transactionAmount",
-              "type",
-              "useWallet",
-              "redeemServiceFee",
-              "isCashOut",
-              "transactionIdFromStripe",
-              "transactionDate",
-              "username",
-              "referralLink"
+            "status",
+            "transactionAmount",
+            "type",
+            "useWallet",
+            "redeemServiceFee",
+            "isCashOut",
+            "transactionIdFromStripe",
+            "transactionDate",
+            "paymentMode",
+            "paymentMethodType",
+            "remark",
+            "redeemRemarks",
+            "username","useWallet","referralLink","portal"
             );
             transactionQuery.containedIn("userId", userIds);
             filter.startDate &&
               transactionQuery.greaterThanOrEqualTo(
                 "transactionDate",
-                new Date(new Date(filter.startDate).setHours(0, 0, 0, 0))
+                new Date(new Date(filter.startDate).setUTCHours(0, 0, 0, 0))
               );
             filter.endDate &&
               transactionQuery.lessThanOrEqualTo(
                 "transactionDate",
-                new Date(new Date(filter.endDate).setHours(23, 59, 59, 999))
+                new Date(new Date(filter.endDate).setUTCHours(23, 59, 59, 999))
               );
             transactionQuery.limit(150000);
             var results = await transactionQuery.find();
@@ -1025,7 +1032,11 @@ export const dataProvider = {
             "isCashOut",
             "transactionIdFromStripe",
             "transactionDate",
-            "username"
+            "paymentMode",
+            "paymentMethodType",
+            "remark",
+            "redeemRemarks",
+            "username","useWallet","referralLink","portal"
           );
           transactionQuery.containedIn("userId", ids);
           filter.startDate &&
@@ -1085,7 +1096,14 @@ export const dataProvider = {
             "type",
             "useWallet",
             "redeemServiceFee",
-            "isCashOut"
+            "isCashOut",
+            "transactionIdFromStripe",
+            "transactionDate",
+            "paymentMode",
+            "paymentMethodType",
+            "remark",
+            "redeemRemarks",
+            "username","useWallet","referralLink","portal"
           );
           transactionQuery.containedIn("userId", ids);
           filter.startDate &&
@@ -1464,17 +1482,17 @@ export const dataProvider = {
               ) {
                 const dateFilter = filter[f];
                 if (dateFilter.$gte) {
-                  query.greaterThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$gte)
-                  );
+                  const gteDate = new Date(dateFilter.$gte);
+                  gteDate.setUTCHours(23, 59, 59, 999); // ✅ start of the UTC day
+                  query.greaterThan("transactionDate", gteDate);
                 }
+                
                 if (dateFilter.$lte) {
-                  query.lessThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$lte)
-                  );
+                  const lteDate = new Date(dateFilter.$lte);
+                  lteDate.setUTCHours(23, 59, 59, 999); // ✅ end of the UTC day
+                  query.lessThanOrEqualTo("transactionDate", lteDate);
                 }
+                
               } else {
                 query.equalTo(f, filter[f]);
               }
@@ -1548,16 +1566,15 @@ export const dataProvider = {
               ) {
                 const dateFilter = filter[f];
                 if (dateFilter.$gte) {
-                  query.greaterThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$gte)
-                  );
+                  const gteDate = new Date(dateFilter.$gte);
+                  gteDate.setUTCHours(23, 59, 59, 999); // ✅ start of the UTC day
+                  query.greaterThan("transactionDate", gteDate);
                 }
+                
                 if (dateFilter.$lte) {
-                  query.lessThanOrEqualTo(
-                    "transactionDate",
-                    new Date(dateFilter.$lte)
-                  );
+                  const lteDate = new Date(dateFilter.$lte);
+                  lteDate.setUTCHours(23, 59, 59, 999); // ✅ end of the UTC day
+                  query.lessThanOrEqualTo("transactionDate", lteDate);
                 }
               } else {
                 query.equalTo(f, filter[f]);

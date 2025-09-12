@@ -544,24 +544,32 @@ const formatDateForExcel = (date) => {
 };
 
 const prepareTableData = (data, type, isRedeem = false) => {
+  console.log(data,"datadatadata")
   const key = isRedeem ? "totalRedeemByTypeData" : "totalRechargeByTypeData";
-  return (
-    data?.[0]?.[key]?.[type]?.map((item) => ({
-      transactionId: item.transactionId,
-      amount: item.amount,
-      transactionDate: isRedeem
-        ? new Date(item.transactionDate).toLocaleString()
-        : formatDateForExcel(item.transactionDate),
-      status: item.status,
-      paymentType: item.paymentType,
-      redeemServiceFee: isRedeem ? item.redeemServiceFee || 0 : undefined,
-      stripeId: isRedeem ? undefined : item.transactionIdFromStripe,
-      agentName: item.agentName,
-      userName: item.userName,
-      referralLink: item?.referralLink,
-      useWallet:item?.useWallet
-    })) || []
-  );
+  let records = data?.[0]?.[key]?.[type] || [];
+  if (isRedeem) {
+    records = records.filter(
+      (item) => item.status === 8 || item.status === 4
+    );
+  }
+
+  return records.map((item) => ({
+    transactionId: item.transactionId,
+    amount: item.amount,
+    transactionDate: isRedeem
+      ? new Date(item.transactionDate).toLocaleString()
+      : formatDateForExcel(item.transactionDate),
+    status: item.status,
+    paymentType: item.paymentType,
+    redeemServiceFee: isRedeem ? item.redeemServiceFee || 0 : undefined,
+    stripeId: isRedeem ? undefined : item.transactionIdFromStripe,
+    agentName: item.agentName,
+    userName: item.userName,
+    referralLink: item?.referralLink,
+    useWallet: item?.useWallet,
+    portal: item?.portal,
+    transactionIdFromStripe: item?.transactionIdFromStripe
+  }));
 };
 
 export const DataSummary = React.memo(() => {
@@ -673,19 +681,21 @@ export const DataSummary = React.memo(() => {
   }, [filters, exportMonth]);
 
   const getMode = (data) => {
-    console.log(data,"dataa")
-    return data?.stripeId?.toLowerCase().includes("txn-")
+    console.log(data,"datadatadatadata")
+    return data?.transactionIdFromStripe?.toLowerCase().includes("txn-")
       ? "WERT"
-      : data?.stripeId?.toLowerCase().includes("crypto.link.com")
+      : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")
       ? "Link"
-      : data?.stripeId?.toLowerCase().includes("pay.coinbase.com")
+      : data?.referralLink?.toLowerCase().includes("pay.coinbase.com")
       ? "CoinBase"
-      : data?.stripeId?.toLowerCase().includes("aog")
+      : data?.referralLink?.toLowerCase().includes("aog")
       ? "AOG"
-      : data?.stripeId?.toLowerCase().includes("or-")
+      : data?.referralLink?.toLowerCase().includes("transfi")
       ? "TransFi"
-      : data?.paymentType
+      : data?.useWallet
       ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
       : "Stripe";
   };  
   // Generic export function
@@ -805,7 +815,7 @@ export const DataSummary = React.memo(() => {
           "Payment Type": item.paymentType,
           "Agent Name": item.agentName,
           "User Name": item.userName,
-          Mode: getMode(item), // ✅ Added Mode here
+          ...(!isRedeem && {Mode: getMode(item)})
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(combinedData);

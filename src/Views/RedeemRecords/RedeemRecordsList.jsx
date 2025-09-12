@@ -1134,7 +1134,9 @@ export const RedeemRecordsList = (props) => {
           "Amount($)": item.transactionAmount,
           Remark: item.remark,
           Status: mapStatus(item.status),
-          Date: new Date(item.transactionDate).toLocaleDateString(),
+          Date: item.transactionDate
+          ? new Date(item.transactionDate).toISOString() // ✅ UTC string
+          : null,
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(selectedFields);

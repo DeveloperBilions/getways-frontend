@@ -1287,7 +1287,7 @@ export const RechargeRecordsList = (props) => {
                     row.remark,
                     mapStatus(row.status),
                     getMode(row),
-                    new Date(row.transactionDate).toLocaleDateString(),
+                    new row.transactionDate,
                   ]),
                 });
                 doc.save("RechargeRecords.pdf");
@@ -1320,8 +1320,9 @@ export const RechargeRecordsList = (props) => {
                   Remark: item.remark,
                   Status: mapStatus(item.status),
                   Mode: getMode(item),
-                  Date: new Date(item.transactionDate).toLocaleDateString(),
-                }));
+                  Date: item.transactionDate
+                  ? new Date(item.transactionDate).toISOString() // ✅ UTC string
+                  : null,                }));
 
                 const worksheet = XLSX.utils.json_to_sheet(selectedFields);
                 const workbook = XLSX.utils.book_new();
