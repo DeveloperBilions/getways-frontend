@@ -472,7 +472,7 @@ export const fetchTransactionComparison = async ({
               $dateToString: {
                 format: dateFormat,
                 date: "$transactionDate",
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                timezone: "UTC"
               },
             },
           },
@@ -951,7 +951,7 @@ export const fetchPlayerTransactionComparison = async ({
               $dateToString: {
                 format: dateFormat,
                 date: "$transactionDate",
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Local timezone
+                timezone: "UTC", // Local timezone
               },
             },
           },
