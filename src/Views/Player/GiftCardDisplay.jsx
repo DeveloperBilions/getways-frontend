@@ -198,7 +198,6 @@ const GiftCardsDisplay = ({
                   mb: 1,
                 }}
               >
-                {card?.apiResponse?.vouchers ? card?.apiResponse?.vouchers[0]?.voucherCurrency  : "USD"} &nbsp;
                 {card?.price}
               </Typography>
             </Box>

@@ -16,7 +16,8 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
   const [showError, setshowError] = useState("");
   const placeholderRef = useRef();
   const resultContentRef = useRef();
-
+  const feeMultiplier = 1.04; // 4% extra
+  const totalAmount = parseFloat((rechargeAmount * feeMultiplier).toFixed(2))
   // Load PayArc & jQuery Scripts
   useEffect(() => {
     const loadScript = (src, id) => {
@@ -269,9 +270,12 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
           console.log("Tokenization successful!", token);
 
           try {
+            const feeMultiplier = 1.04; // 4% extra
+            const totalAmount = parseFloat((rechargeAmount * feeMultiplier).toFixed(2))
+
             const chargeResponse = await Parse.Cloud.run("createPayarcCharge", {
               token_id: token,
-              amount: rechargeAmount * 100,
+              amount: Math.round(totalAmount * 100),
               currency: "usd",
               description: `CM.US`,
             });
@@ -293,6 +297,7 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
               transaction.set("userId", identity?.objectId);
               transaction.set("transactionDate", new Date());
               transaction.set("transactionAmount", rechargeAmount);
+              transaction.set("transactionFeeAmount", Math.round(totalAmount));
               transaction.set("remark", remark);
               transaction.set("useWallet", false);
               transaction.set("userParentId", user?.get("userParentId") || "");
@@ -332,6 +337,7 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
             transaction.set("userId", identity?.objectId);
             transaction.set("transactionDate", new Date());
             transaction.set("transactionAmount", rechargeAmount);
+            transaction.set("transactionFeeAmount", Math.round(totalAmount));
             transaction.set("remark", remark);
             transaction.set("useWallet", false);
             transaction.set("userParentId", user?.get("userParentId") || "");
@@ -382,8 +388,8 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
       },
     },
     walletPayment: {
-      amount: rechargeAmount * 100,
-      html: walletHtml(rechargeAmount), // ✅ pass value here
+      amount: totalAmount * 100,
+      html: walletHtml(totalAmount), // ✅ pass value here
       css: walletCss(),
       onWindowOpened: () => {
         if (placeholderRef.current) {
@@ -494,7 +500,7 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
               textAlign: "center",
             }}
           >
-            <span>Recharge Amount:{rechargeAmount}</span>
+            <span>Recharge Amount:{totalAmount}</span>
 
             <div id="card-token-container">
               <div

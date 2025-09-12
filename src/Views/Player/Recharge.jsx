@@ -433,7 +433,7 @@ const Recharge = ({
     },
     {
       id: "payarc",
-      title: "Pay By card",
+      title: "Pay by card - Express",
       description: "Secure payment • No KYC needed",
       icon: <BsFillCreditCard2FrontFill size={24} />,
       color: "#FF9900",
