@@ -427,6 +427,9 @@ export const dataProvider = {
                 }else if (modeValue === "clk") {
                   query.equalTo("portal", "CLK");
                 }
+                else if (modeValue === "paynearme") {
+                  query.equalTo("portal", "PayNearMe");
+                }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
               } else {
