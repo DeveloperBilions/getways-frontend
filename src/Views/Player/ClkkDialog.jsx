@@ -17,36 +17,54 @@ import Parse from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const ClkkDialog = ({ open, onClose , handleRefresh }) => {
+const ClkkDialog = ({ open, onClose, handleRefresh }) => {
   const [form, setForm] = useState({
     name: "",
-    email: "",
-    phone: "",
     notes: "",
     vendorId: "",
     amount: "",
     payoutMethod: "",
+    venmoEmail: "",
+    venmoPhone: "",
+    paypalEmail: "",
+    paypalPhone: "",
+    cardEmail: "",
+    cardPhone: "",
   });
 
   const [existingRecipientId, setExistingRecipientId] = useState(null);
-  const [step, setStep] = useState("form");
+  const [step, setStep] = useState("chooseMethod"); // chooseMethod → addRecipient → payout
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (open) checkForExistingRecipient();
+    if (open) resetState();
   }, [open]);
+
+  const resetState = () => {
+    setForm({
+      name: "",
+      notes: "",
+      vendorId: "",
+      amount: "",
+      payoutMethod: "",
+      venmoEmail: "",
+      venmoPhone: "",
+      paypalEmail: "",
+      paypalPhone: "",
+      cardEmail: "",
+      cardPhone: "",
+    });
+    setExistingRecipientId(null);
+    setStep("chooseMethod");
+    setError("");
+  };
 
   const checkForExistingRecipient = async () => {
     setLoading(true);
-    setError("");
-
     try {
       const user = Parse.User.current();
-      if (!user) {
-        setError("User not logged in");
-        return;
-      }
+      if (!user) throw new Error("User not logged in");
 
       const CLKK = Parse.Object.extend("CLKK");
       const query = new Parse.Query(CLKK);
@@ -55,52 +73,75 @@ const ClkkDialog = ({ open, onClose , handleRefresh }) => {
       query.limit(1);
 
       const existing = await query.first({ useMasterKey: true });
-
       if (existing) {
         const apiResponse = existing.get("apiResponse");
         const metadata = existing.get("metadata") || {};
-
         if (apiResponse?.recipientId) {
           setExistingRecipientId(apiResponse.recipientId);
-
           setForm((prev) => ({
             ...prev,
             name: existing.get("name") || "",
-            email: existing.get("email") || "",
-            phone: existing.get("phone") || "",
+            notes: metadata.notes || "",
             vendorId: metadata.vendorId || "",
+            venmoEmail: metadata.venmoEmail || "",
+            venmoPhone: metadata.venmoPhone || "",
+            paypalEmail: metadata.paypalEmail || "",
+            paypalPhone: metadata.paypalPhone || "",
+            cardEmail: metadata.cardEmail || "",
+            cardPhone: metadata.cardPhone || "",
           }));
-
           setStep("payout");
+          return;
         }
-      } else {
-        console.log("No CLKK record found for this user.");
       }
+      setStep("addRecipient");
     } catch (err) {
-      console.error("Error fetching recipient:", err);
-      setError("Failed to fetch recipient");
+      setError(err.message || "Failed to fetch recipient");
     } finally {
       setLoading(false);
     }
   };
 
   const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitRecipient = async () => {
     setError("");
+    if (!form.name) return setError("Name is required");
+
+    // Mandatory check based on payout method
+    if (form.payoutMethod === "venmo" && !form.venmoEmail && !form.venmoPhone) {
+      return setError("Provide Venmo Email or Phone");
+    }
+    if (form.payoutMethod === "paypal" && !form.paypalEmail && !form.paypalPhone) {
+      return setError("Provide PayPal Email or Phone");
+    }
+    if (form.payoutMethod === "card" && (!form.cardEmail || !form.cardPhone)) {
+      return setError("Provide both Card Email and Phone");
+    }
+
     setLoading(true);
     try {
-      const metadata = { notes: form.notes, vendorId: form.vendorId };
+      const metadata = {
+        notes: form.notes,
+        vendorId: form.vendorId,
+        venmoEmail: form.venmoEmail,
+        venmoPhone: form.venmoPhone,
+        paypalEmail: form.paypalEmail,
+        paypalPhone: form.paypalPhone,
+        cardEmail: form.cardEmail,
+        cardPhone: form.cardPhone,
+      };
 
       const result = await Parse.Cloud.run("saveClkkRecipient", {
         name: form.name,
-        email: form.email,
-        phone: form.phone,
+        venmoEmail: form.venmoEmail,
+        venmoPhone: form.venmoPhone,
+        paypalEmail: form.paypalEmail,
+        paypalPhone: form.paypalPhone,
+        cardEmail: form.cardEmail,
+        cardPhone: form.cardPhone,
         metadata,
       });
 
@@ -115,30 +156,50 @@ const ClkkDialog = ({ open, onClose , handleRefresh }) => {
 
   const handlePayout = async () => {
     setError("");
+    if (!form.amount) return setError("Amount is required");
+    const amountValue = parseFloat(form.amount);
+    if (isNaN(amountValue) || amountValue < 25 || amountValue > 500) {
+      return setError("Amount must be between $25 and $500");
+    }
+
     setLoading(true);
     try {
-        const amountValue = parseFloat(form.amount);
-
-        if (isNaN(amountValue) || amountValue < 25 || amountValue > 500) {
-            setError("Amount must be between $25 and $500");
-            setLoading(false);
-            return;
-          }
-      // ✅ auto-generate orderId and fixed description
       const orderId = `ORDER-${Date.now()}`;
       const description = "cm.us";
+
+      const metadata = {
+        notes: form.notes,
+        vendorId: form.vendorId,
+        venmoEmail: form.venmoEmail,
+        venmoPhone: form.venmoPhone,
+        paypalEmail: form.paypalEmail,
+        paypalPhone: form.paypalPhone,
+        cardEmail: form.cardEmail,
+        cardPhone: form.cardPhone,
+      };
+
+      await Parse.Cloud.run("saveClkkRecipient", {
+        recipientId: existingRecipientId,
+        name: form.name,
+        venmoEmail: form.venmoEmail,
+        venmoPhone: form.venmoPhone,
+        paypalEmail: form.paypalEmail,
+        paypalPhone: form.paypalPhone,
+        cardEmail: form.cardEmail,
+        cardPhone: form.cardPhone,
+        metadata,
+      });
 
       if (form.payoutMethod === "card") {
         const setupSession = await Parse.Cloud.run("initiateClkkCardSetup", {
           recipientId: existingRecipientId,
           name: form.name,
-          email: form.email,
-          phone: form.phone,
           vendorId: form.vendorId,
-          amount: parseFloat(form.amount),
+          amount: amountValue,
           description,
+          email: form.cardEmail,
+          phone: form.cardPhone,
         });
-
         let sessionUrl = setupSession?.publicUrl;
         if (sessionUrl) {
           sessionUrl = sessionUrl.replace(
@@ -147,23 +208,20 @@ const ClkkDialog = ({ open, onClose , handleRefresh }) => {
           );
           window.open(sessionUrl, "_blank");
         }
-        return;
+      } else {
+        const user = Parse.User.current();
+        await Parse.Cloud.run("createClkkPayout", {
+          recipientId: existingRecipientId,
+          method: form.payoutMethod,
+          amount: amountValue,
+          description,
+          orderId,
+          userId: user.id,
+        });
+        alert("Payout initiated successfully.");
+        onClose();
+        handleRefresh();
       }
-
-      const user = Parse.User.current();
-
-      await Parse.Cloud.run("createClkkPayout", {
-        recipientId: existingRecipientId,
-        method: form.payoutMethod,
-        amount: parseFloat(form.amount),
-        description,
-        orderId,
-        userId: user.id,
-      });
-
-      alert("Payout initiated successfully.");
-      onClose();
-      handleRefresh()
     } catch (err) {
       setError(err.message || "Payout failed");
     } finally {
@@ -171,62 +229,50 @@ const ClkkDialog = ({ open, onClose , handleRefresh }) => {
     }
   };
 
-  const renderForm = () => (
+  // Dynamic fields
+  const renderPaymentInputs = () => {
+    if (form.payoutMethod === "venmo") {
+      return (
+        <>
+          <TextField label="Venmo Email" name="venmoEmail" value={form.venmoEmail} onChange={handleChange} fullWidth />
+          <TextField label="Venmo Phone" name="venmoPhone" value={form.venmoPhone} onChange={handleChange} fullWidth />
+        </>
+      );
+    }
+    if (form.payoutMethod === "paypal") {
+      return (
+        <>
+          <TextField label="PayPal Email" name="paypalEmail" value={form.paypalEmail} onChange={handleChange} fullWidth />
+          <TextField label="PayPal Phone" name="paypalPhone" value={form.paypalPhone} onChange={handleChange} fullWidth />
+        </>
+      );
+    }
+    if (form.payoutMethod === "card") {
+      return (
+        <>
+          <TextField label="Card Email" name="cardEmail" value={form.cardEmail} onChange={handleChange} fullWidth />
+          <TextField label="Card Phone" name="cardPhone" value={form.cardPhone} onChange={handleChange} fullWidth />
+        </>
+      );
+    }
+    return null;
+  };
+
+  const renderAddRecipient = () => (
     <>
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Please use your actual <strong>Email</strong> and{" "}
-        <strong>Phone number </strong>
-        that are linked to your <strong>Venmo</strong> or{" "}
-        <strong>PayPal</strong> account. Otherwise payouts may fail.
-      </Alert>
-      <TextField
-        label="Name"
-        name="name"
-        fullWidth
-        value={form.name}
-        onChange={handleChange}
-      />
-      <TextField
-        label="Email"
-        name="email"
-        fullWidth
-        value={form.email}
-        onChange={handleChange}
-      />
-      <TextField
-        label="Phone"
-        name="phone"
-        fullWidth
-        value={form.phone}
-        onChange={handleChange}
-      />
-      <TextField
-        label="Vendor ID"
-        name="vendorId"
-        fullWidth
-        value={form.vendorId}
-        onChange={handleChange}
-      />
-      <TextField
-        label="Notes"
-        name="notes"
-        fullWidth
-        value={form.notes}
-        onChange={handleChange}
-      />
+      <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth />
+      {renderPaymentInputs()}
+      <TextField label="Notes" name="notes" value={form.notes} onChange={handleChange} fullWidth />
     </>
   );
 
-  const renderPayoutForm = () => (
+  const renderPayout = () => (
     <>
+      <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth />
+      {renderPaymentInputs()}
       <FormControl fullWidth>
         <InputLabel>Payout Method</InputLabel>
-        <Select
-          name="payoutMethod"
-          value={form.payoutMethod}
-          onChange={handleChange}
-          fullWidth
-        >
+        <Select name="payoutMethod" value={form.payoutMethod} onChange={handleChange}>
           <MenuItem value="venmo">Venmo</MenuItem>
           <MenuItem value="paypal">PayPal</MenuItem>
           <MenuItem value="card">Card</MenuItem>
@@ -235,38 +281,61 @@ const ClkkDialog = ({ open, onClose , handleRefresh }) => {
       <TextField
         label="Amount"
         name="amount"
-        fullWidth
         value={form.amount}
         onChange={handleChange}
-        inputProps={{ min: 25, max: 500 }}
-        helperText="Enter an amount between $25 and $500"
+        fullWidth
+        helperText="Enter between $25 and $500"
       />
-      {/* ✅ description and orderId removed from user input */}
     </>
   );
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        {step === "form" ? "Add Recipient" : "Process Payout"}
+        {step === "chooseMethod"
+          ? "Choose Payment Method"
+          : step === "addRecipient"
+          ? "Add Recipient"
+          : "Process Payout"}
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-          {step === "form" ? renderForm() : renderPayoutForm()}
+          {step === "chooseMethod" && (
+            <FormControl fullWidth>
+              <InputLabel>Payout Method</InputLabel>
+              <Select name="payoutMethod" value={form.payoutMethod} onChange={handleChange}>
+                <MenuItem value="venmo">Venmo</MenuItem>
+                <MenuItem value="paypal">PayPal</MenuItem>
+                <MenuItem value="card">Card</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+          {step === "addRecipient" && renderAddRecipient()}
+          {step === "payout" && renderPayout()}
           {error && <Alert severity="error">{error}</Alert>}
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={step === "form" ? handleSubmit : handlePayout}
-          disabled={loading}
-        >
-          {loading ? "Processing..." : step === "form" ? "Submit" : "Pay"}
-        </Button>
+        <Button onClick={onClose} disabled={loading}>Cancel</Button>
+        {step === "chooseMethod" && (
+          <Button
+            variant="contained"
+            onClick={checkForExistingRecipient}
+            disabled={loading || !form.payoutMethod}
+          >
+            {loading ? "Processing..." : "Pay"}
+          </Button>
+        )}
+        {step === "addRecipient" && (
+          <Button variant="contained" onClick={handleSubmitRecipient} disabled={loading}>
+            {loading ? "Processing..." : "Submit"}
+          </Button>
+        )}
+        {step === "payout" && (
+          <Button variant="contained" onClick={handlePayout} disabled={loading}>
+            {loading ? "Processing..." : "Pay"}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
