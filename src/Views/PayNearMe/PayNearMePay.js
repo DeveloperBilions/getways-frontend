@@ -18,8 +18,7 @@ export default function PayNearMePay() {
   const [loading, setLoading] = useState(true);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const siteOrderIdentifierRef = useRef("")
-  const handledRef = useRef(false);
-
+  const handledRef = useRef(new Set());
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -94,29 +93,36 @@ export default function PayNearMePay() {
   useEffect(() => {
     window.pnmCallback = async function (data) {
       console.log("PNM Callback:", data);
-
-      if (!data.status) {
-        console.log("Missing status field");
-        return;
-      }
+    
+      if (!data.status) return;
+    
       const txnId = siteOrderIdentifierRef.current;
       if (!txnId) return;
+    
+      // ✅ Prevent double handling in this session
+      if (handledRef.current.has(txnId)) {
+        console.log("Already handled txn:", txnId);
+        return;
+      }
+      handledRef.current.add(txnId);
+    
       await new Promise((r) => setTimeout(r, 2500));
-
+    
       const Transactionf = Parse.Object.extend("TransactionRecords");
       const dup = await new Parse.Query(Transactionf)
         .equalTo("transactionIdFromStripe", txnId)
-        .first({ useMasterKey: true }); 
-  
+        .first({ useMasterKey: true });
+    
       if (dup) {
-        console.log("Duplicate transaction, skipping save:", txnId);
+        console.log("Duplicate transaction in DB, skipping:", txnId);
         return;
       }
-      // Save transaction in Parse
+    
+      // 🚀 Save transaction once
       const Transaction = Parse.Object.extend("TransactionRecords");
       const transaction = new Transaction();
       const user = await Parse.User.current()?.fetch();
-
+    
       transaction.set("type", "recharge");
       transaction.set("gameId", "786");
       transaction.set("username", identity?.username || "");
@@ -128,16 +134,12 @@ export default function PayNearMePay() {
       transaction.set("userParentId", user?.get("userParentId") || "");
       transaction.set("portal", "PayNearMe");
       transaction.set("walletAddr", identity?.walletAddr || "");
-      transaction.set("transactionIdFromStripe", siteOrderIdentifierRef.current);
-
+      transaction.set("transactionIdFromStripe", txnId);
+    
       if (data.status === "complete") {
         transaction.set("status", 2);
         await transaction.save(null, { useMasterKey: true });
-        await updatePotBalance(
-          identity?.userParentId,
-          amount,
-          "recharge"
-        );
+        await updatePotBalance(identity?.userParentId, amount, "recharge");
         alert("Payment completed successfully!");
         navigate("/playerDashboard");
       } else if (data.status === "error") {
@@ -146,12 +148,11 @@ export default function PayNearMePay() {
         await transaction.save(null, { useMasterKey: true });
         alert("Error: " + (data.message?.join("\n") || "Unknown error"));
       } else if (data.status === "exit") {
-        // transaction.set("status", 10);
-        // await transaction.save(null, { useMasterKey: true });
         alert("User exited payment flow.");
       }
     };
-  }, [amount, remark, identity, navigate]);
+    
+  }, [amount, remark, identity]);
 
   return (
     <Box sx={{ width: "100%" }}>
