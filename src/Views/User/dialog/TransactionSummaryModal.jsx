@@ -90,16 +90,21 @@ const PayModal = ({ open, onClose, userId }) => {
             paddingRight: { xs: 0, sm: 1 },
           }}
         >
-        <Button onClick={onClose} className="custom-button cancel" disabled={loading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          className="custom-button confirm"
-          disabled={loading}
-        >
-          {loading ? "Processing..." : "Submit"}
-        </Button></Box>
+          <Button
+            onClick={onClose}
+            className="custom-button cancel"
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            className="custom-button confirm"
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Submit"}
+          </Button>
+        </Box>
       </DialogActions>
 
       {/* Success Message Snackbar */}
@@ -115,8 +120,9 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
   const [redeemFeeEnabled, setRedeemFeeEnabled] = useState(false);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false); // State for history modal
-  const [conversionFeePercent, setConversionFeePercent] = useState(10); // default 10%
-
+  const [conversionFeePercent, setConversionFeePercent] = useState(
+    record?.commissionRate || 12
+  ); // default 10%
   useEffect(() => {
     fetchSummary();
   }, [open, record]);
@@ -171,24 +177,26 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
     return null;
   }
 
-  const { totalRechargeAmount, totalRedeemAmount, drawerAgentResults,totalRedeemServiceFee } =
-    summary;
+  const {
+    totalRechargeAmount,
+    totalRedeemAmount,
+    drawerAgentResults,
+    totalRedeemServiceFee,
+  } = summary;
   const conversionFee =
     (totalRechargeAmount * (Number(conversionFeePercent) || 0)) / 100;
   const redeemServiceFee = totalRedeemServiceFee;
   const totalAgentTicketPaid =
     totalRechargeAmount -
-    drawerAgentResults-
+    drawerAgentResults -
     totalRedeemAmount -
-    conversionFee 
-    ;
-
-    const totalTicketAmount =
+    conversionFee;
+  const totalTicketAmount =
     totalRechargeAmount -
     totalRedeemAmount -
-    conversionFee  + (redeemFeeEnabled ? redeemServiceFee : 0)
-    ;
-    const toBePaidAmount = totalTicketAmount - drawerAgentResults;
+    conversionFee +
+    (redeemFeeEnabled ? redeemServiceFee : 0);
+  const toBePaidAmount = totalTicketAmount - drawerAgentResults;
 
   return (
     <>
@@ -248,44 +256,47 @@ const TransactionSummaryModal = ({ open, onClose, record }) => {
               <strong>Total Agent Ticket Paid:</strong>{" "}
               {drawerAgentResults.toFixed(2)}
             </Typography>
-            
+
             <Typography>
               <strong>Total Agent Ticket To be Paid:</strong>{" "}
-              { (totalTicketAmount.toFixed(2) - drawerAgentResults.toFixed(2) ).toFixed(2)}
+              {(
+                totalTicketAmount.toFixed(2) - drawerAgentResults.toFixed(2)
+              ).toFixed(2)}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }} className="custom-modal-footer">
-        <Box
-          className="d-flex w-100 justify-content-between"
-          sx={{
-            flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
-            alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
-            gap: { xs: 2, sm: 2 }, // Add spacing between buttons
-            marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
-            width: "100% !important", // Ensure the container takes full width
-            paddingRight: { xs: 0, sm: 1 },
-          }}
-        >
-
-          <Button
-            onClick={() => setShowHistoryModal(true)}
-            className="custom-button cancel"
+          <Box
+            className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}
           >
-            View History
-          </Button>
-          <Button
-            className="custom-button confirm"
-            onClick={() => setPayModalOpen(true)}
-              disabled={toBePaidAmount <= 0} 
-              sx={{"&.Mui-disabled": {
-                backgroundColor: "#B0B0B0", // Light gray background
-                color: "#F0F0F0",            // Faded text
-                cursor: "not-allowed",
-              }}}
-          >
-            Pay
-          </Button>
+            <Button
+              onClick={() => setShowHistoryModal(true)}
+              className="custom-button cancel"
+            >
+              View History
+            </Button>
+            <Button
+              className="custom-button confirm"
+              onClick={() => setPayModalOpen(true)}
+              disabled={toBePaidAmount <= 0}
+              sx={{
+                "&.Mui-disabled": {
+                  backgroundColor: "#B0B0B0", // Light gray background
+                  color: "#F0F0F0", // Faded text
+                  cursor: "not-allowed",
+                },
+              }}
+            >
+              Pay
+            </Button>
           </Box>
         </DialogActions>
       </Dialog>

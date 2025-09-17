@@ -88,7 +88,8 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // success or error
   const [toggleUserCreationDialogOpen, setToggleUserCreationDialogOpen] =
     useState(false);
-    const [commissionRateDialogOpen, setCommissionRateDialogOpen] = useState(false);
+  const [commissionRateDialogOpen, setCommissionRateDialogOpen] =
+    useState(false);
 
   if (!record) return null;
 
@@ -204,17 +205,18 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
             Redeem
           </MenuItem>
         )}
-        {(record?.roleName === "Agent" || record?.roleName === "Master-Agent") &&
-  (role === "Super-User") && (
-    <MenuItem
-      onClick={() => {
-        handleClose();
-        setCommissionRateDialogOpen(true);
-      }}
-    >
-      Commission Rate
-    </MenuItem>
-  )}
+        {(record?.roleName === "Agent" ||
+          record?.roleName === "Master-Agent") &&
+          role === "Super-User" && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                setCommissionRateDialogOpen(true);
+              }}
+            >
+              Conversion Rate
+            </MenuItem>
+          )}
 
         {(record?.roleName === "Agent" ||
           record?.roleName === "Master-Agent") &&
@@ -244,7 +246,9 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         {record?.roleName === "Player" && (
           <MenuItem
             onClick={handleRecharge}
-            disabled={identity?.rechargeDisabled || !record?.kycVerified || true}
+            disabled={
+              identity?.rechargeDisabled || !record?.kycVerified || true
+            }
           >
             Recharge
           </MenuItem>
@@ -405,12 +409,12 @@ const CustomButton = ({ fetchAllUsers, identity }) => {
         </Alert>
       </Snackbar>
       <CommissionRateModal
-  open={commissionRateDialogOpen}
-  onClose={() => setCommissionRateDialogOpen(false)}
-  record={record}
-  fetchAllUsers={fetchAllUsers}
-/>
-
+        open={commissionRateDialogOpen}
+        onClose={() => setCommissionRateDialogOpen(false)}
+        record={record}
+        fetchAllUsers={fetchAllUsers}
+        handleRefresh={handleRefresh}
+      />
     </React.Fragment>
   );
 };

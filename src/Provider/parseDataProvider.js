@@ -251,7 +251,8 @@ export const dataProvider = {
             isPasswordPermission: user.get("isPasswordPermission"),
             potBalance: user.get("potBalance"),
             isBlackListed: user.get("isBlackListed"),
-            blacklistReason: user.get("blacklistReason")
+            blacklistReason: user.get("blacklistReason"),
+            commissionRate: user.get("commissionRate")
           };
         });
 

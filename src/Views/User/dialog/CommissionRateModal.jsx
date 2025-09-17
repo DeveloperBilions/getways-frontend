@@ -21,7 +21,13 @@ import { useGetIdentity } from "react-admin";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CommissionRateModal = ({ open, onClose, record, fetchAllUsers }) => {
+const CommissionRateModal = ({
+  open,
+  onClose,
+  record,
+  fetchAllUsers,
+  handleRefresh,
+}) => {
   const { identity } = useGetIdentity();
   const [commissionRate, setCommissionRate] = useState();
   const [error, setError] = useState("");
@@ -31,7 +37,6 @@ const CommissionRateModal = ({ open, onClose, record, fetchAllUsers }) => {
     setCommissionRate();
     setError("");
   };
-
   const loadCommissionRate = async () => {
     try {
       const userQuery = new Parse.Query(Parse.User);
@@ -114,6 +119,7 @@ const CommissionRateModal = ({ open, onClose, record, fetchAllUsers }) => {
       await user.save(null, { useMasterKey: true });
 
       fetchAllUsers();
+      handleRefresh();
       onClose();
       resetFields();
     } catch (err) {
@@ -134,16 +140,24 @@ const CommissionRateModal = ({ open, onClose, record, fetchAllUsers }) => {
       {loading ? (
         <Loader />
       ) : (
-        <Modal isOpen={open} toggle={handleCancel} centered className="custom-modal">
-          <ModalHeader toggle={handleCancel} className="custom-modal-header border-bottom-0">
-            Update Commission Rate
+        <Modal
+          isOpen={open}
+          toggle={handleCancel}
+          centered
+          className="custom-modal"
+        >
+          <ModalHeader
+            toggle={handleCancel}
+            className="custom-modal-header border-bottom-0"
+          >
+            Update Conversion Rate
           </ModalHeader>
           <ModalBody className="custom-modal-body">
             <Form>
               <Row>
                 <Col md={12}>
                   <Label for="commissionRate" className="custom-label">
-                    Commission Rate (%)
+                    Conversion Rate (%)
                   </Label>
                   <FormGroup>
                     <Input
@@ -182,7 +196,10 @@ const CommissionRateModal = ({ open, onClose, record, fetchAllUsers }) => {
                 <Button className="custom-button cancel" onClick={handleCancel}>
                   Cancel
                 </Button>
-                <Button className="custom-button confirm" onClick={handleSubmit}>
+                <Button
+                  className="custom-button confirm"
+                  onClick={handleSubmit}
+                >
                   Confirm
                 </Button>
               </Box>

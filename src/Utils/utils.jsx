@@ -1357,3 +1357,189 @@ export async function isPayarcAllowed() {
     totalProcessed: total,
   };
 }
+
+export async function fetchAllAgentSummaries(startDate, endDate) {
+  // Date filter
+  const dateMatch = {};
+  if (startDate) dateMatch.$gte = new Date(startDate);
+  if (endDate) {
+    const endObj = new Date(endDate);
+    endObj.setDate(endObj.getDate() + 1);
+    dateMatch.$lt = endObj;
+  }
+
+  // Aggregate on TransactionRecords grouped by userParentId
+  const pipeline = [
+    {
+      $match: {
+        ...(Object.keys(dateMatch).length && { createdAt: dateMatch }),
+      },
+    },
+    {
+      $group: {
+        _id: "$userParentId", // agentId
+        totalRecharge: {
+          $sum: {
+            $cond: [
+              { $in: ["$status", [2, 3]] },
+              "$transactionAmount",
+              0,
+            ],
+          },
+        },
+        totalRedeem: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ["$type", "redeem"] },
+                  { $in: ["$status", [4, 8]] },
+                  { $gt: ["$transactionAmount", 0] },
+                ],
+              },
+              "$transactionAmount",
+              0,
+            ],
+          },
+        },
+        totalRedeemFee: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ["$type", "redeem"] },
+                  { $in: ["$status", [4, 8]] },
+                  { $gt: ["$transactionAmount", 0] },
+                  { $ifNull: ["$redeemServiceFee", false] },
+                ],
+              },
+              {
+                $ceil: {
+                  $multiply: [
+                    "$transactionAmount",
+                    { $divide: ["$redeemServiceFee", 100] },
+                  ],
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+    },
+  ];
+
+  const trxSummary = await new Parse.Query("TransactionRecords").aggregate(
+    pipeline,
+    { useMasterKey: true }
+  );
+
+  // Get DrawerAgent totals grouped by agent
+  const drawerPipeline = [
+    {
+      $match: {
+        ...(Object.keys(dateMatch).length && { createdAt: dateMatch }),
+      },
+    },
+    {
+      $group: {
+        _id: "$userId", // agentId
+        totalPaid: { $sum: "$amount" },
+      },
+    },
+  ];
+  const drawerSummary = await new Parse.Query("DrawerAgent").aggregate(
+    drawerPipeline,
+    { useMasterKey: true }
+  );
+
+  // Convert drawer summary to lookup map
+  const drawerMap = drawerSummary.reduce((map, d) => {
+    map[d.objectId] = d.totalPaid;
+    return map;
+  }, {});
+
+  // Collect all agentIds
+  const agentIds = trxSummary.map((s) => s.objectId);
+
+  // Fetch agent + master info in one query
+  const agentQuery = new Parse.Query(Parse.User);
+  agentQuery.containedIn("objectId", agentIds);
+  agentQuery.include("userParentId"); // master agent
+  const agents = await agentQuery.findAll({ useMasterKey: true });
+
+  const agentMap = {};
+  agents.forEach((a) => {
+    agentMap[a.id] = {
+      agentName: a.get("username") || "N/A",
+      masterName: a.get("userParentName") || "N/A",
+      commissionRate: a.get("commissionRate") || 12,
+    };
+  });
+
+  // Merge summaries
+  const results = trxSummary.map((s) => {
+    const recharge = s.totalRecharge || 0;
+    const redeem = s.totalRedeem || 0;
+    const conversion =
+      (recharge * (agentMap[s.objectId]?.commissionRate || 12)) / 100;
+    const paid = drawerMap[s.objectId] || 0;
+
+    return {
+      "Agent Name": agentMap[s.objectId]?.agentName || "Unknown",
+      "Master Agent": agentMap[s.objectId]?.masterName || "Unknown",
+      "Total Recharges": recharge.toFixed(2),
+      "Total Redeems": redeem.toFixed(2),
+      "Total Conversion": conversion.toFixed(2),
+      "Total Paid": paid.toFixed(2),
+    };
+  });
+
+  return results;
+}
+
+
+export async function updateTransactionRecordsWithParent(batchSize = 500) {
+  const Transaction = Parse.Object.extend("TransactionRecords");
+
+  let updatedCount = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const query = new Parse.Query(Transaction);
+    query.doesNotExist("userParentId"); // only those missing parent
+    query.limit(batchSize);
+
+    const records = await query.find({ useMasterKey: true });
+    if (records.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    // Update each record
+    for (const rec of records) {
+      const userId = rec.get("userId");
+      if (!userId) continue;
+
+      // fetch user to get parent
+      const userQuery = new Parse.Query(Parse.User);
+      userQuery.equalTo("objectId", userId);
+      userQuery.include("userParentId");
+
+      const user = await userQuery.first({ useMasterKey: true });
+      if (user) {
+        const parent = user.get("userParentId");
+        if (parent) {
+          rec.set("userParentId", parent); // or parent pointer if you want pointer
+        }
+      }
+    }
+
+    // Save updated records
+    await Parse.Object.saveAll(records, { useMasterKey: true });
+    updatedCount += records.length;
+    console.log(`✅ Updated ${records.length} records, total ${updatedCount}`);
+  }
+
+  return { updatedCount };
+}

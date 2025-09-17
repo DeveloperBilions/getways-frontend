@@ -61,6 +61,9 @@ import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
 import SchemaIcon  from '@mui/icons-material/BusinessCenter';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import AgentExportExcelModal from "../Views/User/dialog/AgentExportExcelModal";
+
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
   const logout = useLogout();
@@ -73,6 +76,7 @@ export default function MyAppBar(props) {
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
   const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
+  const [openTotalAccountModal, setTotalAccountModal] = React.useState(false);
 
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
@@ -531,6 +535,19 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
+                 {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setTotalAccountModal(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <AssessmentIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Total Accounting 
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {/* {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -775,7 +792,11 @@ export default function MyAppBar(props) {
         <AgentTierViewerDialogBulk
           open={openTierSettingsAgents}
           onClose={() => setOpenTierSettingsAgents(false)}
+        />   <AgentExportExcelModal
+          open={openTotalAccountModal}
+          onClose={() => setTotalAccountModal(false)}
         />
+
         <DrawerAgentHistoryModal
           open={openTicketPaidModal}
           onClose={() => setOpenTicketPaidModal(false)}
