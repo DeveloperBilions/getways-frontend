@@ -7,6 +7,7 @@ import {
   Button,
   TextField,
   CircularProgress,
+  Box
 } from "@mui/material";
 import * as XLSX from "xlsx";
 import { fetchAllAgentSummaries } from "../../../Utils/utils";
@@ -55,10 +56,20 @@ const AgentExportExcelModal = ({ open, onClose }) => {
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} disabled={loading}>Cancel</Button>
-        <Button onClick={handleExport} disabled={loading || !startDate || !endDate}>
+      <Box className="d-flex w-100 justify-content-between"
+            sx={{
+              flexDirection: { xs: "column-reverse", sm: "row" }, // 🔁 Reverse order on mobile
+              alignItems: { xs: "stretch", sm: "stretch" }, // Stretch items to take full width in both modes
+              gap: { xs: 2, sm: 2 }, // Add spacing between buttons
+              marginBottom: { xs: 2, sm: 2 }, // Add margin at the bottom
+              width: "100% !important", // Ensure the container takes full width
+              paddingRight: { xs: 0, sm: 1 },
+            }}>
+        <Button onClick={onClose} disabled={loading}      className="custom-button cancel">Cancel</Button>
+        <Button  className="custom-button confirm"  onClick={handleExport} disabled={loading || !startDate || !endDate}>
           {loading ? <CircularProgress size={24} /> : "Export to Excel"}
         </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );

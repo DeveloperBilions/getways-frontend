@@ -674,7 +674,7 @@ export const DataSummary = React.memo(() => {
 
   const getMode = (data) => {
     console.log(data,"dataa")
-    return data?.stripeId?.toLowerCase().includes("txn")
+    return data?.stripeId?.toLowerCase().includes("txn-")
       ? "WERT"
       : data?.stripeId?.toLowerCase().includes("crypto.link.com")
       ? "Link"
