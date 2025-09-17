@@ -55,16 +55,17 @@ export const WalletDetails = ({
         identity?.userParentId,
         checkType
       );
-      if (!result) {
-        setCheckoutError(
-          "Unable to verify tier requirements. Try again later."
-        );
-        return false;
-      }
+      // if (!result) {
+      //   setCheckoutError(
+      //     "Unable to verify tier requirements. Try again later."
+      //   );
+      //   return false;
+      // }
       if (!result.isSufficient) {
         setCheckoutError(
           `Insufficient pot-balance Of Your Agent. Tier ${result.tier} requires ≥ ${result.requiredMin}.`
         );
+        setCashoutDisabled(true);
         return false;
       }
       return true;
@@ -83,6 +84,10 @@ export const WalletDetails = ({
         identity?.userParentId
       ));
       setCashoutDisabled(disabled);
+      setCheckoutError(
+        `Cashouts are not available at this time. Please try again later.`
+      );
+      const result = await verifyPotBalance()
     };
 
     if (identity?.userParentId) {
@@ -201,11 +206,6 @@ export const WalletDetails = ({
             marginTop: 1,
           }}
         >
-          {CheckoutError && (
-            <Alert severity="error" sx={{ mt: 1, mb: 2 }}>
-              {CheckoutError}
-            </Alert>
-          )}
           <Button
             sx={{
               bgcolor: "#2E5BFF",
@@ -283,8 +283,18 @@ export const WalletDetails = ({
                 color: "#E2E8F0", // Disabled text color (light gray)
               },
             }}
+             disabled={
+              identity?.isBlackListed || cashoutDisabled || checkingEligibility
+            }
           >
             CLKK Cashout
+              {checkingEligibility ? (
+              <CircularProgress size={20} sx={{ color: "white", ml: 1 }} />
+            ) : (
+              <ArrowForwardIcon
+                style={{ width: "24px", height: "24px", marginLeft: "10px" }}
+              />
+            )}
           </Button>
 
           <ClkkDialog
@@ -305,7 +315,7 @@ export const WalletDetails = ({
         >
           {cashoutDisabled && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              Cashouts are not available at this time. Please try again later.
+              {CheckoutError}
             </Alert>
           )}
           {/* <Alert severity="error" sx={{ my: 2 }}>
