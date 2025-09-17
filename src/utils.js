@@ -192,6 +192,8 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+        portal: item?.portal,
+        referralLink:item?.referralLink
       })),
     others: transactions
       .filter(
@@ -219,6 +221,9 @@ export const calculateDataSummaries = ({
         redeemRemarks: item?.redeemRemarks,
         agentName: getUserParentName(item?.userId),
         userName: item?.username,
+        portal: item?.portal,
+        referralLink:item?.referralLink
+
       })),
   };
   const totalFeesCharged = transactions

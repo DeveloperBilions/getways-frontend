@@ -926,7 +926,11 @@ export const dataProvider = {
               "isCashOut",
               "transactionIdFromStripe",
               "transactionDate",
-              "username"
+              "paymentMode",
+              "paymentMethodType",
+              "remark",
+              "redeemRemarks",
+              "username","portal","referralLink"
             );
             transactionQuery.containedIn("userId", userIds);
             filter.startDate &&
@@ -961,8 +965,11 @@ export const dataProvider = {
               "isCashOut",
               "transactionIdFromStripe",
               "transactionDate",
-              "username",
-              "referralLink"
+              "paymentMode",
+              "paymentMethodType",
+              "remark",
+              "redeemRemarks",
+              "username","portal","referralLink"
             );
             transactionQuery.containedIn("userId", userIds);
             filter.startDate &&

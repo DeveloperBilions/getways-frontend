@@ -559,7 +559,8 @@ const prepareTableData = (data, type, isRedeem = false) => {
       agentName: item.agentName,
       userName: item.userName,
       referralLink: item?.referralLink,
-      useWallet:item?.useWallet
+      useWallet:item?.useWallet,
+      portal:item?.portal
     })) || []
   );
 };
