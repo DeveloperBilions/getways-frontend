@@ -122,7 +122,7 @@ const Recharge = ({
   const [loadingThresholds, setLoadingThresholds] = useState(true);
   const [matchingThreshold, setMatchingThreshold] = useState(null);
   const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
-  
+  console.log(matchingThreshold,"matchingThresholdmatchingThresholdmatchingThreshold",allowedActiveMethods)
   useEffect(() => {
     const checkPayarcLimit = async () => {
       try {
@@ -1845,10 +1845,13 @@ const Recharge = ({
                   )
                 :paymentOptions.filter((option) => {
                   if (allowedActiveMethods) {
-                    if (matchingThreshold?.some(t => t.methods.includes(option.id))) return false;
-                    //!allowedActiveMethods.includes(option.id)&& 
+                    if (
+                      matchingThreshold?.some(t => t.methods.includes(option.id)) &&
+                      !allowedActiveMethods.includes(option.id)
+                    ) {
+                      return false;
+                    }
                   }
-
                 
                   if (option.id === "coinbase" && !showCoinbase) return false;
                   if (option.id === "instant" && !showWert) return false;
