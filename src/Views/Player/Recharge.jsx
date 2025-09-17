@@ -1850,7 +1850,7 @@ const Recharge = ({
                   }
 
                 
-                  if (option.id === "quick-debit" && !showCoinbase) return false;
+                  if (option.id === "coinbase" && !showCoinbase) return false;
                   if (option.id === "instant" && !showWert) return false;
                   if (option.id === "link" && !showLink) return false;
                   if (option.id === "stripe" && !showStripe) return false;
