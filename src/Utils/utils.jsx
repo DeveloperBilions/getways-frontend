@@ -1359,3 +1359,159 @@ export async function isPayarcAllowed() {
     totalProcessed: total,
   };
 }
+
+
+
+export async function fetchAllAgentSummaries(startDate, endDate) {
+  // Date filter
+  const dateMatch = {};
+  if (startDate) dateMatch.$gte = new Date(startDate);
+  if (endDate) {
+    const endObj = new Date(endDate);
+    endObj.setDate(endObj.getDate() + 1);
+    dateMatch.$lt = endObj;
+  }
+
+  // Aggregate on TransactionRecords grouped by userParentId
+  const pipeline = [
+    {
+      $match: {
+        ...(Object.keys(dateMatch).length && { createdAt: dateMatch }),
+      },
+    },
+    {
+      $group: {
+        _id: "$userParentId", // agentId
+        totalRecharge: {
+          $sum: {
+            $cond: [
+              { $in: ["$status", [2, 3]] },
+              "$transactionAmount",
+              0,
+            ],
+          },
+        },
+        totalRedeem: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ["$type", "redeem"] },
+                  { $in: ["$status", [4, 8]] },
+                  { $gt: ["$transactionAmount", 0] },
+                ],
+              },
+              "$transactionAmount",
+              0,
+            ],
+          },
+        },
+        totalRedeemFee: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ["$type", "redeem"] },
+                  { $in: ["$status", [4, 8]] },
+                  { $gt: ["$transactionAmount", 0] },
+                  { $ifNull: ["$redeemServiceFee", false] },
+                ],
+              },
+              {
+                $ceil: {
+                  $multiply: [
+                    "$transactionAmount",
+                    { $divide: ["$redeemServiceFee", 100] },
+                  ],
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+    },
+  ];
+
+  const trxSummary = await new Parse.Query("TransactionRecords").aggregate(
+    pipeline,
+    { useMasterKey: true }
+  );
+
+  // Get DrawerAgent totals grouped by agent
+  const drawerPipeline = [
+    {
+      $match: {
+        ...(Object.keys(dateMatch).length && { createdAt: dateMatch }),
+      },
+    },
+    {
+      $group: {
+        _id: "$userId", // agentId
+        totalPaid: { $sum: "$amount" },
+      },
+    },
+  ];
+  const drawerSummary = await new Parse.Query("DrawerAgent").aggregate(
+    drawerPipeline,
+    { useMasterKey: true }
+  );
+
+  // Convert drawer summary to lookup map
+  const drawerMap = drawerSummary.reduce((map, d) => {
+    map[d.objectId] = d.totalPaid;
+    return map;
+  }, {});
+
+  // Collect all agentIds
+  const agentIds = trxSummary.map((s) => s.objectId);
+
+  // Fetch agent + master info in one query
+  const agentQuery = new Parse.Query(Parse.User);
+  agentQuery.containedIn("objectId", agentIds);
+  agentQuery.include("userParentId"); // master agent
+  const agents = await agentQuery.findAll({ useMasterKey: true });
+
+  const agentMap = {};
+  agents.forEach((a) => {
+    agentMap[a.id] = {
+      user: a,
+      agentName: a.get("username") || "N/A",
+      masterName: a.get("userParentName") || "N/A",
+      commissionRate: a.get("commissionRate") || 12,
+    };
+  });
+
+  const results = [];
+
+for (const s of trxSummary) {
+  const recharge = s.totalRecharge || 0;
+  const redeem = s.totalRedeem || 0;
+  const paid = drawerMap[s.objectId] || 0;
+  const commissionRate = agentMap[s.objectId]?.commissionRate || 12;
+  const conversion = (recharge * commissionRate) / 100;
+  const balance = recharge - redeem - paid;
+
+  const userObj = agentMap[s.objectId]?.user;
+  if (userObj) {
+    userObj.set("balance", balance);
+    await userObj.save(null, { useMasterKey: true });
+  }
+
+  results.push({
+    "Agent Name": agentMap[s.objectId]?.agentName || "Unknown",
+    "Master Agent": agentMap[s.objectId]?.masterName || "Unknown",
+    "Total Recharges": recharge.toFixed(2),
+    "Total Redeems": redeem.toFixed(2),
+    "Total Conversion": conversion.toFixed(2),
+    "Total Paid": paid.toFixed(2),
+    "Balance": balance.toFixed(2),
+  });
+}
+
+
+  return results;
+}
+
+
+
