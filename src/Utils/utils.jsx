@@ -155,7 +155,7 @@ export const addPayHistory = async (userId, amount, doneBy) => {
     const userQuery = new Parse.Query(Parse.User);
     userQuery.equalTo("objectId", userId);
     userQuery.select("potBalance");
-    
+    userQuery.select("balance");
     const user = await userQuery.first({ useMasterKey: true });
 
     if (!user) {
@@ -163,8 +163,9 @@ export const addPayHistory = async (userId, amount, doneBy) => {
     }
 
     const beforeBalance = user.get("potBalance") || 0; // Get current balance
+    const beforeBalanceMain = user.get("balance") || 0; // Get current balance
     const afterBalance = beforeBalance - amount; // Calculate new balance
-
+    const afterMainbalance = beforeBalanceMain - amount
     if (afterBalance < 0) {
       throw new Error("Insufficient balance.");
     }
@@ -184,6 +185,7 @@ export const addPayHistory = async (userId, amount, doneBy) => {
 
     // Update user's potBalance
     user.set("potBalance", afterBalance);
+    uset.set("balance",afterMainbalance)
     await user.save(null, { useMasterKey: true });
 
     return { success: true, message: "Pay history added successfully." };
