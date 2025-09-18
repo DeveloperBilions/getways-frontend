@@ -185,7 +185,7 @@ export const addPayHistory = async (userId, amount, doneBy) => {
 
     // Update user's potBalance
     user.set("potBalance", afterBalance);
-    uset.set("balance",afterMainbalance)
+    user.set("balance",afterMainbalance)
     await user.save(null, { useMasterKey: true });
 
     return { success: true, message: "Pay history added successfully." };
