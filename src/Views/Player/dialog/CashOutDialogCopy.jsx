@@ -167,6 +167,11 @@ const CashOutModal = ({
                 Cashouts are not available at this time. Please try again later.
               </Alert>
             )}
+             {availableMethods.length === 0 && !cashoutDisabled && (
+    <Alert severity="error" sx={{ my: 2 }}>
+      No payment methods are available for your account. Please contact support.
+    </Alert>
+  )}
             <Box className="d-flex align-items-center rounded mb-4 justify-content-between"
                  sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}>
               <Typography sx={{ color: "#4A4A4A", fontSize: "14px" }}>
