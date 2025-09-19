@@ -63,6 +63,7 @@ import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccounti
 import SchemaIcon  from '@mui/icons-material/BusinessCenter';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AgentExportExcelModal from "../Views/User/dialog/AgentExportExcelModal";
+import CashoutMethodsDialog from "../Views/User/dialog/CashoutMethodsDialog";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -77,6 +78,7 @@ export default function MyAppBar(props) {
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
   const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
   const [openTotalAccountModal, setTotalAccountModal] = React.useState(false);
+  const [openCashoutMethods, setOpenCashoutMethods] = React.useState(false);
 
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
@@ -510,6 +512,20 @@ export default function MyAppBar(props) {
                   </Box>
                 )}
                 {role === "Super-User" && (
+  <Box sx={{ mb: 1 }}>
+    <MenuItem
+      onClick={() => setOpenCashoutMethods(true)}
+      style={{ color: "#000000", gap: "8px" }}
+    >
+      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
+      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+        Cashout Methods
+      </Typography>
+    </MenuItem>
+  </Box>
+)}
+
+                {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setOpenTierSettings(true)}
@@ -806,6 +822,11 @@ export default function MyAppBar(props) {
           open={openShufflDialog}
           onClose={() => setShufflDialog(false)}
         />
+        <CashoutMethodsDialog
+  open={openCashoutMethods}
+  onClose={() => setOpenCashoutMethods(false)}
+/>
+
       </AppBar>
     </>
   );

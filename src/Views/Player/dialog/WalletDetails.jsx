@@ -253,7 +253,7 @@ export const WalletDetails = ({
             )}
           </Button>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             marginLeft: "16px",
             marginRight: "16px",
@@ -304,7 +304,7 @@ export const WalletDetails = ({
               handleCashoutRefresh();
             }}
           />
-        </Box>
+        </Box> */}
         <Box
           sx={{
             padding: "8px 16px",
