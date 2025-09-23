@@ -39,7 +39,7 @@ export const WalletDetails = ({
   const [cashOutDialogOpen, setcashOutDialogOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
-  const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(true);
   const [CheckoutError, setCheckoutError] = useState(false);
   const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
 
