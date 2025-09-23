@@ -1478,22 +1478,25 @@ export async function fetchAllAgentSummaries(startDate, endDate) {
   });
 
   // Merge summaries
-  const results = trxSummary.map((s) => {
-    const recharge = s.totalRecharge || 0;
-    const redeem = s.totalRedeem || 0;
-    const conversion =
-      (recharge * (agentMap[s.objectId]?.commissionRate || 12)) / 100;
-    const paid = drawerMap[s.objectId] || 0;
+  const results = trxSummary
+    .filter((s) => agentMap[s.objectId])
+    .map((s) => {
+      const recharge = s.totalRecharge || 0;
+      const redeem = s.totalRedeem || 0;
+      const conversion =
+        (recharge * (agentMap[s.objectId].commissionRate || 12)) / 100;
+      const paid = drawerMap[s.objectId] || 0;
 
-    return {
-      "Agent Name": agentMap[s.objectId]?.agentName || "Unknown",
-      "Master Agent": agentMap[s.objectId]?.masterName || "Unknown",
-      "Total Recharges": recharge.toFixed(2),
-      "Total Redeems": redeem.toFixed(2),
-      "Total Conversion": conversion.toFixed(2),
-      "Total Paid": paid.toFixed(2),
-    };
-  });
+      return {
+        "Agent Name": agentMap[s.objectId].agentName,
+        "Master Agent": agentMap[s.objectId].masterName,
+        "Total Recharges": recharge.toFixed(2),
+        "Total Redeems": redeem.toFixed(2),
+        "Total Conversion": conversion.toFixed(2),
+        "Total Paid": paid.toFixed(2),
+      };
+    });
+
 
   return results;
 }
