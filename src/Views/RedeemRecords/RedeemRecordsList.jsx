@@ -105,7 +105,7 @@ export const RedeemRecordsList = (props) => {
   useEffect(() => {
     const checkCashoutAccess = async () => {
       if (identity?.role === "Agent") {
-        const isAllowed = await isCashoutEnabledForAgent(identity?.id);
+        const isAllowed = await isCashoutEnabledForAgent(identity?.objectId);
         setCashoutDisabled(!isAllowed);
       }
     };

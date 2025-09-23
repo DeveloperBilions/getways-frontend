@@ -1265,7 +1265,7 @@ export const isCashoutEnabledForAgent = async (agentId) => {
     settingsQuery.equalTo("type", "allowedMasterAgentsForCashout");
     const setting = await settingsQuery.first({ useMasterKey: true });
     const allowedCashoutIds = setting?.get("settings") || [];
-
+    console.log(allowedCashoutIds,"allowedCashoutIds-allowedCashoutIds",agentId)
     if (allowedCashoutIds.includes(agentId)) {
       return true;
     }
