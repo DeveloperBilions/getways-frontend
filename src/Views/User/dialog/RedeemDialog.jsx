@@ -62,7 +62,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
       setisReedeemZeroAllowed(
         response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed
       );
-      setParentBalance(response?.potBalance);
+      setParentBalance(response?.balance);
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
