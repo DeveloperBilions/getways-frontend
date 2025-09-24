@@ -200,7 +200,7 @@ export const RechargeRecordsList = (props) => {
       : data?.useWallet
       ? "Wallet"
       : data?.portal === "Payarc"
-      ? "Payarc"
+      ? "Payarc" : data?.portal === "CLK" ? "CLK"
       : "Stripe";
   };
 

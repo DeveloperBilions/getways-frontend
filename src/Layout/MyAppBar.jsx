@@ -54,7 +54,8 @@ import AgentTierViewerDialogBulk from "../Views/User/dialog/AgentTierViewerDialo
 import AgentAccountingModal from "../Views/User/dialog/AccountingModal";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
-import SchemaIcon  from '@mui/icons-material/BusinessCenter';
+import SchemaIcon from "@mui/icons-material/BusinessCenter";
+import CashoutMethodsDialog from "../Views/User/dialog/CashoutMethodsDialog";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -67,13 +68,15 @@ export default function MyAppBar(props) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
-  const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
+  const [openMasterAccountingModal, setMasterOpenAccountingModal] =
+    React.useState(false);
 
   const [openEmergencyModal, setOpenEmergencyModal] = React.useState(false);
   const [openGlobalSettingsDialog, setOpenGlobalSettingsDialog] =
     React.useState(false);
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const [openTicketPaidModal, setOpenTicketPaidModal] = useState(false);
+  const [openCashoutMethods, setOpenCashoutMethods] = React.useState(false);
 
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
@@ -498,6 +501,19 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
+                {role === "Super-User" && (
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenCashoutMethods(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Cashout Methods
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {/* {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -599,21 +615,22 @@ export default function MyAppBar(props) {
                     </Typography>
                   </MenuItem>
                 )}
-               {(role === "Master-Agent" || role === "Super-User") && (
-  <MenuItem
-    onClick={() => setMasterOpenAccountingModal(true)}
-    style={{
-      color: "#000000",
-      fontWeight: 400,
-      fontSize: "16px",
-      gap: "8px",
-    }}
-  >
-    <SchemaIcon sx={{ fontSize: 20, color: "#000" }} />
-    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
-      Master Accounting
-    </Typography>
-  </MenuItem>)}
+                {(role === "Master-Agent" || role === "Super-User") && (
+                  <MenuItem
+                    onClick={() => setMasterOpenAccountingModal(true)}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      gap: "8px",
+                    }}
+                  >
+                    <SchemaIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Master Accounting
+                    </Typography>
+                  </MenuItem>
+                )}
                 {/* {role === "Agent" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -736,10 +753,14 @@ export default function MyAppBar(props) {
           onClose={() => setOpenTicketPaidModal(false)}
           record={{ id: identity?.objectId, username: identity?.username }}
         />
-          <MasterAgentAccountingModal
-  open={openMasterAccountingModal}
-  onClose={() => setMasterOpenAccountingModal(false)}
-/>
+        <MasterAgentAccountingModal
+          open={openMasterAccountingModal}
+          onClose={() => setMasterOpenAccountingModal(false)}
+        />
+        <CashoutMethodsDialog
+          open={openCashoutMethods}
+          onClose={() => setOpenCashoutMethods(false)}
+        />
       </AppBar>
     </>
   );

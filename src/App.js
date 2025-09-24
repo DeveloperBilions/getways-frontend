@@ -45,13 +45,15 @@ import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
+import ClkkCashout from "./Views/Player/ClkkCashout";
+import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     if (process.env.REACT_APP_NODE_ENV === "production") {
-    clarity.init("remtta6418"); // Replace with your actual Clarity ID
+      clarity.init("remtta6418"); // Replace with your actual Clarity ID
     }
   }, []);
   useEffect(() => {
@@ -154,7 +156,7 @@ function App() {
     "/404",
     "/payment-checkout",
     "/recharge-widget",
-    "/stripe-payment"
+    "/stripe-payment",
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -381,7 +383,7 @@ function App() {
                       </Authenticated>
                     }
                   />
-                <Route
+                  <Route
                     path="/stripe-payment"
                     element={
                       <Authenticated>
@@ -389,7 +391,22 @@ function App() {
                       </Authenticated>
                     }
                   />
-
+                  <Route
+                    path="/clkk-cashout"
+                    element={
+                      <Authenticated>
+                        <ClkkCashout />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/clkk-payment"
+                    element={
+                      <Authenticated>
+                        <CLKKWidget />
+                      </Authenticated>
+                    }
+                  />
                 </CustomRoutes>
               </>
             );

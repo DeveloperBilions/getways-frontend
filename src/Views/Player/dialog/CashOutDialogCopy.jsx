@@ -4,16 +4,25 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Col,
 } from "reactstrap";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
-import { Box, IconButton, TextField, Typography } from "@mui/material";
+import { Box, IconButton, TextField, Typography, Select, MenuItem } from "@mui/material";
 import SelectGiftCardDialog from "./SelectGiftCardDialog";
 import Close from "../../../Assets/icons/close.svg";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
 import { Alert ,Button} from "@mui/material";
-import CheckbookPaymentDialog from './CheckbookPaymentDialog'; // Adjust path as needed
+import CheckbookPaymentDialog from './CheckbookPaymentDialog'; 
+import Parse from "parse";
+import ClkkDialog from "../ClkkDialog";
+
+const ALL_METHODS = {
+  giftcard: "Gift Card",
+  paypal: "PayPal",
+  venmo: "Venmo",
+  card: "Push To Card",
+  clkk: "CLKK",
+};
 
 const CashOutModal = ({
   setOpen,
@@ -21,7 +30,8 @@ const CashOutModal = ({
   onClose,
   balance: initialBalance,
   record,
-  handleRefresh
+  handleRefresh,
+  handleCashoutRefresh
 }) => {
   const { identity } = useGetIdentity();
   const [isGiftCardOpen, setIsGiftCardOpen] = useState(false);
@@ -30,64 +40,102 @@ const CashOutModal = ({
   const [cashoutDisabled, setCashoutDisabled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  const [availableMethods, setAvailableMethods] = useState([]);
+  const [selectedMethod, setSelectedMethod] = useState(""); // ✅ default empty
+  const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
+
   useEffect(() => {
-    setErrorMessage(""); // Clear error message when modal opens
+    setErrorMessage(""); 
   }, [open]);
 
   useEffect(() => {
     const checkRechargeAccess = async () => {
-      const disabled = !(await isCashoutEnabledForAgent(
-        identity?.userParentId
-      ));
+      const disabled = !(await isCashoutEnabledForAgent(identity?.userParentId));
       setCashoutDisabled(disabled);
     };
-
     checkRechargeAccess();
   }, [identity]);
-  const handalOpenGiftCard = () => {
-    if (!balance) {
-      setErrorMessage(
-        "Cashout amount cannot be empty. Please enter a valid amount."
-      );
-      return;
+
+  // Fetch available payment methods
+  const fetchAvailableMethods = async () => {
+    if (!identity?.userParentId) return;
+    try {
+      const q = new Parse.Query("Settings");
+      q.startsWith("type", "allowedCashoutAgentsFor_");
+      const results = await q.find({ useMasterKey: true });
+
+      const allowed = [];
+      results.forEach((r) => {
+        const ids = r.get("settings") || [];
+        if (ids.includes(identity.userParentId)) {
+          const type = r.get("type");
+          const key = type.replace("allowedCashoutAgentsFor_", "");
+          if (ALL_METHODS[key]) {
+            allowed.push(key);
+          }
+        }
+      });
+
+      setAvailableMethods(allowed);
+      setSelectedMethod(""); // ✅ don’t auto-select
+    } catch (err) {
+      console.error("Error fetching allowed cashout methods:", err);
     }
-    if (balance <= 0) {
-      setErrorMessage(
-        "Cashout amount cannot be negative or 0. Please enter a valid amount."
-      );
-      return;
-    }
-    if (balance < 15) {
-      setErrorMessage("Cashout request should not be less than $15.");
-      return;
-    }
-    if (balance > initialBalance) {
-      setErrorMessage(
-        "Cashout amount cannot be greater than your current balance."
-      );
-      return;
-    }
-    setIsGiftCardOpen(true);
-    onClose();
   };
-  const handleGiftCardSuccess = (data) => {
+
+  useEffect(() => {
+    if (open) {
+      fetchAvailableMethods();
+    }
+  }, [open]);
+
+  const validateBalance = () => {
+    if (!balance) return "Cashout amount cannot be empty.";
+    if (balance <= 0) return "Cashout amount cannot be negative or 0.";
+    if (!selectedMethod) return "Please select a payment method.";
+
+    const amount = Number(balance);
+
+    if (selectedMethod === "giftcard") {
+      if (amount < 15) return "Gift card cashout must be at least $15.";
+    } else if (["paypal", "venmo", "card", "clkk"].includes(selectedMethod)) {
+      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
+      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
+    }
+
+    if (amount > initialBalance) {
+      return "Cashout amount cannot be greater than your current balance.";
+    }
+    return "";
+  };
+
+  const handleNext = () => {
+    const validationError = validateBalance();
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+    if (selectedMethod === "giftcard") {
+      setIsGiftCardOpen(true);
+      onClose();
+    } else {
+      setClkkDialogOpen(true);
+      onClose();
+    }
+  };
+
+  const handleGiftCardSuccess = () => {
     setIsGiftCardOpen(false);
     onClose();
   };
+
   const handleBalanceChange = (e) => {
     const raw = e.target.value;
-  
-    // Remove non-digit characters
     const numeric = raw.replace(/\D/g, "");
-  
-    // Limit to 4 digits
     if (numeric.length > 4) return;
-  
     setBalance(numeric);
     setErrorMessage("");
   };
-  
-  
 
   const handleClose = () => {
     setBalance(initialBalance);
@@ -98,27 +146,14 @@ const CashOutModal = ({
   return (
     <>
       <Modal isOpen={open && !isGiftCardOpen} toggle={handleClose} centered>
-        <Box
-          sx={{
-            borderRadius: "8px",
-            border: "1px solid #E7E7E7",
-            backgroundColor: "#FFFFFF",
-            boxShadow:
-              "4px 4px 16px 0px rgba(255, 255, 255, 0.25), -4px -4px 16px 0px rgba(255, 255, 255, 0.25)",
-            // outline: "none",
-          }}
-        >
+        <Box sx={{ borderRadius: "8px", border: "1px solid #E7E7E7", backgroundColor: "#FFFFFF" }}>
           <ModalHeader
             toggle={handleClose}
-            className="border-bottom-0 pb-0 font-weight-[500] font-size-[24px]"
+            className="border-bottom-0 pb-0"
             close={
               <IconButton
                 onClick={onClose}
-                sx={{
-                  position: "absolute",
-                  right: "16px",
-                  top: "16px",
-                }}
+                sx={{ position: "absolute", right: "16px", top: "16px" }}
               >
                 <img src={Close} alt="cancel" width="24px" height="24px" />
               </IconButton>
@@ -132,23 +167,19 @@ const CashOutModal = ({
                 Cashouts are not available at this time. Please try again later.
               </Alert>
             )}
-            <Box
-              className="d-flex align-items-center rounded mb-4 justify-content-between"
-              sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}
-            >
-              <Typography
-                style={{ color: "#4A4A4A", fontSize: "14px", fontWeight: 400 }}
-              >
+             {availableMethods.length === 0 && !cashoutDisabled && (
+    <Alert severity="error" sx={{ my: 2 }}>
+      No payment methods are available for your account. Please contact support.
+    </Alert>
+  )}
+            <Box className="d-flex align-items-center rounded mb-4 justify-content-between"
+                 sx={{ bgcolor: "#F4F3FC", padding: "16px 22px" }}>
+              <Typography sx={{ color: "#4A4A4A", fontSize: "14px" }}>
                 Available Balance
               </Typography>
-
               <Box className="d-flex align-items-center">
-                <img
-                  src={AOG_Symbol} // Replace with the actual path to your coin icon
-                  alt="Coin"
-                  style={{ width: "24px", height: "24px", marginRight: "5px" }}
-                />
-                <Typography style={{ fontSize: "24px", fontWeight: 600 }}>
+                <img src={AOG_Symbol} alt="Coin" style={{ width: 24, height: 24, marginRight: 5 }} />
+                <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
                   {initialBalance}
                 </Typography>
               </Box>
@@ -158,130 +189,65 @@ const CashOutModal = ({
             )}
 
             <Box className="text-center mb-4">
-              <Typography
-                style={{
-                  fontSize: "14px",
-                  color: "#333",
-                  fontWeight: 400,
-                  display: "block",
-                  textAlign: "start",
-                }}
-              >
-                You can use your wallet funds for instant recharges! Want to
-                recharge instead?
+              <Typography sx={{ fontSize: "14px", color: "#333", fontWeight: 400, textAlign: "start" }}>
+                You can use your wallet funds for instant recharges! Want to recharge instead?
               </Typography>
-              <Box
-                className="d-flex align-items-center justify-content-start rounded p-2 mt-4"
-                sx={{ border: "1px solid #E7E7E7" }}
-              >
-                <img
-                  src={AOG_Symbol} // Replace with the actual path to your coin icon
-                  alt="Coin"
-                  style={{ width: "40px", height: "40px", marginRight: "10px" }}
-                />
+              <Box className="d-flex align-items-center justify-content-start rounded p-2 mt-4"
+                   sx={{ border: "1px solid #E7E7E7" }}>
+                <img src={AOG_Symbol} alt="Coin" style={{ width: 40, height: 40, marginRight: 10 }} />
                 <TextField
                   type="text"
                   value={balance}
                   onChange={handleBalanceChange}
-                  variant="standard" // Removes the default border
+                  variant="standard"
                   InputProps={{
-                    disableUnderline: true, // Removes the underline
-                    style: {
-                      fontSize: "40px",
-                      fontWeight: 600,
-                    },
-                    // Remove the up/down arrows
-                    sx: {
-                      "& input[type=number]": {
-                        MozAppearance: "textfield", // For Firefox
-                      },
-                      "& input[type=number]::-webkit-outer-spin-button": {
-                        WebkitAppearance: "none", // For Chrome, Safari, Edge
-                        margin: 0,
-                      },
-                      "& input[type=number]::-webkit-inner-spin-button": {
-                        WebkitAppearance: "none", // For Chrome, Safari, Edge
-                        margin: 0,
-                      },
-                    },
+                    disableUnderline: true,
+                    style: { fontSize: "40px", fontWeight: 600 },
                   }}
-                  sx={{
-                    width: "100%",
-                  }}
+                  sx={{ width: "100%" }}
                 />
               </Box>
             </Box>
+
+            {/* Payment Method dropdown */}
+            <Box sx={{ mb: 3 }}>
+              <Typography sx={{ fontSize: "14px", mb: 1 }}>
+                Select Method
+              </Typography>
+              <Select
+                fullWidth
+                value={selectedMethod}
+                onChange={(e) => setSelectedMethod(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="">-- Select Method --</MenuItem>
+                {availableMethods.map((m) => (
+                  <MenuItem key={m} value={m}>
+                    {ALL_METHODS[m] || m}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
           </ModalBody>
-          <ModalFooter className="custom-modal-footer">
+          <ModalFooter>
             <Box className="d-flex w-100 justify-content-between"
-                  sx={{
-                    flexDirection: { xs: "column-reverse", sm: "row" },
-                    alignItems: { xs: "stretch", sm: "stretch" },
-                    gap: { xs: 2, sm: 2 },
-                    marginBottom: { xs: 2, sm: 2 },
-                    width: "100% !important",
-                  }}>
-                <Button
-                  className="custom-button cancel"
-                  onClick={handleClose}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  className="custom-button confirm"
-                  onClick={handalOpenGiftCard}
-                  disabled={cashoutDisabled}
-                >
-                  Next
-                </Button></Box>
-                {/* <Button
-                  className="custom-button"
-                  style={{
-                    backgroundColor: "#2E5BFF",
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    fontFamily: "Inter",
-                  }}
-                  onClick={()=> {
-                    if (!balance) {
-                      setErrorMessage(
-                        "Cashout amount cannot be empty. Please enter a valid amount."
-                      );
-                      return;
-                    }
-                    if (balance <= 0) {
-                      setErrorMessage(
-                        "Cashout amount cannot be negative or 0. Please enter a valid amount."
-                      );
-                      return;
-                    }
-                    if (balance < 15) {
-                      setErrorMessage("Cashout request should not be less than $15.");
-                      return;
-                    }
-                    if (balance > initialBalance) {
-                      setErrorMessage(
-                        "Cashout amount cannot be greater than your current balance."
-                      );
-                      return;
-                    }
-                    setIsOpen(true)
-                    onClose()}
-                  }
-                  disabled={cashoutDisabled}
-                >
-                 Next
-                </Button> */}
-              
+                 sx={{ flexDirection: { xs: "column-reverse", sm: "row" }, gap: 2 }}>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={handleNext} disabled={cashoutDisabled} variant="contained">
+                Next
+              </Button>
+            </Box>
           </ModalFooter>
         </Box>
       </Modal>
+
+      {/* GiftCard Flow */}
       <SelectGiftCardDialog
         open={isGiftCardOpen}
         onClose={() => {
           setIsGiftCardOpen(false);
           handleClose();
-          handleRefresh()
+          handleRefresh();
         }}
         onBack={() => {
           setIsGiftCardOpen(false);
@@ -293,6 +259,17 @@ const CashOutModal = ({
         onSuccess={handleGiftCardSuccess}
       />
 
+      {/* CLKK Flow */}
+      <ClkkDialog
+        open={clkkDialogOpen}
+        onClose={() => setClkkDialogOpen(false)}
+        handleRefresh={handleCashoutRefresh}
+        amount={balance}
+        method={selectedMethod}
+        availableMethods={availableMethods}
+      />
+
+      {/* Checkbook Flow */}
       <CheckbookPaymentDialog
         open={isOpen}
         onClose={() => setIsOpen(false)}
