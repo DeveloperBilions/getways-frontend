@@ -1147,7 +1147,9 @@ export const RechargeRecordsList = (props) => {
                             : record?.useWallet
                             ? "Wallet"
                             : record?.portal === "Payarc"
-                            ? "Payarc"
+                            ? "Payarc" :
+                            record?.portal === "CLK"
+                            ? "CLK" 
                             : "Stripe"}
                         </Typography>
                       </Box>
