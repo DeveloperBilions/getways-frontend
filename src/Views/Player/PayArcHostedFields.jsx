@@ -5,6 +5,7 @@ import Gpay from "../../Assets/icons/google-pay.png";
 import applep from "../../Assets/icons/apple-pay.png";
 import { CircularProgress } from "@mui/material";
 import { Alert } from "@mui/material"; // Make sure this is imported
+import { updatePotBalance } from "../../Utils/utils";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -310,6 +311,11 @@ const PayArcCheckout = ({ rechargeAmount , remark }) => {
               transaction.set("referralLink", response?.payment_form_url || "");
 
               await transaction.save(null, { useMasterKey: true });
+              await updatePotBalance(
+                user?.get("userParentId"),
+                rechargeAmount,
+                "recharge"
+              );
               alert("Recharge completed and transaction saved successfully!");
             } else {
               alert("Charge status not succeeded:", status);
