@@ -18,14 +18,20 @@ import Parse from "parse";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMethods }) => {
+const ClkkDialog = ({
+  open,
+  onClose,
+  handleRefresh,
+  amount,
+  method,
+  availableMethods,
+}) => {
   const [form, setForm] = useState({
     name: "",
     notes: "",
     vendorId: "",
     amount: amount || "",
     payoutMethod: method || "",
-    venmoEmail: "",
     venmoPhone: "",
     paypalEmail: "",
     paypalPhone: "",
@@ -33,23 +39,26 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
     cardPhone: "",
   });
 
+  const [paypalOption, setPaypalOption] = useState("email");
   const [existingRecipientId, setExistingRecipientId] = useState(null);
-  const [step, setStep] = useState("chooseMethod"); 
+  const [step, setStep] = useState("chooseMethod");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
       resetState();
-
-      // ✅ If method already selected → skip "chooseMethod"
       if (method) {
         setStep("addRecipient");
         checkForExistingRecipient();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, amount, method]);
+
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const isValidPhone = (phone) => /^[0-9]{10}$/.test(phone);
 
   const resetState = () => {
     setForm((prev) => ({
@@ -57,6 +66,7 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
       amount: amount || "",
       payoutMethod: method || "",
     }));
+    setPaypalOption("email");
     setExistingRecipientId(null);
     setStep(method ? "addRecipient" : "chooseMethod");
     setError("");
@@ -85,7 +95,6 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
             name: existing.get("name") || "",
             notes: metadata.notes || "",
             vendorId: metadata.vendorId || "",
-            venmoEmail: metadata.venmoEmail || "",
             venmoPhone: metadata.venmoPhone || "",
             paypalEmail: metadata.paypalEmail || "",
             paypalPhone: metadata.paypalPhone || "",
@@ -112,14 +121,35 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
     setError("");
     if (!form.name) return setError("Name is required");
 
-    if (form.payoutMethod === "venmo" && !form.venmoEmail && !form.venmoPhone) {
-      return setError("Provide Venmo Email or Phone");
+    // Venmo validation
+    if (form.payoutMethod === "venmo") {
+      if (!form.venmoPhone) return setError("Venmo Phone is required");
+      console.log(form.venmoPhone,"form.venmoPhoneform.venmoPhoneform.venmoPhone")
+      if (!isValidPhone(form.venmoPhone))
+        return setError("Venmo Phone must be a 10-digit number");
     }
-    if (form.payoutMethod === "paypal" && !form.paypalEmail && !form.paypalPhone) {
-      return setError("Provide PayPal Email or Phone");
+
+    // PayPal validation
+    if (form.payoutMethod === "paypal") {
+      if (paypalOption === "email") {
+        if (!form.paypalEmail) return setError("PayPal Email is required");
+        if (!isValidEmail(form.paypalEmail))
+          return setError("Invalid PayPal Email format");
+      } else {
+        if (!form.paypalPhone) return setError("PayPal Phone is required");
+        if (!isValidPhone(form.paypalPhone))
+          return setError("PayPal Phone must be a 10-digit number");
+      }
     }
-    if (form.payoutMethod === "card" && (!form.cardEmail || !form.cardPhone)) {
-      return setError("Provide both Card Email and Phone");
+
+    // Card validation
+    if (form.payoutMethod === "card") {
+      if (!form.cardEmail || !form.cardPhone)
+        return setError("Provide both Card Email and Phone");
+      if (!isValidEmail(form.cardEmail))
+        return setError("Invalid Card Email format");
+      if (!isValidPhone(form.cardPhone))
+        return setError("Card Phone must be a 10-digit number");
     }
 
     setLoading(true);
@@ -127,7 +157,6 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
       const metadata = {
         notes: form.notes,
         vendorId: form.vendorId,
-        venmoEmail: form.venmoEmail,
         venmoPhone: form.venmoPhone,
         paypalEmail: form.paypalEmail,
         paypalPhone: form.paypalPhone,
@@ -152,6 +181,7 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
   const handlePayout = async () => {
     setError("");
     if (!form.amount) return setError("Amount is required");
+
     const amountValue = parseFloat(form.amount);
     if (isNaN(amountValue) || amountValue < 25 || amountValue > 500) {
       return setError("Amount must be between $25 and $500");
@@ -180,7 +210,10 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
         });
         let sessionUrl = setupSession?.publicUrl;
         if (sessionUrl) {
-          sessionUrl = sessionUrl.replace("https://pay.clkk-api.com", "https://pay.clkkapi.io");
+          sessionUrl = sessionUrl.replace(
+            "https://pay.clkk-api.com",
+            "https://pay.clkkapi.io"
+          );
           window.open(sessionUrl, "_blank");
         }
       } else {
@@ -207,42 +240,128 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
   const renderPaymentInputs = () => {
     if (form.payoutMethod === "venmo") {
       return (
-        <>
-          <TextField label="Venmo Email" name="venmoEmail" value={form.venmoEmail} onChange={handleChange} fullWidth />
-          <TextField label="Venmo Phone" name="venmoPhone" value={form.venmoPhone} onChange={handleChange} fullWidth />
-        </>
+        <TextField
+          label="Venmo Phone"
+          name="venmoPhone"
+          value={form.venmoPhone}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (/^[0-9]*$/.test(val) && val.length <= 10) {
+              setForm((prev) => ({ ...prev, venmoPhone: val }));
+            }
+          }}
+          inputProps={{ maxLength: 10 }}
+          fullWidth
+        />
       );
     }
+
     if (form.payoutMethod === "paypal") {
       return (
         <>
-          <TextField label="PayPal Email" name="paypalEmail" value={form.paypalEmail} onChange={handleChange} fullWidth />
-          <TextField label="PayPal Phone" name="paypalPhone" value={form.paypalPhone} onChange={handleChange} fullWidth />
+          <FormControl fullWidth>
+            <InputLabel id="paypal-contact-type-label">
+              PayPal Contact Type
+            </InputLabel>
+            <Select
+              labelId="paypal-contact-type-label"
+              id="paypal-contact-type"
+              value={paypalOption}
+              onChange={(e) => setPaypalOption(e.target.value)}
+              label="PayPal Contact Type" // 👈 Important for proper floating
+            >
+              <MenuItem value="email">Email</MenuItem>
+              <MenuItem value="phone">Phone</MenuItem>
+            </Select>
+          </FormControl>
+
+          {paypalOption === "email" && (
+            <TextField
+              label="PayPal Email"
+              name="paypalEmail"
+              value={form.paypalEmail}
+              onChange={handleChange}
+              fullWidth
+            />
+          )}
+          {paypalOption === "phone" && (
+            <TextField
+              label="PayPal Phone"
+              name="paypalPhone"
+              value={form.paypalPhone}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[0-9]*$/.test(val) && val.length <= 10) {
+                  setForm((prev) => ({ ...prev, paypalPhone: val }));
+                }
+              }}
+              inputProps={{ maxLength: 10 }}
+              fullWidth
+            />
+          )}
         </>
       );
     }
+
     if (form.payoutMethod === "card") {
       return (
         <>
-          <TextField label="Card Email" name="cardEmail" value={form.cardEmail} onChange={handleChange} fullWidth />
-          <TextField label="Card Phone" name="cardPhone" value={form.cardPhone} onChange={handleChange} fullWidth />
+          <TextField
+            label="Card Email"
+            name="cardEmail"
+            value={form.cardEmail}
+            onChange={handleChange}
+            fullWidth
+          />
+          <TextField
+            label="Card Phone"
+            name="cardPhone"
+            value={form.cardPhone}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (/^[0-9]*$/.test(val) && val.length <= 10) {
+                setForm((prev) => ({ ...prev, cardPhone: val }));
+              }
+            }}
+            inputProps={{ maxLength: 10 }}
+            fullWidth
+          />
         </>
       );
     }
+
     return null;
   };
 
   const renderAddRecipient = () => (
     <>
-      <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth />
+      <TextField
+        label="Name"
+        name="name"
+        value={form.name}
+        onChange={handleChange}
+        fullWidth
+      />
       {renderPaymentInputs()}
-      <TextField label="Notes" name="notes" value={form.notes} onChange={handleChange} fullWidth />
+      <TextField
+        label="Notes"
+        name="notes"
+        value={form.notes}
+        onChange={handleChange}
+        fullWidth
+      />
     </>
   );
 
   const renderPayout = () => (
     <>
-      <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth />
+      <TextField
+        label="Name"
+        name="name"
+        value={form.name}
+        onChange={handleChange}
+        fullWidth
+      />
       {renderPaymentInputs()}
       <TextField
         label="Amount"
@@ -268,15 +387,21 @@ const ClkkDialog = ({ open, onClose, handleRefresh, amount, method, availableMet
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancel</Button>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
         {step === "addRecipient" && (
-          <Button variant="contained" onClick={handleSubmitRecipient} disabled={loading}>
+          <Button
+            variant="contained"
+            onClick={handleSubmitRecipient}
+            disabled={loading}
+          >
             {loading ? "Processing..." : "Submit"}
           </Button>
         )}
         {step === "payout" && (
           <Button variant="contained" onClick={handlePayout} disabled={loading}>
-            {loading ? "Processing..." : "Pay"}
+            {loading ? "Processing..." : "Confirm"}
           </Button>
         )}
       </DialogActions>

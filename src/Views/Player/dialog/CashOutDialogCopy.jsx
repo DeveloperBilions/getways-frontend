@@ -20,7 +20,7 @@ const ALL_METHODS = {
   giftcard: "Gift Card",
   paypal: "PayPal",
   venmo: "Venmo",
-  card: "Card",
+  card: "Push To Card",
   clkk: "CLKK",
 };
 
@@ -212,7 +212,7 @@ const CashOutModal = ({
             {/* Payment Method dropdown */}
             <Box sx={{ mb: 3 }}>
               <Typography sx={{ fontSize: "14px", mb: 1 }}>
-                Select Payment Method
+                Select Method
               </Typography>
               <Select
                 fullWidth
