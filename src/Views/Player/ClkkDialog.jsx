@@ -119,6 +119,7 @@ const ClkkDialog = ({
 
   const handleSubmitRecipient = async () => {
     setError("");
+    console.log(form ,"form----form")
     if (!form.name) return setError("Name is required");
 
     // Venmo validation
@@ -180,6 +181,38 @@ const ClkkDialog = ({
 
   const handlePayout = async () => {
     setError("");
+    if (!form.name) return setError("Name is required");
+
+    // Venmo validation
+    if (form.payoutMethod === "venmo") {
+      if (!form.venmoPhone) return setError("Venmo Phone is required");
+      console.log(form.venmoPhone,"form.venmoPhoneform.venmoPhoneform.venmoPhone")
+      if (!isValidPhone(form.venmoPhone))
+        return setError("Venmo Phone must be a 10-digit number");
+    }
+
+    // PayPal validation
+    if (form.payoutMethod === "paypal") {
+      if (paypalOption === "email") {
+        if (!form.paypalEmail) return setError("PayPal Email is required");
+        if (!isValidEmail(form.paypalEmail))
+          return setError("Invalid PayPal Email format");
+      } else {
+        if (!form.paypalPhone) return setError("PayPal Phone is required");
+        if (!isValidPhone(form.paypalPhone))
+          return setError("PayPal Phone must be a 10-digit number");
+      }
+    }
+
+    // Card validation
+    if (form.payoutMethod === "card") {
+      if (!form.cardEmail || !form.cardPhone)
+        return setError("Provide both Card Email and Phone");
+      if (!isValidEmail(form.cardEmail))
+        return setError("Invalid Card Email format");
+      if (!isValidPhone(form.cardPhone))
+        return setError("Card Phone must be a 10-digit number");
+    }
     if (!form.amount) return setError("Amount is required");
 
     const amountValue = parseFloat(form.amount);
