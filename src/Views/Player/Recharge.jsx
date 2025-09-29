@@ -516,6 +516,20 @@ const Recharge = ({
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
+         setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            return;
+          }
+
+          setRechargeError("");
         navigate("/payment-checkout", {
           state: { rechargeAmount: rechargeAmount,remark:remark },
         });
