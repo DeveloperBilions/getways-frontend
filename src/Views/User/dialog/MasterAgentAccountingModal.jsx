@@ -47,6 +47,12 @@ export default function MasterAgentAccountingModal({ open, onClose }) {
   }, [open]);
 
   useEffect(() => {
+  if (open && effectiveMasterId) {
+    handleFetch();
+  }
+}, [page]);
+
+  useEffect(() => {
     if (!open || !isSuperUser || masterInput === "") return;
     const t = setTimeout(() => loadMasters(masterInput), 350);
     return () => clearTimeout(t);
