@@ -184,17 +184,18 @@ export const WalletDetails = ({
               },
             }}
             onClick={() => {
-               if(identity?.userParentId === "PY6MQUOJtH")
-                {
-                  if (!hasAnyPaymentMethod(wallet)) {
-                    setPaymentDialogOpen(true);
-                    return;
-                  }else{
-                    setcashOutDialogOpen(true)
-                  }
-                }else{
+              //  if(identity?.userParentId === "PY6MQUOJtH")
+              //   {
+              //     if (!hasAnyPaymentMethod(wallet)) {
+              //       setPaymentDialogOpen(true);
+              //       return;
+              //     }else{
+              //       setcashOutDialogOpen(true)
+              //     }
+              //   }
+                //else{
                   setIsOpen(true);
-                }
+                //}
             }}
             disabled={identity?.isBlackListed || cashoutDisabled}
           >
