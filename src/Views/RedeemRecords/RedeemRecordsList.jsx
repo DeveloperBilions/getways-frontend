@@ -251,7 +251,7 @@ export const RedeemRecordsList = (props) => {
     }
     const selectedFields = exportData.map((item) => ({
       Name: item.username,
-      "Amount($)": item.transactionAmount,
+      "Amount": item.transactionAmount,
       Remark: item.remark,
       Status: mapStatus(item.status),
       Message: item.responseMessage,
@@ -1102,7 +1102,7 @@ export const RedeemRecordsList = (props) => {
         const doc = new jsPDF();
         doc.text("Redeem Records", 10, 10);
         doc.autoTable({
-          head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+          head: [["No", "Name", "Amount", "Remark", "Status", "Date"]],
           body: exportData.map((row, index) => [
             index + 1,
             row.username,
@@ -1131,7 +1131,7 @@ export const RedeemRecordsList = (props) => {
 
         const selectedFields = exportData.map((item) => ({
           Name: item.username,
-          "Amount($)": item.transactionAmount,
+          "Amount": item.transactionAmount,
           Remark: item.remark,
           Status: mapStatus(item.status),
           Date: item.transactionDate
