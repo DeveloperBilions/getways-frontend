@@ -296,7 +296,7 @@ if (exportFilters.month) {
     const doc = new jsPDF();
     doc.text("Recharge Records", 10, 10);
     doc.autoTable({
-      head: [["No", "Name", "Amount($)", "Remark", "Status", "Date"]],
+      head: [["No", "Name", "Amount", "Remark", "Status", "Date"]],
       body: exportData.map((row, index) => [
         index + 1,
         row.username,
@@ -317,7 +317,7 @@ if (exportFilters.month) {
     }
     const selectedFields = exportData.map((item) => ({
       Name: item.username,
-      "Amount($)": item.transactionAmount,
+      "Amount": item.transactionAmount,
       Remark: item.remark,
       Status: mapStatus(item.status),
       Date: new Date(item.transactionDate).toLocaleDateString(),
@@ -1281,7 +1281,7 @@ if (exportFilters.month) {
                     [
                       "No",
                       "Name",
-                      "Amount($)",
+                      "Amount",
                       "Remark",
                       "Status",
                       ...(role === "Super-User" ? ["Mode"] : []),
@@ -1326,7 +1326,7 @@ if (exportFilters.month) {
                 const selectedFields = exportData.map((item) => {
                   const row = {
                     Name: item.username,
-                    "Amount($)": item.transactionAmount,
+                    "Amount": item.transactionAmount,
                     Remark: item.remark,
                     Status: mapStatus(item.status),
                     Date: new Date(item.transactionDate).toLocaleDateString(),
