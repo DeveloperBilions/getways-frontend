@@ -387,8 +387,8 @@ const Recharge = ({
   const paymentOptions = [
     {
       id: "CLKK",
-      title: "CLKK",
-      description: "Pay with cash, card, or ACH via CLKK",
+      title: "Cashapp pay",
+      description: "Pay with cashApp",
       subtext: "No KYC needed",
       icon: (
         <AccountBalanceWalletOutlinedIcon sx={{ color: "#1D4ED8", fontSize: 24 }} />
