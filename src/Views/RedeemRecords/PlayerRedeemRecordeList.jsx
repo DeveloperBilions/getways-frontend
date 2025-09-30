@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
+// react admin
+import { useGetIdentity, useRefresh, useListController } from "react-admin";
 import { useNavigate } from "react-router-dom";
+// dialog
+import { Menu, MenuItem } from "@mui/material";
+import Info from "../../Assets/icons/Info.svg";
+
+// mui
 import {
   Chip,
   Button,
@@ -16,17 +23,22 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Menu,
-  MenuItem,
 } from "@mui/material";
+// mui icon
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
+// loader
 import { Loader } from "../Loader";
-import { walletService } from "../../Provider/WalletManagement";
-import CustomPagination from "../Common/CustomPagination";
 import tick from "../../Assets/icons/tick.svg";
 import Dropdown from "../../Assets/icons/Dropdown.svg";
 import filter from "../../Assets/icons/filter.svg";
+
+import { Parse } from "parse";
+import CustomPagination from "../Common/CustomPagination";
+
+// Initialize Parse
+Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
+Parse.serverURL = process.env.REACT_APP_URL;
 
 const useWindowWidth = () => {
   const [width, setWidth] = useState(window.innerWidth);
@@ -41,155 +53,84 @@ const useWindowWidth = () => {
   return width;
 };
 
-export const Wallet = () => {
-  const navigate = useNavigate();
-  const [transactions, setTransactions] = useState([]);
-  // const [loadingTransactions, setLoadingTransactions] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [statusMenuAnchor, setStatusMenuAnchor] = useState(null);
-  const [totalTransaction, setTotalTransaction] = useState(0);
-  const [initialLoading, setInitialLoading] = useState(true);
+export const PlayerRedeemRecordsList = (props) => {
+  const listContext = useListController({
+    ...props,
+    filter: { type: "redeem", status: 6 },
+    sort: { field: "transactionDate", order: "DESC" },
+  });
+  const {
+    data,
+    isLoading,
+    total,
+    page,
+    perPage,
+    setPage,
+    setPerPage,
+    setFilters,
+  } = listContext;
+  console.log(data, "data");
 
+  const navigate = useNavigate();
+  const refresh = useRefresh();
+  const { identity } = useGetIdentity();
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchBy, setSearchBy] = useState("transactionAmount");
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const isMobile = useMediaQuery("(max-width: 900px)");
+
   const screenWidth = useWindowWidth();
 
   const role = localStorage.getItem("role");
-  const userId = localStorage.getItem("id");
 
-  useEffect(() => {
-    if (!role) {
-      navigate("/login");
-    }
-  }, [role, navigate]);
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [page, perPage, searchQuery, statusFilter]);
-
-  async function fetchTransactions() {
-    // setLoadingTransactions(true);
-    try {
-      const params = {
-        page,
-        limit: perPage,
-        userId: userId,
-      };
-
-      // Add search query if exists
-      if (searchQuery && searchQuery.trim()) {
-        params.transactionAmount = searchQuery;
-      }
-
-      // Add status filter if not "all"
-      if (statusFilter !== "all") {
-        params.status = parseInt(statusFilter);
-      }
-
-      const response = await walletService.getCashoutTransactions(params);
-      setTransactions(response.transactions || []);
-      setTotal(response.pagination?.count || 0);
-      setTotalTransaction(response.totalTransaction || 0);
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      setTransactions([]);
-      setTotal(0);
-    } finally {
-      // setLoadingTransactions(false);
-      setInitialLoading(false);
-    }
+  if (!role) {
+    navigate("/login");
   }
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    setSearchQuery("");
-    setStatusFilter("all");
-    setPage(1);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  };
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    setPage(1);
-  };
-
-  const statusChoices = [
-    { id: "all", name: "All Status" },
-    { id: "2", name: "Recharge Successful" },
-    { id: "4", name: "Success" },
-    { id: "5", name: "Fail" },
-    { id: "6", name: "Pending Approval" },
-    { id: "7", name: "Redeem Rejected" },
-    { id: "8", name: "Redeem Successful" },
-    { id: "11", name: "In-Progress" },
-    { id: "12", name: "Cashout Successful" },
-    { id: "13", name: "Cashout Rejected" },
-  ];
-
-  const statusLabel = (val) => {
-    const choice = statusChoices.find((choice) => choice.id === val);
-    return choice?.name;
-  };
-
-  const handleStatusMenuOpen = (event) => {
-    setStatusMenuAnchor(event.currentTarget);
-  };
-
-  const handleStatusMenuClose = () => {
-    setStatusMenuAnchor(null);
-  };
-
-  const handleStatusMenuItemClick = (id) => {
-    setStatusFilter(id);
-    setPage(1);
-    handleStatusMenuClose();
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + "," + date.toLocaleTimeString();
-  };
-
   const mapStatus = (status) => {
-    const statusMessage = {
-      2: "Recharge Successful",
-      3: "Coins Credited",
-      4: "Success",
-      5: "Fail",
-      6: "Pending Approval",
-      7: "Redeem Rejected",
-      8: "Redeem Successful",
-      9: "Redeem Expired",
-      11: "In-Progress",
-      12: "Cashout Successful",
-      13: "Cashout Rejected",
-    };
-    return statusMessage[status] || "Unknown Status";
+    switch (status) {
+      case 4:
+        return "Success";
+      case 5:
+        return "Fail";
+      case 6:
+        return "Pending Approval";
+      case 7:
+        return "Rejected";
+      case 8:
+        return "Redeem Successfully";
+      case 9:
+        return "Expired";
+      case 11:
+        return "Cashouts";
+      case 12:
+        return "Cashout Successfully";
+      case 13:
+        return "Cashout Reject";
+      default:
+        return "Unknown Status";
+    }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 2:
       case 4:
       case 8:
       case 12:
         return {
-          backgroundColor: "#DCFCE7",
+          backgroundColor: "#EBFFEC",
           color: "#166534",
+          border: "1px solid #60FF6D",
         };
       case 5:
       case 7:
       case 9:
       case 13:
         return {
-          backgroundColor: "#FEE2E2",
+          backgroundColor: "#FFEBEB",
           color: "#B91616",
+          border: "1px solid #FF6060",
         };
       case 6:
       case 11:
@@ -206,40 +147,64 @@ export const Wallet = () => {
     }
   };
 
-  const getTypeLabel = (record) => {
-    return record?.isCashOut === true ? "W" : "D";
+  const handleRefresh = async () => {
+    setLoading(true);
+    refresh();
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
-  const getTypeColor = (record) => {
-    const isCashOut = record?.isCashOut === true;
-    return {
-      color: "#FFFFFF",
-      backgroundColor: isCashOut ? "#FF0310" : "#00A000",
-    };
+  useEffect(() => {
+    const newFilter = { type: "redeem", status: 6 };
+    setFilters(newFilter, false);
+  }, []);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const newFilters = { type: "redeem" };
+
+    if (query) {
+      newFilters[searchBy] = query;
+    }
+
+    setFilters(newFilters, false);
   };
 
-  const getModeLabel = (record) => {
-    const isCashOut = record?.isCashOut === true;
-    const useWallet = record?.useWallet === true;
-    return isCashOut ? "Cashout" : useWallet ? "Recharge" : "Redeem";
+  const filterChoices = [
+    { id: "transactionAmount", name: "Redeem" },
+    { id: "remark", name: "Remark" },
+  ];
+
+  const filterLabel = (val) => {
+    const choice = filterChoices.find((choice) => choice.id === val);
+    return choice?.name;
+  }
+
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget);
   };
 
-  const getModeColor = (record) => {
-    const isCashOut = record?.isCashOut === true;
-    const useWallet = record?.useWallet === true;
-    return {
-      backgroundColor: isCashOut
-        ? "#1639B9"
-        : useWallet
-        ? "#166534"
-        : "#B916B9",
-      color: "#ffffff",
-    };
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
   };
 
-  if (loading || initialLoading) {
+  const handleMenuItemClick = (id) => {
+    setSearchBy(id);
+    handleMenuClose();
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + "," + date.toLocaleTimeString();
+  };
+
+  if (isLoading || loading) {
     return <Loader />;
   }
+
+  // Convert data object to array for rendering
+  const dataArray = data ? Object.values(data) : [];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -262,7 +227,7 @@ export const Wallet = () => {
           sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}
         >
           <IconButton
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/playerDashboard")}
             size="small"
             sx={{ ":hover": { backgroundColor: "#FFFFFF" } }}
           >
@@ -278,15 +243,55 @@ export const Wallet = () => {
             <Typography
               sx={{ fontWeight: 500, fontSize: { xs: "16px", sm: "20px" } }}
             >
-              Wallet Transactions
+              Pending Redeem Request
             </Typography>
             <Typography
               sx={{ fontWeight: 400, fontSize: { xs: "12px", sm: "14px" } }}
               color="text.secondary"
             >
-              Total transactions: {totalTransaction}
+              Total transactions: {total}
             </Typography>
           </Box>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            alignItems: { xs: "flex-start", sm: "flex-end" },
+            gap: { xs: 1, sm: 0 },
+          }}
+        >
+          <Typography
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 400,
+              fontSize: "14px",
+              verticalAlign: "middle",
+              color: "#867000",
+              padding: "4px 12px",
+              backgroundColor: "#FFF8D5",
+              borderRadius: "4px",
+            }}
+          >
+            {/* <InfoIcon style={{ marginRight: "4px" }} /> */}
+            <img
+              src={Info}
+              alt="info"
+              style={{ marginRight: "8px", verticalAlign: "middle" }}
+            />
+            Redeems may take up to 2 hours
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: "12px", sm: "14px" },
+              mt: { xs: 1, sm: 0 },
+            }}
+          >
+            Agent: {identity?.userParentName}
+          </Typography>
         </Box>
       </Box>
 
@@ -305,14 +310,9 @@ export const Wallet = () => {
         }}
       >
         <TextField
-          placeholder={`Search By transaction Amount`}
+          placeholder={`Search By ${filterLabel(searchBy)}`}
           value={searchQuery}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === "" || /^\d*\.?\d*$/.test(value)) {
-              handleSearch(value);
-            }
-          }}
+          onChange={(e) => handleSearch(e.target.value)}
           size="small"
           sx={{
             minWidth: { xs: "100%", sm: 300 },
@@ -334,7 +334,7 @@ export const Wallet = () => {
         />
 
         <Button
-          onClick={handleStatusMenuOpen}
+          onClick={handleMenuOpen}
           sx={{
             fontSize: { xs: "12px", sm: "14px" },
             fontWeight: 400,
@@ -355,15 +355,15 @@ export const Wallet = () => {
         >
           <Box>
             <img src={filter} alt="filter" style={{ marginRight: "8px" }} />
-            {statusLabel(statusFilter)}
+            {filterLabel(searchBy) || "Filter by"}
           </Box>
           <img src={Dropdown} alt="dropdown" />
         </Button>
 
         <Menu
-          anchorEl={statusMenuAnchor}
-          open={Boolean(statusMenuAnchor)}
-          onClose={handleStatusMenuClose}
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
           sx={{
             marginTop: "8px",
             "& .MuiPaper-root": {
@@ -373,12 +373,13 @@ export const Wallet = () => {
             },
           }}
         >
-          {statusChoices.map((choice) => (
+
+          {filterChoices.map((choice) => (
             <MenuItem
               key={choice.id}
-              onClick={() => handleStatusMenuItemClick(choice.id)}
+              onClick={() => handleMenuItemClick(choice.id)}
               sx={{
-                bgcolor: statusFilter === choice.id ? "#F6F4F4" : "white",
+                bgcolor: searchBy === choice.id ? "#F6F4F4" : "white",
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
@@ -388,7 +389,7 @@ export const Wallet = () => {
                 paddingRight: "16px",
               }}
             >
-              {statusFilter === choice.id ? (
+              {searchBy === choice.id ? (
                 <img
                   src={tick}
                   alt="tick"
@@ -461,7 +462,7 @@ export const Wallet = () => {
               component={Paper}
               sx={{
                 borderRadius: 2,
-                boxShadow: "none",
+                boxShadow: 1,
                 overflowX: "auto",
                 "& .MuiTable-root": {
                   width: "100%",
@@ -473,6 +474,7 @@ export const Wallet = () => {
                 "& .MuiTableCell-body": {
                   whiteSpace: "nowrap",
                 },
+                borderColor: "#CFD4DB",
               }}
             >
               <Table size="small">
@@ -481,17 +483,22 @@ export const Wallet = () => {
                     <TableCell
                       sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                     >
-                      Type
+                      Redeem Date
                     </TableCell>
                     <TableCell
                       sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                     >
-                      Mode
+                      Redeemed
                     </TableCell>
                     <TableCell
                       sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                     >
-                      Amount
+                      Service Fee
+                    </TableCell>
+                    <TableCell
+                      sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
+                    >
+                      Remark
                     </TableCell>
                     <TableCell
                       sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
@@ -501,66 +508,16 @@ export const Wallet = () => {
                     <TableCell
                       sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                     >
-                      Date Created
-                    </TableCell>
-                    <TableCell
-                      sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
-                    >
-                      Remark
+                      Actions
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {transactions.map((record, index) => (
+                  {dataArray.map((record) => (
                     <TableRow
-                      key={record.id || index}
+                      key={record.id}
                       sx={{ "&:hover": { backgroundColor: "#F8F9FA" } }}
                     >
-                      <TableCell>
-                        <Chip
-                          label={getTypeLabel(record)}
-                          size="small"
-                          sx={{
-                            ...getTypeColor(record),
-                            fontWeight: 600,
-                            borderRadius: "50%",
-                            width: "32px",
-                            height: "32px",
-                            fontSize: "14px",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={getModeLabel(record)}
-                          size="small"
-                          sx={{
-                            ...getModeColor(record),
-                            fontWeight: 400,
-                            borderRadius: 4,
-                            fontSize: "14px",
-                            padding: "4px",
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography sx={{ fontSize: "14px" }}>
-                          {record.transactionAmount}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={mapStatus(record.status)}
-                          size="small"
-                          sx={{
-                            ...getStatusColor(record.status),
-                            fontWeight: 400,
-                            borderRadius: 4,
-                            fontSize: "14px",
-                            padding: "4px",
-                          }}
-                        />
-                      </TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", flexDirection: "column" }}>
                           <Typography sx={{ fontSize: "14px" }}>
@@ -574,8 +531,32 @@ export const Wallet = () => {
                       </TableCell>
                       <TableCell>
                         <Typography sx={{ fontSize: "14px" }}>
-                          {record.redeemRemarks ? record.redeemRemarks : "-"}
+                          {record.transactionAmount}
                         </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "14px" }}>
+                          {record.remark ? record.remark : "-"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: "14px" }}>
+                          {record.redeemServiceFee
+                            ? `${record.redeemServiceFee}%`
+                            : "-"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={mapStatus(record.status)}
+                          size="small"
+                          sx={{
+                            ...getStatusColor(record.status),
+                            fontWeight: 400,
+                            borderRadius: 4,
+                            fontSize: "14px",
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -607,7 +588,7 @@ export const Wallet = () => {
         <>
           <TableContainer
             component={Paper}
-            sx={{ borderRadius: 2, boxShadow: "none" }}
+            sx={{ borderRadius: 2, boxShadow: 1 }}
           >
             <Table>
               <TableHead>
@@ -615,17 +596,22 @@ export const Wallet = () => {
                   <TableCell
                     sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                   >
-                    Type
+                    Redeem Date
                   </TableCell>
                   <TableCell
                     sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                   >
-                    Mode
+                    Redeemed
                   </TableCell>
                   <TableCell
                     sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                   >
-                    Amount
+                    Service Fee
+                  </TableCell>
+                  <TableCell
+                    sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
+                  >
+                    Remark
                   </TableCell>
                   <TableCell
                     sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
@@ -635,66 +621,16 @@ export const Wallet = () => {
                   <TableCell
                     sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
                   >
-                    Date Created
-                  </TableCell>
-                  <TableCell
-                    sx={{ fontWeight: 600, backgroundColor: "#FFFFFF" }}
-                  >
-                    Remark
+                    Actions
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {transactions.map((record, index) => (
+                {dataArray.map((record) => (
                   <TableRow
-                    key={record.id || index}
+                    key={record.id}
                     sx={{ "&:hover": { backgroundColor: "#F8F9FA" } }}
                   >
-                    <TableCell>
-                      <Chip
-                        label={getTypeLabel(record)}
-                        size="small"
-                        sx={{
-                          ...getTypeColor(record),
-                          fontWeight: 600,
-                          borderRadius: "50%",
-                          width: "32px",
-                          height: "32px",
-                          fontSize: "14px",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getModeLabel(record)}
-                        size="small"
-                        sx={{
-                          ...getModeColor(record),
-                          fontWeight: 400,
-                          borderRadius: 4,
-                          fontSize: "14px",
-                          padding: "4px",
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: "14px" }}>
-                        {record.transactionAmount}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={mapStatus(record.status)}
-                        size="small"
-                        sx={{
-                          ...getStatusColor(record.status),
-                          fontWeight: 400,
-                          borderRadius: 4,
-                          fontSize: "14px",
-                          padding: "4px",
-                        }}
-                      />
-                    </TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", flexDirection: "column" }}>
                         <Typography sx={{ fontSize: "14px" }}>
@@ -708,8 +644,32 @@ export const Wallet = () => {
                     </TableCell>
                     <TableCell>
                       <Typography sx={{ fontSize: "14px" }}>
-                        {record.redeemRemarks ? record.redeemRemarks : "-"}
+                        {record.transactionAmount}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        {record.redeemServiceFee
+                          ? `${record.redeemServiceFee}%`
+                          : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        {record.remark ? record.remark : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={mapStatus(record.status)}
+                        size="small"
+                        sx={{
+                          ...getStatusColor(record.status),
+                          fontWeight: 400,
+                          borderRadius: 4,
+                          fontSize: "14px",
+                        }}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

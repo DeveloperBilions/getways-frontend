@@ -51,6 +51,7 @@ import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRecharg
 import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 import ClkkCashout from "./Views/Player/ClkkCashout";
+import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecordeList";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -350,7 +351,7 @@ function App() {
                     path="/redeemRecords"
                     element={
                       <Authenticated>
-                        <RedeemRecordsList resource="redeemRecords" />
+                        <PlayerRedeemRecordsList resource="redeemRecords" />
                       </Authenticated>
                     }
                   />

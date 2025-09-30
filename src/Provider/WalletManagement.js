@@ -41,7 +41,7 @@ export const walletService = {
     try {
       const Wallet = Parse.Object.extend("Wallet");
       const userId = localStorage.getItem("id");
-  
+
       // Ensure at least one payment method is provided
       if (
         !paymentMethods?.cashAppId?.trim() &&
@@ -51,14 +51,14 @@ export const walletService = {
       ) {
         throw new Error("At least one valid payment method is required.");
       }
-  
+
       // Function to check for duplicates before setting values
       const checkAndSet = async (wallet, field, value) => {
         if (value) {
           const existingQuery = new Parse.Query(Wallet);
           existingQuery.notEqualTo("userID", userId);
           existingQuery.equalTo(field, value);
-          
+
           const existing = await existingQuery.first();
           if (existing) {
             throw new Error(`The ${field} is already in use by another user. Please enter a new ID.`);
@@ -67,27 +67,27 @@ export const walletService = {
           }
         }
       };
-  
+
       // Query for the user's wallet (if it exists)
       const query = new Parse.Query(Wallet);
       query.equalTo("userID", userId);
       let wallet = await query.first();
-  
+
       // Create a new wallet if it doesn't exist
       if (!wallet) {
         wallet = new Wallet();
         wallet.set("userID", userId);
       }
-  
+
       // Check and set payment methods
       await checkAndSet(wallet, "cashAppId", paymentMethods.cashAppId?.trim() || "");
       await checkAndSet(wallet, "paypalId", paymentMethods.paypalId?.trim() || "");
       await checkAndSet(wallet, "venmoId", paymentMethods.venmoId?.trim() || "");
       await checkAndSet(wallet, "zelleId", paymentMethods.zelleId?.trim() || "");
-  
+
       // Save the updated or newly created wallet
       const updatedWallet = await wallet.save(null);
-  
+
       return {
         message: "Payment methods updated successfully.",
         wallet: { ...updatedWallet.attributes },
@@ -96,10 +96,10 @@ export const walletService = {
       console.error("Error updating or creating wallet:", error.message);
       throw new Error(error.message || "Could not update or create wallet. Please try again.");
     }
-  },  
+  },
   getCashoutTransactions: async (request) => {
-    const { page = 1, limit = 10, userId } = request; // Default to page 1 and limit 10
-  
+    const { page = 1, limit = 10, userId, transactionAmount, status } = request;
+
     if (!userId) {
       return {
         status: "error",
@@ -107,9 +107,8 @@ export const walletService = {
         message: "Unauthorized: User not logged in",
       };
     }
-  
-    try {
 
+    try {
       const Wallet = Parse.Object.extend("Wallet");
       const walletQuery = new Parse.Query(Wallet);
       walletQuery.equalTo("userID", userId);
@@ -123,17 +122,18 @@ export const walletService = {
         };
       }
 
-  
       // Define the TransactionRecords class
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
-      const TransactionArchive = Parse.Object.extend("Transactionrecords_archive");
-  
+      const TransactionArchive = Parse.Object.extend(
+        "Transactionrecords_archive"
+      );
+
       // Create a query to find transactions with isCashOut === true
       const query1 = new Parse.Query(TransactionDetails);
       query1.equalTo("isCashOut", true);
       const queryA1 = new Parse.Query(TransactionArchive);
       queryA1.equalTo("isCashOut", true);
-  
+
       // Create a query to find transactions with status === 4
       const query2 = new Parse.Query(TransactionDetails);
       query2.equalTo("type", "redeem");
@@ -148,29 +148,51 @@ export const walletService = {
       queryA3.equalTo("useWallet", true);
 
       // Combine queries with OR
-      const query = Parse.Query.or(query1, query2,query3);
-  
+      const query = Parse.Query.or(query1, query2, query3);
+
       // Filter by userId
       query.equalTo("userId", userId);
-    //  query.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Exclude transactions before wallet creation date
+      //  query.greaterThanOrEqualTo("transactionDate", walletCreationDate); // Exclude transactions before wallet creation date
+      if (
+        transactionAmount !== undefined &&
+        transactionAmount !== null &&
+        transactionAmount !== ""
+      ) {
+        query.equalTo("transactionAmount", parseFloat(transactionAmount));
+      }
 
+      // Apply status filter if provided
+      if (status !== undefined && status !== null && status !== "") {
+        query.equalTo("status", parseInt(status));
+      }
       // Pagination logic
       query.skip((page - 1) * limit); // Skip records for previous pages
       query.limit(limit); // Limit the number of results
       query.descending("updatedAt"); // Sort by most recent updates
-  
+
       // Execute the query for fetching the paginated results
       const results = await query.find();
-  
+
       // Count total records for pagination metadata (without pagination logic applied)
-      const countQuery = Parse.Query.or(query1, query2,query3);
+      const countQuery = Parse.Query.or(query1, query2, query3);
       countQuery.equalTo("userId", userId);
-      const countQueryA = Parse.Query.or(queryA1, queryA2,queryA3);
+      const countQueryA = Parse.Query.or(queryA1, queryA2, queryA3);
       countQueryA.equalTo("userId", userId);
-     // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
+      const totalTransaction = await countQuery.count();
+      if (
+        transactionAmount !== undefined &&
+        transactionAmount !== null &&
+        transactionAmount !== ""
+      ) {
+        countQuery.equalTo("transactionAmount", parseFloat(transactionAmount));
+      }
+      if (status !== undefined && status !== null && status !== "") {
+        countQuery.equalTo("status", parseInt(status));
+      }
+      // countQuery.gre  aterThanOrEqualTo("transactionDate", walletCreationDate); // Include wallet creation date filter
       const count = await countQuery.count(); // Get total count without limit or skip
       const countA = await countQueryA.count(); // Get total count without limit or skip
-  
+
       // Map the results to a readable format
       const transactions = results.map((transaction) => {
         return {
@@ -188,15 +210,16 @@ export const walletService = {
           paymentMethodType: transaction.get("paymentMethodType"),
           updatedAt: transaction.get("updatedAt"), // Include updatedAt in response
           isCashOut: transaction.get("isCashOut"),
-          redeemRemarks:transaction.get("redeemRemarks"),
-          useWallet:transaction.get("useWallet")
+          redeemRemarks: transaction.get("redeemRemarks"),
+          useWallet: transaction.get("useWallet"),
         };
       });
-  
+
       // Return paginated results
       return {
         status: "success",
         transactions,
+        totalTransaction: totalTransaction,
         pagination: {
           currentPage: page,
           pageSize: limit,
@@ -222,5 +245,5 @@ export const walletService = {
         };
       }
     }
-  } 
+  },
 };
