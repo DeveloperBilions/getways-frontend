@@ -62,6 +62,10 @@ export const TotalLiquorEmbeddedCheckout = () => {
         setShowCheckout(true);
       }
     }
+    // Reset the URL to remove query parameters after autofill
+    if (urlParams.userId && urlParams.orderId && urlParams.totalAmount) {
+      navigate(location.pathname, { replace: true });
+    }
   }, [searchParams]);
 
   // Form validation
