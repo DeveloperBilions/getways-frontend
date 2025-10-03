@@ -6,7 +6,7 @@ import {
   FunctionField,
   DateField,
 } from "react-admin";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import { Pagination } from "@mui/material";
 import TablePagination from "@mui/material/TablePagination";
 export const Wallet = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [page, setPage] = useState(1);
@@ -63,6 +64,13 @@ export const Wallet = () => {
   if ( loadingTransactions) {
     return <Loader />;
   }
+  const handleBack = () => {
+  if (location.state?.from === "clkk-cashout") {
+    navigate("/playerDashboard");
+  } else {
+    navigate(-1);
+  }
+};
   return (
     <React.Fragment>
        <div
@@ -71,7 +79,7 @@ export const Wallet = () => {
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />} // Add Back Arrow Icon
-          onClick={() => navigate(-1)} // Navigate back to the previous page
+          onClick={handleBack} // Navigate back to the previous page
           sx={{
             textTransform: "none",
             fontSize: "16px",

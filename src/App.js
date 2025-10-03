@@ -47,6 +47,7 @@ import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import ClkkCashout from "./Views/Player/ClkkCashout";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
+import { CLKKWidgetCard } from "./Views/Player/dialog/CLKKWidgetCard";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -157,6 +158,9 @@ function App() {
     "/payment-checkout",
     "/recharge-widget",
     "/stripe-payment",
+    "/clkk-cashout",
+    "/clkk-payment",
+    "/clkk-card"
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -396,6 +400,14 @@ function App() {
                     element={
                       <Authenticated>
                         <ClkkCashout />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/clkk-card"
+                    element={
+                      <Authenticated>
+                        <CLKKWidgetCard />
                       </Authenticated>
                     }
                   />

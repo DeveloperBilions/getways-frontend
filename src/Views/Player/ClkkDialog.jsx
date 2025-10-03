@@ -14,6 +14,7 @@ import {
   FormControl,
 } from "@mui/material";
 import Parse from "parse";
+import { useNavigate } from "react-router-dom";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
@@ -44,7 +45,7 @@ const ClkkDialog = ({
   const [step, setStep] = useState("chooseMethod");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const navigate = useNavigate()
   useEffect(() => {
     if (open) {
       resetState();
@@ -244,10 +245,21 @@ const ClkkDialog = ({
         let sessionUrl = setupSession?.publicUrl;
         if (sessionUrl) {
           sessionUrl = sessionUrl.replace(
-            "https://pay.clkk-api.com",
-            "https://pay.clkkapi.io"
+            "https://dev.pay.clkk-api.com",
+            "https://pay-dev.clkkapi.io"
           );
-          window.open(sessionUrl, "_blank");
+          navigate("/clkk-card", {
+            state: {
+              response: {
+                ...setupSession,
+                publicUrl: sessionUrl,
+              },
+              amount,
+              description,
+              recipientId: existingRecipientId,
+            },
+          });
+          //window.open(sessionUrl, "_blank");
         }
       } else {
         const user = Parse.User.current();

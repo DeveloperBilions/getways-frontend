@@ -75,7 +75,7 @@ export default function ClkkCashout() {
 
 
       setTimeout(() => {
-        navigate("/wallet")
+        navigate("/wallet",{ state: { from: "clkk-cashout" } })
       }, 3000);
     } catch (err) {
       setError("Payment failed: " + err.message);
