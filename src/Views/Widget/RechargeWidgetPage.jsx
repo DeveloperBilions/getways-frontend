@@ -17,6 +17,10 @@ const RechargeWidgetPage = () => {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [showWidget, setShowWidget] = useState(false);
+  const price    = searchParams.get("price");  // <── ADDED
+  const title    = searchParams.get("title");  // <── optional
+  const coins    = searchParams.get("coins");  // <── optional
+
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +69,9 @@ const RechargeWidgetPage = () => {
       platform={platform}
       type={type}
       userId={userId}
+      price={price}   
+      title={title}   
+      coins={coins}
       onOptionClick={(id, details) => {
         console.log("Clicked:", id, details);
       }}

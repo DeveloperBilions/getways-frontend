@@ -31,6 +31,7 @@ const RechargeWidgetPopup = ({
   type,
   walletLoading = false,
   onOptionClick,
+  price
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showWertWidget, setShowWertWidget] = useState(false);
@@ -38,7 +39,7 @@ const RechargeWidgetPopup = ({
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isCoinbaseFlow, setIsCoinbaseFlow] = useState(false);
   const [wertLoading, setWertLoading] = useState(false);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(price || 0);
   const [confirmedAmount, setConfirmedAmount] = useState(null);
   const [amountError, setAmountError] = useState("");
   const [currentActionType, setCurrentActionType] = useState(type || null);
