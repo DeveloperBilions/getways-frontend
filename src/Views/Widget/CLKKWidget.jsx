@@ -33,7 +33,7 @@ export const CLKKWidget = () => {
     "https://pay-dev.clkkapi.io",
   ];
 
-  const updateTransactionStatus = async (sessionId, status) => {
+  const updateTransactionStatus = async (sessionId, status,transactionId) => {
     try {
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const query = new Parse.Query(TransactionRecords);
@@ -50,6 +50,7 @@ export const CLKKWidget = () => {
       }
 
       txn.set("status", status); // 2: success, 10: fail
+      txn.set("transactionIdFromStripe", transactionId);
       await txn.save(null, { useMasterKey: true });
       console.log("✅ Transaction updated with status:", status);
     } catch (err) {
@@ -76,11 +77,11 @@ export const CLKKWidget = () => {
             amount: message.data?.amount,
             currency: message.data?.currency,
             description: message.data?.description,
-            transactionId: message.data?.transaction?.id,
+            transactionId: message.data?.transactionId,
           });
 
           setShowSuccessAnimation(true); // Show success animation
-          updateTransactionStatus(message.data?.sessionId, 2); // Success
+          updateTransactionStatus(message.data?.sessionId, 2, message.data?.transactionId); // Success
 
           // Redirect after 3 seconds
           setTimeout(() => {

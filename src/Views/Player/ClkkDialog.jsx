@@ -245,8 +245,8 @@ const ClkkDialog = ({
         let sessionUrl = setupSession?.publicUrl;
         if (sessionUrl) {
           sessionUrl = sessionUrl.replace(
-            "https://dev.pay.clkk-api.com",
-            "https://pay-dev.clkkapi.io"
+            "https://pay.clkk-api.com",
+            "https://pay.clkkapi.io"
           );
           navigate("/clkk-card", {
             state: {
