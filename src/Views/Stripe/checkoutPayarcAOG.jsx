@@ -27,6 +27,8 @@ export default function CheckoutPayARCAOG() {
   const [searchParams] = useSearchParams();
   const amount = searchParams.get("amount");
   const userId = searchParams.get("userId");
+  const sc_coins = searchParams.get("sc_coins");
+  const gc_coins = searchParams.get("gc_coins");
   const [activeStep, setActiveStep] = useState(0);
   const [billingData, setBillingData] = useState(null);
 
@@ -61,7 +63,7 @@ export default function CheckoutPayARCAOG() {
             )}
 
             {activeStep === 1 && (
-              <PayArcCheckoutAOG rechargeAmount={amount} aog="true" userId={userId} />
+              <PayArcCheckoutAOG rechargeAmount={amount} aog="true" userId={userId} sc_coins={sc_coins} gc_coins={gc_coins} />
             )}
           </CardContent>
         </Card>

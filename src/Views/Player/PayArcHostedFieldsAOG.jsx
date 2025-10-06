@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
-const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
+const PayArcCheckoutAOG = ({ rechargeAmount , userId , gc_coins , sc_coins}) => {
   const [clientId, setClientId] = useState("WjLE4zjEwwDEzYPk");
   const { identity } = useGetIdentity();
   const navigate = useNavigate()
@@ -282,9 +282,7 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             const status =
               chargeResponse?.status || chargeResponse?.data?.status;
             if (status && status.toLowerCase() === "submitted_for_settlement") {
-              const user = await Parse.User.current()?.fetch();
-              const identity = user?.toJSON();
-
+          
               const TransactionDetails =
                 Parse.Object.extend("Transactions");
               const transaction = new TransactionDetails();
@@ -302,7 +300,8 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
                 `${token}-${chargeResponse?.data?.id ?? "unknown"}`
               );
               transaction.set("referralLink", response?.payment_form_url || "");
-
+              transaction.set("sc_coins",sc_coins)
+              transaction.set("gc_coins",gc_coins)
               await transaction.save(null, { useMasterKey: true });
               alert("Recharge completed and transaction saved successfully!");
             } else {
@@ -318,9 +317,6 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
               "Something went wrong during payment processing. Please try again."
             );
 
-            const user = await Parse.User.current()?.fetch();
-            const identity = user?.toJSON();
-
             const TransactionDetails =
               Parse.Object.extend("Transactions");
             const transaction = new TransactionDetails();
@@ -335,7 +331,8 @@ const PayArcCheckoutAOG = ({ rechargeAmount , userId }) => {
             transaction.set("transactionIdFromStripe", `${token}-failed`);
             transaction.set("referralLink", response?.payment_form_url || "");
             transaction.set("platform","AOGCOINCLUB")
-
+            transaction.set("sc_coins",sc_coins)
+            transaction.set("gc_coins",gc_coins)
             await transaction.save(null, { useMasterKey: true });
           }
         } catch (parseErr) {

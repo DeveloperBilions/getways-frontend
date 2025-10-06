@@ -31,7 +31,9 @@ const RechargeWidgetPopup = ({
   type,
   walletLoading = false,
   onOptionClick,
-  price
+  price,
+  gc_coins,
+  sc_coins
 }) => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [showWertWidget, setShowWertWidget] = useState(false);
@@ -131,7 +133,7 @@ const RechargeWidgetPopup = ({
     } else if (id === "wert") {
       handleOpenWert(amount);
     } else if(id === "payarc"){
-      const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}`;
+      const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}&gc_coins=${gc_coins}&sc_coins=${sc_coins}`;
       setIframeUrl(checkoutUrl);
     }else {
       onOptionClick(id, { userId, walletId, remark });
