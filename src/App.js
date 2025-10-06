@@ -51,6 +51,7 @@ import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRecharg
 import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 import ClkkCashout from "./Views/Player/ClkkCashout";
+import TotalLiquorEmbeddedCheckout from "./Views/TotalLiquor/TotalLiquorEmbeddedCheckout";
 import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecordeList";
 
 function App() {
@@ -463,6 +464,8 @@ function App() {
           <Route path="/buyWert" element={<AutoWertWidget />} />
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
           <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
+          {/* Total Liquor Embedded Checkout */}
+          <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
         </CustomRoutes>
       </Admin>
     </BrowserRouter>

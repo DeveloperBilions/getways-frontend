@@ -960,7 +960,6 @@ export const superUserFinalOptions = {
     "Can I assign a Super-User as a Parent Type for a new user?",
   ],
   "agent-actions": [
-    "How can I disable recharge for an Agent or Master Agent?",
     "How do I set daily and monthly recharge limits for an Agent?",
     "How can I set the Redeem Service Fee for an Agent?",
     "How do I allow an Agent to reset their Players' passwords?",
@@ -1135,7 +1134,6 @@ export const superUserFinalAnswers = {
   "Can I assign a Super-User as a Parent Type for a new user?": `Yes, when adding a new user, you can assign a Super-User as the Parent Type. The Parent Type options available are Agents, Master Agents, and Super User. This allows for a hierarchical structure where a Super User can act as a parent for other users within the system. If you have any more questions or need further assistance, feel free to ask!`,
 
   // agent-actions
-  "How can I disable recharge for an Agent or Master Agent?": `To disable recharge for an Agent or Master Agent, follow these steps: 1. Find the Agent or Master Agent in the list of users. 2. Click on the Actions button next to the user you want to disable recharge for. 3. Select the Disable Recharge option. 4. A dialog box will appear with the message Are you sure you want to disable recharge for user?. 5. Click on the Disable button to confirm the action or Cancel to go back. By following these steps, you can successfully disable recharge for an Agent or Master Agent in the system.`,
   "How do I set daily and monthly recharge limits for an Agent?":
     "To set daily and monthly recharge limits for an Agent, follow these steps: 1. Access the Agent or Master Agent section in the system. 2. Locate the specific Agent for whom you want to set the recharge limits. 3. Click on the **Recharge Limit** option for that Agent. 4. In the dialog that opens, you will find a toggle to enable/disable Recharge Limit Restriction. 5. If enabled, input the desired values for the Monthly Recharge Limit and Daily Recharge Limit. 6. Click on the **Save** button to apply the changes or **Cancel** to discard them. By following these steps, you can successfully set daily and monthly recharge limits for an Agent in the system.",
   "How can I set the Redeem Service Fee for an Agent?": `To set the Redeem Service Fee for an Agent, follow these steps: 1. Access the Agent's profile or details within the User Management section. 2. Look for the option related to Redeem Service Fee. 3. You should see toggles for **Allow Agent to change Redeem Service?** and **Allow Agent to Add 0 Redeem Service?** - adjust these toggles as needed. 4. Once you have set the desired options, click on the **Confirm** button to save the changes. 5. If you want to cancel without saving changes, click on the **Cancel** button. If you encounter any issues or need further assistance, feel free to ask!`,
