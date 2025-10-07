@@ -165,25 +165,13 @@ export const AuthorizeNetCardForm = () => {
       });
 
       console.log(`✅ ${type === "charge" ? "Charge" : "Authorization"} successful:`, response);
-
       setPaymentStatus({
         status: "success",
         ...response
       });
 
-      // Update pot balance if it was a charge (not just auth)
-      if (type === "charge" && response.success) {
-        try {
-          await updatePotBalance(
-            identity?.userParentId,
-            amount,
-            "recharge"
-          );
-          console.log("✅ Pot balance updated");
-        } catch (balanceError) {
-          console.error("❌ Failed to update pot balance:", balanceError);
-        }
-      }
+      // Pot balance is already updated in the backend AuthorizeNet.js
+      console.log("✅ Transaction completed - pot balance updated by backend");
 
       // Redirect after 3 seconds
       setTimeout(() => {
