@@ -386,26 +386,36 @@ const ClkkDialog = ({
     </>
   );
 
-  const renderPayout = () => (
-    <>
-      <TextField
-        label="Name"
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        fullWidth
-      />
-      {renderPaymentInputs()}
-      <TextField
-        label="Amount"
-        name="amount"
-        value={form.amount}
-        onChange={handleChange}
-        fullWidth
-        helperText="Enter between $25 and $500"
-      />
-    </>
-  );
+  const renderPayout = () => {
+    const amountValue = parseFloat(form.amount);
+    const amountError =
+      isNaN(amountValue) || amountValue < 25 || amountValue > 500;
+  
+    return (
+      <>
+        <TextField
+          label="Name"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          fullWidth
+        />
+        {renderPaymentInputs()}
+        <TextField
+          label="Amount"
+          name="amount"
+          value={form.amount}
+          onChange={handleChange}
+          fullWidth
+          error={amountError}
+          helperText={
+            amountError ? "Amount must be between $25 and $500" : "Enter between $25 and $500"
+          }
+        />
+      </>
+    );
+  };
+  
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
