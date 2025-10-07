@@ -244,8 +244,8 @@ const ClkkDialog = ({
         let sessionUrl = setupSession?.publicUrl;
         if (sessionUrl) {
           sessionUrl = sessionUrl.replace(
-            "https://pay.clkk-api.com",
-            "https://pay.clkkapi.io"
+            "https://dev.pay.clkk-api.com",
+            "https://pay-dev.clkkapi.io"
           );
           window.open(sessionUrl, "_blank");
         }
