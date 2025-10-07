@@ -113,7 +113,7 @@ const Recharge = ({
   const [showStripe, setshowStripe] = useState(false);
   const [payarcLimit, setPayArcLimit] = useState(false);
   const [showPaynearMe, setShowPaynearMe] = useState(false);
-
+  const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -193,6 +193,7 @@ const Recharge = ({
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
       const isPaynearmeAllowed = await isPaymentMethodAllowed(parentId, "paynearme");
       const isCLKKAllowed = await isPaymentMethodAllowed(parentId, "clkk");
+      const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -201,6 +202,7 @@ const Recharge = ({
       setShowPaynearMe(isPaynearmeAllowed)
       setShowClkk(isCLKKAllowed)
       setRechargeMethodLoading(false);
+      setShowAuthorizeNet(isAuthorizeNetAllowed);
     };
 
     if (identity?.userParentId) {
@@ -951,6 +953,60 @@ const Recharge = ({
         rechargeDisabled ||
         walletLoading ||
         checkingRechargeLimit || checkingEligibility,
+    },
+     {
+      id: "authorizenet-charge",
+      title: "Direct Credit Card Charge",
+      description: "Instant charge • No KYC needed",
+      subtext: "Charge & Capture",
+      icon: <CreditCardIcon sx={{ color: "#28A745", fontSize: 24 }} />,
+      color: "#28A745",
+      hoverColor: "#E8F5E8",
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError(""); // Clear old errors
+          
+          // Navigate to credit card form page
+          navigate("/authorizenet-card-charge", { 
+            state: { 
+              amount: rechargeAmount,
+              type: "charge",
+              remark: remark
+            } 
+          });
+        } catch (error) {
+          console.error("Authorize.net card charge error:", error);
+          alert("Something went wrong with credit card charge. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
     },
     // {
     //   id: "bank",
@@ -1874,6 +1930,7 @@ const Recharge = ({
                   if (option.id === "payarc" && !showPayarc) return false;
                   if (option.id === "paynearme" && !showPaynearMe) return false;
                   if (option.id === "CLKK" && !showClkk) return false;
+                   if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
 
                   
                   return true;

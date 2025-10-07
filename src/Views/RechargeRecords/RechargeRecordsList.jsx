@@ -208,6 +208,7 @@ if (exportFilters.month) {
       data?.portal === "PayNearMe" ?
       "PayNearMe" :
       data?.portal === "CLK" ? "CLKK"
+      : data?.portal === "AuthorizeNet" ? "AuthorizeNet"
       : "Stripe";
   };
 
@@ -1156,6 +1157,8 @@ if (exportFilters.month) {
                             record?.portal === "PayNearMe" ?
                             "PayNearMe" :
                             record?.portal === "CLK" ? "CLKK" 
+                            : record?.portal === "AuthorizeNet"
+                            ? "AuthorizeNet"
                             : "Stripe"}
                         </Typography>
                       </Box>

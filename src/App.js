@@ -53,6 +53,7 @@ import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 import ClkkCashout from "./Views/Player/ClkkCashout";
 import TotalLiquorEmbeddedCheckout from "./Views/TotalLiquor/TotalLiquorEmbeddedCheckout";
 import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecordeList";
+import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -162,7 +163,8 @@ function App() {
   //   "/404",
   //   "/payment-checkout",
   //   "/recharge-widget",
-  //   "/stripe-payment"
+  //   "/stripe-payment",
+  // "/authorizenet-card-charge",
   // ];
   // if (!allowedPaths.includes(currentPath)) {
   //   return (
@@ -423,7 +425,14 @@ function App() {
                       </Authenticated>
                     }
                   />
-
+                  <Route
+                    path="/authorizenet-card-charge"
+                    element={
+                      <Authenticated>
+                        <AuthorizeNetCardForm />
+                      </Authenticated>
+                    }
+                  />
                 </CustomRoutes>
               </>
             );
