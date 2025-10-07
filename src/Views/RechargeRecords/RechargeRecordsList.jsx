@@ -201,6 +201,7 @@ export const RechargeRecordsList = (props) => {
       ? "Wallet"
       : data?.portal === "Payarc"
       ? "Payarc" : data?.portal === "CLK" ? "CLK"
+      : data?.portal === "AuthorizeNet" ? "AuthorizeNet"
       : "Stripe";
   };
 
@@ -1150,6 +1151,8 @@ export const RechargeRecordsList = (props) => {
                             ? "Payarc" :
                             record?.portal === "CLK"
                             ? "CLK" 
+                            : record?.portal === "AuthorizeNet"
+                            ? "AuthorizeNet"
                             : "Stripe"}
                         </Typography>
                       </Box>

@@ -697,6 +697,7 @@ export const DataSummary = React.memo(() => {
       : data?.portal === "Payarc"
       ? "Payarc" :
       data?.portal === "CLK" ? "CLK"
+      : data?.portal === "AuthorizeNet" ? "AuthorizeNet"
       : "Stripe";
   };  
   // Generic export function
