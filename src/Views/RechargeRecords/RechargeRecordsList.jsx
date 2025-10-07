@@ -1126,7 +1126,7 @@ export const RechargeRecordsList = (props) => {
                         >
                           {record?.transactionIdFromStripe
                             ?.toLowerCase()
-                            .includes("txn")
+                            .includes("txn-")
                             ? "WERT"
                             : record?.transactionIdFromStripe
                                 ?.toLowerCase()
