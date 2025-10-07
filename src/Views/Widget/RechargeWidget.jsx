@@ -419,6 +419,7 @@ const RechargeWidgetPopup = ({
                   border: "1px solid #ccc",
                   borderRadius: "6px",
                 }}
+                disabled={price ?  true : false}
               />
 
               {amountError && (
