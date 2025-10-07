@@ -103,6 +103,13 @@ export const CLKKWidget = () => {
             iframeRef.current.height = message.data.height;
           }
           break;
+          case "PAYMENT_CANCELLED":
+            setPaymentStatus({ status: "cancelled" });
+  setTimeout(() => {
+    navigate("/playerDashboard");
+  }, 1000);
+            break;
+          
 
         case "ERROR":
           console.error("📛 Checkout error:", message.data);
