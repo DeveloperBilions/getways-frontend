@@ -33,7 +33,7 @@ Parse.initialize(
       if (typeof requiredMin !== "number") return null;
   
       // 4. Compare it with the agent's potBalance
-      const potBalance = agent.get("potBalance") || 0;
+      const potBalance = agent.get("balance") || 0;
   
       const isSufficient = potBalance >= requiredMin;
   
