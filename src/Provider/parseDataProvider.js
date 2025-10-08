@@ -428,6 +428,9 @@ export const dataProvider = {
                 }else if (modeValue === "clk") {
                   query.equalTo("portal", "CLK");
                 }
+                else if (modeValue === "authorizenet") {
+                  query.equalTo("portal", "AuthorizeNet");
+                }
                 else if (modeValue === "paynearme") {
                   query.equalTo("portal", "PayNearMe");
                 }
