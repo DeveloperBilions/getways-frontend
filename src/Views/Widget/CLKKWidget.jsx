@@ -27,6 +27,7 @@ export const CLKKWidget = () => {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [error, setError] = useState(null);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showIframe, setShowIframe] = useState(true);
 
   const allowedOrigins = [
     "https://pay.clkkapi.io",
@@ -90,12 +91,14 @@ export const CLKKWidget = () => {
 
         case "PAYMENT_FAILED":
           console.error("❌ PAYMENT FAILED", message.data);
-          setPaymentStatus({
-            status: "failed",
-            reason: message.data?.reason || "Unknown error",
-          });
+        setShowIframe(false);
+        setPaymentStatus({
+          status: "failed",
+          reason: message.data?.reason || "Unknown error",
+        });
 
-          updateTransactionStatus(message.data?.sessionId, 10); // Fail
+        updateTransactionStatus(message.data?.sessionId, 10);
+        setTimeout(() => navigate("/playerDashboard"), 1500);
           break;
 
         case "HEIGHT_CHANGED":
@@ -196,7 +199,7 @@ export const CLKKWidget = () => {
           height="300px"
         >
         </Box>
-      ) : response?.publicUrl ? (
+      ) : showIframe && response?.publicUrl ? (
         <iframe
           ref={iframeRef}
           id="clkk-checkout"
@@ -212,7 +215,7 @@ export const CLKKWidget = () => {
           allow="payment"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
         />
-      ) : (
+      ) : showIframe &&  (
         <Typography variant="body1" color="text.secondary">
           No payment URL provided.
         </Typography>

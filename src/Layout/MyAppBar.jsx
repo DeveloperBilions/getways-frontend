@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AppBar from "@mui/material/AppBar";
-import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
+import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
 import {
   RefreshButton,
   UserMenu,
@@ -60,10 +60,11 @@ import CalculateIcon from "@mui/icons-material/Calculate";
 import ShuffleConfigModal from "../Views/User/dialog/ShuffleConfigModal";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import MasterAgentAccountingModal from "../Views/User/dialog/MasterAgentAccountingModal";
-import SchemaIcon  from '@mui/icons-material/BusinessCenter';
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import SchemaIcon from "@mui/icons-material/BusinessCenter";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import AgentExportExcelModal from "../Views/User/dialog/AgentExportExcelModal";
 import CashoutMethodsDialog from "../Views/User/dialog/CashoutMethodsDialog";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -76,7 +77,8 @@ export default function MyAppBar(props) {
   const [openHelpVideo, setOpenHelpVideo] = React.useState(false);
   const [openRedeemService, setOpenRedeemService] = React.useState(false);
   const [openAccountingModal, setOpenAccountingModal] = React.useState(false);
-  const [openMasterAccountingModal, setMasterOpenAccountingModal] = React.useState(false);
+  const [openMasterAccountingModal, setMasterOpenAccountingModal] =
+    React.useState(false);
   const [openTotalAccountModal, setTotalAccountModal] = React.useState(false);
   const [openCashoutMethods, setOpenCashoutMethods] = React.useState(false);
 
@@ -512,19 +514,18 @@ export default function MyAppBar(props) {
                   </Box>
                 )}
                 {role === "Super-User" && (
-  <Box sx={{ mb: 1 }}>
-    <MenuItem
-      onClick={() => setOpenCashoutMethods(true)}
-      style={{ color: "#000000", gap: "8px" }}
-    >
-      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
-      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
-        Cashout Methods
-      </Typography>
-    </MenuItem>
-  </Box>
-)}
-
+                  <Box sx={{ mb: 1 }}>
+                    <MenuItem
+                      onClick={() => setOpenCashoutMethods(true)}
+                      style={{ color: "#000000", gap: "8px" }}
+                    >
+                      <AttachMoneyIcon sx={{ fontSize: 20, color: "#000" }} />
+                      <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                        Cashout Methods
+                      </Typography>
+                    </MenuItem>
+                  </Box>
+                )}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -551,7 +552,7 @@ export default function MyAppBar(props) {
                     </MenuItem>
                   </Box>
                 )}
-                 {role === "Super-User" && (
+                {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
                       onClick={() => setTotalAccountModal(true)}
@@ -559,7 +560,7 @@ export default function MyAppBar(props) {
                     >
                       <AssessmentIcon sx={{ fontSize: 20, color: "#000" }} />
                       <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
-                        Total Accounting 
+                        Total Accounting
                       </Typography>
                     </MenuItem>
                   </Box>
@@ -631,9 +632,13 @@ export default function MyAppBar(props) {
                       color: "#000000",
                       fontWeight: 400,
                       fontSize: "16px",
+                      gap: "8px",
                     }}
                   >
-                    Agent Redeem Fees
+                    <RequestQuoteIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Agent Redeem Fees
+                    </Typography>
                   </MenuItem>
                 )}
                 {identity?.email === "zen@zen.com" && role === "Super-User" && (
@@ -650,8 +655,9 @@ export default function MyAppBar(props) {
                     <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                       Accounting
                     </Typography>
-                  </MenuItem>)}
-                  {(role === "Master-Agent" || role === "Super-User") && (
+                  </MenuItem>
+                )}
+                {(role === "Master-Agent" || role === "Super-User") && (
                   <MenuItem
                     onClick={() => setMasterOpenAccountingModal(true)}
                     style={{
@@ -665,7 +671,8 @@ export default function MyAppBar(props) {
                     <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
                       Master Accounting
                     </Typography>
-                  </MenuItem>)}
+                  </MenuItem>
+                )}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -794,25 +801,22 @@ export default function MyAppBar(props) {
           open={openRechargeMethods}
           onClose={() => setOpenRechargeMethods(false)}
         />
-
         <ChatbotDialog
           open={openChatbotDialog}
           onClose={() => setOpenChatbotDialog(false)}
         />
-
-<TierSettingsDialog
+        <TierSettingsDialog
           open={openTierSettings}
           onClose={() => setOpenTierSettings(false)}
         />
-
         <AgentTierViewerDialogBulk
           open={openTierSettingsAgents}
           onClose={() => setOpenTierSettingsAgents(false)}
-        />   <AgentExportExcelModal
+        />{" "}
+        <AgentExportExcelModal
           open={openTotalAccountModal}
           onClose={() => setTotalAccountModal(false)}
         />
-
         <DrawerAgentHistoryModal
           open={openTicketPaidModal}
           onClose={() => setOpenTicketPaidModal(false)}
@@ -823,10 +827,9 @@ export default function MyAppBar(props) {
           onClose={() => setShufflDialog(false)}
         />
         <CashoutMethodsDialog
-  open={openCashoutMethods}
-  onClose={() => setOpenCashoutMethods(false)}
-/>
-
+          open={openCashoutMethods}
+          onClose={() => setOpenCashoutMethods(false)}
+        />
       </AppBar>
     </>
   );
