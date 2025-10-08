@@ -20,6 +20,7 @@ import { Alert, Box, Typography } from "@mui/material";
 import cancel from "../../../Assets/icons/cancel.svg";
 import { validatePositiveNumber } from "../../../Validators/number.validator";
 import "../../../Assets/css/Dialog.css";
+import { useGetIdentity } from "react-admin";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -42,7 +43,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
   const [feeError, setFeeError] = useState("");
   const [amountError, setAmountError] = useState("");
   const [serviceError, setServiceError] = useState("");
-
+  const { identity } = useGetIdentity();
   const [parentBalance, setParentBalance] = useState(0);
   const resetFields = () => {
     setUserName("");
@@ -50,19 +51,29 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
     setRemark("");
     setRedeemPercentage("");
   };
-
   const parentServiceFee = async () => {
     try {
-      const response = await Parse.Cloud.run("redeemParentServiceFee", {
-        userId: record?.userParentId,
-      });
-      setRedeemFees(response?.redeemService || 0);
-      setEditedFees(response?.redeemService || 0); // Initialize edited fees
-      setRedeemEnabled(response?.redeemServiceEnabled);
-      setisReedeemZeroAllowed(
-        response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed
-      );
-      setParentBalance(response?.potBalance);
+      if(identity?.role === "Master-Agent"){
+        setRedeemFees(identity?.redeemService || 0);
+        setEditedFees(identity?.redeemService || 0); // Initialize edited fees
+        setRedeemEnabled(identity?.redeemServiceEnabled);
+        setisReedeemZeroAllowed(
+          identity?.redeemService === 0 ? true : identity?.isReedeemZeroAllowed
+        );
+        setParentBalance(identity?.totalPotBalanceOfChildren);
+      }else{
+        const response = await Parse.Cloud.run("redeemParentServiceFee", {
+          userId: record?.userParentId,
+        });
+        setRedeemFees(response?.redeemService || 0);
+        setEditedFees(response?.redeemService || 0); // Initialize edited fees
+        setRedeemEnabled(response?.redeemServiceEnabled);
+        setisReedeemZeroAllowed(
+          response?.redeemService === 0 ? true : response?.isReedeemZeroAllowed
+        );
+        setParentBalance(response?.potBalance);
+      }
+      
     } catch (error) {
       console.error("Error fetching parent service fee:", error);
     }
@@ -313,7 +324,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                         />
                       </Button>
                     )}
-                    {role === "Agent" && redeemEnabled && !isEditingFees && (
+                    {(role === "Agent" || role === "Master-Agent") && redeemEnabled && !isEditingFees && (
                       <Button color="link" onClick={handleEditFees}>
                         Edit
                       </Button>
