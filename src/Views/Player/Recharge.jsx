@@ -903,7 +903,7 @@ const Recharge = ({
       onClick: debounce(async () => {
         setCheckingRechargeLimit(true);
         if (!(await verifyPotBalance("recharge"))) return;
-
+        
         if (rechargeAmount < RechargeLimitOfAgent) {
           setRechargeError(
             `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
@@ -974,6 +974,9 @@ const Recharge = ({
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         try {
+          // Verify pot balance first
+          if (!(await verifyPotBalance("recharge"))) return;
+          
           setCheckingRechargeLimit(true);
 
           // Validate minimum recharge
@@ -1015,7 +1018,7 @@ const Recharge = ({
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     {
       id: "fiserv",
