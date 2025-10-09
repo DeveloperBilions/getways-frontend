@@ -74,7 +74,8 @@ export const TransactionData = (props) => {
       ? "Wallet" :
       data?.portal === "Payarc"
       ? "Payarc" :
-      data?.portal === "CLK" ? "CLK"
+      data?.portal === "CLK" ? "CLK":
+      data?.portal === "AuthorizeNet" ? "AuthorizeNet"
       : "Stripe";
   };
   

@@ -77,6 +77,7 @@ const Recharge = ({
   handleRechargeRefresh,
   RechargeLimitOfAgent,
 }) => {
+   const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
   const refresh = useRefresh();
@@ -183,6 +184,7 @@ const Recharge = ({
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
       const isCLKKAllowed = await isPaymentMethodAllowed(parentId, "clkk");
+      const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
 
       setShowClkk(isCLKKAllowed)    
       setShowCoinbase(isCoinbaseAllowed);
@@ -190,7 +192,7 @@ const Recharge = ({
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
-
+      setShowAuthorizeNet(isAuthorizeNetAllowed);
       setRechargeMethodLoading(false);
     };
 
@@ -385,6 +387,61 @@ const Recharge = ({
   };
   const [hoveredOption, setHoveredOption] = useState(null);
   const paymentOptions = [
+    {
+      id: "authorizenet-charge",
+      title: "Direct Credit Card Charge",
+      description: "Instant charge • No KYC needed",
+      subtext: "Charge & Capture",
+      icon: <CreditCardIcon sx={{ color: "#28A745", fontSize: 24 }} />,
+      color: "#28A745",
+      hoverColor: "#E8F5E8",
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          // Verify pot balance first          
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError(""); // Clear old errors
+          
+          // Navigate to credit card form page
+          navigate("/authorizenet-card-charge", { 
+            state: { 
+              amount: rechargeAmount,
+              type: "charge",
+              remark: remark
+            } 
+          });
+        } catch (error) {
+          console.error("Authorize.net card charge error:", error);
+          alert("Something went wrong with credit card charge. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit ,
+    },
     {
       id: "CLKK",
       title: "Cashapp pay",
@@ -1675,6 +1732,7 @@ const Recharge = ({
                         return false;
                       if (option.id === "stripe" && !showStripe) return false;
                       if (option.id === "CLKK" && !showClkk) return false;
+                      if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
                       return true;
                     })
                     .map((option) => (

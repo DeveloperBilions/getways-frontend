@@ -48,6 +48,7 @@ import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import ClkkCashout from "./Views/Player/ClkkCashout";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
 import { CLKKWidgetCard } from "./Views/Player/dialog/CLKKWidgetCard";
+import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -160,7 +161,8 @@ function App() {
     "/stripe-payment",
     "/clkk-cashout",
     "/clkk-payment",
-    "/clkk-card"
+    "/clkk-card",
+    "/authorizenet-card-charge"
   ];
   if (!allowedPaths.includes(currentPath)) {
     return (
@@ -326,6 +328,14 @@ function App() {
                     element={
                       <Authenticated>
                         <PlayerList resource="DashBoard" />
+                      </Authenticated>
+                    }
+                  />
+                   <Route
+                    path="/authorizenet-card-charge"
+                    element={
+                      <Authenticated>
+                        <AuthorizeNetCardForm />
                       </Authenticated>
                     }
                   />
