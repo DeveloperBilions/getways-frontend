@@ -1689,8 +1689,10 @@ export const dataProvider = {
       
         // 🔍 Filter by status
         if (params.filter?.status) {
-          query.equalTo("status", params.filter.status);
-        }
+          const searchValue = String(params.filter.status);
+          const regex = new RegExp(searchValue, "i"); // "i" → case-insensitive
+          query.matches("status", regex);
+        }        
       
         // 🔍 Filter by username (search across users)
         let userMap = {};

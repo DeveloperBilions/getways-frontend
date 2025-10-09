@@ -100,7 +100,7 @@ const GiftCardHistoryList = (props) => {
 
   const [userMap, setUserMap] = useState({});
   const isMobile = useMediaQuery("(max-width:600px)");
-  console.log(data,"datae")
+  console.log(data, "datae");
   return (
     <>
       <Box
@@ -188,11 +188,16 @@ const GiftCardHistoryList = (props) => {
                   label="Product Name"
                   render={(record) =>
                     record.apiResponse?.productName
-                      ? record.apiResponse.productName : record.productName ? record.productName
+                      ? record.apiResponse.productName
+                      : record.productName
+                      ? record.productName
                       : "-"
                   }
                 />
-                <TextField source="status" label="Status" />
+                <FunctionField
+                  label="Status"
+                  render={(record) => (record.status || "Issued").toUpperCase()}
+                />
                 <FunctionField
                   label="Product Image"
                   render={(record) =>

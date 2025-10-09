@@ -27,13 +27,14 @@ export const CLKKWidget = () => {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [error, setError] = useState(null);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showIframe, setShowIframe] = useState(true);
 
   const allowedOrigins = [
     "https://pay.clkkapi.io",
     "https://pay-dev.clkkapi.io",
   ];
 
-  const updateTransactionStatus = async (sessionId, status,transactionId) => {
+  const updateTransactionStatus = async (sessionId, status, transactionId) => {
     try {
       const TransactionRecords = Parse.Object.extend("TransactionRecords");
       const query = new Parse.Query(TransactionRecords);
@@ -77,11 +78,15 @@ export const CLKKWidget = () => {
             amount: message.data?.amount,
             currency: message.data?.currency,
             description: message.data?.description,
-            transactionId: message.data?.transactionId,
+            transactionId: message.data?.transaction?.id,
           });
 
           setShowSuccessAnimation(true); // Show success animation
-          updateTransactionStatus(message.data?.sessionId, 2, message.data?.transactionId); // Success
+          updateTransactionStatus(
+            message.data?.sessionId,
+            2,
+            message.data?.transactionId
+          ); // Success
 
           // Redirect after 3 seconds
           setTimeout(() => {
@@ -91,18 +96,26 @@ export const CLKKWidget = () => {
 
         case "PAYMENT_FAILED":
           console.error("❌ PAYMENT FAILED", message.data);
+          setShowIframe(false);
           setPaymentStatus({
             status: "failed",
             reason: message.data?.reason || "Unknown error",
           });
 
-          updateTransactionStatus(message.data?.sessionId, 10); // Fail
+          updateTransactionStatus(message.data?.sessionId, 10);
+          setTimeout(() => navigate("/playerDashboard"), 1500);
           break;
 
         case "HEIGHT_CHANGED":
           if (iframeRef.current && message.data?.height) {
             iframeRef.current.height = message.data.height;
           }
+          break;
+        case "PAYMENT_CANCELLED":
+          setPaymentStatus({ status: "cancelled" });
+          setTimeout(() => {
+            navigate("/playerDashboard");
+          }, 1000);
           break;
 
         case "ERROR":
@@ -188,9 +201,8 @@ export const CLKKWidget = () => {
           justifyContent="center"
           alignItems="center"
           height="300px"
-        >
-        </Box>
-      ) : response?.publicUrl ? (
+        ></Box>
+      ) : showIframe && response?.publicUrl ? (
         <iframe
           ref={iframeRef}
           id="clkk-checkout"
@@ -207,9 +219,11 @@ export const CLKKWidget = () => {
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
         />
       ) : (
-        <Typography variant="body1" color="text.secondary">
-          No payment URL provided.
-        </Typography>
+        showIframe && (
+          <Typography variant="body1" color="text.secondary">
+            No payment URL provided.
+          </Typography>
+        )
       )}
     </Box>
   );
