@@ -1060,6 +1060,7 @@ const Recharge = ({
           // Create Fiserv payment link
           const response = await Parse.Cloud.run("fiservCreatePaymentLink", {
             amount: rechargeAmount,
+            remark: remark,
             orderId: `ORDER-${identity?.objectId}-${Date.now()}`,
             customerInfo: {
               firstName: identity?.firstName || "",
@@ -1131,6 +1132,7 @@ const Recharge = ({
           
           const response = await Parse.Cloud.run("fiservCreateCheckout", {
             amount: rechargeAmount,
+            remark: remark,
             currency: "USD",
             orderId: `ORDER-${Date.now()}`,
             customerInfo: {
