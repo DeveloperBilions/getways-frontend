@@ -54,6 +54,8 @@ import ClkkCashout from "./Views/Player/ClkkCashout";
 import TotalLiquorEmbeddedCheckout from "./Views/TotalLiquor/TotalLiquorEmbeddedCheckout";
 import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecordeList";
 import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
+import FiservPaymentWidget from "./Views/Widget/FiservPaymentWidget";
+import FiservCheckoutWidget from "./Views/Widget/FiservCheckoutWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -430,6 +432,22 @@ function App() {
                     element={
                       <Authenticated>
                         <AuthorizeNetCardForm />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/fiserv-payment"
+                    element={
+                      <Authenticated>
+                        <FiservPaymentWidget />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/fiserv-checkout-payment"
+                    element={
+                      <Authenticated>
+                        <FiservCheckoutWidget />
                       </Authenticated>
                     }
                   />

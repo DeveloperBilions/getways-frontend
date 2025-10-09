@@ -46,6 +46,10 @@ const getModeFromTransaction = (tx) => {
   if (useWallet) return "Wallet";
   if (portal === "payarc") return "Payarc";
   if (portal === "paynearme") return "PayNearMe";
+  if (portal === "CLK") return "CLKK";
+  if (portal === "AuthorizeNet") return "AuthorizeNet";
+  if (portal === "Fiserv") return "Fiserv";
+  if (portal === "FiservCheckout") return "Fiserv Checkout";
   return "Stripe";
 };
 

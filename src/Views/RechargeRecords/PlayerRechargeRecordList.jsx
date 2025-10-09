@@ -197,6 +197,12 @@ export const PlayerRechargeRecordsList = (props) => {
         if(record?.portal === "CLK"){
             navigate("/clkk-payment",{state:{response:{publicUrl:record?.referralLink}}})
         }
+        else if(record?.portal === "Fiserv"){
+            navigate("/fiserv-payment",{state:{response:{publicUrl:record?.referralLink}}})
+        }
+        else if(record?.portal === "FiservCheckout"){
+            navigate("/fiserv-checkout-payment",{state:{response:{publicUrl:record?.referralLink}}})
+        }
         else if (record?.referralLink) {
             window.open(record.referralLink, "_blank");
         }
