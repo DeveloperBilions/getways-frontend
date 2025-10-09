@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useGetIdentity } from "react-admin";
-import { updatePotBalance } from "../../Utils/utils";
 
 // Parse init
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -56,14 +55,6 @@ const FiservPaymentWidget = () => {
       if (!txn) {
         console.warn("⚠️ No transaction found for payment link:", paymentLinkId);
         return;
-      }
-
-      if (status === 2) { // success
-        await updatePotBalance(
-          identity?.userParentId,
-          txn.get("transactionAmount"),
-          "recharge"
-        );
       }
 
       txn.set("status", status); // 2: success, 10: fail
