@@ -166,7 +166,7 @@ export const addPayHistory = async (userId, amount, doneBy) => {
     const beforeBalanceMain = user.get("balance") || 0; // Get current balance
     const afterBalance = beforeBalance - amount; // Calculate new balance
     const afterMainbalance = beforeBalanceMain - amount
-    if (afterBalance < 0) {
+    if (afterMainbalance < 0) {
       throw new Error("Insufficient balance.");
     }
 
