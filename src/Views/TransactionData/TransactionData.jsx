@@ -78,6 +78,8 @@ export const TransactionData = (props) => {
       "PayNearMe": data?.portal === "CLK" ?
       "CLKK"
       : data?.portal === "AuthorizeNet" ? "AuthorizeNet"
+      : data?.portal === "Fiserv" ? "Fiserv"
+      : data?.portal === "FiservCheckout" ? "Fiserv Checkout"
       : "Stripe";
   };
 

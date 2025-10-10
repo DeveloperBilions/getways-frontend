@@ -160,6 +160,8 @@ export const RechargeFilterDialog = ({
             <MenuItem value="PayNearMe">PayNearMe</MenuItem>
             <MenuItem value="CLK">CLKK</MenuItem>
             <MenuItem value="authorizenet">AuthorizeNet</MenuItem>
+            <MenuItem value="Fiserv">Fiserv</MenuItem>
+            <MenuItem value="fiservcheckout">Fiserv Checkout</MenuItem>
 
           </Select>
         </FormControl>}

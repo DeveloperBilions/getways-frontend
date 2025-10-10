@@ -114,6 +114,8 @@ const Recharge = ({
   const [payarcLimit, setPayArcLimit] = useState(false);
   const [showPaynearMe, setShowPaynearMe] = useState(false);
   const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
+  const [showFiserv, setShowFiserv] = useState(false);
+  const [showFiservCheckout, setShowFiservCheckout] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -194,6 +196,8 @@ const Recharge = ({
       const isPaynearmeAllowed = await isPaymentMethodAllowed(parentId, "paynearme");
       const isCLKKAllowed = await isPaymentMethodAllowed(parentId, "clkk");
       const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
+      const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
+      const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -203,6 +207,11 @@ const Recharge = ({
       setShowClkk(isCLKKAllowed)
       setRechargeMethodLoading(false);
       setShowAuthorizeNet(isAuthorizeNetAllowed);
+      setShowFiserv(isFiservAllowed);
+      setShowFiservCheckout(isFiservCheckoutAllowed);
+      
+      // Debug logging for state setting
+      console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
     };
 
     if (identity?.userParentId) {
@@ -894,7 +903,7 @@ const Recharge = ({
       onClick: debounce(async () => {
         setCheckingRechargeLimit(true);
         if (!(await verifyPotBalance("recharge"))) return;
-
+        
         if (rechargeAmount < RechargeLimitOfAgent) {
           setRechargeError(
             `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
@@ -965,6 +974,9 @@ const Recharge = ({
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         try {
+          // Verify pot balance first
+          if (!(await verifyPotBalance("recharge"))) return;
+          
           setCheckingRechargeLimit(true);
 
           // Validate minimum recharge
@@ -1006,7 +1018,155 @@ const Recharge = ({
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "fiserv",
+      title: "Fiserv Payment",
+      description: "Secure payment gateway • No KYC needed",
+      subtext: "Multiple payment methods",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC", // Fiserv brand blue
+      hoverColor: "#E6F3FF",
+      paymentIcons: [visa, mastercard, payPal],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError(""); // Clear old errors
+
+          // Create Fiserv payment link
+          const response = await Parse.Cloud.run("fiservCreatePaymentLink", {
+            amount: rechargeAmount,
+            remark: remark,
+            orderId: `ORDER-${identity?.objectId}-${Date.now()}`,
+            customerInfo: {
+              firstName: identity?.firstName || "",
+              lastName: identity?.lastName || "",
+              email: identity?.email || "",
+              phone: identity?.phone || ""
+            },
+            expiryHours: 24
+          });
+
+          if (response.success) {
+            // Navigate to Fiserv iframe widget
+            navigate("/fiserv-payment", {
+              state: { 
+                response: response,
+                rechargeAmount, 
+                remark 
+              }
+            });
+          } else {
+            setRechargeError("Failed to create payment link. Please try again.");
+          }
+        } catch (err) {
+          console.error("Fiserv error:", err);
+          alert("Something went wrong with Fiserv Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "fiservcheckout",
+      title: "Fiserv Checkout",
+      description: "Secure hosted payment • Redirect method",
+      subtext: "Multiple payment methods",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC",
+      hoverColor: "#E6F3FF",
+      paymentIcons: [visa, mastercard, payPal],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(transactionCheck.message);
+            return;
+          }
+
+          // Create Fiserv checkout
+          const successUrl = `${window.location.origin}/fiserv-checkout-success`;
+          const failureUrl = `${window.location.origin}/fiserv-checkout-failure`;
+          
+          const response = await Parse.Cloud.run("fiservCreateCheckout", {
+            amount: rechargeAmount,
+            remark: remark,
+            currency: "USD",
+            orderId: `ORDER-${Date.now()}`,
+            customerInfo: {
+              name: identity?.name,
+              email: identity?.email,
+              phone: identity?.phoneNumber
+            },
+            successUrl: successUrl,
+            failureUrl: failureUrl
+          });
+
+          if (response.success) {
+            console.log("✅ Fiserv checkout created:", response);
+            navigate("/fiserv-checkout-payment", { 
+              state: { 
+                response: {
+                  ...response,
+                  amount: rechargeAmount,
+                  currency: "USD"
+                }
+              }
+            });
+          } else {
+            setRechargeError("Failed to create checkout. Please try again.");
+          }
+        } catch (err) {
+          console.error("Fiserv checkout error:", err);
+          setRechargeError(err.message || "Failed to create checkout. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || !showFiservCheckout,
     },
     // {
     //   id: "bank",
@@ -1930,14 +2090,17 @@ const Recharge = ({
                   if (option.id === "payarc" && !showPayarc) return false;
                   if (option.id === "paynearme" && !showPaynearMe) return false;
                   if (option.id === "CLKK" && !showClkk) return false;
-                   if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
-
+                  if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
+                  if (option.id === "fiserv" && !showFiserv) return false;
+                  if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
+                  
+                   
                   
                   return true;
                 }).map((option) => (
                       <Card
                         key={option.id}
-                        sx={{
+                        sx={{ 
                           borderRadius: 2,
                           border: "1px solid #E2E8F0",
                           boxShadow: "none",

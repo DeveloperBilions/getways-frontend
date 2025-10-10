@@ -156,6 +156,7 @@ export const AuthorizeNetCardForm = () => {
 
       const response = await Parse.Cloud.run(cloudFunction, {
         amount: amount,
+        remark: remark,
         creditCard: {
           cardNumber: cardData.cardNumber.replace(/\s/g, ""),
           expirationDate: apiExpirationDate,

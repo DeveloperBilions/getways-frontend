@@ -438,6 +438,12 @@ export const dataProvider = {
                 } else if (modeValue === "paynearme") {
                   query.equalTo("portal", "PayNearMe");
                 }
+                else if (modeValue === "fiserv") {
+                  query.equalTo("portal", "Fiserv");
+                }
+                else if (modeValue === "fiservcheckout") {
+                  query.equalTo("portal", "FiservCheckout");
+                }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
               } 
@@ -1502,6 +1508,20 @@ export const dataProvider = {
                   query.equalTo("useWallet", false);
                 }else if (modeValue === "payarc") {
                   query.equalTo("portal", "Payarc");
+                }else if (modeValue === "clk") {
+                  query.equalTo("portal", "CLK");
+                }
+                else if (modeValue === "authorizenet") {
+                  query.equalTo("portal", "AuthorizeNet");
+                }
+                else if (modeValue === "paynearme") {
+                  query.equalTo("portal", "PayNearMe");
+                }
+                else if (modeValue === "fiserv") {
+                  query.equalTo("portal", "Fiserv");
+                }
+                else if (modeValue === "fiservcheckout") {
+                  query.equalTo("portal", "FiservCheckout");
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
