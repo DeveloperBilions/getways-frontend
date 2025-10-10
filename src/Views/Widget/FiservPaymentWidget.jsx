@@ -25,7 +25,6 @@ const FiservPaymentWidget = () => {
   const [loading, setLoading] = useState(false); 
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [error, setError] = useState(null);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showIframe, setShowIframe] = useState(true);
 
   // Get recharge amount and remark from navigation state
@@ -86,13 +85,8 @@ const FiservPaymentWidget = () => {
             transactionId: message.data?.transactionId,
           });
 
-          setShowSuccessAnimation(true);
           updateTransactionStatus(message.data?.paymentLinkId, 2); // Success
-
-          // Redirect after 3 seconds
-          setTimeout(() => {
-            navigate("/playerDashboard");
-          }, 3000);
+          navigate("/playerDashboard");
           break;
 
         case "PAYMENT_FAILED":
@@ -133,22 +127,53 @@ const FiservPaymentWidget = () => {
     [navigate, identity]
   );
 
+  // Simple status checking function
+  const checkStatus = async () => {
+    try {
+      const result = await Parse.Cloud.run("fiservGetPaymentLinkDetails", {
+        paymentLinkId: response?.paymentLink?.paymentLinkId
+      });
+
+      if (result.success && result.paymentLinkDetails) {
+        const details = result.paymentLinkDetails;
+        const transactionStatus = details.transactionStatus;
+        const ipgStatus = details.ipgTransactionDetails?.transactionStatus;
+
+        if (transactionStatus === "APPROVED" && ipgStatus === "APPROVED") {
+          setPaymentStatus({ status: "success" });
+          navigate("/playerDashboard");
+        } else if (["FAILED", "DECLINED", "FRAUD"].includes(transactionStatus) || 
+                   ["FAILED", "DECLINED", "FRAUD"].includes(ipgStatus)) {
+          setPaymentStatus({ status: "failed" });
+          setShowIframe(false);
+          setTimeout(() => navigate("/playerDashboard"), 2000);
+        }
+      }
+    } catch (error) {
+      console.error("Status check error:", error);
+    }
+  };
+
   useEffect(() => {
     window.addEventListener("message", handleMessage);
     
-    // Add timeout to hide loading state if no message received
-    const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.log("⏰ Timeout: Hiding loading state");
-        setLoading(false);
-      }
-    }, 10000); // 10 seconds timeout
+    // Start simple polling after iframe loads
+    if (response?.paymentLink?.paymentLinkId) {
+      const interval = setInterval(checkStatus, 5000); // Check every 5 seconds
+      
+      // Stop after 10 minutes
+      setTimeout(() => clearInterval(interval), 600000);
+      
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("message", handleMessage);
+      };
+    }
     
     return () => {
       window.removeEventListener("message", handleMessage);
-      clearTimeout(loadingTimeout);
     };
-  }, [handleMessage, loading]);
+  }, [handleMessage, response]);
 
   return (
     <Box className="container py-4">
@@ -163,7 +188,7 @@ const FiservPaymentWidget = () => {
         </Button>
       </Box>
 
-      {loading && !showSuccessAnimation && (
+      {loading && (
         <Box
           display="flex"
           justifyContent={"center"}
@@ -209,18 +234,7 @@ const FiservPaymentWidget = () => {
         </Alert>
       )}
 
-      {showSuccessAnimation ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height="300px"
-        >
-          <Typography variant="h5" color="success.main">
-            ✅ Payment Successful! Redirecting...
-          </Typography>
-        </Box>
-      ) : showIframe && response?.publicUrl ? (
+      {showIframe && response?.publicUrl ? (
         <iframe
           ref={iframeRef}
           id="fiserv-checkout"
