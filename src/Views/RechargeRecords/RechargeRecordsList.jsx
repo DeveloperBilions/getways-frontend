@@ -350,71 +350,70 @@ if (exportFilters.month) {
   ];
 
   const handleSearchByChange = (newSearchBy) => {
-    setSearchBy(newSearchBy);
-    setPrevSearchBy(newSearchBy);
+    // setSearchBy(newSearchBy);
+    // setPrevSearchBy(newSearchBy); // Optional but safe
+    // const currentSearchValue = filterValues[prevSearchBy] || "";
+  
+    // const newFilters = {
+    //   ...filterValues, // keep everything
+    //   searchBy: newSearchBy, // update searchBy key
+    // };
+  
+    // // Remove the old search field value
+    // if (prevSearchBy && prevSearchBy !== newSearchBy) {
+    //   delete newFilters[prevSearchBy];
+    // }
+  
+    // // If the previous value was not empty, carry it over to the new field
+    // if (currentSearchValue?.trim()) {
+    //   newFilters[newSearchBy] = currentSearchValue;
+    // }
+  
+    // setFilters(newFilters, false);
+  }; 
 
-    const currentSearchValue = filterValues[prevSearchBy] || "";
-    const newFilters = {};
+  // useEffect(() => {
+  //   // Compare current filterValues with previous filterValues
+  //   const prevFilterValues = prevFilterValuesRef.current;
+  //   const filterValuesChanged =
+  //     JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
 
-    Object.keys(filterValues).forEach((key) => {
-      if (key !== prevSearchBy && !searchFields.includes(key)) {
-        newFilters[key] = filterValues[key];
-      }
-    });
+  //   // Update the ref with current filterValues for the next run
+  //   prevFilterValuesRef.current = filterValues;
 
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[newSearchBy] = currentSearchValue;
-    }
+  //   // Skip if no meaningful change
+  //   if (!filterValuesChanged) {
+  //     return;
+  //   }
+  //   const currentSearchValue = filterValues[searchBy] || "";
+  //   const newFilters = {
+  //     searchBy,
+  //   };
 
-    newFilters.searchBy = newSearchBy;
+  //   if (currentSearchValue && currentSearchValue.trim() !== "") {
+  //     newFilters[searchBy] = currentSearchValue;
+  //   }
 
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
+  //   if (filterValues.role) {
+  //     newFilters.role = filterValues.role;
+  //   }
 
-    setFilters(newFilters, false);
-  };
+  //   const cleanedFilters = Object.keys(filterValues)
+  // .filter((key) => key !== prevSearchBy || key === searchBy)
+  // .reduce((obj, key) => {
+  //   obj[key] = filterValues[key];
+  //   return obj;
+  // }, {});
 
-  useEffect(() => {
-    // Compare current filterValues with previous filterValues
-    const prevFilterValues = prevFilterValuesRef.current;
-    const filterValuesChanged =
-      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+  //   console.log(cleanedFilters,newFilters,"newFiltersnewFiltersnewFiltersnewFiltersnewFilters")
 
-    // Update the ref with current filterValues for the next run
-    prevFilterValuesRef.current = filterValues;
-
-    // Skip if no meaningful change
-    if (!filterValuesChanged) {
-      return;
-    }
-    const currentSearchValue = filterValues[searchBy] || "";
-    const newFilters = {
-      searchBy,
-    };
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[searchBy] = currentSearchValue;
-    }
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    const cleanedFilters = Object.keys(filterValues)
-      .filter((key) => !searchFields.includes(key) || key === searchBy)
-      .reduce((obj, key) => {
-        obj[key] = filterValues[key];
-        return obj;
-      }, {});
-
-    setFilters({ ...cleanedFilters, ...newFilters }, false);
-  }, [filterValues, searchBy, setFilters]);
+  //   setFilters({ ...cleanedFilters, ...newFilters }, false);
+  // }, [filterValues, searchBy, setFilters]);
   useEffect(() => {
     const newFilter = { type: "recharge" };
 
     if (role !== "Player" && !showExpired) {
-      newFilter.status = { $ne: 9 };
+      newFilter.Expirestatus = { $ne: 9 };
     }
 
     setFilters(newFilter, false); // Don't push to history
@@ -714,13 +713,10 @@ if (exportFilters.month) {
         // sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={
-          // identity?.role !== "Player"
-          //   ?
-          { type: "recharge" }
-          // :
-          // { type: "recharge", status: 1 }
-        }
+        filter={{
+          type: "recharge",
+          ...filterValues,
+        }}        
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}

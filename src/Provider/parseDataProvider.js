@@ -346,6 +346,7 @@ export const dataProvider = {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "recharge", ...filter };
+        console.log(filter,"filter=---filter")
         if (role === "Player") {
           const archiveResource = Parse.Object.extend(
             "Transactionrecords_archive"
@@ -374,6 +375,7 @@ export const dataProvider = {
         //     query.notEqualTo("status", 9);
         //   }
         // }
+       
         if (
           filter &&
           typeof filter === "object" &&
@@ -381,10 +383,14 @@ export const dataProvider = {
         ) {
           for (const f of Object.keys(filter)) {
             if (filter[f] !== undefined && filter[f] !== null) {
-              if (f === "username" || f === "remark") {
+              if (f === "username") {
                 const searchValue = String(filter[f]);
                 const searchRegex = new RegExp(searchValue, "i");
                 query.matches(f, searchRegex);
+              } else if (f === "remark") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+                query.matches("remark", searchRegex);
               } else if (f === "transactionAmount") {
                 const transactionAmount = Number(filter[f]);
                 if (!isNaN(transactionAmount)) {
@@ -397,10 +403,10 @@ export const dataProvider = {
                 userQuery.select("userParentName");
                 const parentNameRegex = new RegExp(filter[f], "i");
                 userQuery.matches(f, parentNameRegex);
-
+        
                 const users = await userQuery.find({ useMasterKey: true });
                 const userIds = users.map((user) => user.id);
-
+        
                 if (userIds.length > 0) {
                   query.containedIn("userId", userIds);
                 } else {
@@ -408,7 +414,7 @@ export const dataProvider = {
                 }
               } else if (f === "mode") {
                 const modeValue = filter[f].toLowerCase();
-
+        
                 if (modeValue === "wert") {
                   query.matches("transactionIdFromStripe", /^txn/i);
                 } else if (modeValue === "link") {
@@ -423,25 +429,31 @@ export const dataProvider = {
                   query.equalTo("useWallet", true);
                 } else if (modeValue === "stripe") {
                   query.equalTo("useWallet", false);
-                }else if (modeValue === "payarc") {
+                } else if (modeValue === "payarc") {
                   query.equalTo("portal", "Payarc");
-                }else if (modeValue === "clk") {
+                } else if (modeValue === "clk") {
                   query.equalTo("portal", "CLK");
-                }
-                else if (modeValue === "authorizenet") {
+                } else if (modeValue === "authorizenet") {
                   query.equalTo("portal", "AuthorizeNet");
-                }
-                else if (modeValue === "paynearme") {
+                } else if (modeValue === "paynearme") {
                   query.equalTo("portal", "PayNearMe");
                 }
               } else if (f === "searchBy") {
                 console.log(`Applying search on field: ${f}`);
+              } 
+              else if (f === "Expirestatus") {
+                // 👇 New logic for excluding expired (status != 9)
+                const expireCondition = filter[f];
+                if (expireCondition?.$ne !== undefined) {
+                  query.notEqualTo("status", expireCondition.$ne);
+                }
               } else {
                 query.equalTo(f, filter[f]);
               }
             }
           }
         }
+        
         count = await query.count();
       } else if (resource === "kycRecords") {
         const Resource = Parse.Object.extend("TransfiUserInfo");
