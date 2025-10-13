@@ -107,8 +107,15 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
                       <TableCell>{item.amount.toFixed(2)}</TableCell>
                       <TableCell>{item.afterBalance.toFixed(2)}</TableCell>
                       <TableCell>
-                        {item.date ? new Date(item.date).toLocaleString() : "N/A"}
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })
+                          : "N/A"}
                       </TableCell>
+
                       <TableCell>
                         {new Date(item.createdAt).toLocaleString()}
                       </TableCell>
