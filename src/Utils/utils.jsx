@@ -149,7 +149,7 @@ export const getParentUserId = async (userId) => {
     }
   };
 
-export const addPayHistory = async (userId, amount, doneBy) => {
+export const addPayHistory = async (userId, amount, doneBy, date) => {
   try {
     // Fetch the user's potBalance
     const userQuery = new Parse.Query(Parse.User);
@@ -179,6 +179,7 @@ export const addPayHistory = async (userId, amount, doneBy) => {
     newRecord.set("afterBalance", afterBalance);
     newRecord.set("amount", amount);
     newRecord.set("doneBy", doneBy);
+    newRecord.set("date", new Date(date));
 
     // Save the record
     await newRecord.save(null, { useMasterKey: true });
@@ -216,6 +217,7 @@ export const fetchDrawerAgentHistory = async (userId, page = 0, limit = 10) => {
         amount: entry.get("amount"),
         doneBy: entry.get("doneBy"),
         createdAt: entry.get("createdAt"),
+        date: entry.get("date"),
       })),
       total: totalCount, // Return total records for pagination
     };

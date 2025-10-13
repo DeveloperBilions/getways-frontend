@@ -423,11 +423,11 @@ const Recharge = ({
           }
 
           setRechargeError(""); // Clear old errors
-          
+          const adjustedAmount = Number((rechargeAmount * 1.04).toFixed(2));
           // Navigate to credit card form page
           navigate("/authorizenet-card-charge", { 
             state: { 
-              amount: rechargeAmount,
+              amount: adjustedAmount,
               type: "charge",
               remark: remark
             } 

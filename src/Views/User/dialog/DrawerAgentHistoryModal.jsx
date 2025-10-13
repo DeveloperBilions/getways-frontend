@@ -93,6 +93,9 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
                       <strong>After Balance</strong>
                     </TableCell>
                     <TableCell>
+                      <strong>Payment Date</strong>
+                    </TableCell>
+                    <TableCell>
                       <strong>Date</strong>
                     </TableCell>
                   </TableRow>
@@ -103,6 +106,9 @@ const DrawerAgentHistoryModal = ({ open, onClose, record }) => {
                       <TableCell>{item.beforeBalance.toFixed(2)}</TableCell>
                       <TableCell>{item.amount.toFixed(2)}</TableCell>
                       <TableCell>{item.afterBalance.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {item.date ? new Date(item.date).toLocaleString() : "N/A"}
+                      </TableCell>
                       <TableCell>
                         {new Date(item.createdAt).toLocaleString()}
                       </TableCell>
