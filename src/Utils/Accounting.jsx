@@ -117,12 +117,127 @@ export async function fetchAccountingSummary(
       totalRecharges: round2(periodRecharges),
       totalRedeems: round2(periodRedeems),
       previousBalance: round2(previousBalance),
-      commissionAmount,
-      finalBalance
+      commissionAmount: round2(commissionAmount),
+      finalBalance: round2(finalBalance),
+      periodPayments: round2(periodPayments),
     }
   };
 }
+export async function fetchAccountingSummaryV2(
+  entityType,
+  entityId,
+  startISO,
+  endExclusiveISO,
+  commissionPct = 12
+) {
+  if (!entityId) throw new Error("entityId required");
 
+  const start = new Date(startISO);
+  const endExclusive = new Date(endExclusiveISO);
+
+  let agentIds = [entityId];
+  if (entityType === "master") {
+    agentIds = await fetchAgentList(entityId);
+    if (!agentIds?.length) {
+      return {
+        success: true,
+        data: {
+          totalRecharges: 0,
+          totalRedeems: 0,
+          previousBalance: 0,
+          commissionAmount: 0,
+          finalBalance: 0
+        }
+      };
+    }
+  }
+
+  const prevPipeline = [
+    { $match: {
+      userParentId: { $in: agentIds },
+      transactionDate: {  $lt: start },
+      $or: [
+        { type: "recharge", status: { $in: [2, 3] } },
+        { type: "redeem", status: { $in: [4, 8] } }
+      ]
+    }},
+    {
+      $facet: {
+        prevRecharges: [
+          { $match: { type: "recharge", status: { $in: [2, 3] } } },
+          { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+        ],
+        prevRedeems: [
+          { $match: { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0, $type: "number" } } },
+          { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+        ]
+      }
+    }
+  ];
+  const prevAgg = await new Parse.Query("TransactionRecords").aggregate(prevPipeline, { useMasterKey: true });
+  const prevRecharges = safe(prevAgg?.[0]?.prevRecharges?.[0]?.total);
+  const prevRedeems = safe(prevAgg?.[0]?.prevRedeems?.[0]?.total);
+
+  const prevPayPipeline = [
+    { $match: { userId: entityId ,createdAt: { $lt: start } } },
+    { $group: { _id: null, total: { $sum: "$amount" } } }
+  ];
+  const prevPayAgg = await new Parse.Query("DrawerAgent").aggregate(prevPayPipeline, { useMasterKey: true });
+  const prevPayments = safe(prevPayAgg?.[0]?.total);
+
+  const prevCommissionAmount = round2((prevRecharges * (Number(commissionPct) || 0)) / 100);
+  const previousBalance = round2(prevRecharges - prevRedeems - prevPayments - prevCommissionAmount);
+
+  const periodPipeline = [
+    {
+      $match: {
+        userParentId: { $in: agentIds },
+        transactionDate: { $gte: start, $lt: endExclusive },
+        $or: [
+          { type: "recharge", status: { $in: [2, 3] } },
+          { type: "redeem", status: { $in: [4, 8] } }
+        ]
+      }
+    },
+    {
+      $facet: {
+        periodRecharges: [
+          { $match: { type: "recharge", status: { $in: [2, 3] } } },
+          { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+        ],
+        periodRedeems: [
+          { $match: { type: "redeem", status: { $in: [4, 8] }, transactionAmount: { $gt: 0, $type: "number" } } },
+          { $group: { _id: null, total: { $sum: "$transactionAmount" } } }
+        ]
+      }
+    }
+  ];
+  const periodAgg = await new Parse.Query("TransactionRecords").aggregate(periodPipeline, { useMasterKey: true });
+  const periodRecharges = safe(periodAgg?.[0]?.periodRecharges?.[0]?.total);
+  const periodRedeems = safe(periodAgg?.[0]?.periodRedeems?.[0]?.total);
+
+  const periodPayPipeline = [
+    { $match: { userId: entityId} },
+    { $group: { _id: null, total: { $sum: "$amount" } } }
+  ];
+  const periodPayAgg = await new Parse.Query("DrawerAgent").aggregate(periodPayPipeline, { useMasterKey: true });
+  const periodPayments = safe(periodPayAgg?.[0]?.total);
+
+  const commissionAmount = round2((periodRecharges * (Number(commissionPct) || 0)) / 100);
+  const finalBalance = round2(previousBalance + periodRecharges - periodRedeems - commissionAmount - periodPayments);
+
+  return {
+    success: true,
+    data: {
+      totalRecharges: round2(periodRecharges),
+      totalRedeems: round2(periodRedeems),
+      previousBalance: round2(previousBalance),
+      commissionAmount: round2(commissionAmount),
+      finalBalance: round2(finalBalance),
+      periodPayments: round2(periodPayments),
+    }
+  };
+}
 export async function fetchAccountingTransactions(
   entityType,
   entityId,

@@ -65,6 +65,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import AgentExportExcelModal from "../Views/User/dialog/AgentExportExcelModal";
 import CashoutMethodsDialog from "../Views/User/dialog/CashoutMethodsDialog";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import CarryForwarderModal from "../Views/User/dialog/CarryForwarderModal";
 
 export default function MyAppBar(props) {
   const { identity } = useGetIdentity();
@@ -90,6 +91,8 @@ export default function MyAppBar(props) {
   const [openChatbotDialog, setOpenChatbotDialog] = useState(false);
 
   const [openShufflDialog, setShufflDialog] = React.useState(false);
+  const [openCarryForwardDialog, setCarryForwardDialog] = React.useState(false);
+
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
   const [open, setOpen] = useSidebarState(); // Use the sidebar state
@@ -673,6 +676,22 @@ export default function MyAppBar(props) {
                     </Typography>
                   </MenuItem>
                 )}
+                {(role === "Master-Agent" || role === "Super-User") && (
+                  <MenuItem
+                    onClick={() => setCarryForwardDialog(true)}
+                    style={{
+                      color: "#000000",
+                      fontWeight: 400,
+                      fontSize: "16px",
+                      gap: "8px",
+                    }}
+                  >
+                    <SchemaIcon sx={{ fontSize: 20, color: "#000" }} />
+                    <Typography sx={{ fontWeight: 400, fontSize: "16px" }}>
+                      Balance Management
+                    </Typography>
+                  </MenuItem>
+                )}
                 {role === "Super-User" && (
                   <Box sx={{ mb: 1 }}>
                     <MenuItem
@@ -829,6 +848,10 @@ export default function MyAppBar(props) {
         <CashoutMethodsDialog
           open={openCashoutMethods}
           onClose={() => setOpenCashoutMethods(false)}
+        />
+        <CarryForwarderModal
+          open={openCarryForwardDialog}
+          onClose={() => setCarryForwardDialog(false)}
         />
       </AppBar>
     </>
