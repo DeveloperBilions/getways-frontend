@@ -38,8 +38,6 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
 
   // Card Payout Fields
   const [cardData, setCardData] = useState({
-    payeeId: "",
-    accountId: "",
     mobileNumber: "",
     recipient: "",
     name: "",
@@ -67,8 +65,6 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
 
   const resetForm = () => {
     setCardData({
-      payeeId: "",
-      accountId: "",
       mobileNumber: "",
       recipient: "",
       name: "",
@@ -87,9 +83,9 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
   };
 
   const validateCardForm = () => {
-    const { payeeId, accountId, mobileNumber, recipient, name, amount } = cardData;
+    const { mobileNumber, recipient, name, amount } = cardData;
     
-    if (!payeeId || !accountId || !mobileNumber || !recipient || !name || !amount) {
+    if (!mobileNumber || !recipient || !name || !amount) {
       setError("All card payout fields are required");
       return false;
     }
@@ -231,23 +227,7 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
           {/* Card Payout Form */}
           {payoutType === "card" && (
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Payee ID"
-                  value={cardData.payeeId}
-                  onChange={(e) => setCardData({ ...cardData, payeeId: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Account ID"
-                  value={cardData.accountId}
-                  onChange={(e) => setCardData({ ...cardData, accountId: e.target.value })}
-                  required
-                />
+              <Grid item xs={12}>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
