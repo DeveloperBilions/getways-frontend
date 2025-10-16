@@ -30,7 +30,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, availableBalance, onSuccess }) => {
   // Determine payout type based on method passed from parent
-  const payoutType = method === "cellpaycard" ? "card" : "crypto";
+  const payoutType = method === "getpaycard" ? "card" : "crypto";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -209,7 +209,7 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
         <Box display="flex" alignItems="center" gap={1}>
           {payoutType === "card" ? <CreditCardIcon /> : <CurrencyBitcoinIcon />}
           <Typography variant="h6">
-            CellPay {payoutType === "card" ? "Card" : "Crypto"} Cashout
+            GetPay {payoutType === "card" ? "Card" : "Crypto"} Cashout
           </Typography>
         </Box>
       </DialogTitle>

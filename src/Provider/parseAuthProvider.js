@@ -156,7 +156,7 @@ if (user.get("roleName") === "Master-Agent") {
         rechargeDisabled:user.get("rechargeDisabled") || false,
         walletAddr:user.get("walletAddr"),
         allowUserCreation:user.get("allowUserCreation"),
-        cellPayPhone:user.get("cellPayPhone")
+        getPayPhone:user.get("getPayPhone")
       };
     } catch (error) {
       console.error("Error getting user identity:", error?.message);
