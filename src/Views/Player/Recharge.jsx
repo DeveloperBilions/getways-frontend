@@ -77,9 +77,12 @@ const Recharge = ({
   handleRechargeRefresh,
   RechargeLimitOfAgent,
 }) => {
-   const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
+  const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
+  const [showCellPay, setShowCellPay] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
+  const [showCellPayDialog, setShowCellPayDialog] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState(identity?.cellPayPhone || "");
   const refresh = useRefresh();
   const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -159,7 +162,78 @@ const Recharge = ({
       });
     }
   };
+  const proceedWithCellPay = async () => {
+    try {
+      setCheckingRechargeLimit(true);
 
+      if (rechargeAmount < RechargeLimitOfAgent) {
+        setRechargeError(
+          `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+        );
+        return;
+      }
+
+      const transactionCheck = await checkActiveRechargeLimit(
+        identity?.userParentId,
+        rechargeAmount
+      );
+
+      if (!transactionCheck.success) {
+        setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+        return;
+      }
+
+      setRechargeError("");
+
+      const usercurent = await Parse.User.current();
+      if (usercurent && mobileNumber) {
+        usercurent.set("cellPayPhone",Number(mobileNumber));
+        await usercurent.save(null, { useMasterKey: true });
+      }
+      // 🔹 Call your Parse Cloud Function with mobile number
+      const cellPayResponse = await Parse.Cloud.run("cellpayRefill", {
+        amount: rechargeAmount,
+        mobileNumber: mobileNumber,
+      });
+
+      const TransactionDetails = Parse.Object.extend("TransactionRecords");
+      const transaction = new TransactionDetails();
+      const user = await Parse.User.current()?.fetch();
+
+      transaction.set("type", "recharge");
+      transaction.set("gameId", "786");
+      transaction.set("username", identity?.username || "");
+      transaction.set("userId", identity?.objectId);
+      transaction.set("transactionDate", new Date());
+      transaction.set("transactionAmount", rechargeAmount);
+      transaction.set("remark", remark);
+      transaction.set("useWallet", false);
+      transaction.set("userParentId", user?.get("userParentId") || "");
+      transaction.set("status", 1);
+      transaction.set("portal", "CellPay");
+      transaction.set(
+        "transactionIdFromStripe",
+        cellPayResponse?.CCTransactionId
+      );
+      transaction.set("referralLink", cellPayResponse?.hosted_url || "");
+      transaction.set("walletAddr", identity?.walletAddr || "");
+
+      await transaction.save(null, { useMasterKey: true });
+
+      const popup = window.open(cellPayResponse?.hosted_url, "_blank");
+      setStoredBuyUrl(cellPayResponse?.hosted_url);
+
+      if (!popup || popup.closed || typeof popup.closed === "undefined") {
+        setPopupBlocked(true);
+        setPopupDialogOpen(true);
+      }
+    } catch (err) {
+      console.error("CellPay recharge error:", err);
+      alert("Something went wrong with CellPay Recharge.");
+    } finally {
+      setCheckingRechargeLimit(false);
+    }
+  };
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
@@ -184,15 +258,23 @@ const Recharge = ({
       const isPayarcAllowed = await isPaymentMethodAllowed(parentId, "payarc");
       const isStripeAllowed = await isPaymentMethodAllowed(parentId, "stripe");
       const isCLKKAllowed = await isPaymentMethodAllowed(parentId, "clkk");
-      const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
+      const isAuthorizeNetAllowed = await isPaymentMethodAllowed(
+        parentId,
+        "authorizenet"
+      );
+      const iscellpayAlllowd = await isPaymentMethodAllowed(
+        parentId,
+        "cellpay"
+      );
 
-      setShowClkk(isCLKKAllowed)    
+      setShowClkk(isCLKKAllowed);
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
       setShowAuthorizeNet(isAuthorizeNetAllowed);
+      setShowCellPay(iscellpayAlllowd);
       setRechargeMethodLoading(false);
     };
 
@@ -388,6 +470,20 @@ const Recharge = ({
   const [hoveredOption, setHoveredOption] = useState(null);
   const paymentOptions = [
     {
+      id: "cellpay",
+      title: "Crypto",
+      description: "Secure payment • No KYC needed",
+      icon: <BsFillCreditCard2FrontFill size={24} />,
+      color: "#FF9900",
+      hoverColor: "#FFF7E6",
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        setShowCellPayDialog(true);
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+    },
+    {
       id: "authorizenet-charge",
       title: "Direct Credit Card Charge",
       description: "Instant charge • No KYC needed",
@@ -398,7 +494,7 @@ const Recharge = ({
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         try {
-          // Verify pot balance first          
+          // Verify pot balance first
           setCheckingRechargeLimit(true);
 
           // Validate minimum recharge
@@ -425,22 +521,24 @@ const Recharge = ({
           setRechargeError(""); // Clear old errors
           const adjustedAmount = Number((rechargeAmount * 1.04).toFixed(2));
           // Navigate to credit card form page
-          navigate("/authorizenet-card-charge", { 
-            state: { 
+          navigate("/authorizenet-card-charge", {
+            state: {
               amount: adjustedAmount,
               type: "charge",
-              remark: remark
-            } 
+              remark: remark,
+            },
           });
         } catch (error) {
           console.error("Authorize.net card charge error:", error);
-          alert("Something went wrong with credit card charge. Please try again.");
+          alert(
+            "Something went wrong with credit card charge. Please try again."
+          );
         } finally {
           setCheckingRechargeLimit(false);
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit ,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
     },
     {
       id: "CLKK",
@@ -448,41 +546,50 @@ const Recharge = ({
       description: "Pay with cashApp",
       subtext: "No KYC needed",
       icon: (
-        <AccountBalanceWalletOutlinedIcon sx={{ color: "#1D4ED8", fontSize: 24 }} />
+        <AccountBalanceWalletOutlinedIcon
+          sx={{ color: "#1D4ED8", fontSize: 24 }}
+        />
       ),
       color: "#1D4ED8", // Tailwind Blue-700
       hoverColor: "#EFF6FF",
       paymentIcons: [visa, mastercard, payPal],
       onClick: debounce(async () => {
-        try {    
+        try {
           setCheckingRechargeLimit(true);
-    
+
           if (rechargeAmount < RechargeLimitOfAgent) {
-            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
             return;
           }
-    
-          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
-    
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
           if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
             return;
           }
-    
+
           setRechargeError("");
           const finalAmount = parseFloat((rechargeAmount * 1.04).toFixed(2));
-  
+
           const response = await Parse.Cloud.run("createCheckoutSession", {
-            amount: finalAmount ,
+            amount: finalAmount,
             // successUrl: "https://yourapp.com/pay/success",
             // cancelUrl: "https://yourapp.com/pay/cancel",
             // metadata: { orderId: "abc123" },
-          }); 
-  
+          });
+
           const TransactionDetails = Parse.Object.extend("TransactionRecords");
           const transactionDetails = new TransactionDetails();
           const user = await Parse.User.current()?.fetch();
-  
+
           transactionDetails.set("type", "recharge");
           transactionDetails.set("gameId", "786");
           transactionDetails.set("username", identity?.username || "");
@@ -502,9 +609,8 @@ const Recharge = ({
           transactionDetails.set("walletAddr", identity?.walletAddr);
           //transactionDetails.set("partnerUserRef",partnerUserRef)
           await transactionDetails.save(null, { useMasterKey: true });
-            navigate("/clkk-payment",{state:{response:response}})
+          navigate("/clkk-payment", { state: { response: response } });
           //setStoredBuyUrl(response?.publicUrl); // Store for retry
-          
         } catch (err) {
           console.error("PayNearMe error:", err);
           alert("Something went wrong with CLKK Recharge.");
@@ -513,7 +619,8 @@ const Recharge = ({
           setWalletLoading(false);
         }
       }),
-      disabled: identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
     },
     {
       id: "stripe",
@@ -573,22 +680,29 @@ const Recharge = ({
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
-         setCheckingRechargeLimit(true);
+        setCheckingRechargeLimit(true);
 
-          if (rechargeAmount < RechargeLimitOfAgent) {
-            setRechargeError(`Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`);
-            return;
-          }
+        if (rechargeAmount < RechargeLimitOfAgent) {
+          setRechargeError(
+            `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+          );
+          return;
+        }
 
-          const transactionCheck = await checkActiveRechargeLimit(identity?.userParentId, rechargeAmount);
-          if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message || "Recharge Limit Reached");
-            return;
-          }
+        const transactionCheck = await checkActiveRechargeLimit(
+          identity?.userParentId,
+          rechargeAmount
+        );
+        if (!transactionCheck.success) {
+          setRechargeError(
+            transactionCheck.message || "Recharge Limit Reached"
+          );
+          return;
+        }
 
-          setRechargeError("");
+        setRechargeError("");
         navigate("/payment-checkout", {
-          state: { rechargeAmount: rechargeAmount,remark:remark },
+          state: { rechargeAmount: rechargeAmount, remark: remark },
         });
         // try {
         //   setCheckingRechargeLimit(true);
@@ -1728,11 +1842,16 @@ const Recharge = ({
                         return false;
                       if (option.id === "instant" && !showWert) return false;
                       if (option.id === "crypto" && !showLink) return false;
-                      if (option.id === "payarc" && !showPayarc)
-                        return false;
+                      if (option.id === "payarc" && !showPayarc) return false;
                       if (option.id === "stripe" && !showStripe) return false;
                       if (option.id === "CLKK" && !showClkk) return false;
-                      if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
+                      if (
+                        option.id === "authorizenet-charge" &&
+                        !showAuthorizeNet
+                      )
+                        return false;
+                      if (option.id === "cellpay" && !showCellPay) return false;
+
                       return true;
                     })
                     .map((option) => (
@@ -2218,6 +2337,45 @@ const Recharge = ({
         <DialogActions>
           <Button onClick={() => setShowSafariHelp(false)} autoFocus>
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* CellPay Mobile Confirmation Dialog */}
+      <Dialog
+        open={showCellPayDialog}
+        onClose={() => setShowCellPayDialog(false)}
+      >
+        <DialogTitle>Enter or Confirm Mobile Number</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            CellPay requires a valid mobile number to process your transaction.
+          </DialogContentText>
+          <TextField
+            fullWidth
+            label="Mobile Number"
+            value={mobileNumber}
+            onChange={(e) => {
+              // Allow only digits
+              const onlyNums = e.target.value.replace(/\D/g, "");
+              setMobileNumber(onlyNums);
+            }}
+            inputProps={{
+              inputMode: "numeric",
+              pattern: "[0-9]*",
+              maxLength: 15, // optional: limit length
+            }}
+            placeholder="Enter mobile number"
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCellPayDialog(false)}>Cancel</Button>
+          <Button
+            onClick={() => proceedWithCellPay()}
+            disabled={!mobileNumber || checkingRechargeLimit}
+            variant="contained"
+          >
+            {checkingRechargeLimit ? "Generating URL" : "Continue"}
           </Button>
         </DialogActions>
       </Dialog>

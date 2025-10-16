@@ -54,6 +54,7 @@ import DisableRechargeDialog from "./dialog/DisableRechargeDialog";
 import Snackbar from "@mui/material/Snackbar";
 import { AllowUserCreationDialog } from "./dialog/AllowUserCreationDialog";
 import { debounce } from "lodash";
+import { fetchAllAgentSummaries } from "../../Utils/utils";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -708,10 +709,14 @@ export const UserList = (props) => {
     </TopToolbar>
   );
 
-  useEffect(() => {
+  useEffect(async() => {
     if (identity) {
       fetchAllUsers();
-    }
+      const startDate = new Date("2024-12-01T00:00:00.000Z");
+      const endDate = new Date("2025-10-15T23:59:59.999Z");
+      
+      await fetchAllAgentSummaries(startDate, endDate);
+          }
   }, [identity]);
 
   useEffect(() => {
@@ -737,6 +742,8 @@ export const UserList = (props) => {
 
   //   return () => clearInterval(interval);
   // }, [refresh]);
+
+  
 
   if (isLoading) {
     return (
