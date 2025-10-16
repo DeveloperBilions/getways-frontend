@@ -83,6 +83,8 @@ const Recharge = ({
   const { identity } = useGetIdentity();
   const [showCellPayDialog, setShowCellPayDialog] = useState(false);
   const [mobileNumber, setMobileNumber] = useState(identity?.cellPayPhone || "");
+  const [vpUsername, setVpUsername] = useState(identity?.username || "");
+  const [vpEmail, setVpEmail] = useState(identity?.email || "");
   const refresh = useRefresh();
   const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -145,6 +147,14 @@ const Recharge = ({
       //handlecheck();
     }
   }, [identity]);
+
+  useEffect(() => {
+    // Update CellPay form fields when identity changes
+    setMobileNumber(identity?.cellPayPhone || "");
+    setVpUsername(identity?.username || "");
+    setVpEmail(identity?.email || "");
+  }, [identity]);
+
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
     // Update the header display based on selected payment method
@@ -194,8 +204,8 @@ const Recharge = ({
       const cellPayResponse = await Parse.Cloud.run("cellpayRefill", {
         amount: rechargeAmount,
         mobileNumber: mobileNumber,
-        vp_username: identity?.username,
-        vp_email: identity?.email,
+        vp_username: vpUsername,
+        vp_email: vpEmail,
         });
 
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
@@ -2368,13 +2378,36 @@ const Recharge = ({
             }}
             placeholder="Enter mobile number"
             variant="outlined"
+            sx={{ mb: 2 }}
           />
+          <TextField
+            fullWidth
+            label="Username"
+            value={vpUsername}
+            onChange={(e) => setVpUsername(e.target.value)}
+            variant="outlined"
+            placeholder="Enter username"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            value={vpEmail}
+            onChange={(e) => setVpEmail(e.target.value)}
+            variant="outlined"
+            placeholder="Enter email"
+            type="email"
+            sx={{ mb: 1 }}
+          />
+          <DialogContentText variant="caption" sx={{ color: 'text.secondary' }}>
+            You can modify the username and email if needed. These details will be sent to CellPay for your transaction.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowCellPayDialog(false)}>Cancel</Button>
           <Button
             onClick={() => proceedWithCellPay()}
-            disabled={!mobileNumber || checkingRechargeLimit}
+            disabled={!mobileNumber || !vpUsername || !vpEmail || checkingRechargeLimit}
             variant="contained"
           >
             {checkingRechargeLimit ? "Generating URL" : "Continue"}
