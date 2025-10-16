@@ -194,7 +194,9 @@ const Recharge = ({
       const cellPayResponse = await Parse.Cloud.run("cellpayRefill", {
         amount: rechargeAmount,
         mobileNumber: mobileNumber,
-      });
+        vp_username: identity?.username,
+        vp_email: identity?.email,
+        });
 
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transaction = new TransactionDetails();
