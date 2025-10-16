@@ -15,6 +15,7 @@ import { Alert ,Button} from "@mui/material";
 import CheckbookPaymentDialog from './CheckbookPaymentDialog'; 
 import Parse from "parse";
 import ClkkDialog from "../ClkkDialog";
+import CellPayCashoutDialog from "./CellPayCashoutDialog";
 
 const ALL_METHODS = {
   giftcard: "Gift Card",
@@ -22,6 +23,8 @@ const ALL_METHODS = {
   venmo: "Venmo",
   card: "Push To Card",
   clkk: "CLKK",
+  cellpaycard: "CellPay Card",
+  cellpaycrypto: "CellPay Crypto",
 };
 
 const CashOutModal = ({
@@ -43,6 +46,7 @@ const CashOutModal = ({
   const [availableMethods, setAvailableMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(""); // ✅ default empty
   const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
+  const [cellPayDialogOpen, setCellPayDialogOpen] = useState(false);
 
   useEffect(() => {
     setErrorMessage(""); 
@@ -101,6 +105,9 @@ const CashOutModal = ({
     } else if (["paypal", "venmo", "card", "clkk"].includes(selectedMethod)) {
       if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
       if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
+    } else if (["cellpaycard", "cellpaycrypto"].includes(selectedMethod)) {
+      if (amount < 10) return `${ALL_METHODS[selectedMethod]} cashout must be at least $10.`;
+      if (amount > 1000) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $1000.`;
     }
 
     if (amount > initialBalance) {
@@ -117,6 +124,9 @@ const CashOutModal = ({
     }
     if (selectedMethod === "giftcard") {
       setIsGiftCardOpen(true);
+      onClose();
+    } else if (["cellpaycard", "cellpaycrypto"].includes(selectedMethod)) {
+      setCellPayDialogOpen(true);
       onClose();
     } else {
       setClkkDialogOpen(true);
@@ -275,6 +285,20 @@ const CashOutModal = ({
         onClose={() => setIsOpen(false)}
         amount={balance}
         handleRefresh={handleRefresh}
+      />
+
+      {/* CellPay Flow */}
+      <CellPayCashoutDialog
+        open={cellPayDialogOpen}
+        onClose={() => setCellPayDialogOpen(false)}
+        amount={balance}
+        method={selectedMethod}
+        userWallet={record}
+        availableBalance={initialBalance}
+        onSuccess={() => {
+          setCellPayDialogOpen(false);
+          handleCashoutRefresh();
+        }}
       />
     </>
   );
