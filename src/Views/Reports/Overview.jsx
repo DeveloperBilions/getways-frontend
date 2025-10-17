@@ -77,8 +77,11 @@ const Overview = () => {
       setLoading(true);
       const filter = {};
       if (fromDate) filter.fromDate = fromDate;
-      if (toDate) filter.toDate = toDate;
-
+      if (toDate) {
+        const endOfDay = new Date(toDate);
+        endOfDay.setUTCHours(23, 59, 59, 999); // set end of day in UTC
+        filter.toDate = endOfDay;
+      }
       const result = await dataProvider.getList("Report", {
         pagination: { page: 1, perPage: 1000 },
         sort: { field: "transactionDate", order: "DESC" },

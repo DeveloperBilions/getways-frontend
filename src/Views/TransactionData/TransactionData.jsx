@@ -60,6 +60,8 @@ export const TransactionData = (props) => {
   };
 
   const getMode = (data) => {
+    if (data?.type?.toLowerCase() === "redeem") return "";
+
     return data?.transactionIdFromStripe?.toLowerCase().includes("txn-")
       ? "WERT"
       : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")

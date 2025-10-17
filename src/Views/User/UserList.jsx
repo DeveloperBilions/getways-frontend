@@ -709,13 +709,10 @@ export const UserList = (props) => {
     </TopToolbar>
   );
 
-  useEffect(async() => {
+  useEffect(() => {
     if (identity) {
       fetchAllUsers();
-      const startDate = new Date("2024-12-01T00:00:00.000Z");
-      const endDate = new Date("2025-10-15T23:59:59.999Z");
-      
-      await fetchAllAgentSummaries(startDate, endDate);
+    
           }
   }, [identity]);
 

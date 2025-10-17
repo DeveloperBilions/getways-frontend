@@ -1618,7 +1618,9 @@ export const dataProvider = {
               totalFeesAmount: [
                 {
                   $match: {
+                    type:"recharge",
                     transactionAmount: { $gt: 0, $type: "number" },
+                    status: { $in: [2, 3] },
                   },
                 },
                 {
@@ -1633,7 +1635,9 @@ export const dataProvider = {
               totalTicketAmount: [
                 {
                   $match: {
+                    type:"recharge",
                     transactionAmount: { $gt: 0, $type: "number" },
+                    status: { $in: [2, 3] },
                   },
                 },
                 {
