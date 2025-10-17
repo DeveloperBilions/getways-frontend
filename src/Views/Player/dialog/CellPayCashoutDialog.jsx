@@ -38,9 +38,9 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
 
   // Card Payout Fields
   const [cardData, setCardData] = useState({
+    name: "",
     mobileNumber: "",
     recipient: "",
-    name: "",
     amount: amount || "",
     description: "",
   });
@@ -65,9 +65,9 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
 
   const resetForm = () => {
     setCardData({
+      name: "",
       mobileNumber: "",
       recipient: "",
-      name: "",
       amount: amount || "",
       description: "",
     });
@@ -83,9 +83,9 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
   };
 
   const validateCardForm = () => {
-    const { mobileNumber, recipient, name, amount } = cardData;
+    const { name, mobileNumber, recipient, amount } = cardData;
     
-    if (!mobileNumber || !recipient || !name || !amount) {
+    if (!name || !mobileNumber || !recipient || !amount) {
       setError("All card payout fields are required");
       return false;
     }
@@ -133,18 +133,21 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
       if (result.success) {
         setSuccess(`Card payout successful! Transaction ID: ${result.transactionId}`);
         notify("Card payout processed successfully", { type: "success" });
-        onSuccess();
+        onSuccess(); // Refresh parent component
         setTimeout(() => {
           resetForm();
           onClose();
         }, 2000);
       } else {
         setError(result.message || "Card payout failed");
+        notify("Card payout failed", { type: "error" });
       }
     } catch (error) {
       console.error("Card payout error:", error);
-      setError(error.message || "Failed to process card payout");
-      notify("Card payout failed", { type: "error" });
+      // CellPay API response is stored in DB even for failures
+      const errorMessage = error.message || "Failed to process card payout";
+      setError(errorMessage);
+      notify(`Card payout failed: ${errorMessage}`, { type: "error" });
     } finally {
       setLoading(false);
     }
@@ -163,18 +166,21 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
       if (result.success) {
         setSuccess(`Crypto payout successful! Transaction ID: ${result.transactionId}`);
         notify("Crypto payout processed successfully", { type: "success" });
-        onSuccess();
+        onSuccess(); // Refresh parent component
         setTimeout(() => {
           resetForm();
           onClose();
         }, 2000);
       } else {
         setError(result.message || "Crypto payout failed");
+        notify("Crypto payout failed", { type: "error" });
       }
     } catch (error) {
       console.error("Crypto payout error:", error);
-      setError(error.message || "Failed to process crypto payout");
-      notify("Crypto payout failed", { type: "error" });
+      // CellPay API response is stored in DB even for failures
+      const errorMessage = error.message || "Failed to process crypto payout";
+      setError(errorMessage);
+      notify(`Crypto payout failed: ${errorMessage}`, { type: "error" });
     } finally {
       setLoading(false);
     }
@@ -227,13 +233,20 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
           {/* Card Payout Form */}
           {payoutType === "card" && (
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Recipient Name"
+                  value={cardData.name}
+                  onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
+                  required
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Mobile Number"
-                  placeholder="+14081234567"
+                  placeholder="9999999999"
                   value={cardData.mobileNumber}
                   onChange={(e) => setCardData({ ...cardData, mobileNumber: e.target.value })}
                   required
@@ -246,15 +259,6 @@ const CellPayCashoutDialog = ({ open, onClose, amount, method, userWallet, avail
                   type="email"
                   value={cardData.recipient}
                   onChange={(e) => setCardData({ ...cardData, recipient: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Recipient Name"
-                  value={cardData.name}
-                  onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
                   required
                 />
               </Grid>
