@@ -78,11 +78,13 @@ const Recharge = ({
   RechargeLimitOfAgent,
 }) => {
   const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
-  const [showCellPay, setShowCellPay] = useState(false);
+  const [showGetPay, setShowGetPay] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(50);
   const { identity } = useGetIdentity();
-  const [showCellPayDialog, setShowCellPayDialog] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState(identity?.cellPayPhone || "");
+  const [showGetPayDialog, setShowGetPayDialog] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState(identity?.getPayPhone || "");
+  const [vpUsername, setVpUsername] = useState(identity?.username || "");
+  const [vpEmail, setVpEmail] = useState(identity?.email || "");
   const refresh = useRefresh();
   const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
@@ -145,6 +147,14 @@ const Recharge = ({
       //handlecheck();
     }
   }, [identity]);
+
+  useEffect(() => {
+    // Update GetPay form fields when identity changes
+    setMobileNumber(identity?.getPayPhone || "");
+    setVpUsername(identity?.username || "");
+    setVpEmail(identity?.email || "");
+  }, [identity]);
+
   const handlePaymentMethodChange = (event) => {
     setPaymentSource(event.target.value);
     // Update the header display based on selected payment method
@@ -162,7 +172,7 @@ const Recharge = ({
       });
     }
   };
-  const proceedWithCellPay = async () => {
+  const proceedWithGetPay = async () => {
     try {
       setCheckingRechargeLimit(true);
 
@@ -187,14 +197,16 @@ const Recharge = ({
 
       const usercurent = await Parse.User.current();
       if (usercurent && mobileNumber) {
-        usercurent.set("cellPayPhone",Number(mobileNumber));
+        usercurent.set("getPayPhone",Number(mobileNumber));
         await usercurent.save(null, { useMasterKey: true });
       }
       // 🔹 Call your Parse Cloud Function with mobile number
-      const cellPayResponse = await Parse.Cloud.run("cellpayRefill", {
+      const getPayResponse = await Parse.Cloud.run("cellpayRefill", {
         amount: rechargeAmount,
         mobileNumber: mobileNumber,
-      });
+        vp_username: vpUsername,
+        vp_email: vpEmail,
+        });
 
       const TransactionDetails = Parse.Object.extend("TransactionRecords");
       const transaction = new TransactionDetails();
@@ -210,26 +222,26 @@ const Recharge = ({
       transaction.set("useWallet", false);
       transaction.set("userParentId", user?.get("userParentId") || "");
       transaction.set("status", 1);
-      transaction.set("portal", "CellPay");
+      transaction.set("portal", "GetPay");
       transaction.set(
         "transactionIdFromStripe",
-        cellPayResponse?.CCTransactionId
+        getPayResponse?.CCTransactionId
       );
-      transaction.set("referralLink", cellPayResponse?.hosted_url || "");
+      transaction.set("referralLink", getPayResponse?.hosted_url || "");
       transaction.set("walletAddr", identity?.walletAddr || "");
 
       await transaction.save(null, { useMasterKey: true });
 
-      const popup = window.open(cellPayResponse?.hosted_url, "_blank");
-      setStoredBuyUrl(cellPayResponse?.hosted_url);
+      const popup = window.open(getPayResponse?.hosted_url, "_blank");
+      setStoredBuyUrl(getPayResponse?.hosted_url);
 
       if (!popup || popup.closed || typeof popup.closed === "undefined") {
         setPopupBlocked(true);
         setPopupDialogOpen(true);
       }
     } catch (err) {
-      console.error("CellPay recharge error:", err);
-      alert("Something went wrong with CellPay Recharge.");
+      console.error("GetPay recharge error:", err);
+      alert("Something went wrong with GetPay Recharge.");
     } finally {
       setCheckingRechargeLimit(false);
     }
@@ -262,9 +274,9 @@ const Recharge = ({
         parentId,
         "authorizenet"
       );
-      const iscellpayAlllowd = await isPaymentMethodAllowed(
+      const isGetPayAllowed = await isPaymentMethodAllowed(
         parentId,
-        "cellpay"
+        "getpay"
       );
 
       setShowClkk(isCLKKAllowed);
@@ -274,7 +286,7 @@ const Recharge = ({
       setshowPayarc(isPayarcAllowed);
       setshowStripe(isStripeAllowed);
       setShowAuthorizeNet(isAuthorizeNetAllowed);
-      setShowCellPay(iscellpayAlllowd);
+      setShowGetPay(isGetPayAllowed);
       setRechargeMethodLoading(false);
     };
 
@@ -470,7 +482,7 @@ const Recharge = ({
   const [hoveredOption, setHoveredOption] = useState(null);
   const paymentOptions = [
     {
-      id: "cellpay",
+      id: "getpay",
       title: "Crypto",
       description: "Secure payment • No KYC needed",
       icon: <BsFillCreditCard2FrontFill size={24} />,
@@ -478,7 +490,7 @@ const Recharge = ({
       hoverColor: "#FFF7E6",
       paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
-        setShowCellPayDialog(true);
+        setShowGetPayDialog(true);
       }),
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit,
@@ -1850,7 +1862,7 @@ const Recharge = ({
                         !showAuthorizeNet
                       )
                         return false;
-                      if (option.id === "cellpay" && !showCellPay) return false;
+                      if (option.id === "getpay" && !showGetPay) return false;
 
                       return true;
                     })
@@ -2340,15 +2352,15 @@ const Recharge = ({
           </Button>
         </DialogActions>
       </Dialog>
-      {/* CellPay Mobile Confirmation Dialog */}
+      {/* GetPay Mobile Confirmation Dialog */}
       <Dialog
-        open={showCellPayDialog}
-        onClose={() => setShowCellPayDialog(false)}
+        open={showGetPayDialog}
+        onClose={() => setShowGetPayDialog(false)}
       >
         <DialogTitle>Enter or Confirm Mobile Number</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            CellPay requires a valid mobile number to process your transaction.
+            GetPay requires a valid mobile number to process your transaction.
           </DialogContentText>
           <TextField
             fullWidth
@@ -2366,13 +2378,36 @@ const Recharge = ({
             }}
             placeholder="Enter mobile number"
             variant="outlined"
+            sx={{ mb: 2 }}
           />
+          <TextField
+            fullWidth
+            label="Username"
+            value={vpUsername}
+            onChange={(e) => setVpUsername(e.target.value)}
+            variant="outlined"
+            placeholder="Enter username"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            value={vpEmail}
+            onChange={(e) => setVpEmail(e.target.value)}
+            variant="outlined"
+            placeholder="Enter email"
+            type="email"
+            sx={{ mb: 1 }}
+          />
+          <DialogContentText variant="caption" sx={{ color: 'text.secondary' }}>
+            You can modify the username and email if needed. These details will be sent to GetPay for your transaction.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowCellPayDialog(false)}>Cancel</Button>
+          <Button onClick={() => setShowGetPayDialog(false)}>Cancel</Button>
           <Button
-            onClick={() => proceedWithCellPay()}
-            disabled={!mobileNumber || checkingRechargeLimit}
+            onClick={() => proceedWithGetPay()}
+            disabled={!mobileNumber || !vpUsername || !vpEmail || checkingRechargeLimit}
             variant="contained"
           >
             {checkingRechargeLimit ? "Generating URL" : "Continue"}
