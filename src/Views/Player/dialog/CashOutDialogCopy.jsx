@@ -106,8 +106,8 @@ const CashOutModal = ({
       if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
       if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
     } else if (["getpaycard", "getpaycrypto"].includes(selectedMethod)) {
-      if (amount < 10) return `${ALL_METHODS[selectedMethod]} cashout must be at least $10.`;
-      if (amount > 1000) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $1000.`;
+      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
+      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
     }
 
     if (amount > initialBalance) {
@@ -128,9 +128,13 @@ const CashOutModal = ({
     } else if (["getpaycard", "getpaycrypto"].includes(selectedMethod)) {
       setGetPayDialogOpen(true);
       onClose();
-    } else {
+    } else if (["paypal", "venmo", "card", "clkk"].includes(selectedMethod)) {
       setClkkDialogOpen(true);
       onClose();
+    } else {
+      // Handle any other payment methods
+      console.error(`Unhandled payment method: ${selectedMethod}`);
+      setErrorMessage(`Payment method ${selectedMethod} is not currently supported.`);
     }
   };
 
@@ -297,7 +301,11 @@ const CashOutModal = ({
         availableBalance={initialBalance}
         onSuccess={() => {
           setGetPayDialogOpen(false);
-          handleCashoutRefresh();
+          if (typeof handleCashoutRefresh === 'function') {
+            handleCashoutRefresh();
+          } else if (typeof handleRefresh === 'function') {
+            handleRefresh();
+          }
         }}
       />
     </>
