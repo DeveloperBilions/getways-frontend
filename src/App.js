@@ -56,6 +56,7 @@ import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecor
 import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
 import FiservPaymentWidget from "./Views/Widget/FiservPaymentWidget";
 import FiservCheckoutWidget from "./Views/Widget/FiservCheckoutWidget";
+import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -448,6 +449,14 @@ function App() {
                     element={
                       <Authenticated>
                         <FiservCheckoutWidget />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/commerce-hub-payment"
+                    element={
+                      <Authenticated>
+                        <CommerceHubWidget />
                       </Authenticated>
                     }
                   />
