@@ -203,14 +203,7 @@ if (exportFilters.month) {
       ? "TransFi"
       : data?.useWallet
       ? "Wallet"
-      : data?.portal === "Payarc"
-      ? "Payarc" :
-      data?.portal === "PayNearMe" ?
-      "PayNearMe" :
-      data?.portal === "CLK" ? "CLKK"
-      : data?.portal === "AuthorizeNet" ? "AuthorizeNet"
-      : data?.portal === "Fiserv" ? "Fiserv"
-      : data?.portal === "FiservCheckout" ? "Fiserv Checkout"
+      : data?.portal ? data?.portal
       : "Stripe";
   };
 
@@ -1150,17 +1143,7 @@ if (exportFilters.month) {
                             ? "TransFi"
                             : record?.useWallet
                             ? "Wallet"
-                            : record?.portal === "Payarc"
-                            ? "Payarc" :
-                            record?.portal === "PayNearMe" ?
-                            "PayNearMe" :
-                            record?.portal === "CLK" ? "CLKK" 
-                            : record?.portal === "AuthorizeNet"
-                            ? "AuthorizeNet"
-                            : record?.portal === "Fiserv"
-                            ? "Fiserv"
-                            : record?.portal === "FiservCheckout"
-                            ? "Fiserv Checkout"
+                            : record?.portal ? record?.portal
                             : "Stripe"}
                         </Typography>
                       </Box>
