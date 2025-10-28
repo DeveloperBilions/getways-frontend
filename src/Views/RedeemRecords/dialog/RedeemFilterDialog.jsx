@@ -29,7 +29,7 @@ export const ReedemFilterDialog = ({
     role === "Super-User"
       ? [
           { id: "username", name: "Account" },
-          { id: "transactionAmount", name: "Reedem" },
+          { id: "transactionAmount", name: "Redeem" },
           { id: "remark", name: "Remark" },
           { id: "userParentName", name: "Parent Name" },
         ]
