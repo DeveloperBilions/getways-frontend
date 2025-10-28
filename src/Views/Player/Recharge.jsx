@@ -116,6 +116,8 @@ const Recharge = ({
   const [showAuthorizeNet, setShowAuthorizeNet] = useState(false);
   const [showFiserv, setShowFiserv] = useState(false);
   const [showFiservCheckout, setShowFiservCheckout] = useState(false);
+  const [commerceHubEnabled, setCommerceHubEnabled] = useState(false);
+  const [showCommerceHub, setShowCommerceHub] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -198,6 +200,7 @@ const Recharge = ({
       const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
+      const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -209,9 +212,11 @@ const Recharge = ({
       setShowAuthorizeNet(isAuthorizeNetAllowed);
       setShowFiserv(isFiservAllowed);
       setShowFiservCheckout(isFiservCheckoutAllowed);
+      setCommerceHubEnabled(isCommerceHubAllowed);
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
+      console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubAllowed);
     };
 
     if (identity?.userParentId) {
@@ -1096,18 +1101,17 @@ const Recharge = ({
     {
       id: "fiservcheckout",
       title: "Fiserv Checkout",
-      description: "Secure hosted payment • Redirect method",
-      subtext: "Multiple payment methods",
-      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
-      color: "#0066CC",
-      hoverColor: "#E6F3FF",
-      paymentIcons: [visa, mastercard, payPal],
+      description: "Secure checkout • Redirect to payment",
+      subtext: "No KYC needed",
+      icon: <CreditCardIcon sx={{ color: "#0052CC", fontSize: 24 }} />,
+      color: "#0052CC",
+      hoverColor: "#E6F2FF",
+      paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         try {
           if (!(await verifyPotBalance("recharge"))) return;
           setCheckingRechargeLimit(true);
 
-          // Validate minimum recharge
           if (rechargeAmount < RechargeLimitOfAgent) {
             setRechargeError(
               `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
@@ -1122,51 +1126,92 @@ const Recharge = ({
           );
 
           if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message);
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
             return;
           }
 
-          // Create Fiserv checkout
-          const successUrl = `${window.location.origin}/fiserv-checkout-success`;
-          const failureUrl = `${window.location.origin}/fiserv-checkout-failure`;
-          
+          setRechargeError("");
+
           const response = await Parse.Cloud.run("fiservCreateCheckout", {
             amount: rechargeAmount,
             remark: remark,
-            currency: "USD",
-            orderId: `ORDER-${Date.now()}`,
             customerInfo: {
-              name: identity?.name,
-              email: identity?.email,
-              phone: identity?.phoneNumber
-            },
-            successUrl: successUrl,
-            failureUrl: failureUrl
+              firstName: identity?.firstName || "",
+              lastName: identity?.lastName || "",
+              email: identity?.email || "",
+              phone: identity?.phone || "",
+              name: identity?.username || ""
+            }
           });
 
-          if (response.success) {
-            console.log("✅ Fiserv checkout created:", response);
-            navigate("/fiserv-checkout-payment", { 
-              state: { 
-                response: {
-                  ...response,
-                  amount: rechargeAmount,
-                  currency: "USD"
-                }
-              }
-            });
+          if (response.success && response.redirectionUrl) {
+            window.location.href = response.redirectionUrl;
           } else {
-            setRechargeError("Failed to create checkout. Please try again.");
+            setRechargeError("Failed to create checkout session. Please try again.");
           }
         } catch (err) {
-          console.error("Fiserv checkout error:", err);
-          setRechargeError(err.message || "Failed to create checkout. Please try again.");
+          console.error("Fiserv Checkout error:", err);
+          alert("Something went wrong with Fiserv Checkout.");
         } finally {
           setCheckingRechargeLimit(false);
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || !showFiservCheckout,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "commercehub",
+      title: "Commerce Hub Payment",
+      description: "Secure payment • Powered by Fiserv",
+      subtext: "No KYC needed",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC", // Fiserv brand blue
+      hoverColor: "#E6F0FF",
+      paymentIcons: [visa, mastercard, Logo1],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Navigate to Commerce Hub payment page
+          navigate("/commerce-hub-payment", {
+            state: {
+              rechargeAmount,
+              remark,
+            },
+          });
+        } catch (err) {
+          console.error("Commerce Hub error:", err);
+          setRechargeError(err.message || "Failed to initialize Commerce Hub. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     // {
     //   id: "bank",
@@ -2093,6 +2138,7 @@ const Recharge = ({
                   if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
                   if (option.id === "fiserv" && !showFiserv) return false;
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
+                  if (option.id === "commercehub" && !commerceHubEnabled) return false;
                   
                    
                   

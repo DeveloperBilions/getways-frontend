@@ -135,7 +135,28 @@ const RechargeWidgetPopup = ({
     } else if(id === "payarc"){
       const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}&gc_coins=${gc_coins}&sc_coins=${sc_coins}`;
       setIframeUrl(checkoutUrl);
-    }else {
+    } else if(id === "fiserv-checkout"){
+      try {
+        setLoadingMessage("Creating Fiserv checkout...");
+        
+        const result = await Parse.Cloud.run("fiservCreateCheckout", {
+          amount: parseFloat(confirmedAmount),
+          remark: remark
+        });
+
+        if (result.success && result.redirectionUrl) {
+          // Redirect to Fiserv checkout page
+          window.location.href = result.redirectionUrl;
+        } else {
+          alert("Failed to create Fiserv checkout session");
+          setLoadingMessage("");
+        }
+      } catch (err) {
+        alert("Failed to initiate Fiserv checkout.");
+        console.error(err);
+        setLoadingMessage("");
+      }
+    } else {
       onOptionClick(id, { userId, walletId, remark });
     }
   };
@@ -276,6 +297,13 @@ const RechargeWidgetPopup = ({
       description: "Secure payment",
       color: "#FF9900",
       hoverColor: "#FFF7E6",
+    },
+    {
+      id: "fiserv-checkout",
+      title: "Fiserv Checkout",
+      description: "Secure card payment",
+      color: "#0066CC",
+      hoverColor: "#E6F2FF",
     }
     // {
     //   id: "crypto",
