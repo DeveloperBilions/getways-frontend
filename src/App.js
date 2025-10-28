@@ -56,6 +56,8 @@ import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecor
 import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
 import FiservPaymentWidget from "./Views/Widget/FiservPaymentWidget";
 import FiservCheckoutWidget from "./Views/Widget/FiservCheckoutWidget";
+import FiservCheckoutSuccess from "./Views/Widget/FiservCheckoutSuccess";
+import FiservCheckoutFailure from "./Views/Widget/FiservCheckoutFailure";
 import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
 
 function App() {
@@ -500,6 +502,8 @@ function App() {
           <Route path="/buyWert" element={<AutoWertWidget />} />
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
           <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
+          <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
+          <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
           {/* Total Liquor Embedded Checkout */}
           <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
         </CustomRoutes>

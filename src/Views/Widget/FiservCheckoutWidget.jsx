@@ -1,248 +1,172 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Parse } from "parse";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
   Typography,
-  Alert,
   CircularProgress,
+  Alert,
+  Paper,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useGetIdentity } from "react-admin";
 
-// Parse init
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const FiservCheckoutWidget = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { identity } = useGetIdentity();
-  const response = location?.state?.response;
-
-  const iframeRef = useRef(null);
-  const [loading, setLoading] = useState(false); 
-  const [paymentStatus, setPaymentStatus] = useState(null);
+  const location = useLocation();
+  
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const [showIframe, setShowIframe] = useState(true);
+  const [checkoutData, setCheckoutData] = useState(null);
 
-  // Get recharge amount and remark from navigation state
-  const { rechargeAmount, remark } = location.state || {};
+  const { amount, remark, platform, gc_coins, sc_coins, userId } = location.state || {};
 
   useEffect(() => {
-    if (!rechargeAmount && !response) {
-      navigate("/recharge");
+    if (!amount) {
+      setError("No amount specified for recharge");
+      setTimeout(() => navigate("/recharge"), 2000);
     }
-  }, [rechargeAmount, response, navigate]);
+  }, [amount, navigate]);
 
-  const allowedOrigins = [
-    "https://prod.emea.api.fiservapps.com",
-    "https://www.checkout-lane.com", // Fiserv checkout domain
-    "https://checkout-lane.com",
-    "https://sandbox.checkout-lane.com",
-    "https://api.fiservapps.com"
-  ];
+  const handleCreateCheckout = async () => {
+    setLoading(true);
+    setError(null);
 
-  const updateTransactionStatus = async (checkoutId, status) => {
     try {
-      const TransactionRecords = Parse.Object.extend("TransactionRecords");
-      const query = new Parse.Query(TransactionRecords);
-      query.equalTo("transactionIdFromStripe", checkoutId);
-      const txn = await query.first({ useMasterKey: true });
+      const currentUser = Parse.User.current();
       
-      if (!txn) {
-        console.warn("⚠️ No transaction found for checkout:", checkoutId);
-        return;
+      if (!currentUser) {
+        throw new Error("Please log in to continue");
       }
 
-      txn.set("status", status); // 2: success, 10: fail
-      await txn.save(null, { useMasterKey: true });
-      console.log("✅ Transaction updated with status:", status);
+      const response = await Parse.Cloud.run("fiservCreateCheckout", {
+        amount: parseFloat(amount),
+        remark: remark ,
+        platform: platform || "web",
+        gc_coins: gc_coins || null,
+        sc_coins: sc_coins || null,
+        customerInfo: {
+          email: currentUser.get("email") || null,
+          firstName: currentUser.get("firstName") || null,
+          lastName: currentUser.get("lastName") || null,
+          name: currentUser.get("username") || null,
+        }
+      });
+
+      if (response.success && response.redirectionUrl) {
+        setCheckoutData(response);
+        // Redirect to Fiserv checkout page
+        window.location.href = response.redirectionUrl;
+      } else {
+        throw new Error("Failed to create checkout session");
+      }
     } catch (err) {
-      console.error("❌ Failed to update transaction:", err);
+      console.error("Fiserv checkout error:", err);
+      setError(err.message || "Failed to create checkout. Please try again.");
+      setLoading(false);
     }
   };
 
-  const handleMessage = useCallback(
-    (event) => {
-      if (!allowedOrigins.some(origin => event.origin.includes(origin))) return;
-
-      const message =
-        typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-
-      switch (message?.type) {
-        case "CHECKOUT_READY":
-          setLoading(false);
-          break;
-
-        case "PAYMENT_SUCCESS":
-          console.log("✅ PAYMENT SUCCESS", message.data);
-          setPaymentStatus({
-            status: "success",
-            amount: message.data?.amount,
-            currency: message.data?.currency,
-            transactionId: message.data?.transactionId,
-          });
-
-          setShowSuccessAnimation(true);
-          updateTransactionStatus(response?.checkout?.checkoutId, 2); // Success
-
-          // Redirect after 3 seconds
-          setTimeout(() => {
-            navigate("/playerDashboard");
-          }, 3000);
-          break;
-
-        case "PAYMENT_FAILED":
-          console.error("❌ PAYMENT FAILED", message.data);
-          setShowIframe(false);
-          setPaymentStatus({
-            status: "failed",
-            reason: message.data?.reason || "Unknown error",
-          });
-
-          updateTransactionStatus(response?.checkout?.checkoutId, 10);
-          setTimeout(() => navigate("/playerDashboard"), 1500);
-          break;
-
-        case "PAYMENT_CANCELLED":
-          setPaymentStatus({ status: "cancelled" });
-          setTimeout(() => {
-            navigate("/playerDashboard");
-          }, 1000);
-          break;
-
-        case "HEIGHT_CHANGED":
-          if (iframeRef.current && message.data?.height) {
-            iframeRef.current.height = message.data.height;
-          }
-          break;
-
-        case "ERROR":
-          console.error("📛 Checkout error:", message.data);
-          setError("Checkout error occurred. Please try again.");
-          break;
-
-        default:
-          console.warn("⚠️ Unknown event type received:", message?.type);
-          break;
-      }
-    },
-    [navigate, identity]
-  );
-
-  useEffect(() => {
-    window.addEventListener("message", handleMessage);
-    
-    // Add timeout to hide loading state if no message received
-    const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.log("⏰ Timeout: Hiding loading state");
-        setLoading(false);
-      }
-    }, 10000); // 10 seconds timeout
-    
-    return () => {
-      window.removeEventListener("message", handleMessage);
-      clearTimeout(loadingTimeout);
-    };
-  }, [handleMessage, loading]);
+  const handleBackClick = () => {
+    navigate("/recharge");
+  };
 
   return (
-    <Box className="container py-4">
-      <Box display="flex" justifyContent="start" mb={2}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "#f5f5f5",
+        p: 2,
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          maxWidth: 500,
+          width: "100%",
+          p: 4,
+          borderRadius: 2,
+        }}
+      >
+        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBackClick}
+            disabled={loading}
+            sx={{ minWidth: "auto" }}
+          >
+            Back
+          </Button>
+          <Typography variant="h5" fontWeight={600}>
+            Fiserv Checkout
+          </Typography>
+        </Box>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            Recharge Amount
+          </Typography>
+          <Typography variant="h4" fontWeight={600} color="primary">
+            ${amount}
+          </Typography>
+        </Box>
+
+        {remark && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              Remark: {remark}
+            </Typography>
+          </Box>
+        )}
+
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            You will be redirected to Fiserv's secure payment page to complete your transaction.
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            ✓ Secure payment processing
+            <br />
+            ✓ Multiple payment methods supported
+            <br />
+            ✓ Instant confirmation
+          </Typography>
+        </Box>
+
         <Button
-          variant="outlined"
-          size="small"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/playerDashboard")}
-        >
-          Back
-        </Button>
-      </Box>
-
-      {loading && !showSuccessAnimation && (
-        <Box
-          display="flex"
-          justifyContent={"center"}
-          alignItems="center"
-          mb={2}
-        >
-          <CircularProgress size={20} />
-          <Typography variant="body2" ml={1}>
-            Loading Fiserv Checkout...
-          </Typography>
-        </Box>
-      )}
-
-      {paymentStatus?.status === "success" && (
-        <Box
-          display="flex"
-          justifyContent={"center"}
-          alignItems="center"
-          mb={2}
-        >
-          <Alert severity="success" sx={{ mb: 2 }}>
-            Payment succeeded!
-          </Alert>
-        </Box>
-      )}
-
-      {paymentStatus?.status === "failed" && (
-        <Box
-          display="flex"
-          justifyContent={"center"}
-          alignItems="center"
-          mb={2}
-        >
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Payment failed!
-          </Alert>
-        </Box>
-      )}
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {showSuccessAnimation ? (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height="300px"
-        >
-          <Typography variant="h5" color="success.main">
-            ✅ Payment Successful! Redirecting...
-          </Typography>
-        </Box>
-      ) : showIframe && response?.checkout?.redirectionUrl ? (
-        <iframe
-          ref={iframeRef}
-          id="fiserv-checkout"
-          src={response.checkout.redirectionUrl}
-          title="Fiserv Checkout"
-          width="100%"
-          height="600"
-          style={{
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            display: loading ? "none" : "block",
+          variant="contained"
+          fullWidth
+          size="large"
+          onClick={handleCreateCheckout}
+          disabled={loading || !amount}
+          sx={{
+            mt: 2,
+            py: 1.5,
+            textTransform: "none",
+            fontSize: "1rem",
           }}
-          allow="payment *; microphone *; camera *; geolocation *; autoplay *"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-top-navigation-by-user-activation"
-          frameBorder="0"
-          allowFullScreen
-        />
-      ) : showIframe && (
-        <Typography variant="body1" color="text.secondary">
-          No payment URL provided.
-        </Typography>
-      )}
+        >
+          {loading ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CircularProgress size={20} color="inherit" />
+              <span>Redirecting to Fiserv...</span>
+            </Box>
+          ) : (
+            "Proceed to Payment"
+          )}
+        </Button>
+      </Paper>
     </Box>
   );
 };

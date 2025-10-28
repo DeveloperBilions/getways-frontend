@@ -1101,18 +1101,17 @@ const Recharge = ({
     {
       id: "fiservcheckout",
       title: "Fiserv Checkout",
-      description: "Secure hosted payment • Redirect method",
-      subtext: "Multiple payment methods",
-      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
-      color: "#0066CC",
-      hoverColor: "#E6F3FF",
-      paymentIcons: [visa, mastercard, payPal],
+      description: "Secure checkout • Redirect to payment",
+      subtext: "No KYC needed",
+      icon: <CreditCardIcon sx={{ color: "#0052CC", fontSize: 24 }} />,
+      color: "#0052CC",
+      hoverColor: "#E6F2FF",
+      paymentIcons: [visa, mastercard],
       onClick: debounce(async () => {
         try {
           if (!(await verifyPotBalance("recharge"))) return;
           setCheckingRechargeLimit(true);
 
-          // Validate minimum recharge
           if (rechargeAmount < RechargeLimitOfAgent) {
             setRechargeError(
               `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
@@ -1127,51 +1126,40 @@ const Recharge = ({
           );
 
           if (!transactionCheck.success) {
-            setRechargeError(transactionCheck.message);
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
             return;
           }
 
-          // Create Fiserv checkout
-          const successUrl = `${window.location.origin}/fiserv-checkout-success`;
-          const failureUrl = `${window.location.origin}/fiserv-checkout-failure`;
-          
+          setRechargeError("");
+
           const response = await Parse.Cloud.run("fiservCreateCheckout", {
             amount: rechargeAmount,
             remark: remark,
-            currency: "USD",
-            orderId: `ORDER-${Date.now()}`,
             customerInfo: {
-              name: identity?.name,
-              email: identity?.email,
-              phone: identity?.phoneNumber
-            },
-            successUrl: successUrl,
-            failureUrl: failureUrl
+              firstName: identity?.firstName || "",
+              lastName: identity?.lastName || "",
+              email: identity?.email || "",
+              phone: identity?.phone || "",
+              name: identity?.username || ""
+            }
           });
 
-          if (response.success) {
-            console.log("✅ Fiserv checkout created:", response);
-            navigate("/fiserv-checkout-payment", { 
-              state: { 
-                response: {
-                  ...response,
-                  amount: rechargeAmount,
-                  currency: "USD"
-                }
-              }
-            });
+          if (response.success && response.redirectionUrl) {
+            window.location.href = response.redirectionUrl;
           } else {
-            setRechargeError("Failed to create checkout. Please try again.");
+            setRechargeError("Failed to create checkout session. Please try again.");
           }
         } catch (err) {
-          console.error("Fiserv checkout error:", err);
-          setRechargeError(err.message || "Failed to create checkout. Please try again.");
+          console.error("Fiserv Checkout error:", err);
+          alert("Something went wrong with Fiserv Checkout.");
         } finally {
           setCheckingRechargeLimit(false);
         }
       }),
       disabled:
-        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || !showFiservCheckout,
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     {
       id: "commercehub",
