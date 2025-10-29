@@ -739,7 +739,6 @@ export const fetchTransactionsofAgentByDate = async ({
               $dateToString: {
                 format: "%Y-%m-%d",
                 date: "$transactionDate",
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Local timezone
               },
             },
           },
