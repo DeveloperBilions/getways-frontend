@@ -229,6 +229,8 @@ if (exportFilters.month) {
         return "Expired";
       case 10:
         return "Failed Transaction";
+      case 14:
+        return "Refunded";
       default:
         return "Unknown Status";
     }
@@ -922,6 +924,8 @@ if (exportFilters.month) {
                       case 9:
                       case 10:
                         return { color: "#FFEBEB", borderColor: "#FF6060" };
+                      case 14:
+                        return { color: "#EBF3FF", borderColor: "#6060FF" };
                       default:
                         return { color: "default", borderColor: "default" };
                     }
@@ -933,6 +937,7 @@ if (exportFilters.month) {
                     3: "Coins Credited",
                     9: "Expired",
                     10: "Failed Transaction",
+                    14: "Refunded",
                   }[record.status];
                   return (
                     <Chip

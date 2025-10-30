@@ -52,6 +52,7 @@ export const RechargeFilterDialog = ({
     { id: 3, name: "Coins Credited" },
     { id: 9, name: "Expired" },
     { id: 10, name: "Failed Transaction" },
+    { id: 14, name: "Refunded" },
   ];
 
   const handleApply = () => {

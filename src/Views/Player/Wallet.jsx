@@ -169,6 +169,7 @@ export const Wallet = () => {
       11: "In-Progress",
       12: "Cashout Successful",
       13: "Cashout Rejected",
+      14: "Refunded"
     };
     return statusMessage[status] || "Unknown Status";
   };
