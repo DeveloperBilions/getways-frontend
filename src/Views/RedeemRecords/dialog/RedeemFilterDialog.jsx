@@ -56,6 +56,7 @@ export const ReedemFilterDialog = ({
           { id: 11, name: "Cashouts" },
           { id: 12, name: "Cashout Successfully" },
           { id: 13, name: "Cashout Reject" },
+          { id: 14, name: "Refunded" },
         ]
       : []),
   ];
