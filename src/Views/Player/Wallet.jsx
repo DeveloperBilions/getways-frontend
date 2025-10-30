@@ -260,6 +260,8 @@ export const Wallet = () => {
                               return "orange";
                             case 12:
                               return "green";
+                            case 14:
+                              return "blue";
                             default:
                               return "black";
                           }
@@ -276,6 +278,7 @@ export const Wallet = () => {
                           11: "In - Progress",
                           12: "Cashout Successful",
                           13: "Cashout Rejected",
+                          14: "Refunded",
                         }[record.status];
 
                         return (

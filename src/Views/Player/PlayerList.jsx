@@ -129,6 +129,7 @@ export const PlayerList = () => {
         11: "In - Progress",
         12: "Cashout Successful",
         13: "Cashout Rejected",
+        14: "Refunded",
       };
 
       return {

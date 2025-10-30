@@ -186,6 +186,8 @@ export const RedeemRecordsList = (props) => {
         return "Cashout Successfully";
       case 13:
         return "Cashout Reject";
+      case 14:
+        return "Refunded";
       default:
         return "Unknown Status";
     }
@@ -945,6 +947,8 @@ export const RedeemRecordsList = (props) => {
                         return { color: "#FFEBEB", borderColor: "#FF6060" };
                       case 6:
                         return { color: "#FFFCEB", borderColor: "#FFDC60" };
+                      case 14:
+                        return { color: "#EBF3FF", borderColor: "#6060FF" };
                       default:
                         return { color: "default", borderColor: "default" };
                     }
@@ -959,6 +963,7 @@ export const RedeemRecordsList = (props) => {
                     11: "Cashouts",
                     12: "Cashout Successfully",
                     13: "Cashout Reject",
+                    14: "Refunded",
                   }[record.status];
                   return (
                     <Chip
