@@ -267,14 +267,14 @@ export const TotalLiquorEmbeddedCheckout = () => {
     <Box sx={{ maxWidth: 1000, margin: "0 auto", padding: 3 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Button
+        {/* <Button
           variant="outlined"
           size="small"
           startIcon={<ArrowBackIcon />}
           onClick={() => setShowCheckout(false)}
         >
           Back to Form
-        </Button>
+        </Button> */}
         <Typography variant="h5" component="h1" display="flex" alignItems="center" gap={1}>
           <ShoppingCartIcon />
           Total Liquor Payment
