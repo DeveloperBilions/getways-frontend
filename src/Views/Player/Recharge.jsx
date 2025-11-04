@@ -61,6 +61,7 @@ import { useNavigate } from "react-router-dom";
 import { getAgentTierDetails } from "../../Utils/tier";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import { getAllActiveThresholdsWithActiveMethod, validateThresholdBeforeRecharge } from "../../Utils/rechargeThreshold";
+import CommerceHubSDKDialog from "../RechargeRecords/dialog/CommerceHubSDKDialog";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -118,6 +119,8 @@ const Recharge = ({
   const [showFiservCheckout, setShowFiservCheckout] = useState(false);
   const [commerceHubEnabled, setCommerceHubEnabled] = useState(false);
   const [showCommerceHub, setShowCommerceHub] = useState(false);
+  const [commerceHubSDKDialogOpen, setCommerceHubSDKDialogOpen] = useState(false);
+  const [affirmDialogOpen, setAffirmDialogOpen] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -201,6 +204,8 @@ const Recharge = ({
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
+      const isCommerceHubSDKAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehubsdk");
+      
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -212,11 +217,13 @@ const Recharge = ({
       setShowAuthorizeNet(isAuthorizeNetAllowed);
       setShowFiserv(isFiservAllowed);
       setShowFiservCheckout(isFiservCheckoutAllowed);
-      setCommerceHubEnabled(isCommerceHubAllowed);
+      setCommerceHubEnabled(isCommerceHubAllowed || isCommerceHubSDKAllowed);
+      setShowCommerceHub(isCommerceHubAllowed);
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
       console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubAllowed);
+      console.log("🔧 Setting commerceHubSDK enabled state to:", isCommerceHubSDKAllowed);
     };
 
     if (identity?.userParentId) {
@@ -1213,6 +1220,100 @@ const Recharge = ({
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
+    {
+      id: "commercehubsdk",
+      title: "Commerce Hub SDK",
+      description: "Hosted Checkout • Secure payment fields",
+      subtext: "No KYC needed • 3D Secure available",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC",
+      hoverColor: "#E6F0FF",
+      paymentIcons: [visa, mastercard, Logo1],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Open Commerce Hub SDK Dialog
+          setCommerceHubSDKDialogOpen(true);
+        } catch (err) {
+          console.error("Commerce Hub SDK error:", err);
+          setRechargeError(err.message || "Failed to open Commerce Hub SDK. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "affirm",
+      title: "Affirm - Buy Now Pay Later",
+      description: "Pay over time • Flexible payments",
+      subtext: "No hidden fees",
+      icon: <CreditCardIcon sx={{ color: "#0FA0EA", fontSize: 24 }} />,
+      color: "#0FA0EA", // Affirm brand blue
+      hoverColor: "#E6F7FF",
+      paymentIcons: [],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Open Affirm BNPL Dialog
+          setAffirmDialogOpen(true);
+        } catch (err) {
+          console.error("Affirm error:", err);
+          setRechargeError(err.message || "Failed to open Affirm. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
     // {
     //   id: "bank",
     //   title: "Bank Transfer",
@@ -2139,6 +2240,7 @@ const Recharge = ({
                   if (option.id === "fiserv" && !showFiserv) return false;
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
                   if (option.id === "commercehub" && !commerceHubEnabled) return false;
+                  if (option.id === "commercehubsdk" && !commerceHubEnabled) return false;
                   
                    
                   
@@ -2632,6 +2734,19 @@ const Recharge = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Commerce Hub SDK Dialog */}
+      <CommerceHubSDKDialog
+        open={commerceHubSDKDialogOpen}
+        onClose={() => setCommerceHubSDKDialogOpen(false)}
+        onSuccess={(response) => {
+          setCommerceHubSDKDialogOpen(false);
+          handleRefresh();
+          setSnackbarOpen(true);
+        }}
+        initialAmount={rechargeAmount}
+        initialRemark={remark}
+      />
     </>
   );
 };
