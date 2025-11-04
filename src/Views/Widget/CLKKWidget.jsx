@@ -82,11 +82,11 @@ export const CLKKWidget = () => {
           });
 
           setShowSuccessAnimation(true); // Show success animation
-          updateTransactionStatus(
-            message.data?.sessionId,
-            2,
-            message.data?.transactionId
-          ); // Success
+          // updateTransactionStatus(
+          //   message.data?.sessionId,
+          //   2,
+          //   message.data?.transactionId
+          // ); // Success
 
           // Redirect after 3 seconds
           setTimeout(() => {
