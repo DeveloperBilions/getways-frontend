@@ -11,6 +11,7 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useGetIdentity } from "react-admin";
 import { updatePotBalance } from "../../Utils/utils";
+import { logTransactionChange } from "../../Utils/Logs";
 
 // Parse init
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -49,9 +50,14 @@ export const CLKKWidget = () => {
         console.warn("⚠️ No transaction found for session:", sessionId);
         return;
       }
-
+      const originalTxn = txn.clone();
       txn.set("status", status); // 2: success, 10: fail
       txn.set("transactionIdFromStripe", transactionId);
+      await logTransactionChange({
+        originalTxn,
+        updatedTxn: txn,
+        sourceFunction: "updateTransactionStatus",
+      });
       await txn.save(null, { useMasterKey: true });
       console.log("✅ Transaction updated with status:", status);
     } catch (err) {
