@@ -676,7 +676,7 @@ export default function MyAppBar(props) {
                     </Typography>
                   </MenuItem>
                 )}
-                {(role === "Master-Agent" || role === "Super-User") && (
+                {(role === "Super-User") && (
                   <MenuItem
                     onClick={() => setCarryForwardDialog(true)}
                     style={{
