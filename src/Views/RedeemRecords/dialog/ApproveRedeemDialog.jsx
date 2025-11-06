@@ -272,7 +272,7 @@ const ApproveRedeemDialog = ({ open, onClose, record, handleRefresh }) => {
 
                 <p className="mb-1">
                   <small>
-                    Total amount to be redeemed = $
+                    Total amount to be redeemed = 
                     {Math.floor(
                       redeemAmount -
                         (redeemAmount *
