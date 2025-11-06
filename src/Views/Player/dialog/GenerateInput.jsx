@@ -2,25 +2,45 @@ import Web3 from "web3";
 
 const web3 = new Web3(); // No provider needed for encoding only
 
-export const generateScInputData = (path, recipient, amountIn, amountOutMinimum) => {
-  // Flat-args ABI (no tuple)
-  const exactInputABI = {
-    name: "exactInput",
-    type: "function",
-    inputs: [
-      { type: "bytes",   name: "path" },
-      { type: "address", name: "recipient" },
-      { type: "uint256", name: "amountIn" },
-      { type: "uint256", name: "amountOutMinimum" },
-    ],
-  };
-  const scInputData = web3.eth.abi.encodeFunctionCall(exactInputABI, [
+const exactInputABI = {
+  name: "exactInput",
+  type: "function",
+  inputs: [
+    {
+      name: "params",
+      type: "tuple",
+      components: [
+        { name: "path",              type: "bytes"   },
+        { name: "recipient",         type: "address" },
+        { name: "deadline",          type: "uint256" }, // REQUIRED
+        { name: "amountIn",          type: "uint256" },
+        { name: "amountOutMinimum",  type: "uint256" },
+      ],
+    },
+  ],
+};
+
+export const generateScInputData = (
+  path,                    // bytes (0x...)
+  recipient,               // address
+  amountIn,                // uint256 (string or BN)
+  amountOutMinimum,        // uint256 (string or BN)
+  deadlineSeconds = Math.floor(Date.now() / 1000) + 1800 // +30 min
+) => {
+  // Sanity checks (helpful)
+  if (!path || !path.startsWith("0x")) throw new Error("path must be 0x-prefixed hex bytes");
+  if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
+    throw new Error("recipient must be a 20-byte 0x address");
+  }
+
+  // IMPORTANT: pass the tuple as an array IN ORDER of components
+  const scInputData = web3.eth.abi.encodeFunctionCall(exactInputABI, [[
     path,
     recipient,
-    amountIn,          // decimal string or hex string ok
-    amountOutMinimum,  // decimal string or hex string ok
-  ]);
+    String(deadlineSeconds),
+    String(amountIn),
+    String(amountOutMinimum),
+  ]]);
 
-  console.log("Encoded sc_input_data:", scInputData);
   return scInputData;
 };
