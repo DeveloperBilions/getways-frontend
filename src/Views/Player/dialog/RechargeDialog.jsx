@@ -353,7 +353,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
 
     const recipient = user.get("walletAddr");
     const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
-    const amountOutMinimum =  (parseFloat(0) * Math.pow(10, 18)).toString();
+    const amountOutMinimum = "0";
 
     const sc_input_data = generateScInputData(
       path,

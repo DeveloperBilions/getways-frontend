@@ -13,16 +13,10 @@ export const generateScInputData = (
     name: "exactInput",
     type: "function",
     inputs: [
-      {
-        type: "tuple",
-        name: "params",
-        components: [
-          { type: "bytes", name: "path" },
+      { type: "bytes", name: "path" },
           { type: "address", name: "recipient" },
           { type: "uint256", name: "amountIn" },
-          { type: "uint256", name: "amountOutMinimum" },
-        ],
-      },
+          { type: "uint256", name: "amountOutMinimum" }
     ],
   };
 
