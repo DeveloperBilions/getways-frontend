@@ -361,6 +361,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
       amountIn,
       amountOutMinimum
     );
+    console.log(recipient,amountIn,amountOutMinimum,sc_input_data)
 
     const signedData = signSmartContractData(
       {
