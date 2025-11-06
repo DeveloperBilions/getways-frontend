@@ -34,7 +34,7 @@ export const generateScInputData = (
       amountIn,
       amountOutMinimum,
     },
-  ]);
+  ],[path, recipient, amountIn, amountOutMinimum]);
 
   console.log("Encoded sc_input_data:", scInputData);
   return scInputData;
