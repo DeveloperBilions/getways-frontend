@@ -931,6 +931,8 @@ export const RechargeRecordsList = (props) => {
                         return { color: "#FFEBEB", borderColor: "#FF6060" };
                       case 14:
                         return { color: "#EBF3FF", borderColor: "#6060FF" };
+                        case 15:
+                          return { color: "#EBF3FF", borderColor: "#6060FF" };
                       default:
                         return { color: "default", borderColor: "default" };
                     }
@@ -943,6 +945,7 @@ export const RechargeRecordsList = (props) => {
                     9: "Expired",
                     10: "Failed Transaction",
                     14: "Refunded",
+                    15: "Dispute"
                   }[record.status];
                   return (
                     <Chip
