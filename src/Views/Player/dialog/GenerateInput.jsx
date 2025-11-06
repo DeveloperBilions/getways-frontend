@@ -7,10 +7,7 @@ export const generateScInputData = (
   recipient,
   amountIn,
   amountOutMinimum,
-  deadlineSecFromNow = 900
 ) => {
-  const now = Math.floor(Date.now() / 1000);
-  const deadline = web3.utils.toBN(now + deadlineSecFromNow);
   // Define the exactInput ABI
   const exactInputABI = {
     name: "exactInput",
@@ -22,7 +19,6 @@ export const generateScInputData = (
         components: [
           { type: "bytes", name: "path" },
           { type: "address", name: "recipient" },
-          { type: "uint256", name: "deadline" },
           { type: "uint256", name: "amountIn" },
           { type: "uint256", name: "amountOutMinimum" },
         ],
@@ -35,7 +31,6 @@ export const generateScInputData = (
     {
       path,
       recipient,
-      deadline: deadline.toString(),
       amountIn,
       amountOutMinimum,
     },
