@@ -231,6 +231,8 @@ if (exportFilters.month) {
         return "Failed Transaction";
       case 14:
         return "Refunded";
+      case 15:
+        return "Dispute";
       default:
         return "Unknown Status";
     }
