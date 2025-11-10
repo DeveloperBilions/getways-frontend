@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
   List,
-  TextField as RaTextField,
+  TextField,
   SearchInput,
   DateField,
   NumberField,
@@ -67,12 +67,10 @@ import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
 import { RechargeFilterDialog } from "./dialog/RechargeFilterDialog";
 import { isRechargeEnabledForAgent } from "../../Utils/utils";
-import { Alert, TextField, InputAdornment, IconButton } from "@mui/material";
+import { Alert } from "@mui/material";
 import { TextField as MonthPickerField } from "@mui/material";
 import { SelectInput } from "react-admin";
 import { get } from "react-hook-form";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -106,8 +104,7 @@ export const RechargeRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const role = localStorage.getItem("role");
-  const [searchBy, setSearchBy] = useState(role === "Player" ? "transactionAmount" : "username");
+  const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -146,6 +143,8 @@ export const RechargeRecordsList = (props) => {
     setFilterModalOpen(true);
   };
 
+  const role = localStorage.getItem("role");
+
   if (!role) {
     navigate("/login");
   }
@@ -162,18 +161,18 @@ export const RechargeRecordsList = (props) => {
      // helper to wrap JS Date into Parse Date object
 const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
 
-if (exportFilters.month) {
-  const [year, month] = exportFilters.month.split("-");
+      if (exportFilters.month) {
+        const [year, month] = exportFilters.month.split("-");
   const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0); // first day @ 00:00:00
   const endDate = new Date(year, month, 0, 23, 59, 59, 999);  // last day @ 23:59:59
 
   exportFilters.createdAt = {
     $gte: toParseDate(startDate),
     $lte: toParseDate(endDate),
-  };
+        };
 
-  delete exportFilters.month; // remove 'month' key as it's transformed
-}
+        delete exportFilters.month; // remove 'month' key as it's transformed
+      }
 
 
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
@@ -246,25 +245,32 @@ if (exportFilters.month) {
   //     0
   //   );
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
     setLoading(true);
     refresh();
     setTimeout(() => {
       setLoading(false);
     }, 1000);
-  }, [refresh]);
+  };
   useEffect(() => {
     if (role === "Player") {
-      setSearchBy("transactionAmount");
+      setSearchBy("");
+      setFilters(
+        // {
+        //   type: "recharge",
+        //   status: 1,
+        // },
+        false
+      );
     } else {
-      setSearchBy("username");
+      setSearchBy("username"); // Optional reset
     }
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
 
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, [handleRefresh, role]);
+  }, []);
 
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
@@ -342,135 +348,76 @@ if (exportFilters.month) {
     "userParentName",
   ];
 
-  const handleSearchByChange = (newSearchBy, shouldApplyFilters = true) => {
+  const handleSearchByChange = (newSearchBy) => {
     setSearchBy(newSearchBy);
-    setPrevSearchBy(searchBy); // Store the old searchBy
-    
-    if (!shouldApplyFilters) {
-      return;
-    }
-    
-    const currentSearchValue = filterValues[searchBy] || "";
-  
-    const newFilters = {
-      ...filterValues, // keep everything
-      type: "recharge",
-    };
-  
-    // Remove the old search field value
-    if (searchBy && searchBy !== newSearchBy) {
-      delete newFilters[searchBy];
-    }
-  
-    // If the previous value was not empty, carry it over to the new field
-    if (currentSearchValue?.trim()) {
+    setPrevSearchBy(newSearchBy);
+
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
+
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
       newFilters[newSearchBy] = currentSearchValue;
     }
-  
-    setFilters(newFilters, true); // Push to URL
-  }; 
 
-  // useEffect(() => {
-  //   // Compare current filterValues with previous filterValues
-  //   const prevFilterValues = prevFilterValuesRef.current;
-  //   const filterValuesChanged =
-  //     JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+    newFilters.searchBy = newSearchBy;
 
-  //   // Update the ref with current filterValues for the next run
-  //   prevFilterValuesRef.current = filterValues;
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
 
-  //   // Skip if no meaningful change
-  //   if (!filterValuesChanged) {
-  //     return;
-  //   }
-  //   const currentSearchValue = filterValues[searchBy] || "";
-  //   const newFilters = {
-  //     searchBy,
-  //   };
+    setFilters(newFilters, false);
+  };
 
-  //   if (currentSearchValue && currentSearchValue.trim() !== "") {
-  //     newFilters[searchBy] = currentSearchValue;
-  //   }
-
-  //   if (filterValues.role) {
-  //     newFilters.role = filterValues.role;
-  //   }
-
-  //   const cleanedFilters = Object.keys(filterValues)
-  // .filter((key) => key !== prevSearchBy || key === searchBy)
-  // .reduce((obj, key) => {
-  //   obj[key] = filterValues[key];
-  //   return obj;
-  // }, {});
-
-  //   console.log(cleanedFilters,newFilters,"newFiltersnewFiltersnewFiltersnewFiltersnewFilters")
-
-  //   setFilters({ ...cleanedFilters, ...newFilters }, false);
-  // }, [filterValues, searchBy, setFilters]);
   useEffect(() => {
-    // Only update Expirestatus filter without touching other filters
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
+
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
+    }
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter((key) => !searchFields.includes(key) || key === searchBy)
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
+  useEffect(() => {
+    const newFilter = { type: "recharge" };
+
     if (role !== "Player" && !showExpired) {
-      const currentExpirestatus = filterValues.Expirestatus;
-      const isValidExpirestatusObject = currentExpirestatus && 
-                                        typeof currentExpirestatus === 'object' && 
-                                        !Array.isArray(currentExpirestatus);
-      
-      const needsUpdate = !isValidExpirestatusObject || currentExpirestatus.$ne !== 9;
-      
-      if (needsUpdate) {
-        const newFilters = { ...filterValues };
-        newFilters.Expirestatus = { $ne: 9 };
-        setFilters(newFilters, false);
-      }
-    } else {
-      if (filterValues.Expirestatus) {
-        const newFilters = { ...filterValues };
-        delete newFilters.Expirestatus;
-        setFilters(newFilters, false);
-      }
+      newFilter.status = { $ne: 9 };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    setFilters(newFilter, false); // Don't push to history
   }, [showExpired, role]);
-  const [searchValue, setSearchValue] = useState("");
-
-  // Sync search value with filterValues
-  useEffect(() => {
-    const currentValue = filterValues[searchBy] || "";
-    setSearchValue(currentValue);
-  }, [filterValues, searchBy]);
-
-  const handleSearchChange = (event) => {
-    const value = event.target.value;
-    setSearchValue(value);
-    
-    // Debounce the filter update
-    if (window.searchTimeout) {
-      clearTimeout(window.searchTimeout);
-    }
-    
-    window.searchTimeout = setTimeout(() => {
-      const newFilters = {
-        ...filterValues,
-        type: "recharge",
-      };
-      
-      if (value && value.trim()) {
-        newFilters[searchBy] = value.trim();
-      } else {
-        delete newFilters[searchBy];
-      }
-      
-      setFilters(newFilters, true);
-    }, 500); // 500ms debounce
-  };
-
-  const handleSearchClear = () => {
-    setSearchValue("");
-    const newFilters = { ...filterValues };
-    delete newFilters[searchBy];
-    setFilters(newFilters, true);
-  };
-
   const dataFilters = [
     <Box
       key="search-filter"
@@ -483,54 +430,18 @@ if (exportFilters.month) {
       }}
       alwaysOn
     >
-      <TextField
-        value={searchValue}
-        onChange={handleSearchChange}
-        placeholder={
-          searchBy === "username" ? "Account" :
-          searchBy === "transactionAmount" ? "Recharge" :
-          searchBy === "userParentName" ? "Parent Name" :
-          searchBy === "remark" ? "Remark" :
-          searchBy.charAt(0).toUpperCase() + searchBy.slice(1)
-        }
-        size="small"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: "#9CA3AF" }} />
-            </InputAdornment>
-          ),
-          endAdornment: searchValue && (
-            <InputAdornment position="end">
-              <IconButton
-                size="small"
-                onClick={handleSearchClear}
-                edge="end"
-              >
-                <ClearIcon sx={{ fontSize: "18px" }} />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
+      <SearchInput
+        source={searchBy}
+        alwaysOn
+        resettable
+        placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
           marginBottom: 1,
+          borderRadius: "5px",
+          borderColor: "#CFD4DB",
           maxWidth: "280px",
-          "& .MuiOutlinedInput-root": {
-            borderRadius: "5px",
-            backgroundColor: "#fff",
-            "& fieldset": {
-              borderColor: "#CFD4DB",
-            },
-            "&:hover fieldset": {
-              borderColor: "#9CA3AF",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "#000",
-              borderWidth: "2px",
-            },
-          },
         }}
       />
       <Button
@@ -950,7 +861,7 @@ if (exportFilters.month) {
                   ) : null
                 }
               />
-              <RaTextField source="username" label="Account" />
+              <TextField source="username" label="Account" />
               <NumberField
                 source="transactionAmount"
                 label="Recharged"
@@ -1018,7 +929,7 @@ if (exportFilters.month) {
                         return { color: "#FFEBEB", borderColor: "#FF6060" };
                       case 14:
                         return { color: "#EBF3FF", borderColor: "#6060FF" };
-                      case 15:
+                        case 15:
                           return { color: "#EBF3FF", borderColor: "#6060FF" };
                       default:
                         return { color: "default", borderColor: "default" };
@@ -1413,10 +1324,10 @@ if (exportFilters.month) {
 
                 const selectedFields = exportData.map((item) => {
                   const row = {
-                    Name: item.username,
-                    "Amount": item.transactionAmount,
-                    Remark: item.remark,
-                    Status: mapStatus(item.status),
+                  Name: item.username,
+                  "Amount": item.transactionAmount,
+                  Remark: item.remark,
+                  Status: mapStatus(item.status),
                     Date: new Date(item.transactionDate).toLocaleDateString(),
                   };
                 
