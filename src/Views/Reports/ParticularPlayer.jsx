@@ -97,7 +97,7 @@ const ParticularPlayer = () => {
       const dates = Object.keys(player.transactions).sort(
         (a, b) => new Date(a) - new Date(b)
       );
-
+        console.log(player.transactions,"player.transactions-player.transactions",dates)
       const formattedDates = dates.map((date) => {
         const d = new Date(date);
         return `${d.toLocaleString("default", {
@@ -106,6 +106,7 @@ const ParticularPlayer = () => {
       });
       setLineChartDates(dates);
       setFormattedData(formattedDates);
+      console.log(formattedDates,"formattedDates")
 
       // Calculate totals for pie chart
       let totalRecharge = 0;

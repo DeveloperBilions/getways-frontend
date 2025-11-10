@@ -1097,7 +1097,7 @@ export const fetchTransactionsofPlayerByDate = async ({
               $dateToString: {
                 format: "%Y-%m-%d",
                 date: "$transactionDate",
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Local timezone
+                timezone: "UTC"
               },
             },
           },

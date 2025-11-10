@@ -140,16 +140,16 @@ const PlayerOverview = () => {
       // Sort playerTransactionResult by totalRecharge and select top 30 players
       const sortedPlayerRechargeData = playerTransactionResult?.data
         .sort((a, b) => b.totalRecharge - a.totalRecharge)
-        .slice(0, 30);
+        .slice(0, 50);
       setPlayerRechargeData(sortedPlayerRechargeData);
       const sortedPlayerRedeemData = playerTransactionResult?.data
         .sort((a, b) => b.totalRedeem - a.totalRedeem)
-        .slice(0, 30);
-      setPlayerRedeemData(sortedPlayerRedeemData);
+        .slice(0, 50);
+      setPlayerRedeemData(sortedPlayerRechargeData);
       const sortedPlayerCashoutData = playerTransactionResult?.data
         .sort((a, b) => b.totalCashout - a.totalCashout)
-        .slice(0, 30);
-      setPlayerCashoutData(sortedPlayerCashoutData);
+        .slice(0, 50);
+      setPlayerCashoutData(sortedPlayerRechargeData);
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {
@@ -564,7 +564,7 @@ const PlayerOverview = () => {
                                   xAxis={[
                                     {
                                       data: playerRechargeData
-                                        .slice(0, 10)
+                                        .slice(0, 50)
                                         .map((item) => item.username),
                                       scaleType: "band",
                                       tickLabelStyle: {
@@ -575,14 +575,14 @@ const PlayerOverview = () => {
                                   series={[
                                     {
                                       data: playerRechargeData
-                                        .slice(0, 10)
+                                        .slice(0, 50)
                                         .map((item) => item.totalRecharge),
                                       label: "Recharge",
                                       color: "#089B2D",
                                     },
                                     {
                                       data: playerRechargeData
-                                        .slice(0, 10)
+                                        .slice(0, 50)
                                         .map((player) => {
                                           const redeemPlayer =
                                             playerRedeemData.find(
@@ -598,7 +598,7 @@ const PlayerOverview = () => {
                                     },
                                     {
                                       data: playerRechargeData
-                                        .slice(0, 10)
+                                        .slice(0, 50)
                                         .map((player) => {
                                           const cashoutPlayer =
                                             playerCashoutData.find(
