@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 // react admin
 import {
   Datagrid,
   List,
-  TextField,
+  TextField as RaTextField,
   SearchInput,
   DateField,
   NumberField,
@@ -67,10 +67,12 @@ import PersistentMessage from "../../Utils/View/PersistentMessage";
 import CustomPagination from "../Common/CustomPagination";
 import { RechargeFilterDialog } from "./dialog/RechargeFilterDialog";
 import { isRechargeEnabledForAgent } from "../../Utils/utils";
-import { Alert } from "@mui/material";
+import { Alert, TextField, InputAdornment, IconButton } from "@mui/material";
 import { TextField as MonthPickerField } from "@mui/material";
 import { SelectInput } from "react-admin";
 import { get } from "react-hook-form";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 // Initialize Parse
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
@@ -104,7 +106,8 @@ export const RechargeRecordsList = (props) => {
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
   const [isExporting, setIsExporting] = useState(false); // Track export state
-  const [searchBy, setSearchBy] = useState("");
+  const role = localStorage.getItem("role");
+  const [searchBy, setSearchBy] = useState(role === "Player" ? "transactionAmount" : "username");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -142,8 +145,6 @@ export const RechargeRecordsList = (props) => {
   const handleOpenFilterModal = () => {
     setFilterModalOpen(true);
   };
-
-  const role = localStorage.getItem("role");
 
   if (!role) {
     navigate("/login");
@@ -245,32 +246,25 @@ if (exportFilters.month) {
   //     0
   //   );
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setLoading(true);
     refresh();
     setTimeout(() => {
       setLoading(false);
     }, 1000);
-  };
+  }, [refresh]);
   useEffect(() => {
     if (role === "Player") {
-      setSearchBy("");
-      setFilters(
-        // {
-        //   type: "recharge",
-        //   status: 1,
-        // },
-        false
-      );
+      setSearchBy("transactionAmount");
     } else {
-      setSearchBy("username"); // Optional reset
+      setSearchBy("username");
     }
     const interval = setInterval(() => {
       handleRefresh();
     }, 60000); // 60,000 ms = 1 minute
 
     return () => clearInterval(interval); // Cleanup when unmounted
-  }, []);
+  }, [handleRefresh, role]);
 
   const handleCoinCredit = async (record) => {
     setSelectedRecord(record);
@@ -348,27 +342,32 @@ if (exportFilters.month) {
     "userParentName",
   ];
 
-  const handleSearchByChange = (newSearchBy) => {
-    // setSearchBy(newSearchBy);
-    // setPrevSearchBy(newSearchBy); // Optional but safe
-    // const currentSearchValue = filterValues[prevSearchBy] || "";
+  const handleSearchByChange = (newSearchBy, shouldApplyFilters = true) => {
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(searchBy); // Store the old searchBy
+    
+    if (!shouldApplyFilters) {
+      return;
+    }
+    
+    const currentSearchValue = filterValues[searchBy] || "";
   
-    // const newFilters = {
-    //   ...filterValues, // keep everything
-    //   searchBy: newSearchBy, // update searchBy key
-    // };
+    const newFilters = {
+      ...filterValues, // keep everything
+      type: "recharge",
+    };
   
-    // // Remove the old search field value
-    // if (prevSearchBy && prevSearchBy !== newSearchBy) {
-    //   delete newFilters[prevSearchBy];
-    // }
+    // Remove the old search field value
+    if (searchBy && searchBy !== newSearchBy) {
+      delete newFilters[searchBy];
+    }
   
-    // // If the previous value was not empty, carry it over to the new field
-    // if (currentSearchValue?.trim()) {
-    //   newFilters[newSearchBy] = currentSearchValue;
-    // }
+    // If the previous value was not empty, carry it over to the new field
+    if (currentSearchValue?.trim()) {
+      newFilters[newSearchBy] = currentSearchValue;
+    }
   
-    // setFilters(newFilters, false);
+    setFilters(newFilters, true); // Push to URL
   }; 
 
   // useEffect(() => {
@@ -409,14 +408,69 @@ if (exportFilters.month) {
   //   setFilters({ ...cleanedFilters, ...newFilters }, false);
   // }, [filterValues, searchBy, setFilters]);
   useEffect(() => {
-    const newFilter = { type: "recharge" };
-
+    // Only update Expirestatus filter without touching other filters
     if (role !== "Player" && !showExpired) {
-      newFilter.Expirestatus = { $ne: 9 };
+      const currentExpirestatus = filterValues.Expirestatus;
+      const isValidExpirestatusObject = currentExpirestatus && 
+                                        typeof currentExpirestatus === 'object' && 
+                                        !Array.isArray(currentExpirestatus);
+      
+      const needsUpdate = !isValidExpirestatusObject || currentExpirestatus.$ne !== 9;
+      
+      if (needsUpdate) {
+        const newFilters = { ...filterValues };
+        newFilters.Expirestatus = { $ne: 9 };
+        setFilters(newFilters, false);
+      }
+    } else {
+      if (filterValues.Expirestatus) {
+        const newFilters = { ...filterValues };
+        delete newFilters.Expirestatus;
+        setFilters(newFilters, false);
+      }
     }
-
-    setFilters(newFilter, false); // Don't push to history
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showExpired, role]);
+  const [searchValue, setSearchValue] = useState("");
+
+  // Sync search value with filterValues
+  useEffect(() => {
+    const currentValue = filterValues[searchBy] || "";
+    setSearchValue(currentValue);
+  }, [filterValues, searchBy]);
+
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    setSearchValue(value);
+    
+    // Debounce the filter update
+    if (window.searchTimeout) {
+      clearTimeout(window.searchTimeout);
+    }
+    
+    window.searchTimeout = setTimeout(() => {
+      const newFilters = {
+        ...filterValues,
+        type: "recharge",
+      };
+      
+      if (value && value.trim()) {
+        newFilters[searchBy] = value.trim();
+      } else {
+        delete newFilters[searchBy];
+      }
+      
+      setFilters(newFilters, true);
+    }, 500); // 500ms debounce
+  };
+
+  const handleSearchClear = () => {
+    setSearchValue("");
+    const newFilters = { ...filterValues };
+    delete newFilters[searchBy];
+    setFilters(newFilters, true);
+  };
+
   const dataFilters = [
     <Box
       key="search-filter"
@@ -429,18 +483,54 @@ if (exportFilters.month) {
       }}
       alwaysOn
     >
-      <SearchInput
-        source={searchBy}
-        alwaysOn
-        resettable
-        placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+      <TextField
+        value={searchValue}
+        onChange={handleSearchChange}
+        placeholder={
+          searchBy === "username" ? "Account" :
+          searchBy === "transactionAmount" ? "Recharge" :
+          searchBy === "userParentName" ? "Parent Name" :
+          searchBy === "remark" ? "Remark" :
+          searchBy.charAt(0).toUpperCase() + searchBy.slice(1)
+        }
+        size="small"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ color: "#9CA3AF" }} />
+            </InputAdornment>
+          ),
+          endAdornment: searchValue && (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={handleSearchClear}
+                edge="end"
+              >
+                <ClearIcon sx={{ fontSize: "18px" }} />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
           marginBottom: 1,
-          borderRadius: "5px",
-          borderColor: "#CFD4DB",
           maxWidth: "280px",
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "5px",
+            backgroundColor: "#fff",
+            "& fieldset": {
+              borderColor: "#CFD4DB",
+            },
+            "&:hover fieldset": {
+              borderColor: "#9CA3AF",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#000",
+              borderWidth: "2px",
+            },
+          },
         }}
       />
       <Button
@@ -860,7 +950,7 @@ if (exportFilters.month) {
                   ) : null
                 }
               />
-              <TextField source="username" label="Account" />
+              <RaTextField source="username" label="Account" />
               <NumberField
                 source="transactionAmount"
                 label="Recharged"

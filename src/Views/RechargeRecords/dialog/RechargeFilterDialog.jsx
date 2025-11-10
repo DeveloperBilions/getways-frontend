@@ -20,11 +20,18 @@ export const RechargeFilterDialog = ({
   setFilters,
   handleSearchByChange,
 }) => {
-  //   const [localSearchBy, setLocalSearchBy] = React.useState(searchBy);
+  const [localSearchBy, setLocalSearchBy] = React.useState(searchBy);
   const [localStatus, setLocalStatus] = React.useState(
     filterValues.status || ""
   );
   const [localMode, setLocalMode] = React.useState(filterValues.mode || "");
+
+  // Sync local state when props change
+  React.useEffect(() => {
+    setLocalSearchBy(searchBy);
+    setLocalStatus(filterValues.status || "");
+    setLocalMode(filterValues.mode || "");
+  }, [searchBy, filterValues.status, filterValues.mode]);
 
   const searchByChoices =
     role === "Super-User"
@@ -57,26 +64,63 @@ export const RechargeFilterDialog = ({
   ];
 
   const handleApply = () => {
-    console.log(filterValues,"filterValuesfilterValuesfilterValuesfilterValues")
     const newFilters = {
-      ...filterValues, // keep old filters
-      searchBy: searchBy, // update searchBy
+      type: "recharge",
     };
+
+    // Keep existing search value - check ALL possible search fields
+    const possibleSearchFields = ["username", "transactionAmount", "remark", "userParentName"];
+    let currentSearchValue = null;
+    
+    // First check the new searchBy field
+    if (filterValues[localSearchBy]) {
+      currentSearchValue = filterValues[localSearchBy];
+    } 
+    // Then check the old searchBy field
+    else if (filterValues[searchBy]) {
+      currentSearchValue = filterValues[searchBy];
+    }
+    // Finally check all other possible search fields
+    else {
+      for (const field of possibleSearchFields) {
+        if (filterValues[field]) {
+          currentSearchValue = filterValues[field];
+          break;
+        }
+      }
+    }
+    
+    if (currentSearchValue && currentSearchValue.trim()) {
+      newFilters[localSearchBy] = currentSearchValue;
+    }
   
-    // Update only if selected
+    // Update status filter
     if (localStatus !== "") {
       newFilters.status = localStatus;
-    } else {
-      delete newFilters.status;
     }
   
+    // Update mode filter
     if (localMode !== "") {
       newFilters.mode = localMode;
-    } else {
-      delete newFilters.mode;
+    }
+    
+    // Only add Expirestatus if it exists and no status filter is selected
+    const shouldHaveExpirestatus = filterValues.Expirestatus && 
+                                   typeof filterValues.Expirestatus === 'object' &&
+                                   filterValues.Expirestatus.$ne === 9 &&
+                                   localStatus === "";
+    
+    if (shouldHaveExpirestatus) {
+      newFilters.Expirestatus = { $ne: 9 };
     }
   
-    setFilters(newFilters, false);
+    setFilters(newFilters, true);
+    
+    // Update searchBy state AFTER applying filters
+    if (localSearchBy !== searchBy) {
+      handleSearchByChange(localSearchBy, false);
+    }
+    
     onClose();
   };
   
@@ -88,12 +132,10 @@ export const RechargeFilterDialog = ({
         <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
           <InputLabel>Search By</InputLabel>
           <Select
-            value={searchBy}
+            value={localSearchBy}
             label="Search By"
             onChange={(e) => {
-              //setLocalStatus("");
-              const newSearchBy = e.target.value;
-              handleSearchByChange(newSearchBy);
+              setLocalSearchBy(e.target.value);
             }}
           >
             {searchByChoices.map((choice) => (
