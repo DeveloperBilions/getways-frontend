@@ -161,18 +161,18 @@ export const RechargeRecordsList = (props) => {
      // helper to wrap JS Date into Parse Date object
 const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
 
-if (exportFilters.month) {
-  const [year, month] = exportFilters.month.split("-");
+      if (exportFilters.month) {
+        const [year, month] = exportFilters.month.split("-");
   const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0); // first day @ 00:00:00
   const endDate = new Date(year, month, 0, 23, 59, 59, 999);  // last day @ 23:59:59
 
   exportFilters.createdAt = {
     $gte: toParseDate(startDate),
     $lte: toParseDate(endDate),
-  };
+        };
 
-  delete exportFilters.month; // remove 'month' key as it's transformed
-}
+        delete exportFilters.month; // remove 'month' key as it's transformed
+      }
 
 
       const { data } = await dataProvider.getList("rechargeRecordsExport", {
@@ -349,70 +349,71 @@ if (exportFilters.month) {
   ];
 
   const handleSearchByChange = (newSearchBy) => {
-    // setSearchBy(newSearchBy);
-    // setPrevSearchBy(newSearchBy); // Optional but safe
-    // const currentSearchValue = filterValues[prevSearchBy] || "";
-  
-    // const newFilters = {
-    //   ...filterValues, // keep everything
-    //   searchBy: newSearchBy, // update searchBy key
-    // };
-  
-    // // Remove the old search field value
-    // if (prevSearchBy && prevSearchBy !== newSearchBy) {
-    //   delete newFilters[prevSearchBy];
-    // }
-  
-    // // If the previous value was not empty, carry it over to the new field
-    // if (currentSearchValue?.trim()) {
-    //   newFilters[newSearchBy] = currentSearchValue;
-    // }
-  
-    // setFilters(newFilters, false);
-  }; 
+    setSearchBy(newSearchBy);
+    setPrevSearchBy(newSearchBy);
 
-  // useEffect(() => {
-  //   // Compare current filterValues with previous filterValues
-  //   const prevFilterValues = prevFilterValuesRef.current;
-  //   const filterValuesChanged =
-  //     JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const newFilters = {};
 
-  //   // Update the ref with current filterValues for the next run
-  //   prevFilterValuesRef.current = filterValues;
+    Object.keys(filterValues).forEach((key) => {
+      if (key !== prevSearchBy && !searchFields.includes(key)) {
+        newFilters[key] = filterValues[key];
+      }
+    });
 
-  //   // Skip if no meaningful change
-  //   if (!filterValuesChanged) {
-  //     return;
-  //   }
-  //   const currentSearchValue = filterValues[searchBy] || "";
-  //   const newFilters = {
-  //     searchBy,
-  //   };
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[newSearchBy] = currentSearchValue;
+    }
 
-  //   if (currentSearchValue && currentSearchValue.trim() !== "") {
-  //     newFilters[searchBy] = currentSearchValue;
-  //   }
+    newFilters.searchBy = newSearchBy;
 
-  //   if (filterValues.role) {
-  //     newFilters.role = filterValues.role;
-  //   }
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
 
-  //   const cleanedFilters = Object.keys(filterValues)
-  // .filter((key) => key !== prevSearchBy || key === searchBy)
-  // .reduce((obj, key) => {
-  //   obj[key] = filterValues[key];
-  //   return obj;
-  // }, {});
+    setFilters(newFilters, false);
+  };
 
-  //   console.log(cleanedFilters,newFilters,"newFiltersnewFiltersnewFiltersnewFiltersnewFilters")
+  useEffect(() => {
+    // Compare current filterValues with previous filterValues
+    const prevFilterValues = prevFilterValuesRef.current;
+    const filterValuesChanged =
+      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
 
-  //   setFilters({ ...cleanedFilters, ...newFilters }, false);
-  // }, [filterValues, searchBy, setFilters]);
+    // Update the ref with current filterValues for the next run
+    prevFilterValuesRef.current = filterValues;
+
+    // Skip if no meaningful change
+    if (!filterValuesChanged) {
+      return;
+    }
+    const currentSearchValue = filterValues[searchBy] || "";
+    const newFilters = {
+      searchBy,
+    };
+
+    if (currentSearchValue && currentSearchValue.trim() !== "") {
+      newFilters[searchBy] = currentSearchValue;
+    }
+
+    if (filterValues.role) {
+      newFilters.role = filterValues.role;
+    }
+
+    const cleanedFilters = Object.keys(filterValues)
+      .filter((key) => !searchFields.includes(key) || key === searchBy)
+      .reduce((obj, key) => {
+        obj[key] = filterValues[key];
+        return obj;
+      }, {});
+
+    setFilters({ ...cleanedFilters, ...newFilters }, false);
+  }, [filterValues, searchBy, setFilters]);
   useEffect(() => {
     const newFilter = { type: "recharge" };
 
     if (role !== "Player" && !showExpired) {
-      newFilter.Expirestatus = { $ne: 9 };
+      newFilter.status = { $ne: 9 };
     }
 
     setFilters(newFilter, false); // Don't push to history
@@ -928,7 +929,7 @@ if (exportFilters.month) {
                         return { color: "#FFEBEB", borderColor: "#FF6060" };
                       case 14:
                         return { color: "#EBF3FF", borderColor: "#6060FF" };
-                      case 15:
+                        case 15:
                           return { color: "#EBF3FF", borderColor: "#6060FF" };
                       default:
                         return { color: "default", borderColor: "default" };
@@ -1323,10 +1324,10 @@ if (exportFilters.month) {
 
                 const selectedFields = exportData.map((item) => {
                   const row = {
-                    Name: item.username,
-                    "Amount": item.transactionAmount,
-                    Remark: item.remark,
-                    Status: mapStatus(item.status),
+                  Name: item.username,
+                  "Amount": item.transactionAmount,
+                  Remark: item.remark,
+                  Status: mapStatus(item.status),
                     Date: new Date(item.transactionDate).toLocaleDateString(),
                   };
                 

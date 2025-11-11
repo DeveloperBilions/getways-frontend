@@ -57,29 +57,21 @@ export const RechargeFilterDialog = ({
   ];
 
   const handleApply = () => {
-    console.log(filterValues,"filterValuesfilterValuesfilterValuesfilterValues")
     const newFilters = {
-      ...filterValues, // keep old filters
-      searchBy: searchBy, // update searchBy
+      searchBy: searchBy,
     };
-  
-    // Update only if selected
+
     if (localStatus !== "") {
       newFilters.status = localStatus;
-    } else {
-      delete newFilters.status;
     }
-  
+
     if (localMode !== "") {
       newFilters.mode = localMode;
-    } else {
-      delete newFilters.mode;
     }
-  
+
     setFilters(newFilters, false);
     onClose();
   };
-  
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
@@ -91,7 +83,7 @@ export const RechargeFilterDialog = ({
             value={searchBy}
             label="Search By"
             onChange={(e) => {
-              //setLocalStatus("");
+              setLocalStatus("");
               const newSearchBy = e.target.value;
               handleSearchByChange(newSearchBy);
             }}
