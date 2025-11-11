@@ -298,13 +298,13 @@ const RechargeWidgetPopup = ({
       color: "#FF9900",
       hoverColor: "#FFF7E6",
     },
-    {
-      id: "fiserv-checkout",
-      title: "Fiserv Checkout",
-      description: "Secure card payment",
-      color: "#0066CC",
-      hoverColor: "#E6F2FF",
-    }
+    // {
+    //   id: "fiserv-checkout",
+    //   title: "Fiserv Checkout",
+    //   description: "Secure card payment",
+    //   color: "#0066CC",
+    //   hoverColor: "#E6F2FF",
+    // }
     // {
     //   id: "crypto",
     //   title: "Standard Recharge",
