@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -14,6 +14,7 @@ import {
   useRefresh,
   useListController,
 } from "react-admin";
+import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
@@ -38,7 +39,10 @@ import {
   Typography,
   Box,
   useMediaQuery,
+  InputAdornment,
 } from "@mui/material";
+import { TextField as MuiTextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 // mui icon
 import LinkIcon from "@mui/icons-material/Link";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -106,13 +110,14 @@ export const RechargeRecordsList = (props) => {
   const [isExporting, setIsExporting] = useState(false); // Track export state
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
-  const prevFilterValuesRef = useRef();
+  // const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportMonth, setExportMonth] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
   const failedReasonMessages = {
     4000: "We weren’t able to charge the user’s card and the order was not completed. The user can try again.",
     4001: "The transaction failed due to an incorrect CVV/CVC. The user can try again ensuring they enter the correct CVV/CVC.",
@@ -348,11 +353,34 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
     "userParentName",
   ];
 
+  const debouncedSearch = useCallback(
+    debounce((value, searchField) => {
+      setFilters({
+        ...filterValues,
+        [searchField]: value,
+        searchBy: searchField,
+      });
+    }, 1000),
+    [filterValues, setFilters] // Include dependencies
+  );
+
+  // Handle input change - update local state immediately and debounce the filter update
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value); // Update input value immediately for UI responsiveness
+    debouncedSearch(value, searchBy); // Debounce the actual filter update
+  };
+
+  // Update searchValue when searchBy changes or when filters are reset
+  useEffect(() => {
+    setSearchValue(filterValues[searchBy] || "");
+  }, [filterValues, searchBy]);
+
   const handleSearchByChange = (newSearchBy) => {
     setSearchBy(newSearchBy);
     setPrevSearchBy(newSearchBy);
 
-    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const currentSearchValue = searchValue; // Use the current input value
     const newFilters = {};
 
     Object.keys(filterValues).forEach((key) => {
@@ -374,50 +402,22 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
     setFilters(newFilters, false);
   };
 
+
   useEffect(() => {
-    // Compare current filterValues with previous filterValues
-    const prevFilterValues = prevFilterValuesRef.current;
-    const filterValuesChanged =
-      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
-
-    // Update the ref with current filterValues for the next run
-    prevFilterValuesRef.current = filterValues;
-
-    // Skip if no meaningful change
-    if (!filterValuesChanged) {
-      return;
-    }
-    const currentSearchValue = filterValues[searchBy] || "";
-    const newFilters = {
-      searchBy,
+    const newFilter = { 
+      ...filterValues, // Preserve existing filters including search
+      type: "recharge" 
     };
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[searchBy] = currentSearchValue;
-    }
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    const cleanedFilters = Object.keys(filterValues)
-      .filter((key) => !searchFields.includes(key) || key === searchBy)
-      .reduce((obj, key) => {
-        obj[key] = filterValues[key];
-        return obj;
-      }, {});
-
-    setFilters({ ...cleanedFilters, ...newFilters }, false);
-  }, [filterValues, searchBy, setFilters]);
-  useEffect(() => {
-    const newFilter = { type: "recharge" };
 
     if (role !== "Player" && !showExpired) {
       newFilter.status = { $ne: 9 };
+    } else {
+      // Remove status filter if showing expired
+      delete newFilter.status;
     }
 
     setFilters(newFilter, false); // Don't push to history
-  }, [showExpired, role]);
+  }, [showExpired, role, filterValues, setFilters]);
   const dataFilters = [
     <Box
       key="search-filter"
@@ -430,11 +430,19 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
       }}
       alwaysOn
     >
-      <SearchInput
-        source={searchBy}
-        alwaysOn
-        resettable
+      <MuiTextField
         placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        variant="outlined"
+        size="small"
+        onChange={handleSearch}
+        value={searchValue}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <SearchIcon style={{ color: "#00000042" }} />
+            </InputAdornment>
+          ),
+        }}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
@@ -442,6 +450,7 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
           borderRadius: "5px",
           borderColor: "#CFD4DB",
           maxWidth: "280px",
+          backgroundColor: "white",
         }}
       />
       <Button
