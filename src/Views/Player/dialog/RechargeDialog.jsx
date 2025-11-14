@@ -366,17 +366,17 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const signedData = signSmartContractData(
       {
         address: recipient,
-        commodity: "TT",
+        commodity: "USDT",
         commodity_amount: amount,
-        network: "sepolia",
-        sc_address:"0x5512a18b3b85e936a615258a562e5a3303b4c9ee",
+        network: "eth",
+        sc_address:"0x39268dD4b3054A0891A07D7A003C262579Fb5D47",
         sc_input_data: sc_input_data,
       },
       privateKey
     );
     const wertWidget = new WertWidget({
       ...signedData,
-      partner_id: "01JQ475DKJCZZWZYED5BY9NC35",
+      partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
       origin: "https://sandbox.wert.io",
       click_id: clickId,
       redirect_url: process.env.REACT_APP_REFERRAL_URL,
