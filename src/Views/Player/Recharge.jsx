@@ -22,6 +22,7 @@ import { Parse } from "parse";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
+import FinixRechargeDialog from "../RechargeRecords/dialog/FinixRechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
 import {
@@ -84,6 +85,7 @@ const Recharge = ({
   const refresh = useRefresh();
   const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+  const [finixRechargeDialogOpen, setFinixRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
   const [paymentSource, setPaymentSource] = useState("stripe");
   const [processingCryptoRecharge, setProcessingCryptoRecharge] =
@@ -126,6 +128,7 @@ const Recharge = ({
   const [loadingThresholds, setLoadingThresholds] = useState(true);
   const [matchingThreshold, setMatchingThreshold] = useState(null);
   const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
+  const [showFinix, setShowFinix] = useState(false);
   console.log(matchingThreshold,"matchingThresholdmatchingThresholdmatchingThreshold",allowedActiveMethods)
   useEffect(() => {
     const checkPayarcLimit = async () => {
@@ -201,6 +204,7 @@ const Recharge = ({
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
+      const isFinixAllowed = await isPaymentMethodAllowed(parentId, "finix");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -213,6 +217,7 @@ const Recharge = ({
       setShowFiserv(isFiservAllowed);
       setShowFiservCheckout(isFiservCheckoutAllowed);
       setCommerceHubEnabled(isCommerceHubAllowed);
+      setShowFinix(isFinixAllowed);
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
@@ -644,6 +649,61 @@ const Recharge = ({
         } catch (err) {
           console.error("Stripe error:", err);
           alert("Something went wrong with Stripe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "finix",
+      title: "Finix Card Payment",
+      description: "Secure card payment • No KYC needed",
+      subtext: "Direct card processing",
+      icon: <CreditCardIcon sx={{ color: "#6366F1", fontSize: 24 }} />,
+      color: "#6366F1", // Indigo color
+      hoverColor: "#EEF2FF", // Light indigo tint
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Finix requires minimum $10
+          if (rechargeAmount < 10) {
+            setRechargeError("Finix payment requires a minimum of $10.");
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError(""); // Clear old errors
+
+          // Open Finix Recharge Dialog
+          setFinixRechargeDialogOpen(true);
+        } catch (err) {
+          console.error("Finix error:", err);
+          alert("Something went wrong with Finix Recharge.");
         } finally {
           setCheckingRechargeLimit(false);
         }
@@ -2537,6 +2597,11 @@ const Recharge = ({
           remark: remark,
           paymentSource: paymentSource,
         }}
+      />
+      <FinixRechargeDialog
+        open={finixRechargeDialogOpen}
+        onClose={() => setFinixRechargeDialogOpen(false)}
+        handleRefresh={handleRefresh}
       />
       <SubmitKYCDialog
         open={submitKycDialogOpen}

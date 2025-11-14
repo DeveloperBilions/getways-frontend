@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 // dialog
 import RechargeDialog from "./dialog/RechargeDialog";
 import CoinsCreditDialog from "./dialog/CoinsCreditDialog";
+import FinixRechargeDialog from "./dialog/FinixRechargeDialog";
 import {
   Dialog,
   DialogTitle,
@@ -104,6 +105,7 @@ export const RechargeRecordsList = (props) => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [creditCoinDialogOpen, setCreditCoinDialogOpen] = useState(false);
   const [rechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+  const [finixRechargeDialogOpen, setFinixRechargeDialogOpen] = useState(false);
   // const [searchValue, setSearchValue] = useState("");
   // const [statusValue, setStatusValue] = useState();
   // const [Data, setData] = useState(null); // Initialize data as null
@@ -1217,6 +1219,13 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
         <RechargeDialog
           open={rechargeDialogOpen}
           onClose={() => setRechargeDialogOpen(false)}
+          handleRefresh={handleRefresh}
+        />
+      )}
+      {permissions === "Player" && (
+        <FinixRechargeDialog
+          open={finixRechargeDialogOpen}
+          onClose={() => setFinixRechargeDialogOpen(false)}
           handleRefresh={handleRefresh}
         />
       )}

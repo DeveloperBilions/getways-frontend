@@ -237,6 +237,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh }) => {
                       onChange={(e) => setPaymentSource(e.target.value)}
                     >
                       <option value="stripe">Payment Portal</option>
+                      <option value="finix">Finix (Card Payment)</option>
                       <option value="wallet">Wallet</option>
                     </Input>
                     <small>
