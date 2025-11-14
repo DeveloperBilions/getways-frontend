@@ -479,6 +479,116 @@ const Recharge = ({
   };
   const paymentOptions = [
     {
+  id: "finix",
+  title: "Finix Payment",
+  description: "Secure • Card & Bank Payment",
+  subtext: "No KYC needed",
+  icon: <CreditCardIcon sx={{ color: "#0F172A", fontSize: 24 }} />, 
+  color: "#0F172A",
+  hoverColor: "#F1F5F9",
+  paymentIcons: [visa, mastercard],
+  onClick: debounce(async () => {
+    try {
+      if (!(await verifyPotBalance("recharge"))) return;
+      setCheckingRechargeLimit(true);
+
+      // Minimum check
+      if (rechargeAmount < RechargeLimitOfAgent) {
+        setRechargeError(
+          `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+        );
+        return;
+      }
+
+      // Limit check
+      const transactionCheck = await checkActiveRechargeLimit(
+        identity?.userParentId,
+        rechargeAmount
+      );
+
+      if (!transactionCheck.success) {
+        setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+        return;
+      }
+
+      setRechargeError("");
+
+      // -------------------------
+      // 🔥 CREATE FINIX PAYMENT LINK
+      // -------------------------
+      const response = await Parse.Cloud.run("createFinixPaymentLink", {
+        amount: rechargeAmount, // USD value your UI uses
+        remark: remark
+      });
+
+      if (!response.success) {
+        alert("Failed to create Finix Payment Link.");
+        return;
+      }
+
+      // Save Transaction
+      const TransactionDetails = Parse.Object.extend("TransactionRecords");
+      const txn = new TransactionDetails();
+      const user = await Parse.User.current()?.fetch();
+
+      txn.set("type", "recharge");
+      txn.set("gameId", "786");
+      txn.set("username", identity?.username || "");
+      txn.set("userId", identity?.objectId);
+      txn.set("transactionDate", new Date());
+      txn.set("transactionAmount", rechargeAmount);
+      txn.set("remark", remark);
+      txn.set("useWallet", false);
+      txn.set("userParentId", user?.get("userParentId") || "");
+      txn.set("status", 1); // Pending
+      txn.set("portal", "Finix");
+      txn.set("referralLink", response?.link_url);
+      txn.set("transactionIdFromStripe", response?.id);
+      txn.set("walletAddr", identity?.walletAddr);
+
+      await txn.save(null, { useMasterKey: true });
+
+      // 🌐 Redirect to Finix hosted link
+     // 1. Test if popup is allowed
+const testPopup = window.open("", "_blank", "width=1,height=1");
+
+if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
+  // ❌ Popup blocked → show your existing popup-blocked dialog
+  setPopupBlocked(true);
+  setPopupDialogOpen(true);
+  return;
+}
+
+// 2. Popup allowed → close test popup
+testPopup.close();
+
+// 3. Save link for retry or reference later
+setStoredBuyUrl(response?.link_url);
+
+// 4. Actually open Finix link
+const popup = window.open(response?.link_url, "_blank");
+
+// 5. Detect again if popup fails
+if (!popup || popup.closed || typeof popup.closed === "undefined") {
+  setPopupBlocked(true);
+  setPopupDialogOpen(true);
+  return;
+}
+
+    } catch (error) {
+      console.error("Finix Payment Error:", error);
+      alert("Something went wrong with Finix Recharge.");
+    } finally {
+      setCheckingRechargeLimit(false);
+    }
+  }),
+  disabled:
+    identity?.isBlackListed ||
+    rechargeDisabled ||
+    checkingRechargeLimit ||
+    checkingEligibility,
+},
+    {
       id: "CLKK",
       title: "CLKK",
       description: "Pay with cash, card, or ACH via CLKK",
