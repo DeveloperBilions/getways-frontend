@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -35,7 +35,10 @@ import {
   useMediaQuery,
   Typography,
   Alert,
+  InputAdornment,
 } from "@mui/material";
+import { TextField as MuiTextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 // loader
 import { Loader } from "../Loader";
 import { Parse } from "parse";
@@ -432,6 +435,7 @@ export const UserList = (props) => {
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
   const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const handleOpenFilterModal = () => {
     setFilterModalOpen(true);
@@ -483,11 +487,32 @@ export const UserList = (props) => {
 
   const searchFields = ["username", "email", "userParentName"];
 
+  const debouncedSearch = useCallback(
+    debounce((value, searchField) => {
+      setFilters({
+        ...filterValues,
+        [searchField]: value,
+        searchBy: searchField,
+      });
+    }, 1000),
+    [filterValues, setFilters]
+  );
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    debouncedSearch(value, searchBy);
+  };
+
+  useEffect(() => {
+    setSearchValue(filterValues[searchBy] || "");
+  }, [searchBy, filterValues[searchBy]]);
+
   const handleSearchByChange = (newSearchBy) => {
     setSearchBy(newSearchBy);
     setPrevSearchBy(newSearchBy);
 
-    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const currentSearchValue = searchValue;
     const newFilters = {};
 
     Object.keys(filterValues).forEach((key) => {
@@ -551,11 +576,19 @@ export const UserList = (props) => {
       }}
       alwaysOn
     >
-      <SearchInput
-        source={searchBy}
-        alwaysOn
-        resettable
+      <MuiTextField
         placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        variant="outlined"
+        size="small"
+        onChange={handleSearch}
+        value={searchValue}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <SearchIcon style={{ color: "#00000042" }} />
+            </InputAdornment>
+          ),
+        }}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
@@ -563,6 +596,7 @@ export const UserList = (props) => {
           borderRadius: "5px",
           borderColor: "#CFD4DB",
           maxWidth: "280px",
+          backgroundColor: "white",
         }}
       />
       <Button

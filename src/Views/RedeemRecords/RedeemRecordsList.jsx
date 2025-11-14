@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 // react admin
 import {
   Datagrid,
@@ -14,6 +14,7 @@ import {
   useRefresh,
   useListController,
 } from "react-admin";
+import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
 // mui
 import {
@@ -26,7 +27,10 @@ import {
   Typography,
   Box,
   useMediaQuery,
+  InputAdornment,
 } from "@mui/material";
+import { TextField as MuiTextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 // mui icon
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
@@ -96,12 +100,13 @@ export const RedeemRecordsList = (props) => {
   const role = localStorage.getItem("role");
   const [searchBy, setSearchBy] = useState("");
   const [prevSearchBy, setPrevSearchBy] = useState(searchBy);
-  const prevFilterValuesRef = useRef();
+  // const prevFilterValuesRef = useRef();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
   const [loading, setLoading] = useState(false); 
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportMonth, setExportMonth] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
   useEffect(() => {
     const checkCashoutAccess = async () => {
       if (identity?.role === "Agent") {
@@ -285,11 +290,32 @@ export const RedeemRecordsList = (props) => {
     "userParentName",
   ];
 
+  const debouncedSearch = useCallback(
+    debounce((value, searchField) => {
+      setFilters({
+        ...filterValues,
+        [searchField]: value,
+        searchBy: searchField,
+      });
+    }, 1000),
+    [filterValues, setFilters]
+  );
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    debouncedSearch(value, searchBy);
+  };
+
+  useEffect(() => {
+    setSearchValue(filterValues[searchBy] || "");
+  }, [searchBy, filterValues[searchBy]]);
+
   const handleSearchByChange = (newSearchBy) => {
     setSearchBy(newSearchBy);
     setPrevSearchBy(newSearchBy);
 
-    const currentSearchValue = filterValues[prevSearchBy] || "";
+    const currentSearchValue = searchValue;
     const newFilters = {};
 
     Object.keys(filterValues).forEach((key) => {
@@ -311,42 +337,7 @@ export const RedeemRecordsList = (props) => {
     setFilters(newFilters, false);
   };
 
-  useEffect(() => {
-    // Compare current filterValues with previous filterValues
-    const prevFilterValues = prevFilterValuesRef.current;
-    const filterValuesChanged =
-      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
 
-    // Update the ref with current filterValues for the next run
-    prevFilterValuesRef.current = filterValues;
-
-    // Skip if no meaningful change
-    if (!filterValuesChanged) {
-      return;
-    }
-    const currentSearchValue = filterValues[searchBy] || "";
-    const newFilters = {
-      searchBy,
-      ...(role === "Player" ? { status: 6 } : {}),
-    };
-
-    if (currentSearchValue && currentSearchValue.trim() !== "") {
-      newFilters[searchBy] = currentSearchValue;
-    }
-
-    if (filterValues.role) {
-      newFilters.role = filterValues.role;
-    }
-
-    const cleanedFilters = Object.keys(filterValues)
-      .filter((key) => !searchFields.includes(key) || key === searchBy)
-      .reduce((obj, key) => {
-        obj[key] = filterValues[key];
-        return obj;
-      }, {});
-
-    setFilters({ ...cleanedFilters, ...newFilters }, false);
-  }, [filterValues, searchBy, setFilters]);
 
   const dataFilters = [
     <Box
@@ -360,11 +351,19 @@ export const RedeemRecordsList = (props) => {
       }}
       alwaysOn
     >
-      <SearchInput
-        source={searchBy}
-        alwaysOn
-        resettable
+      <MuiTextField
         placeholder={searchBy.charAt(0).toUpperCase() + searchBy.slice(1)}
+        variant="outlined"
+        size="small"
+        onChange={handleSearch}
+        value={searchValue}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <SearchIcon style={{ color: "#00000042" }} />
+            </InputAdornment>
+          ),
+        }}
         sx={{
           width: { xs: "100%", sm: "auto" },
           minWidth: "200px",
@@ -372,6 +371,7 @@ export const RedeemRecordsList = (props) => {
           borderRadius: "5px",
           borderColor: "#CFD4DB",
           maxWidth: "280px",
+          backgroundColor: "white",
         }}
       />
       <Button
