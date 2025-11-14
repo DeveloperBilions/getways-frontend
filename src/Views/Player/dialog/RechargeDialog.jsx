@@ -366,10 +366,10 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const signedData = signSmartContractData(
       {
         address: recipient,
-        commodity: "USDT",
+        commodity: "TT",
         commodity_amount: amount,
-        network: "bsc",
-        sc_address: "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4",
+        network: "sepolia",
+        sc_address:"0x5512a18b3b85e936a615258a562e5a3303b4c9ee",
         sc_input_data: sc_input_data,
       },
       privateKey
