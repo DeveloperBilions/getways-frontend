@@ -368,7 +368,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
         address: recipient,
         commodity: "USDT",
         commodity_amount: amount,
-        network: "eth",
+        network: "ethereum",
         sc_address:"0x39268dD4b3054A0891A07D7A003C262579Fb5D47",
         sc_input_data: sc_input_data,
       },
