@@ -349,7 +349,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     console.log(user.get("walletAddr"), "userDetails");
 
     const path =
-      "0x55d398326f99059ff775485246999027b31979550009c4b39268dD4b3054A0891A07D7A003C262579Fb5D47";
+      "0xdAC17F958D2ee523a2206206994597C13D831ec70009c4b39268dD4b3054A0891A07D7A003C262579Fb5D47";
 
     const recipient = user.get("walletAddr");
     const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
@@ -366,7 +366,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const signedData = signSmartContractData(
       {
         address: recipient,
-        commodity: "USDT",
+        commodity: "USDC",
         commodity_amount: amount,
         network: "ethereum",
         sc_address:"0x39268dD4b3054A0891A07D7A003C262579Fb5D47",
