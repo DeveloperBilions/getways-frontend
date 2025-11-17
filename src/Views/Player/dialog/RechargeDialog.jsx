@@ -348,12 +348,13 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const user = await currentUser.fetch();
     console.log(user.get("walletAddr"), "userDetails");
 
-    const path =
-      "0xdAC17F958D2ee523a2206206994597C13D831ec70009c4b39268dD4b3054A0891A07D7A003C262579Fb5D47";
+    // const path =
+    //   "0xdAC17F958D2ee523a2206206994597C13D831ec70009c4b39268dD4b3054A0891A07D7A003C262579Fb5D47";
 
     const recipient = user.get("walletAddr");
-    const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
+    const amountIn = (parseFloat(amount) * 1e6).toString();
     const amountOutMinimum = "0";
+    const path = "0x9d11ea6e";
 
     const sc_input_data = generateScInputData(
       path,
