@@ -377,7 +377,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const wertWidget = new WertWidget({
       ...signedData,
       partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
-      origin: "https://wert.io",
+      origin: "https://widget.wert.io",
       click_id: clickId,
       redirect_url: process.env.REACT_APP_REFERRAL_URL,
       currency: "USD",
