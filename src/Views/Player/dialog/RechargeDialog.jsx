@@ -31,7 +31,7 @@ import { generateScInputData } from "./GenerateInput";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 const privateKey =
-  "0x57466afb5491ee372b3b30d82ef7e7a0583c9e36aef0f02435bd164fe172b1d3";
+  "0x2bcb9fc6533713d0705a9f15850a027ec26955d96c22ae02075f3544e6842f74";
 
 const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
   const { identity } = useGetIdentity();
@@ -349,7 +349,7 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     console.log(user.get("walletAddr"), "userDetails");
 
     const path =
-      "0x55d398326f99059ff775485246999027b31979550009c4b32d4817908f001c2a53c15bff8c14d8813109be";
+      "0x55d398326f99059ff775485246999027b31979550009c4b39268dD4b3054A0891A07D7A003C262579Fb5D47";
 
     const recipient = user.get("walletAddr");
     const amountIn = (parseFloat(amount) * Math.pow(10, 18)).toString();
@@ -366,18 +366,18 @@ const RechargeDialog = ({ open, onClose, handleRefresh, data }) => {
     const signedData = signSmartContractData(
       {
         address: recipient,
-        commodity: "TT",
+        commodity: "USDT",
         commodity_amount: amount,
-        network: "sepolia",
-        sc_address:"0x5512a18b3b85e936a615258a562e5a3303b4c9ee",
+        network: "eth",
+        sc_address:"0x39268dD4b3054A0891A07D7A003C262579Fb5D47",
         sc_input_data: sc_input_data,
       },
       privateKey
     );
     const wertWidget = new WertWidget({
       ...signedData,
-      partner_id: "01JQ475DKJCZZWZYED5BY9NC35",
-      origin: "https://sandbox.wert.io",
+      partner_id: "01JS1S88TZANH9XQGZYHDTE9S5",
+      origin: "https://wert.io",
       click_id: clickId,
       redirect_url: process.env.REACT_APP_REFERRAL_URL,
       currency: "USD",
