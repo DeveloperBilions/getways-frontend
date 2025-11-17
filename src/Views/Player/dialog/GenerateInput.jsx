@@ -68,7 +68,7 @@ export const generateScInputData = (path, recipient, amountIn, amountOutMinimum)
 
   // 5️⃣ Final concat
   const scInput =
-    "0x" + selector + recipientHex + amountInHex + amountOutMinHex;
+    "0x" + selector + recipientHex + amountInHex;
 
   return scInput.toLowerCase();
 };
