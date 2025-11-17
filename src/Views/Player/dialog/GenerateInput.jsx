@@ -45,30 +45,47 @@ const exactInputABI = {
 //   return scInputData;
 // };
 
+export const generateScInputData = (selector, recipient, amount) => {
+  // strip 0x
+  selector = selector.replace(/^0x/, "").slice(0, 8);
 
-export const generateScInputData = (path, recipient, amountIn, amountOutMinimum) => {
-  // Helper: remove 0x prefix
-  const strip0x = (hex) => hex.replace(/^0x/, "");
+  // recipient: 20-byte hex address, no padding
+  const recipientHex = recipient.replace(/^0x/, "").toLowerCase();
 
-  // Helper: pad a hex string to 32 bytes (64 hex chars)
-  const pad32 = (hex) =>
-    hex.padStart(64, "0");
+  if (recipientHex.length !== 40) {
+    throw new Error("Recipient must be a 20-byte address (40 hex chars)");
+  }
 
-  // 1️⃣ Function selector (first 4 bytes)
-  const selector = strip0x(path).slice(0, 8); // Example: "9d11ea6e"
+  // amount → BigInt → hex → left padded to 32 bytes (64 hex chars)
+  const amountHex = BigInt(amount).toString(16).padStart(64, "0");
 
-  // 2️⃣ Recipient address → strip 0x → pad 32 bytes
-  const recipientHex = pad32(strip0x(recipient));
+  // final payload
+  return `0x${selector}${recipientHex}${amountHex}`;
+}
 
-  // 3️⃣ amountIn → BigInt → hex → pad 32 bytes
-  const amountInHex = pad32(BigInt(amountIn).toString(16));
+// export const generateScInputData = (path, recipient, amountIn, amountOutMinimum) => {
+//   // Helper: remove 0x prefix
+//   const strip0x = (hex) => hex.replace(/^0x/, "");
 
-  // 4️⃣ amountOutMinimum → BigInt → hex → pad 32 bytes
-  const amountOutMinHex = pad32(BigInt(amountOutMinimum).toString(16));
+//   // Helper: pad a hex string to 32 bytes (64 hex chars)
+//   const pad32 = (hex) =>
+//     hex.padStart(64, "0");
 
-  // 5️⃣ Final concat
-  const scInput =
-    "0x" + selector + recipientHex + amountInHex;
+//   // 1️⃣ Function selector (first 4 bytes)
+//   const selector = strip0x(path).slice(0, 8); // Example: "9d11ea6e"
 
-  return scInput.toLowerCase();
-};
+//   // 2️⃣ Recipient address → strip 0x → pad 32 bytes
+//   const recipientHex = pad32(strip0x(recipient));
+
+//   // 3️⃣ amountIn → BigInt → hex → pad 32 bytes
+//   const amountInHex = pad32(BigInt(amountIn).toString(16));
+
+//   // 4️⃣ amountOutMinimum → BigInt → hex → pad 32 bytes
+//   const amountOutMinHex = pad32(BigInt(amountOutMinimum).toString(16));
+
+//   // 5️⃣ Final concat
+//   const scInput =
+//     "0x" + selector + recipientHex + amountInHex;
+
+//   return scInput.toLowerCase();
+// };
