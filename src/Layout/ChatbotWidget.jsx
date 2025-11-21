@@ -21,6 +21,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Parse from "parse";
 import { getRoleBasedOptions } from "../utils";
 import ReactMarkdown from "react-markdown";
+import NewTicketDialog from "./Ticket/NewTicketDialog";
+import MyTicketsDialog from "./Ticket/MyTicketsDialog";
+import { useGetIdentity, useNotify } from "react-admin";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,13 +34,18 @@ const ChatbotWidget = () => {
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-  const [currentStep, setCurrentStep] = useState("main"); // main -> sub -> final
+  const [currentStep, setCurrentStep] = useState("main"); // main -> sub -> final -> support
   const [selectedMainOption, setSelectedMainOption] = useState(null);
   const [selectedSubOption, setSelectedSubOption] = useState(null);
   const [isTextFieldEnabled, setIsTextFieldEnabled] = useState(false);
+  const [showSupportOption, setShowSupportOption] = useState(false);
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
+  const [myTicketsDialogOpen, setMyTicketsDialogOpen] = useState(false);
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
-  const role = localStorage.getItem("role");
+  const { identity } = useGetIdentity();
+  const notify = useNotify();
+  const role = identity?.role;
 
   const { mainOptions, subOptions, finalOptions, finalAnswer } =
     getRoleBasedOptions(role);
@@ -125,6 +133,7 @@ const ChatbotWidget = () => {
     setShowScrollButton(false);
     setIsTextFieldEnabled(false);
     setUnreadCount(0);
+    setShowSupportOption(false);
   };
 
   const handleMainOptionSelect = (option) => {
@@ -168,38 +177,6 @@ const ChatbotWidget = () => {
   };
 
   const handleFinalOptionSelect = async (option) => {
-    // if (
-    //   role === "Master-Agent" ||
-    //   role === "Player" ||
-    //   role === "Agent"
-    // ) {
-    //   setShowOptions(false);
-    //   setChat((prev) => [...prev, { role: "user", text: option }]);
-
-    //   const answer =
-    //     finalAnswer[option] ||
-    //     "I don't have information on that specific topic yet. Please contact support for assistance.";
-
-    //   setIsLoading(true);
-    //   scrollToBottom();
-
-    //   setTimeout(() => {
-    //     setChat((prev) => [...prev, { role: "assistant", text: answer }]);
-    //     setIsLoading(false);
-    //     setCurrentStep("main");
-    //     setSelectedMainOption(null);
-    //     setSelectedSubOption(null);
-    //     setShowOptions(true);
-    //   }, 500);
-    // } else {
-    //   setShowOptions(false);
-    //   setChat((prev) => [...prev, { role: "user", text: option }]);
-    //   await sendMessageToBackend(option);
-    //   setCurrentStep("main");
-    //   setSelectedMainOption(null);
-    //   setSelectedSubOption(null);
-    //   setShowOptions(true);
-    // }
     setShowOptions(false);
     setChat((prev) => [...prev, { role: "user", text: option }]);
 
@@ -213,22 +190,81 @@ const ChatbotWidget = () => {
     setTimeout(() => {
       setChat((prev) => [...prev, { role: "assistant", text: answer }]);
       setIsLoading(false);
-      setCurrentStep("main");
+
+      // Show customer support option after answering
+      setShowSupportOption(true);
+      setCurrentStep("support");
       setSelectedMainOption(null);
       setSelectedSubOption(null);
-      setShowOptions(true);
+      if (role === "Player") {
+        setTimeout(() => {
+          setChat((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              text: "Need more help? You can contact our Customer Support team:",
+            },
+          ]);
+          setShowOptions(true);
+        }, 300);
+      }
     }, 500);
   };
 
-  // const handleFinalOptionSelect = async (option) => {
-  //   setShowOptions(false);
-  //   setChat((prev) => [...prev, { role: "user", text: option }]);
-  //   await sendMessageToBackend(option);
-  //   setCurrentStep("main");
-  //   setSelectedMainOption(null);
-  //   setSelectedSubOption(null);
-  //   setShowOptions(true);
-  // };
+  const handleSupportOptionSelect = (option) => {
+    if (option === "New Ticket") {
+      setTicketDialogOpen(true);
+      setIsOpen(false);
+    } else if (option === "My Tickets") {
+      setMyTicketsDialogOpen(true);
+      setIsOpen(false);
+    }
+  };
+
+  const handleTicketSubmit = async (ticketData) => {
+    try {
+      if (!identity?.objectId) {
+        notify("User not authenticated. Please login again.", {
+          type: "error",
+        });
+        return;
+      }
+
+      // Prepare ticket data for backend
+      const ticketPayload = {
+        userId: identity.objectId,
+        username: identity.username || identity.email,
+        category: ticketData.category,
+        description: ticketData.description,
+      };
+      let attachments = []
+      // Add file data if exists
+      if (ticketData.fileBase64) {
+        const data = {}
+        data.fileBase64 = ticketData.fileBase64;
+        data.fileName = ticketData.fileName;
+        data.fileType = ticketData.fileType;
+        data.fileSize = ticketData.fileSize;
+        attachments.push(data);
+      }
+      ticketPayload.attachments = attachments;
+
+      // Call Parse Cloud function to create ticket
+      const result = await Parse.Cloud.run("createTicket", ticketPayload);
+
+      if (result.success) {
+        notify("Ticket created successfully!", { type: "success" });
+        console.log("Ticket created:", result.data);
+      } else {
+        notify(result.message || "Failed to create ticket", { type: "error" });
+      }
+    } catch (error) {
+      console.error("Error submitting ticket:", error);
+      notify(error.message || "An error occurred while creating the ticket", {
+        type: "error",
+      });
+    }
+  };
 
   const sendMessageToBackend = async (message) => {
     setIsLoading(true);
@@ -278,11 +314,11 @@ const ChatbotWidget = () => {
     setChat((prev) => [...prev, userMsg]);
     setInput("");
     await sendMessageToBackend(input);
-    if (!isTextFieldEnabled) {
-      setCurrentStep("main");
-    }
+    setCurrentStep("main");
     setSelectedMainOption(null);
     setSelectedSubOption(null);
+    setShowSupportOption(false);
+    setIsTextFieldEnabled(false);
     setShowOptions(true);
   };
 
@@ -551,6 +587,56 @@ const ChatbotWidget = () => {
                           {option}
                         </Button>
                       ))}
+                    {currentStep === "support" &&
+                      role === "Player" &&
+                      showSupportOption && (
+                        <>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() =>
+                              handleSupportOptionSelect("New Ticket")
+                            }
+                            sx={{
+                              borderRadius: 2,
+                              fontSize: 12,
+                              textTransform: "none",
+                              bgcolor: "white",
+                              color: "primary.main",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                              "&:hover": {
+                                bgcolor: "primary.light",
+                                color: "white",
+                              },
+                              width: "48%",
+                            }}
+                          >
+                            🎫 New Ticket
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() =>
+                              handleSupportOptionSelect("My Tickets")
+                            }
+                            sx={{
+                              borderRadius: 2,
+                              fontSize: 12,
+                              textTransform: "none",
+                              bgcolor: "white",
+                              color: "primary.main",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                              "&:hover": {
+                                bgcolor: "primary.light",
+                                color: "white",
+                              },
+                              width: "48%",
+                            }}
+                          >
+                            📋 My Tickets
+                          </Button>
+                        </>
+                      )}
                   </Box>
                 </Fade>
               )}
@@ -689,37 +775,37 @@ const ChatbotWidget = () => {
       ) : (
         <Zoom in={!isOpen} timeout={500}>
           <Box>
-              <IconButton
-                color="primary"
-                aria-label="Open chat"
-                sx={{
-                  bgcolor: "white",
-                  borderRadius: "50%",
-                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
-                  width: 45,
-                  height: 45,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "scale(1.1) rotate(10deg)",
-                    boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
+            <IconButton
+              color="primary"
+              aria-label="Open chat"
+              sx={{
+                bgcolor: "white",
+                borderRadius: "50%",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                width: 45,
+                height: 45,
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.1) rotate(10deg)",
+                  boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
+                },
+                "@keyframes pulse": {
+                  "0%": {
+                    boxShadow: "0 0 0 0 rgba(25, 118, 210, 0.4)",
                   },
-                  "@keyframes pulse": {
-                    "0%": {
-                      boxShadow: "0 0 0 0 rgba(25, 118, 210, 0.4)",
-                    },
-                    "70%": {
-                      boxShadow: "0 0 0 15px rgba(25, 118, 210, 0)",
-                    },
-                    "100%": {
-                      boxShadow: "0 0 0 0 rgba(25, 118, 210, 0)",
-                    },
+                  "70%": {
+                    boxShadow: "0 0 0 15px rgba(25, 118, 210, 0)",
                   },
-                  animation: unreadCount > 0 ? "pulse 2s infinite" : "none",
-                }}
-                onClick={toggleChat}
-              >
-                <ChatIcon fontSize="medium" />
-              </IconButton>
+                  "100%": {
+                    boxShadow: "0 0 0 0 rgba(25, 118, 210, 0)",
+                  },
+                },
+                animation: unreadCount > 0 ? "pulse 2s infinite" : "none",
+              }}
+              onClick={toggleChat}
+            >
+              <ChatIcon fontSize="medium" />
+            </IconButton>
           </Box>
         </Zoom>
       )}
@@ -748,6 +834,19 @@ const ChatbotWidget = () => {
             animationDelay: "0.4s",
           },
         }}
+      />
+
+      {/* New Ticket Dialog */}
+      <NewTicketDialog
+        open={ticketDialogOpen}
+        onClose={() => setTicketDialogOpen(false)}
+        onSubmit={handleTicketSubmit}
+      />
+
+      {/* My Tickets Dialog */}
+      <MyTicketsDialog
+        open={myTicketsDialogOpen}
+        onClose={() => setMyTicketsDialogOpen(false)}
       />
     </Box>
   );

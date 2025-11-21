@@ -43,6 +43,8 @@ import clarity from "@microsoft/clarity";
 import GiftCardHistoryList from "./Views/GiftCard/GiftCardHistoryList";
 import WalletAuditList from "./Views/WalletAudit/WalletAudit";
 import CheckoutPayARC from "./Views/Stripe/checkoutPayARC";
+import TicketsList from "./Views/Tickets/TicketsList";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import RedirectByRole from "./RedirectByRole";
@@ -265,6 +267,15 @@ function App() {
                         label: "Wallet audit History",
                         route: "walletAudit",
                       }} // 👈 override
+                    />
+                    <Resource
+                      name="tickets"
+                      list={TicketsList}
+                      options={{
+                        label: "Support Tickets",
+                        route: "tickets",
+                      }}
+                      icon={ConfirmationNumberIcon}
                     />
                     <CustomRoutes>
                       <Route

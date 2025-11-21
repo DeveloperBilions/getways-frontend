@@ -228,6 +228,11 @@ export default function MyAppBar(props) {
         label: "Wallet Audit",
         onClick: () => navigate("/walletAudit"),
       });
+      menuItems.push({
+        key: "tickets",
+        label: "Support Tickets",
+        onClick: () => navigate("/tickets"),
+      });
     }
   }
 

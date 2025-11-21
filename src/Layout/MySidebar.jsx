@@ -71,6 +71,11 @@ export const MySidebar = () => {
         label: "Wallet Audit",
         onClick: () => navigate("/walletAudit"),
       });
+      menuItems.push({
+        key: "tickets",
+        label: "Support Tickets",
+        onClick: () => navigate("/tickets"),
+      });
     }
   }
 
