@@ -33,13 +33,13 @@ import CustomPagination from "../../Views/Common/CustomPagination";
 const formatDateTime = (date) => {
   if (!date) return "";
   const d = new Date(date);
-  return d.toLocaleString("en-US", {
-    year: "numeric",
-    month: "2-digit",
+  return d.toLocaleDateString("en-GB", {
     day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
+    second: "2-digit",
   });
 };
 
@@ -425,7 +425,7 @@ const CATEGORIES = [
 ];
 
 const STATUSES = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All Status" },
   { value: "new", label: "New" },
   { value: "in_progress", label: "In Progress" },
   { value: "resolved", label: "Resolved" },
