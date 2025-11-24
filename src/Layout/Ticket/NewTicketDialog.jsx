@@ -81,8 +81,11 @@ const NewTicketDialog = ({ open, onClose, onSubmit }) => {
           quality,
           convertTypes: ["image/jpeg"],
           success(result) {
-            if (result.size <= MAX_SIZE || quality <= 0.1) {
+            if (result.size <= MAX_SIZE) {
               resolve(result);
+            } else if (quality <= 0.1) {
+              // If we've reached minimum quality and still above 512KB, reject
+              reject(new Error("Please try a smaller image."));
             } else {
               quality -= 0.1;
               attempt();
