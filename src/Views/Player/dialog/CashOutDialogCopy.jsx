@@ -101,13 +101,13 @@ const CashOutModal = ({
     const amount = Number(balance);
 
     if (selectedMethod === "giftcard") {
-      if (amount < 15) return "Gift card cashout must be at least $15.";
+      if (amount < 15) return "Gift card cashout must be at least 15.";
     } else if (["paypal", "venmo", "card", "clkk"].includes(selectedMethod)) {
-      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
-      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
+      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least 25.`;
+      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed 500.`;
     } else if (["getpaycard", "getpaycrypto"].includes(selectedMethod)) {
-      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
-      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
+      if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least 25.`;
+      if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed 500.`;
     }
 
     if (amount > initialBalance) {

@@ -776,7 +776,6 @@ export const RechargeRecordsList = (props) => {
                     <Button
                       variant="outlined"
                       size="small"
-                      startIcon={<img src={Dollar} alt="Dollar" />}
                       onClick={() => handleCoinCredit(record)}
                       sx={{
                         mr: 1,
