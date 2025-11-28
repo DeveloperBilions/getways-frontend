@@ -136,6 +136,7 @@ const CreateUserDialog = ({ open, onClose, fetchAllUsers, handleRefresh }) => {
 
   // Function to create a new user in Parse
   const handleSubmit = async (event) => {
+    setErrorMessage("")
     event.preventDefault();
     // ---- normalize inputs ----
     const username = (userName || "").trim();

@@ -198,7 +198,7 @@ const LoginPage = () => {
             }}
           >
             <Form component="form" noValidate onSubmit={handleSubmit(onSubmit)}>
-              <Label className="custom-label">Email address or User name</Label>
+              <Label className="custom-label">Email / Phone</Label>
               <OutlinedInput
                 margin="normal"
                 required

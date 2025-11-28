@@ -419,8 +419,8 @@ const CATEGORIES = [
   { value: "redeem", label: "Redeem" },
   { value: "recharge", label: "Recharge" },
   { value: "wallet", label: "Wallet" },
-  { value: "giftcard", label: "Gift Card" },
   { value: "login", label: "Login" },
+  { value: "password", label: "Password" },
   { value: "others", label: "Others" },
 ];
 

@@ -51,8 +51,8 @@ export function validateCategory(category) {
     "redeem",
     "recharge",
     "wallet",
-    "giftcard",
     "login",
+    "password",
     "others",
   ];
 

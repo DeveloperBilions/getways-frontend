@@ -39,8 +39,8 @@ const categoryChoices = [
   { id: "redeem", name: "Redeem" },
   { id: "recharge", name: "Recharge" },
   { id: "wallet", name: "Wallet" },
-  { id: "giftcard", name: "Gift Card" },
   { id: "login", name: "Login" },
+  { value: "password", label: "Password" },
   { id: "others", name: "Others" },
 ];
 

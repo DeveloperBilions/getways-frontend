@@ -1546,3 +1546,24 @@ export async function updateTransactionRecordsWithParent(batchSize = 500) {
 
   return { updatedCount };
 }
+
+export const TicketReport = async (filter) => {
+  try {
+    const response = await dataProvider.getList("tickets", {
+      pagination: { page: 1, perPage: 100000 },
+      sort: { field: "createdAt", order: "DESC" },
+      filter: filter,
+    });
+    const statusCounts = response.data.reduce((acc, record) => {
+      const status = record.status;
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return { status: "success", data: statusCounts, total: response?.total };
+
+  } catch (error) {
+    console.error("Error fetching Ticket report:", error.message);
+    return { status: "error", code: 500, message: error.message };
+  }
+};

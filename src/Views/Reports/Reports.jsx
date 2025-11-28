@@ -12,6 +12,7 @@ const PlayerOverview = React.lazy(() => import("./PlayerOverview"));
 const PlayerComparison = React.lazy(() => import("./PlayerComparison"));
 const ParticularPlayer = React.lazy(() => import("./ParticularPlayer"));
 const Kyc = React.lazy(() => import("./Kyc"));
+const SupportTicket = React.lazy(() => import("./SupportTicket"));
 
 // Styled components with identical styling to original
 const RootBox = styled(Box)({
@@ -35,7 +36,7 @@ const Title = styled(Typography)({
 const TabContainer = styled(Box)({
   display: "flex",
   flexWrap: "wrap",
-  gap: "8px",
+  gap: "4px",
   border: "1px solid #E7E7E7",
   borderRadius: "8px",
   padding: "8px",
@@ -47,7 +48,7 @@ const TabContainer = styled(Box)({
 });
 
 const TabButton = styled(Box)(({ active }) => ({
-  padding: "8px 16px",
+  padding: "8px 12px",
   borderRadius: "4px",
   cursor: "pointer",
   backgroundColor: active ? "#000" : "transparent",
@@ -111,6 +112,7 @@ const Reports = memo(() => {
     "Player Comparison": "playerComparison",
     "Particular Player": "particularPlayer",
     KYC: "Kyc",
+    "Support Ticket": "SupportTicket",
     "Transaction Export": "TransactionData",
   };
 
@@ -130,6 +132,7 @@ const Reports = memo(() => {
     TransactionData:
       "The Transaction Export page allows users to download transaction data...",
     Kyc: "This KYC page provides a comprehensive view of customer verification statuses...",
+    SupportTicket: "This Support Ticket page provides a comprehensive view of support ticket statuses and counts...",
   };
 
   if (identity?.email !== "zen@zen.com") return null;
@@ -165,6 +168,7 @@ const Reports = memo(() => {
           {activeComponent === "playerComparison" && <PlayerComparison />}
           {activeComponent === "particularPlayer" && <ParticularPlayer />}
           {activeComponent === "Kyc" && <Kyc />}
+          {activeComponent === "SupportTicket" && <SupportTicket />}
           {activeComponent === "TransactionData" && <TransactionData />}
         </Suspense>
       </ContentContainer>

@@ -115,6 +115,7 @@ const ReferralLinkForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setDisableButtonState(true);
+    setErrorMessage("")
 
     const validationData = {
       username: userName,
