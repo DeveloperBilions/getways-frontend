@@ -40,7 +40,7 @@ const categoryChoices = [
   { id: "recharge", name: "Recharge" },
   { id: "wallet", name: "Wallet" },
   { id: "login", name: "Login" },
-  { value: "password", label: "Password" },
+  { id: "password", name: "Password" },
   { id: "others", name: "Others" },
 ];
 
