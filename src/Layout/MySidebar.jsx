@@ -11,7 +11,7 @@ import { useMediaQuery } from "@mui/system";
 export const MySidebar = () => {
   const { identity } = useGetIdentity();
   const [open, setOpen] = useSidebarState();
-  const isMobile = useMediaQuery("(max-width:1023px)");
+  const isMobile = useMediaQuery("(max-width:1095px)");
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
@@ -70,6 +70,11 @@ export const MySidebar = () => {
         key: "wlletAudit",
         label: "Wallet Audit",
         onClick: () => navigate("/walletAudit"),
+      });
+      menuItems.push({
+        key: "tickets",
+        label: "Support Tickets",
+        onClick: () => navigate("/tickets"),
       });
     }
   }

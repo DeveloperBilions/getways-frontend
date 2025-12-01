@@ -6,6 +6,7 @@ import {
 import Stripe from "stripe";
 import { getParentUserId, updatePotBalance } from "../Utils/utils";
 import { processTransfiDeposit } from "../Utils/transfi";
+import { validateTicketUpdate } from "../Validators/ticket.validator";
 
 const stripe = new Stripe(process.env.REACT_APP_STRIPE_KEY_PRIVATE); // Replace with your Stripe secret key
 
@@ -1785,7 +1786,88 @@ export const dataProvider = {
         };
       }
       
-      else if (resource === "walletAudit") {
+      else if (resource === "tickets") {
+        const Resource = Parse.Object.extend("Ticket");
+        query = new Parse.Query(Resource);
+
+        // Role-based filtering
+        if (role === "Player") {
+          // Players can only see their own tickets
+          query.equalTo("userId", userid);
+        }
+        // Super-User can see all tickets (no filter needed)
+
+        // Apply filters
+        if (filter && typeof filter === "object" && Object.keys(filter).length > 0) {
+          for (const f of Object.keys(filter)) {
+            if (filter[f] !== undefined && filter[f] !== null) {
+              if (f === "searchBy") {
+                const searchValue = String(filter[f]);
+                const searchRegex = new RegExp(searchValue, "i");
+                
+                const usernameQuery = new Parse.Query("Ticket");
+                usernameQuery.matches("username", searchRegex);
+
+                const objectIdQuery = new Parse.Query("Ticket");
+                objectIdQuery.matches("objectId", searchRegex);
+                
+                query = Parse.Query.or(usernameQuery, objectIdQuery);
+              } 
+              if (f === "category") {
+                query.equalTo(f, filter[f]);
+              }
+              if (f === "status") {
+                query.equalTo(f, filter[f]);
+              } 
+              // else if (f === "searchBy") {
+              //   // Skip searchBy field
+              //   console.log(`Skipping searchBy field: ${f}`);
+              // } 
+              // else {
+              //   query.equalTo(f, filter[f]);
+              // }
+            }
+          }
+        }
+
+        // Sorting
+        if (field) {
+          query[order === "ASC" ? "ascending" : "descending"](field==="id"?"objectId":field);
+        } else {
+          // Default sort by creation date (newest first)
+          query.descending("createdAt");
+        }
+
+        // Total count before pagination
+        count = await query.count({ useMasterKey: true });
+
+        // Pagination
+        const skip = (page - 1) * perPage;
+        query.skip(skip);
+        query.limit(perPage);
+
+        // Execute query
+        const tickets = await query.find({ useMasterKey: true });
+
+        const formatted = tickets.map((ticket) => ({
+          id: ticket.id,
+          ticketId: ticket.id,
+          userId: ticket.get("userId"),
+          username: ticket.get("username"),
+          category: ticket.get("category"),
+          description: ticket.get("description"),
+          remarks: ticket.get("remarks"),
+          status: ticket.get("status"),
+          attachmentURL:ticket.get("attachmentURL"),
+          createdAt: ticket.createdAt,
+          updatedAt: ticket.updatedAt,
+        }));
+
+        return {
+          data: formatted,
+          total: count,
+        };
+      } else if (resource === "walletAudit") {
         const page = params.pagination.page || 1;
         const perPage = params.pagination.perPage || 10;
         const usernameFilter = params.filter?.username;
@@ -2671,6 +2753,7 @@ export const dataProvider = {
 
     console.log(newResults, "nwResule");
   },
+
   // refundTransaction: async (params) => {
   //   const { sessionId, amount, remark, redeemServiceFee } = params; // Include additional parameters if needed
 
@@ -2788,5 +2871,90 @@ export const dataProvider = {
   //       message: error.message || "An unexpected error occurred during the refund process.",
   //     };
   //   }
-  // }
+  // },
+
+  updateTicket: async (params) => {
+    const { ticketId, status, remarks } = params;
+
+    try {
+      // Validate input data
+      const validation = validateTicketUpdate({
+        ticketId,
+        status,
+        remarks,
+      });
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          message: "Validation failed",
+          errors: validation.errors,
+        };
+      }
+
+      // Fetch the ticket record
+      const Ticket = Parse.Object.extend("Ticket");
+      const query = new Parse.Query(Ticket);
+      query.equalTo("objectId", ticketId);
+      
+      const ticket = await query.first({ useMasterKey: true });
+
+      if (!ticket) {
+        return {
+          success: false,
+          message: `Ticket with ID ${ticketId} not found`,
+        };
+      }
+
+      // Check if user has permission to update this ticket
+      // const role = localStorage.getItem("role");
+      // const userid = localStorage.getItem("id");
+
+      // Only Super-User can update any ticket, Players can only update their own
+      // if (role === "Player" && ticket.get("userId") !== userid) {
+      //   return {
+      //     success: false,
+      //     message: "You don't have permission to update this ticket",
+      //   };
+      // }
+
+      // Update ticket fields
+      if (status) {
+        ticket.set("status", status.toLowerCase());
+      }
+
+      if (remarks !== undefined && remarks !== null) {
+        ticket.set("remarks", remarks.trim());
+      }
+
+      ticket.set("updatedAt", new Date());
+
+      // Save the updated ticket
+      await ticket.save(null, { useMasterKey: true });
+
+      return {
+        success: true,
+        message: "Ticket updated successfully",
+        data: {
+          id: ticket.id,
+          ticketId: ticket.id,
+          userId: ticket.get("userId"),
+          username: ticket.get("username"),
+          category: ticket.get("category"),
+          description: ticket.get("description"),
+          remarks: ticket.get("remarks"),
+          status: ticket.get("status"),
+          attachmentURL: ticket.get("attachmentURL"),
+          createdAt: ticket.createdAt,
+          updatedAt: ticket.updatedAt,
+        },
+      };
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      return {
+        success: false,
+        message: error.message || "An unexpected error occurred while updating the ticket",
+      };
+    }
+  },
 };

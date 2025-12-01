@@ -82,11 +82,9 @@ Parse.serverURL = process.env.REACT_APP_URL;
 
 export const RechargeRecordsList = (props) => {
   const [showExpired, setShowExpired] = useState(false);
-  const listContext = useListController({
-    ...props,
-    filter: { type: "recharge" },
-  });
+  const listContext = useListController(props); // ✅ Use useListController
   const {
+    data,
     isLoading,
     total,
     page,
@@ -417,7 +415,7 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
     }
 
     setFilters(newFilter, false); // Don't push to history
-  }, [showExpired, role, filterValues, setFilters]);
+  }, [showExpired, role]);
   const dataFilters = [
     <Box
       key="search-filter"
@@ -722,10 +720,7 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
         // sx={{ pt: 1 }}
         empty={false}
         {...props}
-        filter={{
-          type: "recharge",
-          ...filterValues,
-        }}        
+        filter={{ type: "recharge" }}
         sort={{ field: "transactionDate", order: "DESC" }}
         emptyWhileLoading={true}
         pagination={false}

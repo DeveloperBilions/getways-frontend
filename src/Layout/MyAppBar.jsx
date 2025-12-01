@@ -99,11 +99,11 @@ export default function MyAppBar(props) {
   const [balance, setBalance] = useState(0);
   const isSidebarOpen = role !== "Player";
   const isMobile = useMediaQuery(
-    isSidebarOpen ? "(max-width:1023px)" : "(max-width: 900px)"
+    isSidebarOpen ? "(max-width:1095px)" : "(max-width: 900px)"
   );
   const isTablet = useMediaQuery(
     isSidebarOpen
-      ? "(max-width:1023px)"
+      ? "(max-width:1095px)"
       : "(min-width:901px) and (max-width:1100px)"
   );
 
@@ -227,6 +227,11 @@ export default function MyAppBar(props) {
         key: "wlletAudit",
         label: "Wallet Audit",
         onClick: () => navigate("/walletAudit"),
+      });
+      menuItems.push({
+        key: "tickets",
+        label: "Support Tickets",
+        onClick: () => navigate("/tickets"),
       });
     }
   }
