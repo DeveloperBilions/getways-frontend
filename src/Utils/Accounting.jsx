@@ -179,7 +179,7 @@ export async function fetchAccountingSummaryV2(
   const prevRedeems = safe(prevAgg?.[0]?.prevRedeems?.[0]?.total);
 
   const prevPayPipeline = [
-    { $match: { userId: entityId ,createdAt: { $lt: start } } },
+    { $match: { userId: entityId ,createdAt: { $gte: start ,$lt:endExclusive} } },
     { $group: { _id: null, total: { $sum: "$amount" } } }
   ];
   const prevPayAgg = await new Parse.Query("DrawerAgent").aggregate(prevPayPipeline, { useMasterKey: true });
@@ -217,7 +217,7 @@ export async function fetchAccountingSummaryV2(
   const periodRedeems = safe(periodAgg?.[0]?.periodRedeems?.[0]?.total);
 
   const periodPayPipeline = [
-    { $match: { userId: entityId} },
+    { $match: { userId: entityId, createdAt: { $gte: start ,$lt:endExclusive} } },
     { $group: { _id: null, total: { $sum: "$amount" } } }
   ];
   const periodPayAgg = await new Parse.Query("DrawerAgent").aggregate(periodPayPipeline, { useMasterKey: true });

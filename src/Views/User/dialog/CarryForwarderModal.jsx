@@ -323,9 +323,8 @@ export default function CarryForwarderModal({
             </Typography>
             <Typography sx={{ mt: 1 }}>
               <strong>Current Balance:</strong>{" "}
-              {typeof selectedEntity?.balance === "number"
-                ? selectedEntity.balance.toFixed(2)
-                : "N/A"}
+              
+              {totals?.totalRecharges.toFixed(2) - totals?.totalRedeems.toFixed(2) - summary?.periodPayments.toFixed(2)}
             </Typography>
 
             <Divider sx={{ my: 2 }} />
