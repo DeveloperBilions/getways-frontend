@@ -275,7 +275,7 @@ const WalletDialog = ({ open, onClose, record }) => {
                     fontWeight: "400",
                   }}
                 >
-                  ${walletDetails?.balance || 0}
+                  {walletDetails?.balance || 0}
                 </div>
               </div>
               <Card

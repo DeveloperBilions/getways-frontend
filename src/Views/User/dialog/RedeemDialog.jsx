@@ -370,7 +370,7 @@ const RedeemDialog = ({ open, onClose, record, handleRefresh }) => {
                   redeemPercentage !== undefined && (
                     <p className="mb-3 ml-1">
                       <small style={{ fontSize: "13px"}}>
-                        Total amount to be redeemed = $
+                        Total amount to be redeemed = 
                         {Math.floor(redeemPercentage) || 0}
                       </small>
                     </p>
