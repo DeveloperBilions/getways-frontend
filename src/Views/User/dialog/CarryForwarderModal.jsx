@@ -324,7 +324,13 @@ export default function CarryForwarderModal({
             <Typography sx={{ mt: 1 }}>
               <strong>Current Balance:</strong>{" "}
               
-              {totals?.totalRecharges.toFixed(2) - totals?.totalRedeems.toFixed(2) - summary?.periodPayments.toFixed(2)}
+              <span>
+  {(
+    (totals?.totalRecharges ?? 0) -
+    (totals?.totalRedeems ?? 0) -
+    (summary?.periodPayments ?? 0)
+  ).toFixed(2)}
+</span>
             </Typography>
 
             <Divider sx={{ my: 2 }} />
