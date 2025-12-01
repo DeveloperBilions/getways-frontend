@@ -152,7 +152,11 @@ export async function fetchAccountingTransactions(
     {
       $project: {
         _id: 0,
-        date: { $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" } },
+        date: { $dateToString: {
+          format: "%Y-%m-%dT%H:%M:%S.%LZ",
+          date: "$transactionDate",
+          timezone: "UTC"
+        } },
         type: 1,
         status: 1,
         amount: "$transactionAmount",

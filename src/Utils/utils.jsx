@@ -1480,6 +1480,7 @@ export async function fetchAllAgentSummaries(startDate, endDate) {
       agentName: a.get("username") || "N/A",
       masterName: a.get("userParentName") || "N/A",
       commissionRate: a.get("commissionRate") || 12,
+      balance: a.get("balance") || 12,
     };
   });
 
@@ -1494,10 +1495,10 @@ for (const s of trxSummary) {
   const balance = recharge - redeem - paid;
 
   const userObj = agentMap[s.objectId]?.user;
-  if (userObj) {
-    userObj.set("balance", balance);
-    await userObj.save(null, { useMasterKey: true });
-  }
+  // if (userObj) {
+  //   userObj.set("balance", balance);
+  //   await userObj.save(null, { useMasterKey: true });
+  // }
 
   results.push({
     "Agent Name": agentMap[s.objectId]?.agentName || "Unknown",
@@ -1507,6 +1508,9 @@ for (const s of trxSummary) {
     "Total Conversion": conversion.toFixed(2),
     "Total Paid": paid.toFixed(2),
     "Balance": balance.toFixed(2),
+    "Agent current Balance":agentMap[s.objectId]?.balance.toFixed(2) || "0.00",
+    "Balance Difference": (balance - agentMap[s.objectId]?.balance).toFixed(2)
+
   });
 }
 

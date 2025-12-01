@@ -1306,7 +1306,9 @@ export const RechargeRecordsList = (props) => {
                     row.remark,
                     mapStatus(row.status),
                     getMode(row),
-                    new row.transactionDate,
+                    row.transactionDate
+                  ? new Date(row.transactionDate).toISOString() // ✅ UTC string
+                  : null,
                   ]),
                 });
                 doc.save("RechargeRecords.pdf");

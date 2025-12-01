@@ -549,7 +549,7 @@ const prepareTableData = (data, type, isRedeem = false) => {
   let records = data?.[0]?.[key]?.[type] || [];
   if (isRedeem) {
     records = records.filter(
-      (item) => item.status === 8 || item.status === 4
+      (item) => item.status === 8 || item.status === 4 || item.status === 12 || item.status === 11
     );
   }
 
