@@ -21,7 +21,7 @@ export function validateTicket(ticketData) {
   const errors = {};
 
   // Validate category using validateCategory helper
-  const categoryValidation = validateCategory(ticketData.category);
+  const categoryValidation = validateCategory(ticketData.category,ticketData.role);
   if (!categoryValidation.isValid) {
     errors.category = categoryValidation.error;
   }
@@ -46,15 +46,39 @@ export function validateTicket(ticketData) {
   };
 }
 
-export function validateCategory(category) {
-  const validCategories = [
-    "redeem",
-    "recharge",
-    "wallet",
+export function validateCategory(category,role) {
+
+  const validCategories = {
+  "Player": [
+  "redeem",
+  "recharge",
+  "wallet",
+  "login",
+  "password",
+  "others",
+  ],
+  "Master-Agent": [
+    "user_management",
+    "summary_reports",
+    "recharge_records",
+    "redeem_records",
+    "balance_display",
+    "recharge_limit",
+    "master_accounting",
     "login",
-    "password",
     "others",
-  ];
+  ],
+  "Agent": [
+    "user_management",
+    "summary_reports",
+    "recharge_records",
+    "redeem_records",
+    "balance_display",
+    "recharge_limit",
+    "login",
+    "others",
+  ],
+};
 
   if (!category) {
     return {
@@ -62,8 +86,14 @@ export function validateCategory(category) {
       error: "Category is required",
     };
   }
+  if (!role) {
+    return {
+      isValid: false,
+      error: "Role is required",
+    };
+  }
 
-  if (!validCategories.includes(category.toLowerCase())) {
+  if (!validCategories[role].includes(category.toLowerCase())) {
     return {
       isValid: false,
       error: "Invalid category selected",
