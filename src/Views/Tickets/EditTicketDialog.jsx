@@ -22,6 +22,11 @@ const STATUS_OPTIONS = [
   { value: "resolved", label: "Resolved" },
 ];
 
+const capitalizeFirstLetter = (string) => {
+  if (!string) return "";
+  return string.split(/[ _]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 const EditTicketDialog = ({ open, onClose, ticket, onSuccess }) => {
   const [status, setStatus] = useState("");
   const [remarks, setRemarks] = useState("");
@@ -162,7 +167,10 @@ const EditTicketDialog = ({ open, onClose, ticket, onSuccess }) => {
               <strong>Username:</strong> {ticket.username}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              <strong>Category:</strong> {ticket.category}
+              <strong>Role:</strong> {ticket.role}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Category:</strong> {capitalizeFirstLetter(ticket.category)}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               <strong>Description:</strong> {ticket.description}

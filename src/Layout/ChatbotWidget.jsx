@@ -192,11 +192,14 @@ const ChatbotWidget = () => {
       setIsLoading(false);
 
       // Show customer support option after answering
-      setShowSupportOption(true);
-      setCurrentStep("support");
       setSelectedMainOption(null);
       setSelectedSubOption(null);
-      if (role === "Player") {
+      setCurrentStep("main");
+      setShowOptions(true);
+      setShowSupportOption(false);
+      if (role !== "Super-User") {
+        setShowSupportOption(true);
+        setCurrentStep("support");
         setTimeout(() => {
           setChat((prev) => [
             ...prev,
@@ -237,10 +240,10 @@ const ChatbotWidget = () => {
         category: ticketData.category,
         description: ticketData.description,
       };
-      let attachments = []
+      let attachments = [];
       // Add file data if exists
       if (ticketData.fileBase64) {
-        const data = {}
+        const data = {};
         data.fileBase64 = ticketData.fileBase64;
         data.fileName = ticketData.fileName;
         data.fileType = ticketData.fileType;
@@ -588,7 +591,7 @@ const ChatbotWidget = () => {
                         </Button>
                       ))}
                     {currentStep === "support" &&
-                      role === "Player" &&
+                      role !== "Super-User" &&
                       showSupportOption && (
                         <>
                           <Button

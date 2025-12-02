@@ -23,15 +23,39 @@ import {
 import Compressor from "compressorjs";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
+import { useGetIdentity } from "react-admin";
 
-const CATEGORIES = [
+const CATEGORIES = {
+  "Player": [
   { value: "redeem", label: "Redeem" },
   { value: "recharge", label: "Recharge" },
   { value: "wallet", label: "Wallet" },
   { value: "login", label: "Login" },
   { value: "password", label: "Password" },
   { value: "others", label: "Others" },
-];
+  ],
+  "Master-Agent": [
+    { value: "user_management", label: "User Management" },
+    { value: "summary_reports", label: "Summary Reports" },
+    { value: "recharge_records", label: "Recharge Records" },
+    { value: "redeem_records", label: "Redeem Records" },
+    { value: "balance_display", label: "Balance Display" },
+    { value: "recharge_limit", label: "Recharge Limit" },
+    { value: "master_accounting", label: "Master Accounting" },
+    { value: "login", label: "Login" },
+    { value: "others", label: "Others" },
+  ],
+  "Agent": [
+    { value: "user_management", label: "User Management" },
+    { value: "summary_reports", label: "Summary Reports" },
+    { value: "recharge_records", label: "Recharge Records" },
+    { value: "redeem_records", label: "Redeem Records" },
+    { value: "balance_display", label: "Balance Display" },
+    { value: "recharge_limit", label: "Recharge Limit" },
+    { value: "login", label: "Login" },
+    { value: "others", label: "Others" },
+  ],
+};
 
 const MAX_SIZE = 512 * 1024; // 512 KB
 
@@ -45,6 +69,8 @@ const NewTicketDialog = ({ open, onClose, onSubmit }) => {
   const [ffmpeg] = useState(new FFmpeg());
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  const { identity } = useGetIdentity();
+  const role = identity?.role;
 
   // Load ffmpeg once
   useEffect(() => {
@@ -231,6 +257,7 @@ const NewTicketDialog = ({ open, onClose, onSubmit }) => {
       category,
       description,
       file,
+      role,
     };
 
     const validation = validateTicket(ticketData);
@@ -372,7 +399,7 @@ const NewTicketDialog = ({ open, onClose, onSubmit }) => {
                 },
               }}
             >
-              {CATEGORIES.map((option) => (
+              {CATEGORIES[role]?.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>

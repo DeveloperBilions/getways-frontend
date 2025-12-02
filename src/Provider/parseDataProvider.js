@@ -1791,7 +1791,7 @@ export const dataProvider = {
         query = new Parse.Query(Resource);
 
         // Role-based filtering
-        if (role === "Player") {
+        if (role !== "Super-User") {
           // Players can only see their own tickets
           query.equalTo("userId", userid);
         }
@@ -1817,6 +1817,9 @@ export const dataProvider = {
                 query.equalTo(f, filter[f]);
               }
               if (f === "status") {
+                query.equalTo(f, filter[f]);
+              } 
+              if (f === "role") {
                 query.equalTo(f, filter[f]);
               } 
               // else if (f === "searchBy") {
@@ -1854,6 +1857,7 @@ export const dataProvider = {
           ticketId: ticket.id,
           userId: ticket.get("userId"),
           username: ticket.get("username"),
+          role: ticket.get("role"),
           category: ticket.get("category"),
           description: ticket.get("description"),
           remarks: ticket.get("remarks"),
