@@ -440,7 +440,6 @@ const CATEGORIES = {
     { value: "redeem_records", label: "Redeem Records" },
     { value: "balance_display", label: "Balance Display" },
     { value: "recharge_limit", label: "Recharge Limit" },
-    { value: "master_accounting", label: "Master Accounting" },
     { value: "login", label: "Login" },
     { value: "others", label: "Others" },
   ],

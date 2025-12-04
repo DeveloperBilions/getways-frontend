@@ -46,7 +46,6 @@ const categoryChoices = [
   { id: "redeem_records", name: "Redeem Records" },
   { id: "balance_display", name: "Balance Display" },
   { id: "recharge_limit", name: "Recharge Limit" },
-  { id: "master_accounting", name: "Master Accounting" },
   { id: "login", name: "Login" },
   { id: "others", name: "Others" },
 ];
