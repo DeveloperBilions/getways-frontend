@@ -214,11 +214,21 @@ const PlayerOverview = () => {
       {
         id: 0,
         value: totalRecharge,
-        label: "Recharge",
+        label: `Recharge: ${totalRecharge?.toLocaleString() || 0}`,
         color: "#43A047",
       },
-      { id: 1, value: totalRedeem, label: "Redeem", color: "#E53935" },
-      { id: 2, value: totalCashout, label: "Cashout", color: "#FB8C00" },
+      {
+        id: 1,
+        value: totalRedeem,
+        label: `Redeem: ${totalRedeem?.toLocaleString() || 0}`,
+        color: "#E53935",
+      },
+      {
+        id: 2,
+        value: totalCashout,
+        label: `Cashout: ${totalCashout?.toLocaleString() || 0}`,
+        color: "#FB8C00",
+      },
     ];
   };
 

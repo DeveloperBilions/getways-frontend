@@ -1647,14 +1647,16 @@ export const dataProvider = {
               totalFeesAmount: [
                 {
                   $match: {
+                    type: "recharge",
+                    status: { $in: [2, 3] },
                     transactionAmount: { $gt: 0, $type: "number" },
                   },
                 },
                 {
                   $group: {
                     _id: null,
-                    totalFees: {
-                      $sum: { $multiply: ["$transactionAmount", 0.11] },
+                    totalRates: {
+                      $sum: { $multiply: ["$transactionAmount", 0.90] },
                     },
                   },
                 },
@@ -1662,15 +1664,33 @@ export const dataProvider = {
               totalTicketAmount: [
                 {
                   $match: {
+                    $or: [
+                      { type: "recharge", status: { $in: [2, 3] } },
+                      { type: "redeem", status: { $in: [4, 8] } },
+                    ],
                     transactionAmount: { $gt: 0, $type: "number" },
                   },
                 },
                 {
                   $group: {
                     _id: null,
-                    totalTransaction: { $sum: "$transactionAmount" },
-                    totalFees: {
-                      $sum: { $multiply: ["$transactionAmount", 0.11] },
+                    totalRecharges: {
+                      $sum: {
+                        $cond: [
+                          { $eq: ["$type", "recharge"] },
+                          "$transactionAmount",
+                          0,
+                        ],
+                      },
+                    },
+                    totalRedeems: {
+                      $sum: {
+                        $cond: [
+                          { $eq: ["$type", "redeem"] },
+                          "$transactionAmount",
+                          0,
+                        ],
+                      },
                     },
                   },
                 },
@@ -1678,7 +1698,10 @@ export const dataProvider = {
                   $project: {
                     _id: 0,
                     totalTicketAmount: {
-                      $subtract: ["$totalTransaction", "$totalFees"],
+                      $subtract: [
+                        { $subtract: ["$totalRecharges", "$totalRedeems"] },
+                        { $multiply: ["$totalRecharges", 0.10] },
+                      ],
                     },
                   },
                 },
@@ -1700,8 +1723,8 @@ export const dataProvider = {
           totalFeesAmount: [
             {
               totalFees:
-                (activeResults[0]?.totalFeesAmount?.[0]?.totalFees || 0) +
-                (archiveResults[0]?.totalFeesAmount?.[0]?.totalFees || 0),
+                (activeResults[0]?.totalFeesAmount?.[0]?.totalRates || 0) +
+                (archiveResults[0]?.totalFeesAmount?.[0]?.totalRates || 0),
             },
           ],
           totalTicketAmount: [

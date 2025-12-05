@@ -373,76 +373,59 @@ const TicketsList = (props) => {
           },
         }}
       />
-      <Button
-        variant="outlined"
-        onClick={handleCategoryMenuOpen}
+      <Box
         sx={{
-          height: "40px",
-          borderRadius: "5px",
-          border: "1px solid #CFD4DB",
-          fontWeight: 400,
-          fontSize: "14px",
-          textTransform: "none",
-          px: 2,
-        }}
-      >
-        <FilterListIcon
-          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
-        />
-        Category
-      </Button>
-      <Menu
-        anchorEl={categoryMenuAnchor}
-        open={Boolean(categoryMenuAnchor)}
-        onClose={handleCategoryMenuClose}
-        sx={{
-          marginTop: "8px",
-          "& .MuiPaper-root": {
-            paddingLeft: "8px",
-            paddingRight: "8px",
-            maxHeight: "300px",
-            overflowY: "auto",
+          display: "flex",
+          gap: 2,
+          "@media (max-width:536px)": {
+            flexWrap: "wrap",
           },
         }}
       >
-        <MenuItem
-          key="all"
-          onClick={() => {
-            setFilters({ ...filterValues, category: "" });
-            handleCategoryMenuClose();
-          }}
+        <Button
+          variant="outlined"
+          onClick={handleCategoryMenuOpen}
           sx={{
-            bgcolor:
-              filterValues.category === "" ||
-              filterValues.category === undefined
-                ? "#F6F4F4"
-                : "white",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "180px",
-            borderRadius: "8px",
-            mb: "2px",
+            height: "40px",
+            borderRadius: "5px",
+            border: "1px solid #CFD4DB",
+            fontWeight: 400,
+            fontSize: "14px",
+            textTransform: "none",
+            px: 2,
           }}
         >
-          <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-            All
-          </Typography>
-          {filterValues.category === "" ||
-          filterValues.category === undefined ? (
-            <img src={tick} alt="tick" />
-          ) : null}
-        </MenuItem>
-        {categoryChoices.map((choice) => (
+          <FilterListIcon
+            sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+          />
+          Category
+        </Button>
+        <Menu
+          anchorEl={categoryMenuAnchor}
+          open={Boolean(categoryMenuAnchor)}
+          onClose={handleCategoryMenuClose}
+          sx={{
+            marginTop: "8px",
+            "& .MuiPaper-root": {
+              paddingLeft: "8px",
+              paddingRight: "8px",
+              maxHeight: "300px",
+              overflowY: "auto",
+            },
+          }}
+        >
           <MenuItem
-            key={choice.id}
+            key="all"
             onClick={() => {
-              setFilters({ ...filterValues, category: choice.id });
+              setFilters({ ...filterValues, category: "" });
               handleCategoryMenuClose();
             }}
             sx={{
               bgcolor:
-                filterValues.category === choice.id ? "#F6F4F4" : "white",
+                filterValues.category === "" ||
+                filterValues.category === undefined
+                  ? "#F6F4F4"
+                  : "white",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -452,80 +435,82 @@ const TicketsList = (props) => {
             }}
           >
             <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-              {choice.name}
+              All
             </Typography>
-            {filterValues.category === choice.id ? (
+            {filterValues.category === "" ||
+            filterValues.category === undefined ? (
               <img src={tick} alt="tick" />
             ) : null}
           </MenuItem>
-        ))}
-      </Menu>
+          {categoryChoices.map((choice) => (
+            <MenuItem
+              key={choice.id}
+              onClick={() => {
+                setFilters({ ...filterValues, category: choice.id });
+                handleCategoryMenuClose();
+              }}
+              sx={{
+                bgcolor:
+                  filterValues.category === choice.id ? "#F6F4F4" : "white",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "180px",
+                borderRadius: "8px",
+                mb: "2px",
+              }}
+            >
+              <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
+                {choice.name}
+              </Typography>
+              {filterValues.category === choice.id ? (
+                <img src={tick} alt="tick" />
+              ) : null}
+            </MenuItem>
+          ))}
+        </Menu>
 
-      <Button
-        variant="outlined"
-        onClick={handleStatusMenuOpen}
-        sx={{
-          height: "40px",
-          borderRadius: "5px",
-          border: "1px solid #CFD4DB",
-          fontWeight: 400,
-          fontSize: "14px",
-          textTransform: "none",
-          px: 2,
-        }}
-      >
-        <FilterListIcon
-          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
-        />
-        Status
-      </Button>
-      <Menu
-        anchorEl={statusMenuAnchor}
-        open={Boolean(statusMenuAnchor)}
-        onClose={handleStatusMenuClose}
-        sx={{
-          marginTop: "8px",
-          "& .MuiPaper-root": {
-            paddingLeft: "8px",
-            paddingRight: "8px",
-          },
-        }}
-      >
-        <MenuItem
-          key="all"
-          onClick={() => {
-            setFilters({ ...filterValues, status: "" });
-            handleStatusMenuClose();
-          }}
+        <Button
+          variant="outlined"
+          onClick={handleStatusMenuOpen}
           sx={{
-            bgcolor:
-              filterValues.status === "" || filterValues.status === undefined
-                ? "#F6F4F4"
-                : "white",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "180px",
-            borderRadius: "8px",
-            mb: "2px",
+            height: "40px",
+            borderRadius: "5px",
+            border: "1px solid #CFD4DB",
+            fontWeight: 400,
+            fontSize: "14px",
+            textTransform: "none",
+            px: 2,
           }}
         >
-          <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-            All
-          </Typography>
-          {filterValues.status === "" || filterValues.status === undefined ? (
-            <img src={tick} alt="tick" />
-          ) : null}
-        </MenuItem>
-        {statusChoices.map((choice) => (
+          <FilterListIcon
+            sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+          />
+          Status
+        </Button>
+        <Menu
+          anchorEl={statusMenuAnchor}
+          open={Boolean(statusMenuAnchor)}
+          onClose={handleStatusMenuClose}
+          sx={{
+            marginTop: "8px",
+            "& .MuiPaper-root": {
+              paddingLeft: "8px",
+              paddingRight: "8px",
+            },
+          }}
+        >
           <MenuItem
-            key={choice.id}
+            key="all"
             onClick={() => {
-              setFilters({ ...filterValues, status: choice.id });
+              setFilters({ ...filterValues, status: "" });
               handleStatusMenuClose();
             }}
             sx={{
-              bgcolor: filterValues.status === choice.id ? "#F6F4F4" : "white",
+              bgcolor:
+                filterValues.status === "" || filterValues.status === undefined
+                  ? "#F6F4F4"
+                  : "white",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -535,79 +520,80 @@ const TicketsList = (props) => {
             }}
           >
             <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-              {choice.name}
+              All
             </Typography>
-            {filterValues.status === choice.id ? (
+            {filterValues.status === "" || filterValues.status === undefined ? (
               <img src={tick} alt="tick" />
             ) : null}
           </MenuItem>
-        ))}
-      </Menu>
-      <Button
-        variant="outlined"
-        onClick={handleRoleMenuOpen}
-        sx={{
-          height: "40px",
-          borderRadius: "5px",
-          border: "1px solid #CFD4DB",
-          fontWeight: 400,
-          fontSize: "14px",
-          textTransform: "none",
-          px: 2,
-        }}
-      >
-        <FilterListIcon
-          sx={{ marginRight: "6px", width: "16px", height: "16px" }}
-        />
-        Role
-      </Button>
-      <Menu
-        anchorEl={roleMenuAnchor}
-        open={Boolean(roleMenuAnchor)}
-        onClose={handleRoleMenuClose}
-        sx={{
-          marginTop: "8px",
-          "& .MuiPaper-root": {
-            paddingLeft: "8px",
-            paddingRight: "8px",
-          },
-        }}
-      >
-        <MenuItem
-          key="all"
-          onClick={() => {
-            setFilters({ ...filterValues, role: "" });
-            handleRoleMenuClose();
-          }}
+          {statusChoices.map((choice) => (
+            <MenuItem
+              key={choice.id}
+              onClick={() => {
+                setFilters({ ...filterValues, status: choice.id });
+                handleStatusMenuClose();
+              }}
+              sx={{
+                bgcolor:
+                  filterValues.status === choice.id ? "#F6F4F4" : "white",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "180px",
+                borderRadius: "8px",
+                mb: "2px",
+              }}
+            >
+              <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
+                {choice.name}
+              </Typography>
+              {filterValues.status === choice.id ? (
+                <img src={tick} alt="tick" />
+              ) : null}
+            </MenuItem>
+          ))}
+        </Menu>
+        <Button
+          variant="outlined"
+          onClick={handleRoleMenuOpen}
           sx={{
-            bgcolor:
-              filterValues.role === "" || filterValues.role === undefined
-                ? "#F6F4F4"
-                : "white",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "180px",
-            borderRadius: "8px",
-            mb: "2px",
+            height: "40px",
+            borderRadius: "5px",
+            border: "1px solid #CFD4DB",
+            fontWeight: 400,
+            fontSize: "14px",
+            textTransform: "none",
+            px: 2,
           }}
         >
-          <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-            All
-          </Typography>
-          {filterValues.role === "" || filterValues.role === undefined ? (
-            <img src={tick} alt="tick" />
-          ) : null}
-        </MenuItem>
-        {roleChoices.map((choice) => (
+          <FilterListIcon
+            sx={{ marginRight: "6px", width: "16px", height: "16px" }}
+          />
+          Role
+        </Button>
+        <Menu
+          anchorEl={roleMenuAnchor}
+          open={Boolean(roleMenuAnchor)}
+          onClose={handleRoleMenuClose}
+          sx={{
+            marginTop: "8px",
+            "& .MuiPaper-root": {
+              paddingLeft: "8px",
+              paddingRight: "8px",
+            },
+          }}
+        >
           <MenuItem
-            key={choice.id}
+            key="all"
             onClick={() => {
-              setFilters({ ...filterValues, role: choice.id });
+              setFilters({ ...filterValues, role: "" });
               handleRoleMenuClose();
             }}
             sx={{
-              bgcolor: filterValues.role === choice.id ? "#F6F4F4" : "white",
+              bgcolor:
+                filterValues.role === "" || filterValues.role === undefined
+                  ? "#F6F4F4"
+                  : "white",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -617,14 +603,39 @@ const TicketsList = (props) => {
             }}
           >
             <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
-              {choice.name}
+              All
             </Typography>
-            {filterValues.role === choice.id ? (
+            {filterValues.role === "" || filterValues.role === undefined ? (
               <img src={tick} alt="tick" />
             ) : null}
           </MenuItem>
-        ))}
-      </Menu>
+          {roleChoices.map((choice) => (
+            <MenuItem
+              key={choice.id}
+              onClick={() => {
+                setFilters({ ...filterValues, role: choice.id });
+                handleRoleMenuClose();
+              }}
+              sx={{
+                bgcolor: filterValues.role === choice.id ? "#F6F4F4" : "white",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "180px",
+                borderRadius: "8px",
+                mb: "2px",
+              }}
+            >
+              <Typography sx={{ fontSize: "16px", fontWeight: 400 }}>
+                {choice.name}
+              </Typography>
+              {filterValues.role === choice.id ? (
+                <img src={tick} alt="tick" />
+              ) : null}
+            </MenuItem>
+          ))}
+        </Menu>
+      </Box>
     </Box>,
   ];
 
