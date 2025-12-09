@@ -452,6 +452,7 @@ const Overview = () => {
                                 series={[
                                   {
                                     data: pieChartData,
+                                    valueFormatter: () => "",
                                     highlightScope: {
                                       faded: "global",
                                       highlighted: "item",

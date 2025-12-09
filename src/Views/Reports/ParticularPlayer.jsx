@@ -338,6 +338,7 @@ const ParticularPlayer = () => {
             color: "#FB8C00",
           },
         ],
+        valueFormatter: () => "",
         innerRadius: 30,
         outerRadius: 100,
         paddingAngle: 1,

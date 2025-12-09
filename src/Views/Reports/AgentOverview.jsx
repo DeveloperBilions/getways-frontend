@@ -326,6 +326,7 @@ const AgentOverview = () => {
                                   color: "#FB8C00",
                                 },
                               ],
+                              valueFormatter: () => "",
                             },
                           ]}
                           height={300}

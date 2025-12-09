@@ -460,6 +460,7 @@ const PlayerOverview = () => {
                                 series={[
                                   {
                                     data: pieChartData,
+                                    valueFormatter: () => "",
                                     highlightScope: {
                                       faded: "global",
                                       highlighted: "item",
