@@ -42,7 +42,7 @@ export default function CarryForwarderModal({
   const [selectedType, setSelectedType] = useState(defaultType || "");
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [commissionPct, setCommissionPct] = useState(defaultCommission);
-  const [startDate, setStartDate] = useState(() => isoDateNDaysAgo(0));
+  const [startDate, setStartDate] = useState(() => getFirstDayOfMonth(isoDateNDaysAgo(0)));
   const [endDate, setEndDate] = useState(() => isoDateNDaysAgo(0));
   const [includeCommissionOnRecharges, setIncludeCommissionOnRecharges] =
     useState(true);
@@ -66,7 +66,9 @@ export default function CarryForwarderModal({
       setSelectedEntity(null);
       setOptions([]);
       setInputValue("");
-      validateDates(startDate, endDate);
+      const today = isoDateNDaysAgo(0);
+      setStartDate(getFirstDayOfMonth(today));
+      setEndDate(today);
       validateCommission(commissionPct);
     }
   }, [open, defaultType]);
@@ -279,20 +281,20 @@ export default function CarryForwarderModal({
               <TextField
                 label="Date"
                 type="date"
-                value={startDate}
+                value={endDate}
                 onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setLastDateChanged("start");
+                  const newDate = e.target.value;
+                  setEndDate(newDate);
+                  setStartDate(getFirstDayOfMonth(newDate));
                 }}
                 InputLabelProps={{ shrink: true }}
                 size="small"
                 fullWidth
-                inputProps={{ max: endDate || undefined }}
-                error={Boolean(dateErrStart)}
-                helperText={dateErrStart || " "}
+                error={Boolean(dateErrEnd)}
+                helperText={dateErrEnd || " "}
               />
 
-            <TextField
+              <TextField
                 label="Conversion (%)"
                 type="number"
                 value={commissionPct}
@@ -434,6 +436,12 @@ function isoDateNDaysAgo(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
+}
+
+function getFirstDayOfMonth(dateStr) {
+  if (!dateStr) return "";
+  const [year, month] = dateStr.split("-");
+  return `${year}-${month}-01`;
 }
 
 function safe(n) {
