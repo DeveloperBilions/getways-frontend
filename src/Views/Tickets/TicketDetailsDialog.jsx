@@ -214,6 +214,9 @@ const TicketDetailsDialog = ({ open, onClose, ticket }) => {
                     <strong>Username:</strong> {ticket.username}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
+                    <strong>Role:</strong> {ticket.role}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
                     <strong>Category:</strong> {capitalizeFirstLetter(ticket.category)}
                   </Typography>
                 </Box>

@@ -47,7 +47,6 @@ export const playerSubOptions = {
 export const playerFinalOptions = {
   "recharge-methods": [
     "What recharge methods are available on GETWAYS?",
-    "How does Quick Debit Recharge work with Coinbase?",
     "What is the difference between Standard and Instant Recharge?",
     "Can I use my wallet funds for Instant Recharge?",
     "How does the payment portal work for recharges?",
@@ -120,7 +119,6 @@ export const playerFinalOptions = {
   "giftcard-manage": [
     "How to view all my gift cards?",
     "How to see my expired gift cards?",
-    "How can I find a specific gift card by order ID?",
   ],
   "giftcard-cashout": [
     "How to cashout my wallet balance to a gift card?",
@@ -151,10 +149,7 @@ export const playerFinalOptions = {
 export const playerFinalAnswers = {
   // Recharge Methods
   "What recharge methods are available on GETWAYS?":
-    "On GETWAYS, there are three recharge methods available: 1. Quick Debit Recharge (Coinbase Onramp): Instantly top up your account using your debit card via Coinbase. It's fast and secure. 2. Instant Recharge (Wert/Wallet): Recharge via your linked Wallet or through the Payment Portal. Quick, safe, and perfect for verified users. 3. Standard Recharge (External Link): Complete your payment through an external crypto platform. Flexible option, but ensure you send the exact amount to the correct wallet address.",
-
-  "How does Quick Debit Recharge work with Coinbase?":
-    "Quick Debit Recharge is a fast and secure payment method powered by Coinbase. When you choose Quick Debit, you'll be directed to the Coinbase-powered interface to complete your payment. Simply follow the on-screen instructions to finish the transaction securely. If you have any more questions about the recharge methods or any other features, feel free to ask!",
+    "On GETWAYS, there are two recharge methods available: 1. WERT Recharge: Instantly top up your account using WERT's secure payment system. 2. Link Recharge: Complete your payment through our Link system.",
 
   "What is the difference between Standard and Instant Recharge?":
     "Standard Recharge and Instant Recharge are two options available for adding funds to your wallet on the platform.\n\n   1. **Standard Recharge**: This option allows you to complete your payment through an external crypto platform. You would need to copy your wallet address and proceed to the provided link. It offers flexibility, but you must ensure to send the exact amount to the correct wallet address to avoid delays.\n\n   2. **Instant Recharge**: With Instant Recharge, you can quickly and seamlessly top up your account using your linked Wallet or through the Payment Portal on the platform. It's a fast and safe option for verified users. You can select your method, add a note if needed, and proceed with the recharge instantly.",
@@ -167,13 +162,13 @@ export const playerFinalAnswers = {
 
   // Recharge Denominations
   "What denomination options are available for recharge?":
-    "GETWAYS offers multiple denomination options for recharge, including: $10, $15, $20, $30, $40, $50, $75, and $100.",
+    "GETWAYS offers multiple denomination options for recharge, including: 10, 15, 20, 30, 40, 50, 75, and 100.",
 
   "Can I recharge a custom amount?":
     "Currently, the platform offers predefined denominations for recharge: 10, 15, 20, 30, 40, 50, 75, and 100. Custom amounts are not supported at the moment. If you have any other questions or need further assistance, feel free to ask!",
 
   "What are the minimum and maximum recharge amounts?":
-    "The recharge denominations range from $10 to $100. If you have any other questions about recharge denominations or any other topic, feel free to ask!",
+    "The recharge denominations range from 10 to 100. If you have any other questions about recharge denominations or any other topic, feel free to ask!",
 
   // Recharge History
   "How can I view my recent recharge transactions?":
@@ -197,7 +192,7 @@ export const playerFinalAnswers = {
     "If your recharge payment was deducted but not credited to your account, I recommend checking your transaction history to see if the payment was processed but not reflected in your balance. If you don't see the transaction there, you may need to reach out to customer support for further assistance. They can investigate the issue and help resolve it for you.",
 
   "How long does recharge processing normally take?":
-    "Recharge processing times can vary depending on the method used. For Quick Debit recharges, the processing is usually instant. However, for Instant or Standard Recharges, the processing time may take a few minutes to reflect in your account. Let me know if you need more information on recharging or any other topic!",
+    "Recharge processing times can vary depending on the method used. For WERT recharges, the processing is usually instant. However, for Link recharges, the processing time may take a few minutes to reflect in your account.",
 
   "Can I cancel a pending recharge?":
     "Unfortunately, the platform does not currently offer a feature to cancel a pending recharge. If you have any other questions or need further assistance, feel free to ask!",
@@ -273,7 +268,7 @@ export const playerFinalAnswers = {
     "For cashout, we offer various gift card options including Mastercard eReward Virtual Accounts, Rainforest Cafe, Venue gift cards, and more. If you need more details about a specific gift card, feel free to ask!",
 
   "What are the cashout amount restrictions?":
-    "There are several cashout amount restrictions in place to ensure a smooth process: 1. Cashout amount should not be less than $15. 2. Cashout amount cannot exceed your current balance. 3. Cashout amount cannot be negative or zero. These restrictions help maintain the integrity of the cashout process. If you have any other questions or need more details, feel free to ask!",
+    "There are several cashout amount restrictions in place to ensure a smooth process: 1. Cashout amount should not be less than 15. 2. Cashout amount cannot exceed your current balance. 3. Cashout amount cannot be negative or zero. These restrictions help maintain the integrity of the cashout process. If you have any other questions or need more details, feel free to ask!",
 
   // Wallet History
   "How can I view my complete wallet transaction history?":
@@ -301,9 +296,6 @@ export const playerFinalAnswers = {
 
   "How to see my expired gift cards?":
     "To view your expired gift cards, you can check the Gift Card section on the platform. There, you'll find a breakdown of your available, expired, and total gift cards. If you have any specific expired cards you want to retrieve information on, you can click on the expired gift card section for more details.",
-
-  "How can I find a specific gift card by order ID?":
-    "To find a specific gift card by order ID, you can use the search functionality within the Gift Card section. Simply enter the order ID of the gift card you are looking for, and the system will help you locate it. If you encounter any issues or need further assistance, feel free to let me know!",
 
   // Gift Card Cashout
   "How to cashout my wallet balance to a gift card?":
@@ -667,7 +659,6 @@ export const agentFinalOptions = {
   "view-players": [
     "How can I view the list of Players under me?",
     "What details are shown in the User Management table for Players?",
-    "How do I check the Parent User of a Player?",
   ],
   "add-player": [
     "How do I create a new Player using the 'Add New User' option?",
@@ -752,8 +743,6 @@ export const agentFinalAnswers = {
     "To view the list of Players under you, you can access the User Management section in the Agent dashboard. There, you will find a list of Players that includes details such as User Name, Email, Parent User, User Type, and Date. You can click on the Actions button in the table to perform various actions like Redeem, Recharge, view Wallet Details, copy Wallet Address, access transaction details, edit player details, or delete player details. Is there anything specific you would like to know about viewing Players under you?",
   "What details are shown in the User Management table for Players?":
     "In the User Management table for Players, the following details are typically shown: - User Name - Email - Parent User - User Type - Date Additionally, you can perform various actions for each Player by clicking the Actions button in the table. These actions include Redeem, Recharge, Wallet, View Key, BaseScan, EtherScan, Edit, and Delete.",
-  "How do I check the Parent User of a Player?":
-    "To check the Parent User of a Player, you can access the User Management section in the Agent dashboard. From there, you can view a list of Players under you, including User Name, Email, Parent User, User Type, and Date. The Parent User column will display the Agent who is the direct parent of each Player. If you need more detailed information or assistance with this, feel free to ask!",
 
   // Add Player
   "How do I create a new Player using the 'Add New User' option?":
@@ -941,7 +930,6 @@ export const superUserSubOptions = {
   ],
   profile: [
     { id: "global-settings", label: "Global Recharge & Cashout", icon: "🌐" },
-    { id: "payment-methods", label: "Manage Payment Methods", icon: "💳" },
     { id: "emergency-messages", label: "Emergency Messages", icon: "📢" },
     { id: "help-videos", label: "Help Videos", icon: "🎥" },
     { id: "logout", label: "Logout", icon: "🚪" },
@@ -957,7 +945,6 @@ export const superUserFinalOptions = {
   "add-user": [
     "How do I create a new user using the 'Add New User' option?",
     "What fields are required to add a new user?",
-    "Can I assign a Super-User as a Parent Type for a new user?",
   ],
   "agent-actions": [
     "How do I set daily and monthly recharge limits for an Agent?",
@@ -1104,10 +1091,6 @@ export const superUserFinalOptions = {
     "How can I enable or disable Cashout globally for all users?",
     "What happens if I disable Recharge for a specific Agent?",
   ],
-  "payment-methods": [
-    "How do I enable or disable a payment method like CashApp or PayPal?",
-    "What payment methods are available to manage?",
-  ],
   "emergency-messages": [
     "How do I compose and send emergency messages to Agents and Master Agents?",
     "Can I send multiple emergency messages at once?",
@@ -1131,7 +1114,6 @@ export const superUserFinalAnswers = {
   // add-user
   "How do I create a new user using the 'Add New User' option?": `To create a new user using the Add New User option, follow these steps: 1. Click on the Add New User option on the User Management page. 2. A dialog will open with the following fields to fill out: - Name - Username - Phone Number - Email - User Type (options: Master Agent, Agent, Player) - Parent Type (options: Agents, Master Agents, Super User) - Password - Confirm Password 3. Fill in all the required information for the new user. 4. Click on the Save or Create User button to finalize the process. 5. The new user will be added to the system with the provided`,
   "What fields are required to add a new user?": `To add a new user, you need to fill out the following required fields: - Name - Username - Phone Number - Email - User Type (options: Master Agent, Agent, Player) - Parent Type (options: Agents, Master Agents, Super User) - Password - Confirm Password Make sure to provide accurate information in these fields to successfully create a new user. If you have any more questions or need further assistance, feel free to ask!`,
-  "Can I assign a Super-User as a Parent Type for a new user?": `Yes, when adding a new user, you can assign a Super-User as the Parent Type. The Parent Type options available are Agents, Master Agents, and Super User. This allows for a hierarchical structure where a Super User can act as a parent for other users within the system. If you have any more questions or need further assistance, feel free to ask!`,
 
   // agent-actions
   "How do I set daily and monthly recharge limits for an Agent?":
@@ -1143,7 +1125,7 @@ export const superUserFinalAnswers = {
 
   // player-actions
   "How do I perform a recharge for a Player?": `To perform a recharge for a Player, you can follow these steps: 1. Access the Player's profile in the User Management section. 2. Click on the **Actions** button for the specific Player. 3. Select the **Recharge** option from the available actions. 4. Follow the prompts to enter the recharge details, such as the amount, payment method, and any remarks. 5. Confirm the recharge to complete the process. If you encounter any issues or need further assistance, feel free to ask!`,
-  "How can I redeem funds for a Player?": `To redeem funds for a Player, you can follow these steps: 1. Access the Player's details in the User Management section. 2. Click on the **Actions** button next to the Player's name. 3. Select the **Redeem** option from the available actions. 4. Depending on the Player's status, you may see options such as **Pending Approval** or **Cashout.** 5. If the status is **Pending Approval,** you can click on the ✅ (tick) button to approve the redemption request. 6. If the status is **Cashout,** you can click on the ✅ (tick) button to confirm the cashout for the Player. 7. Follow the on-screen prompts to complete the redemption process for the Player. If you encounter any specific issues or need further assistance, feel free to ask!`,
+  "How can I redeem funds for a Player?": `To redeem funds for a Player, you can follow these steps: 1. Access the Player's details in the User Management section. 2. Click on the **Actions** button next to the Player's name. 3. Select the **Redeem** option from the available actions. 4. Depending on the Player's status, you may see options such as **Pending Approval** or **Cashout.**`,
   "How do I view a Player’s wallet details?": `To view a Player's wallet details, you can follow these steps in the User Management section: 1. Access the list of Players. 2. Click on the **Actions** button next to the specific Player you want to view. 3. Select the **Wallet** option from the available actions. 4. This will display the Player's wallet details, including the available balance, payment methods, and cashout status. If you need further assistance or have any more questions, feel free to ask!`,
   "How can I copy a Player’s wallet address?": `To copy a Player's wallet address, you can use the **View Key** option under Player Actions. When you click on **View Key,** it will allow you to copy the Player's wallet address for further use. If you need more information or have any other questions, feel free to ask!`,
   "How do I access BaseScan or EtherScan for a Player’s transactions?": `To access BaseScan or EtherScan for a Player's transactions, you can follow these steps: 1. Click on the **Actions** button next to the Player's profile in the User Management section. 2. From the dropdown options, select either **BaseScan** or **EtherScan** based on the type of transaction details you want to view. 3. Once selected, you will be directed to the corresponding platform to access the detailed transaction information related to the Player. Feel free to ask if you need more assistance or information!`,
@@ -1267,8 +1249,8 @@ export const superUserFinalAnswers = {
   "What does each status represent in the Gift Card Transactions table?": `In the Gift Card Transactions table, the statuses represent the following: - **All**: Displays all transactions regardless of their status. - **Processed**: Indicates transactions that have been successfully completed. - **Failed**: Shows transactions that did not complete successfully, possibly due to payment issues or other errors. - **Pending**: Represents transactions that are still in progress and awaiting completion or confirmation. You can filter transactions by these statuses using the Status Filter option, sort the table by clicking column headers, or search by Username to narrow down results. If you need more details, feel free to ask!`,
 
   // view-wallet-audit
-  "How can I view the Wallet Audit Report?": `To view the Wallet Audit Report, follow these steps: 1. Navigate to the Wallet Audit section in the Super-User interface. 2. Locate the table displaying deatils of that. 3. The table includes columns: Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, and Actions. 4. Sort the table by clicking on any column header to organize the data. If you need further assistance, feel free to ask!,
-  "What details are shown in the Wallet Audit Report table?": The Wallet Audit Report table displays the following details: - Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, Actions. You can sort the table by column headerr. If you need further assistance with Wallet Audit Report, feel free to ask!`,
+  "How can I view the Wallet Audit Report?": `To view the Wallet Audit Report, follow these steps: 1. Navigate to the Wallet Audit section in the Super-User interface. 2. Locate the table displaying deatils of that. 3. The table includes columns: Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, and Actions. 4. Sort the table by clicking on any column header to organize the data. If you need further assistance, feel free to ask!`,
+  "What details are shown in the Wallet Audit Report table?": `The Wallet Audit Report table displays the following details: - Username, Wallet, WERT Total, Coinbase Total, Link Total, USDC Balance, Difference, Actions. You can sort the table by column headerr. If you need further assistance with Wallet Audit Report, feel free to ask!`,
 
   // search-username
   "How do I search for Wallet Audit transactions?": `You search for Wallet Audit transactions by Username, follow these steps: 1. Go to the Wallet Audit section in the Super-User interface. 2. Locate the search box at the top left corner of the Wallet Audit Report table. 3. Enter the Username you want to search for. 4. The table will automatically filter to show only transactions associated with the entered Username. If no transactions are found, the table will display no results. Ensure the Username is entered correctly. If you need further assistance with Wallet Audit Report, feel free to ask!`,
@@ -1283,10 +1265,6 @@ export const superUserFinalAnswers = {
   "How do I enable or disable Recharge globally for all users?": `To enable or disable Recharge globally for all users, follow these steps: 1. Access the Profile Options by clicking on the profile icon in the top-right corner. 2. Look for the **Global Recharge & Cashout Settings** section. 3. Toggle the switch next to **Enable Recharge (Global)** to turn Recharge functionality on or off for all Agents and Players globally. 4. Your changes will be applied immediately across the platform. If you have any more questions or need further assistance, feel free to ask!`,
   "How can I enable or disable Cashout globally for all users?": `To enable or disable Cashout globally for all users as a Super User, you can follow these steps: 1. Access the Profile Options by clicking on the profile icon in the top-right corner of the Super-User section. 2. Look for the **Global Recharge & Cashout Settings** option. 3. Within this section, you will find a toggle switch labeled **Enable Cashout (Global).** 4. Toggle the switch to enable or disable Cashout functionality for all Agents and Players globally. 5. Note: Disabling Cashout globally will restrict all users from initiating cashout transactions until the feature is enabled again. If you have any more questions or need further assistance, feel free to ask!`,
   "What happens if I disable Recharge for a specific Agent?": `If a Super User disables Recharge for a specific Agent, the Recharge functionality is also disabled for all Players under that Agent. This means that neither the Agent nor the Players under them will be able to perform recharges until the Super User re-enables the Recharge option for that Agent.`,
-
-  // payment-methods
-  "How do I enable or disable a payment method like CashApp or PayPal?": `To enable or disable a payment method like CashApp or PayPal, you can follow these steps in the Manage Payment Methods section: 1. Access the Manage Payment Methods option in the Profile Options. 2. Look for the list of payment methods displayed, which may include CashApp, PayPal, Venmo, Zelle, and others. 3. Each payment method will have a toggle switch next to it. 4. To enable a payment method, simply toggle the switch to the **ON** position. 5. To disable a payment method, toggle the switch to the **OFF** position. By following these steps, you can easily enable or disable payment methods such as CashApp or PayPal based on your preferences and requirements. If you need further assistance, feel free to ask!`,
-  "What payment methods are available to manage?": `The Manage Payment Methods section allows you to view and control various payment methods such as CashApp, PayPal, Venmo, and Zelle. Each method has a toggle switch that enables you to easily enable or disable them based on your preferences.`,
 
   // emergency-messages
   "How do I compose and send emergency messages to Agents and Master Agents?": `To compose and send emergency messages to Agents and Master Agents as a Super User, follow these steps: 1. Go to the Profile Options section. 2. Select **Manage Emergency Messages.** 3. In the text area provided, compose your emergency message. 4. Once you have crafted your message, you can send it out to all Agents and Master Agents under your supervision. By sending out emergency messages, you can efficiently communicate important information to your team in a timely manner. If you have any more questions or need further assistance, feel free to let me know!`,

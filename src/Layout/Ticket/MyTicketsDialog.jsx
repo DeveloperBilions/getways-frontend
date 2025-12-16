@@ -27,7 +27,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
-import { useDataProvider } from "react-admin";
+import { useDataProvider, useGetIdentity } from "react-admin";
 import CustomPagination from "../../Views/Common/CustomPagination";
 
 const formatDateTime = (date) => {
@@ -59,7 +59,10 @@ const getStatusColor = (status) => {
 
 const capitalizeFirstLetter = (string) => {
   if (!string) return "";
-  return string.split(/[ _]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return string
+    .split(/[ _]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 // Helper function to check if URL is an image
@@ -175,7 +178,9 @@ const TicketRow = ({ ticket }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const hasAttachments =
-    ticket.attachmentURL && Array.isArray(ticket.attachmentURL) && ticket.attachmentURL.length > 0;
+    ticket.attachmentURL &&
+    Array.isArray(ticket.attachmentURL) &&
+    ticket.attachmentURL.length > 0;
 
   const handlePreviewOpen = (url) => {
     setPreviewUrl(url);
@@ -277,7 +282,10 @@ const TicketRow = ({ ticket }) => {
                       borderColor: "success.light",
                     }}
                   >
-                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "text.secondary" }}
+                    >
                       {ticket.remarks}
                     </Typography>
                   </Paper>
@@ -414,15 +422,39 @@ const TicketRow = ({ ticket }) => {
   );
 };
 
-const CATEGORIES = [
-  { value: "", label: "All Categories" },
-  { value: "redeem", label: "Redeem" },
-  { value: "recharge", label: "Recharge" },
-  { value: "wallet", label: "Wallet" },
-  { value: "login", label: "Login" },
-  { value: "password", label: "Password" },
-  { value: "others", label: "Others" },
-];
+const CATEGORIES = {
+  Player: [
+    { value: "", label: "All Categories" },
+    { value: "redeem", label: "Redeem" },
+    { value: "recharge", label: "Recharge" },
+    { value: "wallet", label: "Wallet" },
+    { value: "login", label: "Login" },
+    { value: "password", label: "Password" },
+    { value: "others", label: "Others" },
+  ],
+  "Master-Agent": [
+    { value: "", label: "All Categories" },
+    { value: "user_management", label: "User Management" },
+    { value: "summary_reports", label: "Summary Reports" },
+    { value: "recharge_records", label: "Recharge Records" },
+    { value: "redeem_records", label: "Redeem Records" },
+    { value: "balance_display", label: "Balance Display" },
+    { value: "recharge_limit", label: "Recharge Limit" },
+    { value: "login", label: "Login" },
+    { value: "others", label: "Others" },
+  ],
+  Agent: [
+    { value: "", label: "All Categories" },
+    { value: "user_management", label: "User Management" },
+    { value: "summary_reports", label: "Summary Reports" },
+    { value: "recharge_records", label: "Recharge Records" },
+    { value: "redeem_records", label: "Redeem Records" },
+    { value: "balance_display", label: "Balance Display" },
+    { value: "recharge_limit", label: "Recharge Limit" },
+    { value: "login", label: "Login" },
+    { value: "others", label: "Others" },
+  ],
+};
 
 const STATUSES = [
   { value: "", label: "All Status" },
@@ -440,6 +472,8 @@ const MyTicketsDialog = ({ open, onClose }) => {
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const dataProvider = useDataProvider();
+  const { identity } = useGetIdentity();
+  const role = identity?.role;
 
   const fetchTickets = useCallback(async () => {
     setIsLoading(true);
@@ -554,7 +588,7 @@ const MyTicketsDialog = ({ open, onClose }) => {
                   },
                 }}
               >
-                {CATEGORIES.map((option) => (
+                {CATEGORIES[role]?.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
                   </MenuItem>
