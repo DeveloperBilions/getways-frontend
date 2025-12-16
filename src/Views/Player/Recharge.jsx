@@ -118,6 +118,7 @@ const Recharge = ({
   const [showFiservCheckout, setShowFiservCheckout] = useState(false);
   const [commerceHubEnabled, setCommerceHubEnabled] = useState(false);
   const [showCommerceHub, setShowCommerceHub] = useState(false);
+  const [seonEnabled, setSeonEnabled] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -201,6 +202,7 @@ const Recharge = ({
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
+      const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -213,10 +215,12 @@ const Recharge = ({
       setShowFiserv(isFiservAllowed);
       setShowFiservCheckout(isFiservCheckoutAllowed);
       setCommerceHubEnabled(isCommerceHubAllowed);
+      setSeonEnabled(isSeonAllowed);
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
       console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubAllowed);
+      console.log("🔧 Setting seonEnabled state to:", isSeonAllowed);
     };
 
     if (identity?.userParentId) {
@@ -1323,6 +1327,57 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
+    {
+      id: "seon",
+      title: "SEON Fraud Detection Test",
+      description: "Test fraud scoring • Powered by SEON",
+      icon: <CreditCardIcon sx={{ color: "#4CAF50", fontSize: 24 }} />,
+      color: "#4CAF50",
+      hoverColor: "#E8F5E9",
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Navigate to SEON payment page
+          navigate("/seon-payment", {
+            state: {
+              rechargeAmount,
+              remark,
+            },
+          });
+        } catch (err) {
+          console.error("SEON error:", err);
+          setRechargeError(err.message || "Failed to initialize SEON. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
     // {
     //   id: "bank",
     //   title: "Bank Transfer",
@@ -2249,6 +2304,7 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                   if (option.id === "fiserv" && !showFiserv) return false;
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
                   if (option.id === "commercehub" && !commerceHubEnabled) return false;
+                  if (option.id === "seon" && !seonEnabled) return false;
                   
                    
                   
