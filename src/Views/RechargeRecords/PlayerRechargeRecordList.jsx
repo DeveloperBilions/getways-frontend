@@ -345,7 +345,7 @@ export const PlayerRechargeRecordsList = (props) => {
                     </Typography>
                 </Button>
             );
-        } else if (record.status === 10) {
+        } else if (record.status === 10 && record.failed_reason && record.failed_reason !=="") {
             return (
                 <Button
                     variant="outlined"

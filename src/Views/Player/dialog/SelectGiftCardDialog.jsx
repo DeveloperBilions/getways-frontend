@@ -342,8 +342,11 @@ const SelectGiftCardDialog = ({
                             </CardTitle>
                             <CardText>
                               <small>
-                                Value Range: ${card.valueRestrictions.minVal} -
-                                ${card.valueRestrictions.maxVal}
+                                {card.valueRestrictions?.minVal && card.valueRestrictions?.maxVal
+                                  ? `Value Range: $${card.valueRestrictions.minVal} - $${card.valueRestrictions.maxVal}`
+                                  : card.denominations?.length
+                                    ? `Value: $${card.denominations.join(', $')}`
+                                    : 'N/A'}
                               </small>
                             </CardText>
                           </CardBody>
