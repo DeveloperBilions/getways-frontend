@@ -151,11 +151,11 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
           {/* Search Section (Sticky Top) */}
           <FormGroup>
             <Label style={{ fontWeight: "600", fontSize: "14px" }}>
-              Find your Gift card
+              Find your ACH
             </Label>
             <Input
               type="text"
-              placeholder="Search gift cards..."
+              placeholder="Search ACH..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="rounded"
@@ -163,7 +163,7 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
           </FormGroup>
   
           {errorMessage && (
-            <Box className="alert alert-danger mt-2">{errorMessage}</Box>
+            <Box className="alert alert-danger mt-2">Failed To Load ACH</Box>
           )}
   
           {/* Scrollable Cards */}
@@ -177,7 +177,7 @@ const RedeemGiftCardFlow = ({ amount, onClose, onBack, userId,platform }) => {
           >
             {loadingGiftCards ? (
               <Box textAlign="center" mt={2}>
-                <Spinner size="sm" color="primary" /> Loading gift cards...
+                <Spinner size="sm" color="primary" /> Loading ACH...
               </Box>
             ) : (
               <Row style={{maxHeight:"70vh"}}>
