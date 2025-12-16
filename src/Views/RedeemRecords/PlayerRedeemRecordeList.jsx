@@ -444,7 +444,39 @@ export const PlayerRedeemRecordsList = (props) => {
         </Box>
       </Box>
 
-      {isMobile ? (
+      {dataArray.length === 0 ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 8,
+            backgroundColor: "#FFFFFF",
+            borderRadius: 2,
+            border: "1px solid #E7E7E7",
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: { xs: "16px", sm: "18px" },
+              fontWeight: 500,
+              color: "#6B7280",
+              mb: 1,
+            }}
+          >
+            No Redeem Records Found
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: "12px", sm: "14px" },
+              color: "#9CA3AF",
+            }}
+          >
+            There are no pending redeem requests at the moment.
+          </Typography>
+        </Box>
+      ) : isMobile ? (
         <Box
           sx={{
             width: "100%",
