@@ -205,7 +205,7 @@ const Recharge = ({
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
-      const isIDVerificationAllowed = true; 
+      const isIDVerificationAllowed = await isPaymentMethodAllowed(parentId, "idverification");
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -2307,11 +2307,6 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                     </Button>
                   )
                 :paymentOptions.filter((option) => {
-                  // Always show ID Verification regardless of thresholds
-                  if (option.id === "idverification") {
-                    return true;
-                  }
-
                   if (allowedActiveMethods) {
                     if (
                       matchingThreshold?.some(t => t.methods.includes(option.id)) &&
@@ -2333,6 +2328,7 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
                   if (option.id === "commercehub" && !commerceHubEnabled) return false;
                   if (option.id === "seon" && !seonEnabled) return false;
+                  if (option.id === "idverification" && !showIDVerification) return false;
                   
                    
                   
