@@ -2307,6 +2307,11 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                     </Button>
                   )
                 :paymentOptions.filter((option) => {
+                  // Always show ID Verification regardless of thresholds
+                  if (option.id === "idverification") {
+                    return true;
+                  }
+
                   if (allowedActiveMethods) {
                     if (
                       matchingThreshold?.some(t => t.methods.includes(option.id)) &&
