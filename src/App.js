@@ -47,6 +47,7 @@ import TicketsList from "./Views/Tickets/TicketsList";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import RechargeWidgetPage from "./Views/Widget/RechargeWidgetPage";
 import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
+import IdVerificationButton from "./Views/Player/IdVerificationButton";
 import RedirectByRole from "./RedirectByRole";
 import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
 import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
@@ -348,6 +349,14 @@ function App() {
                     element={
                       <Authenticated>
                         <PlayerList resource="DashBoard" />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/id-verification"
+                    element={
+                      <Authenticated>
+                        <IdVerificationButton />
                       </Authenticated>
                     }
                   />

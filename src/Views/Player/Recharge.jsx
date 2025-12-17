@@ -38,6 +38,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 
 import { BsFillCreditCard2FrontFill } from "react-icons/bs";
 import { initOnRamp } from "@coinbase/cbpay-js";
@@ -119,6 +120,7 @@ const Recharge = ({
   const [commerceHubEnabled, setCommerceHubEnabled] = useState(false);
   const [showCommerceHub, setShowCommerceHub] = useState(false);
   const [seonEnabled, setSeonEnabled] = useState(false);
+  const [showIDVerification, setShowIDVerification] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -203,6 +205,7 @@ const Recharge = ({
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
       const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
+      const isIDVerificationAllowed = true; 
       setShowCoinbase(isCoinbaseAllowed);
       setShowWert(isWertAllowed);
       setShowLink(isLinkAllowed);
@@ -216,6 +219,7 @@ const Recharge = ({
       setShowFiservCheckout(isFiservCheckoutAllowed);
       setCommerceHubEnabled(isCommerceHubAllowed);
       setSeonEnabled(isSeonAllowed);
+      setShowIDVerification(isIDVerificationAllowed);
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
@@ -1326,6 +1330,25 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
       }),
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "idverification",
+      title: "Identity Verification",
+      description: "Verify your identity • Unlock higher limits",
+      subtext: "One-time verification",
+      icon: <VerifiedUserIcon sx={{ color: "#1976d2", fontSize: 24 }} />,
+      color: "#1976d2",
+      hoverColor: "#E3F2FD",
+      paymentIcons: [],
+      onClick: debounce(async () => {
+        try {
+          // Navigate to ID Verification page
+          navigate("/id-verification");
+        } catch (err) {
+          console.error("ID Verification navigation error:", err);
+        }
+      }),
+      disabled: false, // Always enabled
     },
     {
       id: "seon",
