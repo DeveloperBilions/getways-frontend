@@ -52,8 +52,12 @@ const SeonPaymentPage = () => {
   });
 
   // Generate session and device IDs on mount
-  const [sessionId] = useState(`sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
-  const [deviceId] = useState(`DEV_${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+  const [sessionId] = useState(
+    `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
+  const [deviceId] = useState(
+    `DEV_${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+  );
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -71,7 +75,7 @@ const SeonPaymentPage = () => {
       // Limit to 19 characters (16 digits + 3 spaces)
       formattedValue = formattedValue.substring(0, 19);
     }
-    
+
     // Expiration date formatting (MM/YY)
     else if (field === "cardExpiry") {
       // Remove all non-digits
@@ -89,7 +93,7 @@ const SeonPaymentPage = () => {
       // Limit to 5 characters (MM/YY)
       formattedValue = formattedValue.substring(0, 5);
     }
-    
+
     // CVV formatting
     else if (field === "cvv") {
       // Remove all non-digits and limit to 4 characters
@@ -135,6 +139,9 @@ const SeonPaymentPage = () => {
       });
 
       console.log("✅ SEON Response:", response);
+
+      // SEON returns response.data containing the fraud data
+      // We'll set the full response which includes success, error, data, recommendation, etc.
       setResult(response);
     } catch (err) {
       console.error("❌ SEON Error:", err);
@@ -363,7 +370,7 @@ const SeonPaymentPage = () => {
       )}
 
       {/* Results Display */}
-      {result && (
+      {result && result.data && (
         <Card sx={{ mt: 3, borderRadius: 2, border: "2px solid #E2E8F0" }}>
           <CardContent>
             <Box sx={{ textAlign: "center", mb: 3 }}>
@@ -375,22 +382,22 @@ const SeonPaymentPage = () => {
                   width: 80,
                   height: 80,
                   borderRadius: "50%",
-                  bgcolor: `${getStateColor(result.state)}.light`,
-                  color: `${getStateColor(result.state)}.main`,
+                  bgcolor: `${getStateColor(result.data.state)}.light`,
+                  color: `${getStateColor(result.data.state)}.main`,
                   mb: 2,
                 }}
               >
-                {getStateIcon(result.state)}
+                {getStateIcon(result.data.state)}
               </Box>
 
               <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Fraud Score: {result.fraud_score}
+                Fraud Score: {result.data.fraud_score}
               </Typography>
 
               <Chip
-                label={result.state}
-                color={getStateColor(result.state)}
-                icon={getStateIcon(result.state)}
+                label={result.data.state}
+                color={getStateColor(result.data.state)}
+                icon={getStateIcon(result.data.state)}
                 sx={{ fontWeight: "bold", fontSize: "16px", px: 2, py: 2.5 }}
               />
 
@@ -398,7 +405,13 @@ const SeonPaymentPage = () => {
                 variant="body1"
                 sx={{ mt: 2, color: "text.secondary", fontWeight: 500 }}
               >
-                {result.recommendation}
+                {result.data.state === "APPROVE"
+                  ? "✅ Transaction Approved - Low Risk"
+                  : result.data.state === "REVIEW"
+                  ? "⚠️ Requires Manual Review - Medium Risk"
+                  : result.data.state === "DECLINE"
+                  ? "❌ Transaction Declined - High Risk"
+                  : "Unknown State"}
               </Typography>
             </Box>
 
@@ -410,69 +423,82 @@ const SeonPaymentPage = () => {
                 📊 Transaction Details
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Transaction ID: {result.transaction_id}
+                Transaction ID: {result.data.id}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                SEON ID: {result.seon_id}
+                SEON ID: {result.data.seon_id}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Calculation Time: {result.calculation_time}ms
+                Calculation Time: {result.data.calculation_time}ms
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Version: {result.data.version}
               </Typography>
             </Box>
 
             {/* Applied Rules */}
-            {result.applied_rules && result.applied_rules.length > 0 && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                  🚨 Applied Rules ({result.applied_rules.length})
-                </Typography>
-                {result.applied_rules.map((rule, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      p: 1,
-                      mb: 1,
-                      bgcolor: "#F7FAFC",
-                      borderRadius: 1,
-                      border: "1px solid #E2E8F0",
-                    }}
+            {result.data.applied_rules &&
+              result.data.applied_rules.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight="bold"
+                    gutterBottom
                   >
-                    <Typography variant="body2" fontWeight="500">
-                      {rule.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Score Impact: {rule.operation}
-                      {rule.score}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
+                    🚨 Applied Rules ({result.data.applied_rules.length})
+                  </Typography>
+                  {result.data.applied_rules.map((rule, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        p: 1,
+                        mb: 1,
+                        bgcolor: "#F7FAFC",
+                        borderRadius: 1,
+                        border: "1px solid #E2E8F0",
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="500">
+                        {rule.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Score Impact: {rule.operation}
+                        {rule.score}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
 
             {/* Email Details */}
-            {result.email_details && (
+            {result.data.email_details && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                   📧 Email Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Email: {result.email_details.email}
+                  Email: {result.data.email_details.email}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Deliverable:{" "}
-                  {result.email_details.email_details?.deliverable ? "✅ Yes" : "❌ No"}
+                  {result.data.email_details.email_details?.deliverable
+                    ? "✅ Yes"
+                    : "❌ No"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Disposable:{" "}
-                  {result.email_details.email_domain_details?.disposable
+                  {result.data.email_details.email_domain_details?.disposable
                     ? "⚠️ Yes"
                     : "✅ No"}
                 </Typography>
-                {result.email_details.breach_details?.number_of_breaches >
+                {result.data.email_details.breach_details?.number_of_breaches >
                   0 && (
                   <Typography variant="body2" color="error">
                     ⚠️ Found in{" "}
-                    {result.email_details.breach_details.number_of_breaches}{" "}
+                    {
+                      result.data.email_details.breach_details
+                        .number_of_breaches
+                    }{" "}
                     data breaches
                   </Typography>
                 )}
@@ -480,45 +506,54 @@ const SeonPaymentPage = () => {
             )}
 
             {/* Phone Details */}
-            {result.phone_details && (
+            {result.data.phone_details && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                   📱 Phone Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Valid: {result.phone_details.provider_carrier_details?.phone_is_valid ? "✅ Yes" : "❌ No"}
+                  Valid:{" "}
+                  {result.data.phone_details.provider_carrier_details
+                    ?.phone_is_valid
+                    ? "✅ Yes"
+                    : "❌ No"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Type: {result.phone_details.provider_carrier_details?.type || "Unknown"}
+                  Type:{" "}
+                  {result.data.phone_details.provider_carrier_details?.type ||
+                    "Unknown"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Country: {result.phone_details.provider_carrier_details?.country || "Unknown"}
+                  Country:{" "}
+                  {result.data.phone_details.provider_carrier_details
+                    ?.country || "Unknown"}
                 </Typography>
               </Box>
             )}
 
             {/* IP Details */}
-            {result.ip_details && (
+            {result.data.ip_details && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                   🌍 IP Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  IP: {result.ip_details.ip}
+                  IP: {result.data.ip_details.ip}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Location: {result.ip_details.city},{" "}
-                  {result.ip_details.state_prov}, {result.ip_details.country}
+                  Location: {result.data.ip_details.city},{" "}
+                  {result.data.ip_details.state_prov},{" "}
+                  {result.data.ip_details.country}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  ISP: {result.ip_details.isp_name}
+                  ISP: {result.data.ip_details.isp_name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  VPN: {result.ip_details.vpn ? "⚠️ Detected" : "✅ None"}
+                  VPN: {result.data.ip_details.vpn ? "⚠️ Detected" : "✅ None"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Proxy:{" "}
-                  {result.ip_details.data_center_proxy
+                  {result.data.ip_details.data_center_proxy
                     ? "⚠️ Detected"
                     : "✅ None"}
                 </Typography>
@@ -526,22 +561,54 @@ const SeonPaymentPage = () => {
             )}
 
             {/* BIN Details */}
-            {result.bin_details && (
+            {result.data.bin_details && (
               <Box>
                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                   💳 Card BIN Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Bank: {result.bin_details.bin_bank || "Unknown"}
+                  Bank: {result.data.bin_details.bin_bank || "Unknown"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Card: {result.bin_details.bin_card || "Unknown"} {result.bin_details.bin_type || ""}
+                  Card: {result.data.bin_details.bin_card || "Unknown"}{" "}
+                  {result.data.bin_details.bin_type || ""}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Country: {result.bin_details.bin_country || "Unknown"}
+                  Country: {result.data.bin_details.bin_country || "Unknown"}
                 </Typography>
               </Box>
             )}
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Full JSON Response */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                📄 Full SEON Response
+              </Typography>
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: "#F7FAFC",
+                  borderRadius: 1,
+                  border: "1px solid #E2E8F0",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  fontFamily: "monospace",
+                  fontSize: "12px",
+                }}
+              >
+                <pre
+                  style={{
+                    margin: 0,
+                    whiteSpace: "pre-wrap",
+                    wordWrap: "break-word",
+                  }}
+                >
+                  {JSON.stringify(result, null, 2)}
+                </pre>
+              </Box>
+            </Box>
 
             <Button
               fullWidth
