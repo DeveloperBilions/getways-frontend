@@ -361,12 +361,11 @@ export default function CarryForwarderModal({
                 </Typography>
                 
                 <Typography variant="h6" sx={{ mt: 1,fontWeight:"bold" }}>
-                Final Balance: {
-  Math.floor(selectedEntity.balance) +
-  Math.floor(totals.totalRecharges) -
-  Math.floor(totals.totalRedeems) -
-  Math.floor(summary.commissionAmount)
-}
+                Final Balance: {(
+                  totals.totalRecharges -
+                  totals.totalRedeems -
+                  summary.commissionAmount
+                ).toFixed(2)}
                 </Typography>
               </Box>
             ) : (
