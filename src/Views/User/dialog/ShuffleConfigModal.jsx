@@ -94,6 +94,20 @@ export default function ShuffleConfigModal({
     if (entry.objectId) {
       try {
         setSaving(true);
+
+        // Deactivate all related RechargeThresholdHistory records
+        const RechargeThresholdsHistory = Parse.Object.extend("RechargeThresholdsHistory");
+        const historyQuery = new Parse.Query(RechargeThresholdsHistory);
+        historyQuery.equalTo("thresholdId", entry.objectId);
+        historyQuery.equalTo("isActive", true);
+        const historyRecords = await historyQuery.find({ useMasterKey: true });
+
+        for (const history of historyRecords) {
+          history.set("isActive", false);
+          await history.save(null, { useMasterKey: true });
+        }
+
+        // Now delete the threshold
         const RechargeThreshold = Parse.Object.extend("RechargeThresholds");
         const query = new Parse.Query(RechargeThreshold);
         const threshold = await query.get(entry.objectId, { useMasterKey: true });

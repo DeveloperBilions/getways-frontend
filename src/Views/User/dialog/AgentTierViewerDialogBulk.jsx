@@ -230,7 +230,6 @@ export default function AgentTierViewerDialogBulk({ open, onClose }) {
     );
   };
 
-  console.log(tierChanges,"tierChanges")
   const handleSave = async () => {
     setSaving(true);
     setErrorMsg(""); // clear previous error
