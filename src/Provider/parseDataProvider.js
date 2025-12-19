@@ -262,7 +262,7 @@ export const dataProvider = {
           total,
         };
       } else if (resource === "redeemRecords") {
-        console.log(filter, role, "hjyuiuiu");
+        // console.log(filter, role, "hjyuiuiu");
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "redeem", ...filter };
@@ -341,13 +341,13 @@ export const dataProvider = {
             }
           }
         }
-        console.log(query, "query result");
+        // console.log(query, "query result");
         count = await query.count();
       } else if (resource === "rechargeRecords") {
         const Resource = Parse.Object.extend("TransactionRecords");
         query = new Parse.Query(Resource);
         filter = { type: "recharge", ...filter };
-        console.log(filter,"filter=---filter")
+        // console.log(filter,"filter=---filter")
         if (role === "Player") {
           const archiveResource = Parse.Object.extend(
             "Transactionrecords_archive"

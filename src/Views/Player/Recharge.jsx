@@ -34,8 +34,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContentText from "@mui/material/DialogContentText";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import Tooltip from "@mui/material/Tooltip";
+// import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+// import Tooltip from "@mui/material/Tooltip";
 import Snackbar from "@mui/material/Snackbar";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
@@ -53,15 +53,17 @@ import venmo from "../../Assets/icons/venmo.svg";
 import payPal from "../../Assets/icons/logo_paypal.svg";
 import Chime from "../../Assets/icons/Chime.svg";
 import Logo1 from "../../Assets/icons/Logo1.svg";
-import Gpay from "../../Assets/icons/google-pay.png";
-import applep from "../../Assets/icons/apple-pay.png";
+// import Gpay from "../../Assets/icons/google-pay.png";
+// import applep from "../../Assets/icons/apple-pay.png";
 import { isPaymentMethodAllowed } from "../../Utils/paymentAccess";
 import { CircularProgress } from "@mui/material";
-import PayArcHostedFields from "./PayArcHostedFields";
+// import PayArcHostedFields from "./PayArcHostedFields";
 import { useNavigate } from "react-router-dom";
 import { getAgentTierDetails } from "../../Utils/tier";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
-import { getAllActiveThresholdsWithActiveMethod, validateThresholdBeforeRecharge } from "../../Utils/rechargeThreshold";
+import { getActiveThresholdMethod, 
+  // validateThresholdBeforeRecharge 
+} from "../../Utils/rechargeThreshold";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -89,15 +91,15 @@ const Recharge = ({
   const [paymentSource, setPaymentSource] = useState("stripe");
   const [processingCryptoRecharge, setProcessingCryptoRecharge] =
     useState(false);
-  const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
-    useState(false);
+  // const [isTransactionNoteVisible, setIsTransactionNoteVisible] =
+  //   useState(false);
   const [submitKycDialogOpen, setSubmitKycDialogOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [displayMethod, setDisplayMethod] = useState("Payment Portal");
   const [showKycSuccessMsg, setShowKycSuccessMsg] = useState(false); // ✅ new
   const [rechargeDisabled, setRechargeDisabled] = useState(false);
   const [rechargeLinkDialogOpen, setRechargeLinkDialogOpen] = useState(false);
-  const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
+  // const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletCopied, setWalletCopied] = useState(false); // Add this at the top with other states
@@ -105,7 +107,7 @@ const Recharge = ({
   const [popupDialogOpen, setPopupDialogOpen] = useState(false);
   const [storedBuyUrl, setStoredBuyUrl] = useState("");
   const [showSafariHelp, setShowSafariHelp] = useState(false);
-  const [loadingSessionToken, setLoadingSessionToken] = useState(false);
+  // const [loadingSessionToken, setLoadingSessionToken] = useState(false);
   const [showCoinbase, setShowCoinbase] = useState(false);
   const [showClkk, setShowClkk] = useState(false);
   const [showWert, setShowWert] = useState(false);
@@ -121,6 +123,7 @@ const Recharge = ({
   const [showCommerceHub, setShowCommerceHub] = useState(false);
   const [seonEnabled, setSeonEnabled] = useState(false);
   const [showIDVerification, setShowIDVerification] = useState(false);
+  // const [showCommerceHub, setShowCommerceHub] = useState(false);
   const [rechargeMethodLoading, setRechargeMethodLoading] = useState(false);
   const [rechargeError, setRechargeError] = useState("");
   const [checkingRechargeLimit, setCheckingRechargeLimit] = useState(false);
@@ -129,7 +132,7 @@ const Recharge = ({
   const [loadingThresholds, setLoadingThresholds] = useState(true);
   const [matchingThreshold, setMatchingThreshold] = useState(null);
   const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
-  console.log(matchingThreshold,"matchingThresholdmatchingThresholdmatchingThreshold",allowedActiveMethods)
+  const [thresholdMethods, setThresholdMethods] = useState([]);
   useEffect(() => {
     const checkPayarcLimit = async () => {
       try {
@@ -247,16 +250,17 @@ const Recharge = ({
   }, [identity]);
   useEffect(() => {
     loadThresholds();
-  }, []);
+  }, [rechargeAmount]);
   const loadThresholds = async () => {
     try {
       setLoadingThresholds(true);
-      const results = await getAllActiveThresholdsWithActiveMethod();
-      console.log(results, "resultsresultsresultsresultsresults");
-      setActiveThresholds(results);
+      // Use the new function that checks transaction totals and updates thresholds
+      const result = await getActiveThresholdMethod();
+      
+      setActiveThresholds(result.thresholds || []);
 
       // Find all thresholds where activeMethod is among the methods
-      const matches = results.filter(
+      const matches = (result.thresholds || []).filter(
         (t) =>
           typeof t.activeMethod === "string" &&
           Array.isArray(t.methods) &&
@@ -267,19 +271,21 @@ const Recharge = ({
 
       setMatchingThreshold(matches.length ? matches : null);
 
-      // Build array of allowed methods from all matching thresholds
-      const allowedMethods = matches.length
-        ? matches
-            .map((m) => m.activeMethod?.toLowerCase())
-            .filter(Boolean) // remove undefined/null
+      // Use activeMethods from the result (these are the active methods from thresholds)
+      const allowedMethods = result.activeMethods && result.activeMethods.length > 0
+        ? result.activeMethods
         : null;
 
-      setAllowedActiveMethods(allowedMethods && allowedMethods.length ? allowedMethods : null);
+      setAllowedActiveMethods(allowedMethods);
+      
+      // Store all methods that are part of any threshold (threshold-controlled methods)
+      setThresholdMethods(result.thresholdMethods || []);
     } catch (err) {
       console.error("Error loading thresholds:", err);
       setActiveThresholds([]);
       setMatchingThreshold(null);
       setAllowedActiveMethods(null);
+      setThresholdMethods([]);
     } finally {
       setLoadingThresholds(false);
     }
@@ -1483,7 +1489,7 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
       setRechargeLinkDialogOpen(true);
     },
   };
-  console.log(allowedActiveMethods,"allowedActiveMethodsallowedActiveMethods")
+
   return (
     <>
       <Box
@@ -2320,16 +2326,26 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                       <ArrowForwardIcon style={{ marginLeft: 10 }} />
                     </Button>
                   )
-                :paymentOptions.filter((option) => {
-                  if (allowedActiveMethods) {
-                    if (
-                      matchingThreshold?.some(t => t.methods.includes(option.id)) &&
-                      !allowedActiveMethods.includes(option.id)
-                    ) {
-                      console.log(`❌ ${option.id} filtered by allowedActiveMethods`);
+                : loadingThresholds ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                    <CircularProgress size={32} />
+                  </Box>
+                )
+                : paymentOptions.filter((option) => {
+                  if (!option) return false;
+                  
+                  const methodId = option.id?.toLowerCase();
+                  
+                  // Check if this method is controlled by a threshold
+                  const isThresholdControlled = thresholdMethods.includes(methodId);
+                  
+                  if (isThresholdControlled) {
+                    // If method is in a threshold, only show if it's the active method
+                    if (!allowedActiveMethods || !allowedActiveMethods.includes(methodId)) {
                       return false;
                     }
                   }
+                  // If method is NOT in any threshold, show it normally (based on other conditions below)
                 
                   if (option.id === "coinbase" && !showCoinbase) return false;
                   if (option.id === "instant" && !showWert) return false;
