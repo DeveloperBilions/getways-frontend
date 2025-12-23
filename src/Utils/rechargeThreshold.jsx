@@ -91,7 +91,7 @@ async function getTotalRechargeAmountByMethod(paymentMethod, sinceDate) {
       getpay: "GetPay",
       finix: "Finix",
       commercehub: "CommerceHub",
-      wert:"Wert",
+      instant:"Wert",
     };
 
     const methodLower = paymentMethod.toLowerCase();
