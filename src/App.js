@@ -50,6 +50,7 @@ import { CheckoutFormStripe } from "./Views/Widget/CheckoutForm";
 import IdVerificationButton from "./Views/Player/IdVerificationButton";
 import RedirectByRole from "./RedirectByRole";
 import PayNearMePay from "./Views/PayNearMe/PayNearMePay";
+import PayNearMeSuccess from "./Views/PayNearMe/PayNearMeSuccess";
 import { PlayerRechargeRecordsList } from "./Views/RechargeRecords/PlayerRechargeRecordList";
 import CheckoutPayARCAOG from "./Views/Stripe/checkoutPayarcAOG";
 import { CLKKWidget } from "./Views/Widget/CLKKWidget";
@@ -448,6 +449,14 @@ function App() {
                     element={
                       <Authenticated>
                         <PayNearMePay />
+                      </Authenticated>
+                    }
+                  />
+                  <Route
+                    path="/paynearme-success"
+                    element={
+                      <Authenticated>
+                        <PayNearMeSuccess />
                       </Authenticated>
                     }
                   />
