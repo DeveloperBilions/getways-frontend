@@ -177,15 +177,24 @@ export default function ShuffleConfigModal({
       const RechargeThresholdsHistory = Parse.Object.extend("RechargeThresholdsHistory");
   
       for (const entry of entries) {
-        const methodsHash = entry.methods.slice().sort().join("|");
+        // Use sequence order for hash (not sorted) to detect sequence changes
+        const methodsHash = entry.methods.join("|");
   
         let savedThreshold;
+        let oldMethodsHash = null;
+        let oldMinAmount = null;
+        let oldMaxAmount = null;
         
         // Check if this is an existing entry (has objectId from when it was loaded)
         if (entry.objectId) {
           // Update existing threshold by objectId
           const existingQuery = new Parse.Query(RechargeThreshold);
           const existing = await existingQuery.get(entry.objectId, { useMasterKey: true });
+          
+          // Store old values to compare later
+          oldMethodsHash = existing.get("methodsHash");
+          oldMinAmount = existing.get("minAmount");
+          oldMaxAmount = existing.get("maxAmount");
           
           existing.set("minAmount", Number(entry.min));
           existing.set("maxAmount", Number(entry.max));
@@ -203,20 +212,58 @@ export default function ShuffleConfigModal({
           savedThreshold = await thresholdObj.save(null, { useMasterKey: true });
         }
   
-        // Same logic as before for history
+        // Handle history - check if sequence changed by comparing hash
         const historyQuery = new Parse.Query(RechargeThresholdsHistory);
         historyQuery.equalTo("thresholdId", savedThreshold.id);
         historyQuery.equalTo("isActive", true);
         const activeHistory = await historyQuery.first({ useMasterKey: true });
   
-        if (!activeHistory) {
+        const min = Number(entry.min);
+        const max = Number(entry.max);
+        const newFirstMethod = entry.methods[0];
+        
+        // Check if sequence or min/max changed
+        const sequenceChanged = oldMethodsHash && oldMethodsHash !== methodsHash;
+        const amountsChanged = (oldMinAmount !== null && oldMinAmount !== min) || 
+                               (oldMaxAmount !== null && oldMaxAmount !== max);
+        const shouldUpdateHistory = sequenceChanged || amountsChanged;
+
+        if (activeHistory) {
+          // Only update history if sequence or amounts changed
+          if (shouldUpdateHistory) {
+            // Deactivate old history
+            activeHistory.set("isActive", false);
+            await activeHistory.save(null, { useMasterKey: true });
+            
+            // Create new history with the new first method
+            const history = new RechargeThresholdsHistory();
+            history.set("thresholdId", savedThreshold.id);
+            history.set("currentPaymentMethod", newFirstMethod);
+  
+            // Generate random amount in steps of 10
+            const start = Math.ceil(min / 10);
+            const end = Math.floor(max / 10);
+            if (start > end) {
+              throw new Error(`No valid 10-multiple amount between ${min} and ${max}.`);
+            }
+            const options = [];
+            for (let i = start; i <= end; i++) {
+              options.push(i * 10);
+            }
+            const randomAmount = options[Math.floor(Math.random() * options.length)];
+  
+            history.set("pendingRandomAmount", randomAmount);
+            history.set("pendingAmount", max);
+            history.set("isActive", true);
+            await history.save(null, { useMasterKey: true });
+          }
+        } else {
+          // No active history exists, create new one
           const history = new RechargeThresholdsHistory();
           history.set("thresholdId", savedThreshold.id);
-          history.set("currentPaymentMethod", entry.methods[0]);
+          history.set("currentPaymentMethod", newFirstMethod);
   
-          // ✅ Generate random amount in steps of 10:
-          const min = Number(entry.min);
-          const max = Number(entry.max);
+          // Generate random amount in steps of 10
           const start = Math.ceil(min / 10);
           const end = Math.floor(max / 10);
           if (start > end) {
