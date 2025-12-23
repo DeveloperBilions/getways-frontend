@@ -179,19 +179,21 @@ export default function ShuffleConfigModal({
       for (const entry of entries) {
         const methodsHash = entry.methods.slice().sort().join("|");
   
-        // Check if already exists
-        const existingQuery = new Parse.Query(RechargeThreshold);
-        existingQuery.equalTo("methodsHash", methodsHash);
-        const existing = await existingQuery.first({ useMasterKey: true });
-  
         let savedThreshold;
-        if (existing) {
-          // Update min/max
+        
+        // Check if this is an existing entry (has objectId from when it was loaded)
+        if (entry.objectId) {
+          // Update existing threshold by objectId
+          const existingQuery = new Parse.Query(RechargeThreshold);
+          const existing = await existingQuery.get(entry.objectId, { useMasterKey: true });
+          
           existing.set("minAmount", Number(entry.min));
           existing.set("maxAmount", Number(entry.max));
+          existing.set("targetPaymentMethods", entry.methods);
+          existing.set("methodsHash", methodsHash);
           savedThreshold = await existing.save(null, { useMasterKey: true });
         } else {
-          // Create new
+          // Create new threshold
           const thresholdObj = new RechargeThreshold();
           thresholdObj.set("minAmount", Number(entry.min));
           thresholdObj.set("maxAmount", Number(entry.max));
@@ -330,10 +332,28 @@ export default function ShuffleConfigModal({
                     select
                     label="Payment Methods"
                     value={entry.methods}
-                    onChange={(e) =>
-                      handleChange(index, "methods", e.target.value)
-                    }
-                    SelectProps={{ multiple: true }}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      // Preserve order: keep existing selections in their order, append new ones
+                      const currentMethods = entry.methods || [];
+                      const orderedMethods = [
+                        ...currentMethods.filter((m) => newValue.includes(m)),
+                        ...newValue.filter((m) => !currentMethods.includes(m)),
+                      ];
+                      handleChange(index, "methods", orderedMethods);
+                    }}
+                    SelectProps={{
+                      multiple: true,
+                      renderValue: (selected) => {
+                        // Display in the order they were selected
+                        return selected
+                          .map((val) => {
+                            const method = methods.find((m) => m.value === val);
+                            return method ? method.label : val;
+                          })
+                          .join(", ");
+                      },
+                    }}
                     sx={{ minWidth: "250px" }}
                     disabled={saving}
                   >

@@ -14,7 +14,7 @@ export default function PayNearMePay() {
   const amount = location?.state?.rechargeAmount;
   const remark = location?.state?.remark;
   const customerId = identity?.objectId;
-  const [orderToken, setOrderToken] = useState(null);
+  // const [orderToken, setOrderToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const siteOrderIdentifierRef = useRef("")
@@ -46,7 +46,7 @@ export default function PayNearMePay() {
           customerIdentifier: customerId,
           paymentAmount: amount
         });
-        setOrderToken(res.secureSmartToken);
+        // setOrderToken(res.secureSmartToken);
         siteOrderIdentifierRef.current = res.siteOrderIdentifier; // Save to ref
 
         if (window.PNM) {
@@ -70,7 +70,6 @@ export default function PayNearMePay() {
                 venmo: true,
                 apple_pay: true,
                 google_pay: true,
-                venmo: true,
                 cashapp: true
               }
             }
@@ -140,8 +139,13 @@ export default function PayNearMePay() {
         transaction.set("status", 2);
         await transaction.save(null, { useMasterKey: true });
         await updatePotBalance(identity?.userParentId, amount, "recharge");
-        alert("Payment completed successfully!");
-        navigate("/playerDashboard");
+        navigate("/paynearme-success", {
+          state: {
+            amount,
+            transactionId: txnId,
+            transactionDate: new Date().toISOString(),
+          },
+        });
       } else if (data.status === "error") {
         transaction.set("status", 10);
         transaction.set("errorMessage", data.message?.join("\n") || "Unknown error");
