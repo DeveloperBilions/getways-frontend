@@ -23,7 +23,7 @@ const IdVerificationButton = () => {
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [error, setError] = useState(null);
 
-  const IDV_LICENSE_KEY = "f68fdcb1-7c7f-4809-a779-ba1df0c17f74";
+  const IDV_LICENSE_KEY = "350136b7-6874-48a9-b715-9085c3d7a3e1";
   const BASE_URL = "https://idv-us.seon.io"; // US region base URL
 
   const handleVerifyIdentity = async () => {

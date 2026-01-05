@@ -1283,7 +1283,7 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
                   head: [
                     [
                       "No",
-                      "Name",
+                      "Username",
                       "Amount",
                       "Remark",
                       "Status",
@@ -1328,7 +1328,7 @@ const toParseDate = (d) => ({ __type: "Date", iso: d.toISOString() });
 
                 const selectedFields = exportData.map((item) => {
                   const row = {
-                  Name: item.username,
+                  Username: item.username,
                   "Amount": item.transactionAmount,
                   Remark: item.remark,
                   Status: mapStatus(item.status),
