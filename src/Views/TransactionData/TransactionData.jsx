@@ -23,8 +23,7 @@ export const TransactionData = (props) => {
 
   const loadAndExportData = async () => {
     const filters = {
-      startdate:
-      tempStartDate || "2025-05-01",
+      startdate: tempStartDate || "2025-05-01",
       enddate: tempEndDate || "2025-05-17",
       starttime: tempStartTime || null,
       endtime: tempEndTime || null,
@@ -60,9 +59,11 @@ export const TransactionData = (props) => {
   };
 
   const getMode = (data) => {
-    if (data?.type?.toLowerCase() === "redeem") return "";
-
-    return data?.transactionIdFromStripe?.toLowerCase().includes("txn-")
+    if (data?.type !== "recharge") {
+      return "N/A";
+    }
+  
+    return data?.transactionIdFromStripe?.toLowerCase().includes("txn")
       ? "WERT"
       : data?.transactionIdFromStripe?.toLowerCase().includes("crypto.link.com")
       ? "Link"
@@ -73,17 +74,25 @@ export const TransactionData = (props) => {
       : data?.referralLink?.toLowerCase().includes("transfi")
       ? "TransFi"
       : data?.useWallet
-      ? "Wallet" :
-      data?.portal === "Payarc"
-      ? "Payarc" :
-      data?.portal === "CLK" ? "CLK":
-      data?.portal === "AuthorizeNet" ? "AuthorizeNet"
+      ? "Wallet"
+      : data?.portal === "Payarc"
+      ? "Payarc"
+      : data?.portal === "PayNearMe"
+      ? "PayNearMe"
+      : data?.portal === "CLK"
+      ? "CLKK"
+      : data?.portal === "AuthorizeNet"
+      ? "AuthorizeNet"
+      : data?.portal === "Fiserv"
+      ? "Fiserv"
+      : data?.portal === "FiservCheckout"
+      ? "Fiserv Checkout"
       : "Stripe";
   };
   
   const handleExportAllDataXLS = async () => {
     const exportData = await loadAndExportData(); // Fetch data
-  
+
     // Flatten and combine all data
     const combinedData = exportData.map((item) => ({
       "Transaction ID": item.id,
@@ -102,15 +111,15 @@ export const TransactionData = (props) => {
       remark: item?.remark,
       "Redeem Remark": item?.redeemRemarks,
       isDeleted:item?.isDeleted,
+      useWallet:item?.useWallet ? "Yes" : "No",
       Mode: getMode(item), // <-- Add Mode using helper
-      useWallet:item?.useWallet
     }));
-  
+
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(combinedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "All Data");
-  
+
     // Write Excel file
     const xlsData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     saveAs(
@@ -118,7 +127,6 @@ export const TransactionData = (props) => {
       "AllData.xlsx"
     );
   };
-  
 
   const today = new Date().toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const startDateLimit = "2024-12-01"; // Start date limit: 1st December 2025
@@ -160,7 +168,10 @@ export const TransactionData = (props) => {
                 type="date"
                 key={"startdate"}
                 value={tempStartDate}
-                onChange={(event) => setTempStartDate(event.target.value)}
+                onChange={(event) => {
+                  setTempStartDate(event.target.value)
+                  setTempEndDate("")
+                }}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{
                   min: startDateLimit,
@@ -221,7 +232,14 @@ export const TransactionData = (props) => {
                 InputLabelProps={{ shrink: true }}
                 inputProps={{
                   min: tempStartDate || startDateLimit,
-                  max: today,
+                  max: tempStartDate
+                    ? new Date(
+                        new Date(tempStartDate).getTime() +
+                          31 * 24 * 60 * 60 * 1000
+                      )
+                        .toISOString()
+                        .split("T")[0]
+                    : today,
                 }}
                 required
                 sx={{
