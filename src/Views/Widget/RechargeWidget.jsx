@@ -135,13 +135,50 @@ const RechargeWidgetPopup = ({
     } else if(id === "payarc"){
       const checkoutUrl = `/payarc-checkout?amount=${confirmedAmount}&userId=${userId}&gc_coins=${gc_coins}&sc_coins=${sc_coins}`;
       setIframeUrl(checkoutUrl);
+    } else if(id === "fiserv-payment"){
+      try {
+        setLoadingMessage("Creating Fiserv payment link...");
+        
+        const result = await Parse.Cloud.run("fiservCreatePaymentLink", {
+          amount: parseFloat(confirmedAmount),
+          remark: remark,
+          orderId: `ORDER-${userId}-${Date.now()}`,
+          customerInfo: {
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: ""
+          },
+          expiryHours: 24
+        });
+
+        if (result.success) {
+          // Navigate to Fiserv iframe widget
+          const fiservUrl = `/fiserv-payment?response=${encodeURIComponent(JSON.stringify(result))}&amount=${confirmedAmount}&remark=${encodeURIComponent(remark)}`;
+          setIframeUrl(fiservUrl);
+        } else {
+          alert("Failed to create Fiserv payment link");
+          setLoadingMessage("");
+        }
+      } catch (err) {
+        alert("Failed to initiate Fiserv payment.");
+        console.error(err);
+        setLoadingMessage("");
+      }
     } else if(id === "fiserv-checkout"){
       try {
         setLoadingMessage("Creating Fiserv checkout...");
         
         const result = await Parse.Cloud.run("fiservCreateCheckout", {
           amount: parseFloat(confirmedAmount),
-          remark: remark
+          remark: remark,
+          customerInfo: {
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            name: ""
+          }
         });
 
         if (result.success && result.redirectionUrl) {
@@ -298,13 +335,20 @@ const RechargeWidgetPopup = ({
       color: "#FF9900",
       hoverColor: "#FFF7E6",
     },
-    // {
-    //   id: "fiserv-checkout",
-    //   title: "Fiserv Checkout",
-    //   description: "Secure card payment",
-    //   color: "#0066CC",
-    //   hoverColor: "#E6F2FF",
-    // }
+    {
+      id: "fiserv-payment",
+      title: "Fiserv Payment",
+      description: "Secure payment gateway • No KYC needed",
+      color: "#0066CC",
+      hoverColor: "#E6F3FF",
+    },
+    {
+      id: "fiserv-checkout",
+      title: "Fiserv Checkout",
+      description: "Secure checkout • Redirect to payment",
+      color: "#0052CC",
+      hoverColor: "#E6F2FF",
+    }
     // {
     //   id: "crypto",
     //   title: "Standard Recharge",
