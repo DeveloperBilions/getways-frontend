@@ -64,6 +64,7 @@ import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalance
 import { getActiveThresholdMethod, 
   // validateThresholdBeforeRecharge 
 } from "../../Utils/rechargeThreshold";
+import CommerceHubSDKDialog from "../RechargeRecords/dialog/CommerceHubSDKDialog";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live
@@ -133,6 +134,8 @@ const Recharge = ({
   const [matchingThreshold, setMatchingThreshold] = useState(null);
   const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
   const [thresholdMethods, setThresholdMethods] = useState([]);
+  const [commerceHubSDKDialogOpen, setCommerceHubSDKDialogOpen] = useState(false);
+  const [affirmDialogOpen, setAffirmDialogOpen] = useState(false);
   useEffect(() => {
     const checkPayarcLimit = async () => {
       try {
@@ -209,7 +212,7 @@ const Recharge = ({
       const isCommerceHubAllowed = await isPaymentMethodAllowed(parentId, "commercehub");
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
       const isIDVerificationAllowed = await isPaymentMethodAllowed(parentId, "idverification");
-      
+      const isCommerceHubSDKAllowed =  await isPaymentMethodAllowed(parentId, "commercehubsdk");
       console.log("🔍 ID Verification Check:", {
         parentId,
         isIDVerificationAllowed,
@@ -231,7 +234,8 @@ const Recharge = ({
       setCommerceHubEnabled(isCommerceHubAllowed);
       setSeonEnabled(isSeonAllowed);
       setShowIDVerification(isIDVerificationAllowed);
-      
+      setCommerceHubEnabled(isCommerceHubAllowed || isCommerceHubSDKAllowed);
+      setShowCommerceHub(isCommerceHubAllowed);
       console.log("✅ States Set:", {
         showIDVerification: isIDVerificationAllowed,
         seonEnabled: isSeonAllowed,
@@ -242,6 +246,7 @@ const Recharge = ({
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
       console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubAllowed);
       console.log("🔧 Setting seonEnabled state to:", isSeonAllowed);
+      console.log("🔧 Setting commerceHubSDK enabled state to:", isCommerceHubSDKAllowed);
     };
 
     if (identity?.userParentId) {
@@ -1351,6 +1356,100 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
       disabled:
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
+       {
+      id: "commercehubsdk",
+      title: "Commerce Hub SDK",
+      description: "Hosted Checkout • Secure payment fields",
+      subtext: "No KYC needed • 3D Secure available",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC",
+      hoverColor: "#E6F0FF",
+      paymentIcons: [visa, mastercard, Logo1],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Open Commerce Hub SDK Dialog
+          setCommerceHubSDKDialogOpen(true);
+        } catch (err) {
+          console.error("Commerce Hub SDK error:", err);
+          setRechargeError(err.message || "Failed to open Commerce Hub SDK. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "affirm",
+      title: "Affirm - Buy Now Pay Later",
+      description: "Pay over time • Flexible payments",
+      subtext: "No hidden fees",
+      icon: <CreditCardIcon sx={{ color: "#0FA0EA", fontSize: 24 }} />,
+      color: "#0FA0EA", // Affirm brand blue
+      hoverColor: "#E6F7FF",
+      paymentIcons: [],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Open Affirm BNPL Dialog
+          setAffirmDialogOpen(true);
+        } catch (err) {
+          console.error("Affirm error:", err);
+          setRechargeError(err.message || "Failed to open Affirm. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
     {
       id: "idverification",
       title: "Identity Verification",
@@ -2359,6 +2458,7 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
                   if (option.id === "commercehub" && !commerceHubEnabled) return false;
                   if (option.id === "seon" && !seonEnabled) return false;
+                  if (option.id === "commercehubsdk" && !commerceHubEnabled) return false;
                   if (option.id === "idverification" && !showIDVerification) {
                     console.log("❌ IDVerification filtered - showIDVerification:", showIDVerification);
                     return false;
@@ -2858,6 +2958,19 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Commerce Hub SDK Dialog */}
+      <CommerceHubSDKDialog
+        open={commerceHubSDKDialogOpen}
+        onClose={() => setCommerceHubSDKDialogOpen(false)}
+        onSuccess={(response) => {
+          setCommerceHubSDKDialogOpen(false);
+          handleRefresh();
+          setSnackbarOpen(true);
+        }}
+        initialAmount={rechargeAmount}
+        initialRemark={remark}
+      />
     </>
   );
 };

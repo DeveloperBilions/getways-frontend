@@ -352,6 +352,7 @@ export const WalletDetails = ({
         handleRefresh={() => {
           handleCashoutRefresh();
         }}
+        handleCashoutRefresh={handleCashoutRefresh}
       />
       <CashOutDialog
         open={cashOutDialogOpen}

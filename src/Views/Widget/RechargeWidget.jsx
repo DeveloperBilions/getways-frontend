@@ -145,6 +145,8 @@ const RechargeWidgetPopup = ({
           remark: remark,
           orderId: `ORDER-${userId}-${Date.now()}`,
           userId,
+          gc_coins,
+          sc_coins,
           customerInfo: {
             firstName: "",
             lastName: "",

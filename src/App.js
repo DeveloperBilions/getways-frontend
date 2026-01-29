@@ -64,6 +64,7 @@ import FiservCheckoutSuccess from "./Views/Widget/FiservCheckoutSuccess";
 import FiservCheckoutFailure from "./Views/Widget/FiservCheckoutFailure";
 import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
 import SeonPaymentPage from "./Views/Player/SeonPaymentPage";
+import CommerceHubRecharge from "./Views/RechargeRecords/CommerceHubRecharge";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -489,6 +490,14 @@ function App() {
                     element={
                       <Authenticated>
                         <CommerceHubWidget />
+                      </Authenticated>
+                    }
+                  />
+                   <Route
+                    path="/commerce-hub-sdk"
+                    element={
+                      <Authenticated>
+                        <CommerceHubRecharge />
                       </Authenticated>
                     }
                   />

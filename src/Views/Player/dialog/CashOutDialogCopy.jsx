@@ -15,6 +15,7 @@ import { Alert ,Button} from "@mui/material";
 import CheckbookPaymentDialog from './CheckbookPaymentDialog'; 
 import Parse from "parse";
 import ClkkDialog from "../ClkkDialog";
+import FiservDisbursementDialog from "./FiservDisbursementDialog";
 
 const ALL_METHODS = {
   giftcard: "Gift Card",
@@ -22,6 +23,8 @@ const ALL_METHODS = {
   venmo: "Venmo",
   card: "Push To Card",
   clkk: "CLKK",
+  fiservpaypal: "fiservPaypal", // Fiserv Digital Disbursements - PayPal
+  fiservvenmo: "fiservVenmo",   // Fiserv Digital Disbursements - Venmo
 };
 
 const CashOutModal = ({
@@ -43,6 +46,7 @@ const CashOutModal = ({
   const [availableMethods, setAvailableMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(""); // ✅ default empty
   const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
+  const [fiservDialogOpen, setFiservDialogOpen] = useState(false);
 
   useEffect(() => {
     setErrorMessage(""); 
@@ -98,7 +102,7 @@ const CashOutModal = ({
 
     if (selectedMethod === "giftcard") {
       if (amount < 15) return "Gift card cashout must be at least $15.";
-    } else if (["paypal", "venmo", "card", "clkk"].includes(selectedMethod)) {
+    } else if (["paypal", "venmo", "card", "clkk", "fiservpaypal", "fiservvenmo"].includes(selectedMethod)) {
       if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
       if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
     }
@@ -117,6 +121,10 @@ const CashOutModal = ({
     }
     if (selectedMethod === "giftcard") {
       setIsGiftCardOpen(true);
+      onClose();
+    } else if (selectedMethod === "fiservpaypal" || selectedMethod === "fiservvenmo") {
+      // Open Fiserv Digital Disbursements Dialog
+      setFiservDialogOpen(true);
       onClose();
     } else {
       setClkkDialogOpen(true);
@@ -275,6 +283,18 @@ const CashOutModal = ({
         onClose={() => setIsOpen(false)}
         amount={balance}
         handleRefresh={handleRefresh}
+      />
+
+      {/* Fiserv Digital Disbursements Flow */}
+      <FiservDisbursementDialog
+        open={fiservDialogOpen}
+        onClose={() => {
+          setFiservDialogOpen(false);
+          handleCashoutRefresh();
+        }}
+        amount={balance}
+        method={selectedMethod === "fiservpaypal" ? "paypal" : "venmo"}
+        handleRefresh={handleCashoutRefresh}
       />
     </>
   );
