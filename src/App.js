@@ -65,6 +65,7 @@ import FiservCheckoutFailure from "./Views/Widget/FiservCheckoutFailure";
 import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
 import SeonPaymentPage from "./Views/Player/SeonPaymentPage";
 import CommerceHubRecharge from "./Views/RechargeRecords/CommerceHubRecharge";
+import FiservDisbursementWidget from "./Views/Widget/FiservDisbursementWidget";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -553,6 +554,7 @@ function App() {
           <Route path="/fiserv-checkout-payment" element={<FiservCheckoutWidget />} />
           <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
+          <Route path="/fiserv-disbursement" element={<FiservDisbursementWidget />} />
           <Route path="/commerce-hub-payment" element={<CommerceHubWidget />} />
           <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}

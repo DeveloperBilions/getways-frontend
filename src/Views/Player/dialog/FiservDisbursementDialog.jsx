@@ -33,7 +33,10 @@ const FiservDisbursementDialog = ({
   onClose,
   amount,
   method, // 'paypal' or 'venmo'
-  handleRefresh
+  handleRefresh,
+  widgetMode = false,
+  widgetUserId = null,
+  widgetType = null
 }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -119,7 +122,10 @@ const FiservDisbursementDialog = ({
       console.log(`   Method: ${method.toUpperCase()}`);
       console.log(`   Amount: $${amount}`);
       
-      const result = await Parse.Cloud.run("fiservDDP_cashout", {
+      // In widget mode, use useMasterKey and pass userId/type
+      const cloudOptions = widgetMode ? { useMasterKey: true } : { sessionToken: Parse.User.current().getSessionToken() };
+      
+      const params = {
         amount: parseFloat(amount),
         paymentMethod: method,
         email: email || undefined,
@@ -130,7 +136,15 @@ const FiservDisbursementDialog = ({
           email: email || undefined,
           phone: formattedPhone || undefined
         }
-      });
+      };
+
+      // Add widget parameters if in widget mode
+      if (widgetMode) {
+        params.type = widgetType;
+        params.userId = widgetUserId;
+      }
+
+      const result = await Parse.Cloud.run("fiservDDP_cashout", params, cloudOptions);
 
       console.log('✅ Cashout successful:', result);
       
@@ -141,6 +155,11 @@ const FiservDisbursementDialog = ({
       // Refresh balance after successful cashout
       if (handleRefresh) {
         setTimeout(() => handleRefresh(), 1000);
+      }
+
+      // If in widget mode, notify parent window
+      if (widgetMode) {
+        window.parent.postMessage({ type: 'CASHOUT_SUCCESS', data: result }, '*');
       }
     } catch (err) {
       console.error('❌ Cashout failed:', err);

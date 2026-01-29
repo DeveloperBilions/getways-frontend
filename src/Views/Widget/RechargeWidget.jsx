@@ -671,15 +671,163 @@ const RechargeWidgetPopup = ({
               )}{" "}
             </>
           ) : actionType === "redeem" ? (
+            <>
+              {iframeUrl ? (
+                <Box sx={{ 
+                  height: "calc(100vh - 80px)", 
+                  width: "100%",
+                  overflow: "hidden"
+                }}>
+                  <iframe
+                    src={iframeUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ 
+                      border: "none", 
+                      borderRadius: 8,
+                      display: "block"
+                    }}
+                    allow="payment"
+                    title="Cashout"
+                  />
+                </Box>
+              ) : confirmedAmount ? (
+                <Stack spacing={2}>
+                  {/* Redeem payment options */}
+                  <Card
+                    onClick={() => {
+                      // Gift Card redeem flow
+                      setActionType("redeem-giftcard");
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      border: "1px solid #E2E8F0",
+                      boxShadow: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      borderLeft: `4px solid #9C27B0`,
+                      "&:hover": {
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        bgcolor: "#F3E5F5",
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontWeight: 500 }}>
+                            Gift Card
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Redeem to gift card
+                          </Typography>
+                        </Box>
+                        <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  <Card
+                    onClick={() => {
+                      console.log('PayPal clicked', { confirmedAmount, userId, remark });
+                      // Fiserv PayPal redeem flow
+                      const fiservUrl = `/fiserv-disbursement?amount=${confirmedAmount}&userId=${userId}&type=AOG&method=paypal&remark=${encodeURIComponent(remark || "Cashout")}`;
+                      console.log('Setting iframe URL:', fiservUrl);
+                      setIframeUrl(fiservUrl);
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      border: "1px solid #E2E8F0",
+                      boxShadow: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      borderLeft: `4px solid #003087`,
+                      "&:hover": {
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        bgcolor: "#E6F2FF",
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontWeight: 500 }}>
+                            PayPal
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Cashout to PayPal account
+                          </Typography>
+                        </Box>
+                        <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  <Card
+                    onClick={() => {
+                      console.log('Venmo clicked', { confirmedAmount, userId, remark });
+                      // Fiserv Venmo redeem flow
+                      const fiservUrl = `/fiserv-disbursement?amount=${confirmedAmount}&userId=${userId}&type=AOG&method=venmo&remark=${encodeURIComponent(remark || "Cashout")}`;
+                      console.log('Setting iframe URL:', fiservUrl);
+                      setIframeUrl(fiservUrl);
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      border: "1px solid #E2E8F0",
+                      boxShadow: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      borderLeft: `4px solid #008CFF`,
+                      "&:hover": {
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        bgcolor: "#E6F7FF",
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontWeight: 500 }}>
+                            Venmo
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Cashout to Venmo account
+                          </Typography>
+                        </Box>
+                        <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Stack>
+              ) : null}
+            </>
+          ) : actionType === "redeem-giftcard" ? (
             <RedeemGiftCardFlow
-              amount={amount}
+              amount={confirmedAmount}
               platform={platform}
               userId={userId}
-              onClose
+              onClose={onClose}
               onBack={() => {
-                setAmount(null);
+                setActionType("redeem");
                 setConfirmedAmount(null);
-                setActionType(null);
               }}
             />
           ) : (
