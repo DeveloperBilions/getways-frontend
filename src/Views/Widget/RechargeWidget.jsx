@@ -150,7 +150,7 @@ const RechargeWidgetPopup = ({
             phone: ""
           },
           expiryHours: 24
-        });
+        }, { useMasterKey: true });
 
         if (result.success) {
           // Navigate to Fiserv iframe widget
@@ -179,7 +179,7 @@ const RechargeWidgetPopup = ({
             phone: "",
             name: ""
           }
-        });
+        }, { useMasterKey: true });
 
         if (result.success && result.redirectionUrl) {
           // Redirect to Fiserv checkout page
