@@ -140,9 +140,11 @@ const RechargeWidgetPopup = ({
         setLoadingMessage("Creating Fiserv payment link...");
         
         const result = await Parse.Cloud.run("fiservCreatePaymentLink", {
+          type:"AOG",
           amount: parseFloat(confirmedAmount),
           remark: remark,
           orderId: `ORDER-${userId}-${Date.now()}`,
+          userId,
           customerInfo: {
             firstName: "",
             lastName: "",
@@ -170,8 +172,10 @@ const RechargeWidgetPopup = ({
         setLoadingMessage("Creating Fiserv checkout...");
         
         const result = await Parse.Cloud.run("fiservCreateCheckout", {
+          type:"AOG",
           amount: parseFloat(confirmedAmount),
           remark: remark,
+          userId,
           customerInfo: {
             firstName: "",
             lastName: "",
