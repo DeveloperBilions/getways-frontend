@@ -154,13 +154,13 @@ const RechargeWidgetPopup = ({
           expiryHours: 24
         }, { useMasterKey: true });
 
-        if (result.success) {
-          // Navigate to Fiserv iframe widget
-          const fiservUrl = `/fiserv-payment?response=${encodeURIComponent(JSON.stringify(result))}&amount=${confirmedAmount}&remark=${encodeURIComponent(remark)}`;
-          setIframeUrl(fiservUrl);
+        setLoadingMessage(""); // Clear loading message
+
+        if (result.success && result.publicUrl) {
+          // Load Fiserv payment URL directly in iframe
+          setIframeUrl(result.publicUrl);
         } else {
           alert("Failed to create Fiserv payment link");
-          setLoadingMessage("");
         }
       } catch (err) {
         alert("Failed to initiate Fiserv payment.");
@@ -185,12 +185,13 @@ const RechargeWidgetPopup = ({
           }
         }, { useMasterKey: true });
 
+        setLoadingMessage(""); // Clear loading message
+
         if (result.success && result.redirectionUrl) {
           // Redirect to Fiserv checkout page
           window.location.href = result.redirectionUrl;
         } else {
           alert("Failed to create Fiserv checkout session");
-          setLoadingMessage("");
         }
       } catch (err) {
         alert("Failed to initiate Fiserv checkout.");
