@@ -468,22 +468,22 @@ function App() {
                       </Authenticated>
                     }
                   />
-                  <Route
+                  {/* <Route
                     path="/fiserv-payment"
                     element={
-                      // <Authenticated>
+                      <Authenticated>
                         <FiservPaymentWidget />
-                      // </Authenticated>
+                      </Authenticated>
                     }
                   />
                   <Route
                     path="/fiserv-checkout-payment"
                     element={
-                      // <Authenticated>
+                      <Authenticated>
                         <FiservCheckoutWidget />
-                      // </Authenticated>
+                      </Authenticated>
                     }
-                  />
+                  /> */}
                   <Route
                     path="/commerce-hub-payment"
                     element={
@@ -540,6 +540,8 @@ function App() {
           <Route path="/buyWert" element={<AutoWertWidget />} />
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
           <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
+          <Route path="/fiserv-payment" element={<FiservPaymentWidget />} />
+          <Route path="/fiserv-checkout-payment" element={<FiservCheckoutWidget />} />
           <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
           {/* Total Liquor Embedded Checkout */}
