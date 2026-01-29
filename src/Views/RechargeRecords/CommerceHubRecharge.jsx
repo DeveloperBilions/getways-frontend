@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -12,6 +12,7 @@ import {
 import PaymentIcon from '@mui/icons-material/Payment';
 import SecurityIcon from '@mui/icons-material/Security';
 import CommerceHubSDKDialog from './dialog/CommerceHubSDKDialog';
+import { useSearchParams } from 'react-router-dom';
 
 /**
  * Commerce Hub Hosted Checkout SDK Recharge Component
@@ -19,6 +20,7 @@ import CommerceHubSDKDialog from './dialog/CommerceHubSDKDialog';
  * Hosted Checkout SDK for recharge functionality
  */
 const CommerceHubRecharge = () => {
+  const [searchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -26,12 +28,30 @@ const CommerceHubRecharge = () => {
     severity: 'success'
   });
 
+  // Get URL parameters for widget mode
+  const amount = searchParams.get('amount');
+  const userId = searchParams.get('userId');
+  const type = searchParams.get('type');
+  const remark = searchParams.get('remark');
+
+  // Auto-open dialog if URL parameters are present (widget mode)
+  useEffect(() => {
+    if (amount && userId && type === 'AOG') {
+      setDialogOpen(true);
+    }
+  }, [amount, userId, type]);
+
   const handleOpenDialog = () => {
     setDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+    
+    // If in widget mode, notify parent window
+    if (type === 'AOG') {
+      window.parent.postMessage({ type: 'PAYMENT_CANCELLED' }, '*');
+    }
   };
 
   const handleSuccess = (response) => {
@@ -41,11 +61,49 @@ const CommerceHubRecharge = () => {
       message: `Payment successful! Transaction ID: ${response.transactionId}`,
       severity: 'success'
     });
+    
+    // If in widget mode, notify parent window
+    if (type === 'AOG') {
+      window.parent.postMessage({ type: 'PAYMENT_SUCCESS', data: response }, '*');
+    }
   };
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
+
+  // If in widget mode, show minimal UI
+  if (type === 'AOG') {
+    return (
+      <Box sx={{ p: 2 }}>
+        <CommerceHubSDKDialog
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          onSuccess={handleSuccess}
+          initialAmount={amount || ''}
+          initialRemark={remark || ''}
+          widgetMode={true}
+          widgetUserId={userId}
+          widgetType={type}
+        />
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>

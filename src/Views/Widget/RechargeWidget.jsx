@@ -229,6 +229,10 @@ const RechargeWidgetPopup = ({
         console.error(err);
         setLoadingMessage("");
       }
+    } else if(id === "commerce-hub-sdk"){
+      // Commerce Hub SDK with Affirm, Paze, and card payment options
+      const sdkUrl = `/commerce-hub-sdk?amount=${confirmedAmount}&userId=${userId}&type=AOG&remark=${encodeURIComponent(remark || "Recharge")}`;
+      setIframeUrl(sdkUrl);
     } else {
       onOptionClick(id, { userId, walletId, remark });
     }
@@ -391,6 +395,13 @@ const RechargeWidgetPopup = ({
       description: "Secure payment • Hosted checkout",
       color: "#FF6B00",
       hoverColor: "#FFF4E6",
+    },
+    {
+      id: "commerce-hub-sdk",
+      title: "Commerce Hub SDK",
+      description: "Card • Affirm • Paze • 3D Secure",
+      color: "#DC2626",
+      hoverColor: "#FEE2E2",
     }
     // {
     //   id: "crypto",

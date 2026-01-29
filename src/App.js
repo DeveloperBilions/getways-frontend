@@ -485,22 +485,22 @@ function App() {
                       </Authenticated>
                     }
                   /> */}
-                  <Route
+                  {/* <Route
                     path="/commerce-hub-payment"
                     element={
                       <Authenticated>
                         <CommerceHubWidget />
                       </Authenticated>
                     }
-                  />
-                   <Route
+                  /> */}
+                   {/* <Route
                     path="/commerce-hub-sdk"
                     element={
                       <Authenticated>
                         <CommerceHubRecharge />
                       </Authenticated>
                     }
-                  />
+                  /> */}
                   <Route
                     path="/seon-payment"
                     element={
@@ -554,6 +554,7 @@ function App() {
           <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
           <Route path="/commerce-hub-payment" element={<CommerceHubWidget />} />
+          <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}
           <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
         </CustomRoutes>

@@ -36,7 +36,16 @@ import { Parse } from 'parse';
 const COMMERCE_HUB_SDK_VERSION = '3.5.5';
 const COMMERCE_HUB_SDK_URL = `https://commercehub-secure-data-capture.fiservapps.com/${COMMERCE_HUB_SDK_VERSION}/checkout.js`;
 
-const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', initialRemark = '' }) => {
+const CommerceHubSDKDialog = ({ 
+  open, 
+  onClose, 
+  onSuccess, 
+  initialAmount = '', 
+  initialRemark = '',
+  widgetMode = false,
+  widgetUserId = null,
+  widgetType = null
+}) => {
   const [amount, setAmount] = useState(initialAmount);
   const [remark, setRemark] = useState(initialRemark);
   const [use3DS, setUse3DS] = useState(false);
@@ -170,7 +179,8 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
     setError('');
 
     try {
-      const sessionToken = Parse.User.current().getSessionToken();
+      // In widget mode, use useMasterKey and pass userId/type
+      const cloudOptions = widgetMode ? { useMasterKey: true } : { sessionToken: Parse.User.current().getSessionToken() };
       
       // STEP 2: Check if using Affirm, Paze, or regular Commerce Hub
       if (usePaze) {
@@ -183,9 +193,13 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
           }
         };
 
-        const response = await Parse.Cloud.run('pazeInitRecharge', initParams, {
-          sessionToken
-        });
+        // Add widget parameters if in widget mode
+        if (widgetMode) {
+          initParams.type = widgetType;
+          initParams.userId = widgetUserId;
+        }
+
+        const response = await Parse.Cloud.run('pazeInitRecharge', initParams, cloudOptions);
 
         if (!response.success) {
           throw new Error('Failed to initialize Paze payment session');
@@ -211,9 +225,13 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
           }
         };
 
-        const response = await Parse.Cloud.run('affirmInitRecharge', initParams, {
-          sessionToken
-        });
+        // Add widget parameters if in widget mode
+        if (widgetMode) {
+          initParams.type = widgetType;
+          initParams.userId = widgetUserId;
+        }
+
+        const response = await Parse.Cloud.run('affirmInitRecharge', initParams, cloudOptions);
 
         if (!response.success) {
           throw new Error('Failed to initialize Affirm payment session');
@@ -240,9 +258,13 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
           initParams.billingAddress = billingAddress;
         }
 
-        const response = await Parse.Cloud.run('commerceHubInitRecharge', initParams, {
-          sessionToken
-        });
+        // Add widget parameters if in widget mode
+        if (widgetMode) {
+          initParams.type = widgetType;
+          initParams.userId = widgetUserId;
+        }
+
+        const response = await Parse.Cloud.run('commerceHubInitRecharge', initParams, cloudOptions);
 
         if (!response.success) {
           throw new Error('Failed to initialize payment session');
@@ -520,12 +542,19 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
     try {
       console.log('🔧 STEP 7: Completing payment via Charges API...');
 
-      const sessionToken = Parse.User.current().getSessionToken();
+      const cloudOptions = widgetMode ? { useMasterKey: true } : { sessionToken: Parse.User.current().getSessionToken() };
 
-      const response = await Parse.Cloud.run('pazeCompleteRecharge', {
+      const completeParams = {
         transactionId: transactionData.transactionId,
         pazeData: pazeData
-      }, { sessionToken });
+      };
+
+      // Add widget parameters if in widget mode
+      if (widgetMode) {
+        completeParams.type = widgetType;
+      }
+
+      const response = await Parse.Cloud.run('pazeCompleteRecharge', completeParams, cloudOptions);
 
       console.log('✅ STEP 7 Complete - Payment completed:', response);
 
@@ -551,23 +580,37 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
       setProcessingPayment(true);
       console.log('🔄 STEP 5: Creating Affirm checkout order...');
 
-      const sessionToken = Parse.User.current().getSessionToken();
+      const cloudOptions = widgetMode ? { useMasterKey: true } : { sessionToken: Parse.User.current().getSessionToken() };
 
       // STEP 5: Submit Checkouts Orders request
-      const orderResponse = await Parse.Cloud.run('affirmCreateOrder', {
+      const orderParams = {
         transactionId: transactionData.transactionId,
         affirmOrderId: affirmData.orderId,
         affirmTransactionId: affirmData.transactionId
-      }, { sessionToken });
+      };
+
+      // Add widget parameters if in widget mode
+      if (widgetMode) {
+        orderParams.type = widgetType;
+      }
+
+      const orderResponse = await Parse.Cloud.run('affirmCreateOrder', orderParams, cloudOptions);
 
       console.log('✅ STEP 5 Complete - Checkout order created:', orderResponse);
 
       // STEP 6: Authorize the order
       console.log('🔄 STEP 6: Authorizing Affirm order...');
 
-      const authResponse = await Parse.Cloud.run('affirmAuthorizeOrder', {
+      const authParams = {
         transactionId: transactionData.transactionId
-      }, { sessionToken });
+      };
+
+      // Add widget parameters if in widget mode
+      if (widgetMode) {
+        authParams.type = widgetType;
+      }
+
+      const authResponse = await Parse.Cloud.run('affirmAuthorizeOrder', authParams, cloudOptions);
 
       console.log('✅ STEP 6 Complete - Order authorized:', authResponse);
 
@@ -617,7 +660,7 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
     try {
       console.log('🔄 STEP 6: Completing payment (Submit transaction request)...');
 
-      const sessionToken = Parse.User.current().getSessionToken();
+      const cloudOptions = widgetMode ? { useMasterKey: true } : { sessionToken: Parse.User.current().getSessionToken() };
       
       // STEP 6: Submit transaction request to backend
       // This will call the Charges API with payment session and optional 3DS data
@@ -633,9 +676,12 @@ const CommerceHubSDKDialog = ({ open, onClose, onSuccess, initialAmount = '', in
         console.log('Including 3DS authentication data in charges request');
       }
 
-      const response = await Parse.Cloud.run('commerceHubCompleteRecharge', completeParams, {
-        sessionToken
-      });
+      // Add widget parameters if in widget mode
+      if (widgetMode) {
+        completeParams.type = widgetType;
+      }
+
+      const response = await Parse.Cloud.run('commerceHubCompleteRecharge', completeParams, cloudOptions);
 
       console.log('✅ STEP 6 Complete - Payment completed:', response);
 
