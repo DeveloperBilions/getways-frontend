@@ -19,8 +19,20 @@ const CommerceHubWidget = () => {
   const navigate = useNavigate();
   const { identity } = useGetIdentity();
   
-  // Get recharge amount and remark from navigation state
+  // Get data from URL query parameters (for widget) or navigation state (for regular flow)
+  const searchParams = new URLSearchParams(location.search);
+  const sessionIdFromUrl = searchParams.get('sessionId');
+  const accessTokenFromUrl = searchParams.get('accessToken');
+  const amountFromUrl = searchParams.get('amount');
+  const transactionIdFromUrl = searchParams.get('transactionId');
+  const merchantIdFromUrl = searchParams.get('merchantId');
+  
+  // Get recharge amount and remark from navigation state (regular flow)
   const { rechargeAmount, remark } = location.state || {};
+  
+  // Use URL params if available (widget flow), otherwise use state (regular flow)
+  const isWidgetFlow = !!sessionIdFromUrl;
+  const finalAmount = isWidgetFlow ? parseFloat(amountFromUrl) : rechargeAmount;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,12 +42,25 @@ const CommerceHubWidget = () => {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
-  // Check if navigation state is valid
+  // Check if we have required data
   useEffect(() => {
-    if (!rechargeAmount) {
+    if (!finalAmount && !isWidgetFlow) {
       navigate("/playerDashboard");
     }
-  }, [rechargeAmount, navigate]);
+  }, [finalAmount, isWidgetFlow, navigate]);
+  
+  // If widget flow with credentials from URL, set them directly
+  useEffect(() => {
+    if (isWidgetFlow && sessionIdFromUrl && accessTokenFromUrl) {
+      setCredentialsData({
+        sessionId: sessionIdFromUrl,
+        accessToken: accessTokenFromUrl,
+        amount: parseFloat(amountFromUrl),
+        transactionId: transactionIdFromUrl,
+        merchantId: merchantIdFromUrl
+      });
+    }
+  }, [isWidgetFlow, sessionIdFromUrl, accessTokenFromUrl, amountFromUrl, transactionIdFromUrl, merchantIdFromUrl]);
 
   // Step 4: Load SDK in browser
   useEffect(() => {
@@ -76,12 +101,12 @@ const CommerceHubWidget = () => {
     };
   }, []);
 
-  // Initialize when component mounts
+  // Initialize when component mounts (only for regular flow, not widget flow)
   useEffect(() => {
-    if (rechargeAmount && !credentialsData) {
+    if (finalAmount && !credentialsData && !isWidgetFlow) {
       getCredentialsAndInitialize();
     }
-  }, [rechargeAmount]);
+  }, [finalAmount, credentialsData, isWidgetFlow]);
 
   // Step 3: Acquire credentials
   const getCredentialsAndInitialize = async () => {
@@ -93,7 +118,7 @@ const CommerceHubWidget = () => {
 
       // Call backend to get security credentials
       const response = await Parse.Cloud.run("commerceHubGetCredentials", {
-        amount: rechargeAmount,
+        amount: finalAmount,
         remark: remark,
         customerInfo: {
           name: Parse.User.current()?.get("username") || "Customer",

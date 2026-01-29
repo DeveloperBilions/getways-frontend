@@ -198,6 +198,35 @@ const RechargeWidgetPopup = ({
         console.error(err);
         setLoadingMessage("");
       }
+    } else if(id === "commerce-hub"){
+      try {
+        setLoadingMessage("Loading Commerce Hub checkout...");
+        
+        const result = await Parse.Cloud.run("commerceHubGetCredentials", {
+          type: "AOG",
+          amount: parseFloat(confirmedAmount),
+          remark: remark,
+          userId,
+          customerInfo: {
+            name: "",
+            email: ""
+          }
+        }, { useMasterKey: true });
+
+        setLoadingMessage(""); // Clear loading message
+
+        if (result.success && result.sessionId) {
+          // Navigate to Commerce Hub widget with credentials
+          const commerceHubUrl = `/commerce-hub-payment?sessionId=${result.sessionId}&accessToken=${encodeURIComponent(result.accessToken)}&amount=${confirmedAmount}&transactionId=${result.transactionId}&merchantId=${result.merchantId}`;
+          setIframeUrl(commerceHubUrl);
+        } else {
+          alert("Failed to initialize Commerce Hub checkout");
+        }
+      } catch (err) {
+        alert("Failed to initiate Commerce Hub checkout.");
+        console.error(err);
+        setLoadingMessage("");
+      }
     } else {
       onOptionClick(id, { userId, walletId, remark });
     }
@@ -353,6 +382,13 @@ const RechargeWidgetPopup = ({
       description: "Secure checkout • Redirect to payment",
       color: "#0052CC",
       hoverColor: "#E6F2FF",
+    },
+    {
+      id: "commerce-hub",
+      title: "Commerce Hub",
+      description: "Secure payment • Hosted checkout",
+      color: "#FF6B00",
+      hoverColor: "#FFF4E6",
     }
     // {
     //   id: "crypto",
@@ -452,7 +488,7 @@ const RechargeWidgetPopup = ({
   </IconButton> */}
         </Box>
 
-        <Box sx={{ p: 2, maxHeight: "100vh", overflowY: "auto" }}>
+        <Box sx={{ p: 2, maxHeight: iframeUrl ? "calc(100vh - 60px)" : "100vh", overflowY: iframeUrl ? "hidden" : "auto" }}>
           {!actionType ? (
             <Stack spacing={2} alignItems="center" py={3}>
               <Typography variant="h6">What would you like to do?</Typography>
@@ -552,12 +588,20 @@ const RechargeWidgetPopup = ({
                       </Typography>
                     </Box>
                   ) : (
-                    <Box sx={{ height: "100vh" }}>
+                    <Box sx={{ 
+                      height: "calc(100vh - 80px)", 
+                      width: "100%",
+                      overflow: "hidden"
+                    }}>
                       <iframe
                         src={iframeUrl}
                         width="100%"
                         height="100%"
-                        style={{ border: "none", borderRadius: 8 }}
+                        style={{ 
+                          border: "none", 
+                          borderRadius: 8,
+                          display: "block"
+                        }}
                         allow="payment"
                         title="Wert Recharge"
                       />

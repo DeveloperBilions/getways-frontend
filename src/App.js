@@ -544,6 +544,7 @@ function App() {
           <Route path="/fiserv-checkout-payment" element={<FiservCheckoutWidget />} />
           <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
+          <Route path="/commerce-hub-payment" element={<CommerceHubWidget />} />
           {/* Total Liquor Embedded Checkout */}
           <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
         </CustomRoutes>

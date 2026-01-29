@@ -206,7 +206,7 @@ const Recharge = ({
       const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
-      const isCommerceHubAllowed = true; // = await isPaymentMethodAllowed(parentId, "commercehub");
+      const isCommerceHubAllowed = await isPaymentMethodAllowed(parentId, "commercehub");
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
       const isIDVerificationAllowed = await isPaymentMethodAllowed(parentId, "idverification");
       
