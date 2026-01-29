@@ -471,17 +471,17 @@ function App() {
                   <Route
                     path="/fiserv-payment"
                     element={
-                      <Authenticated>
+                      // <Authenticated>
                         <FiservPaymentWidget />
-                      </Authenticated>
+                      // </Authenticated>
                     }
                   />
                   <Route
                     path="/fiserv-checkout-payment"
                     element={
-                      <Authenticated>
+                      // <Authenticated>
                         <FiservCheckoutWidget />
-                      </Authenticated>
+                      // </Authenticated>
                     }
                   />
                   <Route
