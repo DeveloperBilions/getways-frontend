@@ -368,13 +368,13 @@ const RechargeWidgetPopup = ({
     //   color: "#3B82F6",
     //   hoverColor: "#EFF6FF",
     // },
-    {
-      id: "payarc",
-      title: "Pay By card",
-      description: "Secure payment",
-      color: "#FF9900",
-      hoverColor: "#FFF7E6",
-    },
+    // {
+    //   id: "payarc",
+    //   title: "Pay By card",
+    //   description: "Secure payment",
+    //   color: "#FF9900",
+    //   hoverColor: "#FFF7E6",
+    // },
     {
       id: "fiserv-payment",
       title: "Fiserv Payment",
@@ -694,7 +694,7 @@ const RechargeWidgetPopup = ({
               ) : confirmedAmount ? (
                 <Stack spacing={2}>
                   {/* Redeem payment options */}
-                  <Card
+                  {/* <Card
                     onClick={() => {
                       // Gift Card redeem flow
                       setActionType("redeem-giftcard");
@@ -731,7 +731,7 @@ const RechargeWidgetPopup = ({
                         <ChevronRightIcon sx={{ color: "#9CA3AF" }} />
                       </Box>
                     </CardContent>
-                  </Card>
+                  </Card> */}
 
                   <Card
                     onClick={() => {
