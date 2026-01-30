@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   ModalHeader,
@@ -17,6 +17,9 @@ import {
   Step,
   StepLabel,
 } from "@mui/material";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import WarningIcon from "@mui/icons-material/Warning";
+import { useNavigate } from "react-router-dom";
 import Close from "../../../Assets/icons/close.svg";
 import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
 import Parse from "parse";
@@ -38,10 +41,15 @@ const FiservDisbursementDialog = ({
   widgetUserId = null,
   widgetType = null
 }) => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  
+  // ID Verification status
+  const [idVerified, setIdVerified] = useState(false);
+  const [checkingIdVerification, setCheckingIdVerification] = useState(true);
   
   // Form data
   const [email, setEmail] = useState("");
@@ -51,6 +59,42 @@ const FiservDisbursementDialog = ({
   
   // Transaction result
   const [transactionResult, setTransactionResult] = useState(null);
+
+  // Check ID verification status when dialog opens
+  useEffect(() => {
+    if (open && !widgetMode) {
+      checkIdVerificationStatus();
+    }
+  }, [open]);
+
+  const checkIdVerificationStatus = async () => {
+    setCheckingIdVerification(true);
+    try {
+      const currentUser = Parse.User.current();
+      if (!currentUser) {
+        setIdVerified(false);
+        setCheckingIdVerification(false);
+        return;
+      }
+
+      // Check user's ID verification status
+      const result = await Parse.Cloud.run("checkIDVerificationStatus", {
+        userId: currentUser.id
+      });
+
+      setIdVerified(result.verified === true);
+    } catch (err) {
+      console.error("Error checking ID verification:", err);
+      setIdVerified(false);
+    } finally {
+      setCheckingIdVerification(false);
+    }
+  };
+
+  const handleNavigateToVerification = () => {
+    onClose();
+    navigate('/id-verification');
+  };
 
   const handleClose = () => {
     // Reset state
@@ -171,6 +215,56 @@ const FiservDisbursementDialog = ({
   };
 
   const renderStepContent = () => {
+    // Check ID verification first (SEON Mid-Layer)
+    if (checkingIdVerification) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <CircularProgress sx={{ mb: 2 }} />
+          <Typography>Checking verification status...</Typography>
+        </Box>
+      );
+    }
+
+    if (!idVerified && !widgetMode) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Identity Verification Required
+          </Typography>
+          <Typography sx={{ mb: 3, color: '#666', lineHeight: 1.6 }}>
+            To process disbursements, you must complete identity verification. 
+            This is a one-time requirement for security and regulatory compliance.
+          </Typography>
+          <Alert severity="info" sx={{ mb: 3, textAlign: 'left' }}>
+            <Typography variant="body2">
+              <strong>Identity Verification includes:</strong><br/>
+              Document capture (ID or Passport)<br/>
+              Liveness detection<br/>
+              Instant verification
+            </Typography>
+          </Alert>
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleNavigateToVerification}
+            startIcon={<VerifiedUserIcon />}
+            sx={{ py: 1.5 }}
+          >
+            Complete ID Verification
+          </Button>
+          <Button
+            fullWidth
+            variant="text"
+            onClick={onClose}
+            sx={{ mt: 2 }}
+          >
+            Cancel
+          </Button>
+        </Box>
+      );
+    }
+
     switch (activeStep) {
       case 0:
         // Step 1: Enter Details
