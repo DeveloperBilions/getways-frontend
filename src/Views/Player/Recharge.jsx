@@ -135,6 +135,7 @@ const Recharge = ({
   const [allowedActiveMethods, setAllowedActiveMethods] = useState(null);
   const [thresholdMethods, setThresholdMethods] = useState([]);
   const [commerceHubSDKDialogOpen, setCommerceHubSDKDialogOpen] = useState(false);
+  const [commerceHubHostedFieldsOpen, setCommerceHubHostedFieldsOpen] = useState(false);
   const [affirmDialogOpen, setAffirmDialogOpen] = useState(false);
   useEffect(() => {
     const checkPayarcLimit = async () => {
@@ -1396,6 +1397,58 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
         } catch (err) {
           console.error("Commerce Hub SDK error:", err);
           setRechargeError(err.message || "Failed to open Commerce Hub SDK. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "commercehubhostedfields",
+      title: "Commerce Hub Hosted Fields",
+      description: "Individual payment fields • Maximum control",
+      subtext: "No KYC needed • Custom styling",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC",
+      hoverColor: "#E6F0FF",
+      paymentIcons: [visa, mastercard, Logo1],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Navigate to Hosted Fields page
+          navigate("/commerce-hub-hosted-fields", {
+            state: {
+              rechargeAmount: rechargeAmount,
+              remark: "Commerce Hub Hosted Fields Recharge",
+            },
+          });
+        } catch (err) {
+          console.error("Commerce Hub Hosted Fields error:", err);
+          setRechargeError(err.message || "Failed to open Commerce Hub Hosted Fields. Please try again.");
         } finally {
           setCheckingRechargeLimit(false);
         }

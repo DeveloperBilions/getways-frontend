@@ -63,6 +63,7 @@ import FiservCheckoutWidget from "./Views/Widget/FiservCheckoutWidget";
 import FiservCheckoutSuccess from "./Views/Widget/FiservCheckoutSuccess";
 import FiservCheckoutFailure from "./Views/Widget/FiservCheckoutFailure";
 import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
+import CommerceHubHostedFields from "./Views/Player/CommerceHubHostedFields";
 import SeonPaymentPage from "./Views/Player/SeonPaymentPage";
 import CommerceHubRecharge from "./Views/RechargeRecords/CommerceHubRecharge";
 import FiservDisbursementWidget from "./Views/Widget/FiservDisbursementWidget";
@@ -556,6 +557,7 @@ function App() {
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
           <Route path="/fiserv-disbursement" element={<FiservDisbursementWidget />} />
           <Route path="/commerce-hub-payment" element={<CommerceHubWidget />} />
+          <Route path="/commerce-hub-hosted-fields" element={<CommerceHubHostedFields />} />
           <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}
           <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
