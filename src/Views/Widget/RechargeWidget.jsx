@@ -447,24 +447,54 @@ const RechargeWidgetPopup = ({
           // top: "50%",
           // left: "50%",
           // transform: "translate(-50%, -50%)",
-          width: "100vw",
-          borderRadius: 3,
+          width: "100%",
+          maxWidth: "100vw",
+          minWidth: "280px", // Absolute minimum width for very small screens
+          borderRadius: {
+            xs: 0, // No border radius on mobile for full screen
+            sm: 3, // Border radius on larger screens
+          },
           bgcolor: "#fff",
           zIndex: 1400,
           height: "100vh",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+          boxShadow: {
+            xs: "none", // No shadow on very small screens
+            sm: "0 8px 24px rgba(0,0,0,0.15)",
+          },
           overflow: "hidden",
+          // Custom media query for very small screens
+          "@media (max-width: 335px)": {
+            minWidth: "100%",
+            width: "100vw",
+          },
         }}
       >
         <Box
           sx={{
-            px: 2,
-            py: 1.5,
+            px: {
+              xs: 0.5, // Very small padding on mobile
+              sm: 1.5, // Medium padding on tablet
+              md: 2, // Full padding on desktop
+            },
+            py: {
+              xs: 0.5, // Very small vertical padding on mobile
+              sm: 1.5, // Full vertical padding on larger screens
+            },
             borderBottom: "1px solid #eee",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             backgroundColor: "#F9FAFB",
+            minHeight: {
+              xs: "40px", // Smaller minimum header height on mobile
+              sm: "56px", // Standard header height on larger screens
+            },
+            // Custom media query for very small screens
+            "@media (max-width: 335px)": {
+              px: 0.25,
+              py: 0.25,
+              minHeight: "36px",
+            },
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -501,15 +531,53 @@ const RechargeWidgetPopup = ({
   </IconButton> */}
         </Box>
 
-        <Box sx={{ p: 2, maxHeight: iframeUrl ? "calc(100vh - 60px)" : "100vh", overflowY: iframeUrl ? "hidden" : "auto" }}>
+        <Box sx={{ 
+          p: {
+            xs: 0.5, // Very small padding on mobile
+            sm: 1.5, // Medium padding on tablet
+            md: 2, // Full padding on desktop
+          },
+          maxHeight: iframeUrl ? "calc(100vh - 60px)" : "100vh", 
+          overflowY: iframeUrl ? "hidden" : "auto",
+          overflowX: "hidden", // Prevent horizontal overflow
+          // Custom media query for very small screens
+          "@media (max-width: 335px)": {
+            p: 0.25,
+          },
+        }}>
           {!actionType ? (
             <Stack spacing={2} alignItems="center" py={3}>
-              <Typography variant="h6">What would you like to do?</Typography>
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Typography 
+                variant="h6"
+                sx={{
+                  fontSize: {
+                    xs: "1rem", // Even smaller on very small screens
+                    sm: "1.25rem", // Default h6 size on larger screens
+                  },
+                  textAlign: "center",
+                  px: 1, // Add some padding on sides
+                }}
+              >
+                What would you like to do?
+              </Typography>
+              <Box sx={{ 
+                display: "flex", 
+                gap: 2,
+                flexDirection: {
+                  xs: "column", // Stack vertically on mobile
+                  sm: "row", // Side by side on larger screens
+                },
+                width: "100%",
+                maxWidth: "260px",
+              }}>
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={() => setActionType("recharge")}
+                  sx={{ 
+                    flex: 1,
+                    minHeight: "44px", // Touch-friendly height
+                  }}
                 >
                   Recharge
                 </Button>
@@ -517,6 +585,10 @@ const RechargeWidgetPopup = ({
                   variant="contained"
                   color="primary"
                   onClick={() => setActionType("redeem")}
+                  sx={{ 
+                    flex: 1,
+                    minHeight: "44px", // Touch-friendly height
+                  }}
                 >
                   Redeem
                 </Button>
@@ -525,7 +597,17 @@ const RechargeWidgetPopup = ({
           ) : (actionType === "recharge" || actionType === "redeem") &&
             !confirmedAmount ? (
             <Stack spacing={2} alignItems="center" py={3}>
-              <Typography variant="h6">
+              <Typography 
+                variant="h6"
+                sx={{
+                  fontSize: {
+                    xs: "1rem", // Even smaller on very small screens
+                    sm: "1.25rem", // Default h6 size on larger screens
+                  },
+                  textAlign: "center",
+                  px: 1, // Add some padding on sides
+                }}
+              >
                 Enter {actionType === "recharge" ? "Recharge" : "Redeem"} Amount
               </Typography>
 
@@ -539,11 +621,14 @@ const RechargeWidgetPopup = ({
                   setAmountError("");
                 }}
                 style={{
-                  padding: "10px",
-                  width: "200px",
+                  padding: "8px",
+                  width: "100%",
+                  maxWidth: "260px",
+                  minWidth: "180px",
                   fontSize: "14px",
                   border: "1px solid #ccc",
                   borderRadius: "6px",
+                  boxSizing: "border-box",
                 }}
                 disabled={price ?  true : false}
               />
@@ -563,6 +648,11 @@ const RechargeWidgetPopup = ({
                     return;
                   }
                   setConfirmedAmount(num.toFixed(2));
+                }}
+                sx={{
+                  width: "100%",
+                  maxWidth: "260px",
+                  minHeight: "44px", // Touch-friendly height
                 }}
               >
                 Proceed
@@ -602,9 +692,18 @@ const RechargeWidgetPopup = ({
                     </Box>
                   ) : (
                     <Box sx={{ 
-                      height: "calc(100vh - 80px)", 
+                      height: {
+                        xs: "calc(100vh - 50px)", // Very small screens - minimal header
+                        sm: "calc(100vh - 70px)", // Tablet
+                        md: "calc(100vh - 80px)", // Desktop
+                      },
                       width: "100%",
-                      overflow: "hidden"
+                      overflow: "hidden",
+                      minHeight: {
+                        xs: "400px", // Minimum height for mobile
+                        sm: "500px", // Minimum height for tablet
+                        md: "600px", // Minimum height for desktop
+                      }
                     }}>
                       <iframe
                         src={iframeUrl}
@@ -674,9 +773,18 @@ const RechargeWidgetPopup = ({
             <>
               {iframeUrl ? (
                 <Box sx={{ 
-                  height: "calc(100vh - 80px)", 
+                  height: {
+                    xs: "calc(100vh - 50px)", // Very small screens - minimal header
+                    sm: "calc(100vh - 70px)", // Tablet
+                    md: "calc(100vh - 80px)", // Desktop
+                  },
                   width: "100%",
-                  overflow: "hidden"
+                  overflow: "hidden",
+                  minHeight: {
+                    xs: "400px", // Minimum height for mobile
+                    sm: "500px", // Minimum height for tablet
+                    md: "600px", // Minimum height for desktop
+                  }
                 }}>
                   <iframe
                     src={iframeUrl}
