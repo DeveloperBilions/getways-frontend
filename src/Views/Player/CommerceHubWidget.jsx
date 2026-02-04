@@ -15,6 +15,12 @@ Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
 const CommerceHubWidget = () => {
+  // ==================== INTEGRATION TYPE CONFIGURATION ====================
+  // Set to "REDIRECT" for Hosted Pages (full page redirect)
+  // Set to "FRAME" for Hosted Components (embedded iframe)
+  const INTEGRATION_TYPE = "REDIRECT"; // Change to "FRAME" for iframe integration
+  // ========================================================================
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { identity } = useGetIdentity();
@@ -192,11 +198,38 @@ const CommerceHubWidget = () => {
         merchantId,
         terminalId: "10000001",
         pageId,
-        pageVersion
+        pageVersion,
+        integrationType: INTEGRATION_TYPE
       });
       
+      // ==================== INTEGRATION OPTIONS ====================
+      // Two integration types available:
+      // 1. REDIRECT (Hosted Pages) - User redirects to Commerce Hub page
+      // 2. FRAME (Hosted Components) - Embedded iframe on your page
+      
+      let integrationOptions;
+      
+      if (INTEGRATION_TYPE === "REDIRECT") {
+        // HOSTED PAGES - Full page redirect
+        integrationOptions = {
+          type: "REDIRECT",
+          onCompleteUrl: `${window.location.origin}/commerce-hub-success?transactionId=${credentials.transactionId}`
+        };
+      } else if (INTEGRATION_TYPE === "FRAME") {
+        // HOSTED COMPONENTS - Embedded iframe
+        integrationOptions = {
+          type: "FRAME",
+          parentElementId: "commerce-hub-checkout-form",
+          // Optional: Add if your page is itself in an iframe
+          // additionalFrameAncestors: ["ancestorpage.merchant.com", "https://another-example.com"]
+        };
+      } else {
+        throw new Error(`Invalid INTEGRATION_TYPE: ${INTEGRATION_TYPE}. Must be "REDIRECT" or "FRAME"`);
+      }
+      // =========================================================
+      
       // Create hosted checkout form
-      const formInstance = window.fiserv.components.hostedCheckout({
+      const formPromise = window.fiserv.components.hostedCheckout({
         credentials: {
           environment: environment,
           apiKey: apiKey,
@@ -206,31 +239,49 @@ const CommerceHubWidget = () => {
           pageId: pageId,
           pageVersion: pageVersion
         },
-        integrationOptions: {
-          type: "REDIRECT",
-          onCompleteUrl: `${window.location.origin}/commerce-hub-success?transactionId=${credentials.transactionId}`
-        }
+        integrationOptions: integrationOptions
       });
 
-      console.log("📝 Form instance created:", formInstance);
+      // Handle FRAME integration (iframe)
+      if (INTEGRATION_TYPE === "FRAME") {
+        formPromise
+          .then(() => {
+            console.log("✅ Commerce Hub FRAME form loaded successfully");
+            setFormMounted(true);
+            setLoading(false);
+            
+            // Trigger API call on successful capture (empty response from SDK)
+            handlePaymentCompletion(credentials);
+          })
+          .catch((error) => {
+            console.error("❌ FRAME form error:", JSON.stringify(error));
+            setError(error.message || "Payment form error. Please try again.");
+            setLoading(false);
+          });
+      } 
+      // Handle REDIRECT integration (Hosted Pages)
+      else if (INTEGRATION_TYPE === "REDIRECT") {
+        const formInstance = await formPromise;
+        console.log("📝 Form instance created:", formInstance);
 
-      // Mount the form
-      formInstance.mount("#commerce-hub-checkout-form");
-      setFormMounted(true);
-      setLoading(false);
+        // Mount the form
+        formInstance.mount("#commerce-hub-checkout-form");
+        setFormMounted(true);
+        setLoading(false);
 
-      console.log("✅ Commerce Hub form mounted successfully");
+        console.log("✅ Commerce Hub REDIRECT form mounted successfully");
 
-      // Handle form events
-      formInstance.on("success", async (result) => {
-        console.log("💳 Form submitted successfully:", result);
-        handlePaymentCompletion(credentials);
-      });
+        // Handle form events
+        formInstance.on("success", async (result) => {
+          console.log("💳 Form submitted successfully:", result);
+          handlePaymentCompletion(credentials);
+        });
 
-      formInstance.on("error", (error) => {
-        console.error("❌ Form error:", error);
-        setError(error.message || "Payment form error. Please try again.");
-      });
+        formInstance.on("error", (error) => {
+          console.error("❌ Form error:", error);
+          setError(error.message || "Payment form error. Please try again.");
+        });
+      }
 
     } catch (err) {
       console.error("Form creation error:", err);
