@@ -64,7 +64,7 @@ import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalance
 import { getActiveThresholdMethod, 
   // validateThresholdBeforeRecharge 
 } from "../../Utils/rechargeThreshold";
-import CommerceHubSDKDialog from "../RechargeRecords/dialog/CommerceHubSDKDialog";
+import CommerceHubSDKDialog from "../Fiserv/CommerceHub/CommerceHubSDKDialog";
 
 //const projectId = "5df50487-d8a7-4d6f-8a0c-714d18a559ed";
 //Live

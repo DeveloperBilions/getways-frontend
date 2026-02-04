@@ -20,8 +20,8 @@ import {
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import WarningIcon from "@mui/icons-material/Warning";
 import { useNavigate } from "react-router-dom";
-import Close from "../../../Assets/icons/close.svg";
-import AOG_Symbol from "../../../Assets/icons/AOGsymbol.png";
+import Close from "../../Assets/icons/close.svg";
+import AOG_Symbol from "../../Assets/icons/AOGsymbol.png";
 import Parse from "parse";
 
 // Flow steps

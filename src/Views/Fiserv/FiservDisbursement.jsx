@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Alert, Snackbar } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
-import FiservDisbursementDialog from '../Player/dialog/FiservDisbursementDialog';
+import FiservDisbursementDialog from './FiservDisbursementDialog';
 
 /**
  * Fiserv Digital Disbursements Widget Component

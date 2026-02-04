@@ -15,7 +15,7 @@ import { Alert ,Button} from "@mui/material";
 import CheckbookPaymentDialog from './CheckbookPaymentDialog'; 
 import Parse from "parse";
 import ClkkDialog from "../ClkkDialog";
-import FiservDisbursementDialog from "./FiservDisbursementDialog";
+import FiservDisbursementDialog from "../../Fiserv/FiservDisbursementDialog";
 
 const ALL_METHODS = {
   giftcard: "Gift Card",

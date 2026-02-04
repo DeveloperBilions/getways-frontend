@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import PaymentIcon from '@mui/icons-material/Payment';
 import SecurityIcon from '@mui/icons-material/Security';
-import CommerceHubSDKDialog from './dialog/CommerceHubSDKDialog';
+import CommerceHubSDKDialog from './CommerceHubSDKDialog';
 import { useSearchParams } from 'react-router-dom';
 
 /**

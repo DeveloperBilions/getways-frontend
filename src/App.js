@@ -58,15 +58,15 @@ import ClkkCashout from "./Views/Player/ClkkCashout";
 import TotalLiquorEmbeddedCheckout from "./Views/TotalLiquor/TotalLiquorEmbeddedCheckout";
 import { PlayerRedeemRecordsList } from "./Views/RedeemRecords/PlayerRedeemRecordeList";
 import { AuthorizeNetCardForm } from "./Views/Widget/AuthorizeNetCardForm";
-import FiservPaymentWidget from "./Views/Widget/FiservPaymentWidget";
-import FiservCheckoutWidget from "./Views/Widget/FiservCheckoutWidget";
-import FiservCheckoutSuccess from "./Views/Widget/FiservCheckoutSuccess";
-import FiservCheckoutFailure from "./Views/Widget/FiservCheckoutFailure";
-import CommerceHubWidget from "./Views/Player/CommerceHubWidget";
-import CommerceHubHostedFields from "./Views/Player/CommerceHubHostedFields";
+import FiservPaymentWidget from "./Views/Fiserv/FiservPayment";
+import FiservCheckoutWidget from "./Views/Fiserv/FiservCheckout";
+import FiservCheckoutSuccess from "./Views/Fiserv/FiservCheckoutSuccess";
+import FiservCheckoutFailure from "./Views/Fiserv/FiservCheckoutFailure";
+import FiservDisbursementWidget from "./Views/Fiserv/FiservDisbursement";
+import CommerceHubHostedPages from "./Views/Fiserv/CommerceHub/CommerceHubHostedPages";
+import CommerceHubHostedFields from "./Views/Fiserv/CommerceHub/CommerceHubHostedFields";
 import SeonPaymentPage from "./Views/Player/SeonPaymentPage";
-import CommerceHubRecharge from "./Views/RechargeRecords/CommerceHubRecharge";
-import FiservDisbursementWidget from "./Views/Widget/FiservDisbursementWidget";
+import CommerceHubRecharge from "./Views/Fiserv/CommerceHub/CommerceHubRecharge";
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -556,7 +556,7 @@ function App() {
           <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
           <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
           <Route path="/fiserv-disbursement" element={<FiservDisbursementWidget />} />
-          <Route path="/commerce-hub-payment" element={<CommerceHubWidget />} />
+          <Route path="/commerce-hub-payment" element={<CommerceHubHostedPages />} />
           <Route path="/commerce-hub-hosted-fields" element={<CommerceHubHostedFields />} />
           <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}
