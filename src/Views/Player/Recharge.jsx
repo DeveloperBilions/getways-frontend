@@ -22,6 +22,7 @@ import { Parse } from "parse";
 import Star from "../../Assets/icons/Star.svg";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RechargeDialog from "./dialog/RechargeDialog";
+import FinixRechargeDialog from "../RechargeRecords/dialog/FinixRechargeDialog";
 import SubmitKYCDialog from "./dialog/SubmitKYCDialog";
 import { Alert } from "@mui/material"; // Make sure this is imported
 import {
@@ -88,6 +89,7 @@ const Recharge = ({
   const refresh = useRefresh();
   const navigate = useNavigate();
   const [RechargeDialogOpen, setRechargeDialogOpen] = useState(false);
+  const [finixRechargeDialogOpen, setFinixRechargeDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
   const [paymentSource, setPaymentSource] = useState("stripe");
   const [processingCryptoRecharge, setProcessingCryptoRecharge] =
@@ -137,6 +139,7 @@ const Recharge = ({
   const [commerceHubSDKDialogOpen, setCommerceHubSDKDialogOpen] = useState(false);
   const [commerceHubHostedFieldsOpen, setCommerceHubHostedFieldsOpen] = useState(false);
   const [affirmDialogOpen, setAffirmDialogOpen] = useState(false);
+  const [showFinix, setShowFinix] = useState(false);
   useEffect(() => {
     const checkPayarcLimit = async () => {
       try {
@@ -214,6 +217,7 @@ const Recharge = ({
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
       const isIDVerificationAllowed = await isPaymentMethodAllowed(parentId, "idverification");
       const isCommerceHubSDKAllowed =  await isPaymentMethodAllowed(parentId, "commercehubsdk");
+      const isFinixAllowed = await isPaymentMethodAllowed(parentId, "finix");
       console.log("🔍 ID Verification Check:", {
         parentId,
         isIDVerificationAllowed,
@@ -237,6 +241,7 @@ const Recharge = ({
       setShowIDVerification(isIDVerificationAllowed);
       setCommerceHubEnabled(isCommerceHubAllowed || isCommerceHubSDKAllowed);
       setShowCommerceHub(isCommerceHubAllowed);
+      setShowFinix(isFinixAllowed);
       console.log("✅ States Set:", {
         showIDVerification: isIDVerificationAllowed,
         seonEnabled: isSeonAllowed,
@@ -512,116 +517,116 @@ const Recharge = ({
     }
   };
   const paymentOptions = [
-    {
-  id: "finix",
-  title: "Finix Payment",
-  description: "Secure • Card & Bank Payment",
-  subtext: "No KYC needed",
-  icon: <CreditCardIcon sx={{ color: "#0F172A", fontSize: 24 }} />, 
-  color: "#0F172A",
-  hoverColor: "#F1F5F9",
-  paymentIcons: [visa, mastercard],
-  onClick: debounce(async () => {
-    try {
-      if (!(await verifyPotBalance("recharge"))) return;
-      setCheckingRechargeLimit(true);
+//     {
+//   id: "finix",
+//   title: "Finix Payment",
+//   description: "Secure • Card & Bank Payment",
+//   subtext: "No KYC needed",
+//   icon: <CreditCardIcon sx={{ color: "#0F172A", fontSize: 24 }} />, 
+//   color: "#0F172A",
+//   hoverColor: "#F1F5F9",
+//   paymentIcons: [visa, mastercard],
+//   onClick: debounce(async () => {
+//     try {
+//       if (!(await verifyPotBalance("recharge"))) return;
+//       setCheckingRechargeLimit(true);
 
-      // Minimum check
-      if (rechargeAmount < RechargeLimitOfAgent) {
-        setRechargeError(
-          `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
-        );
-        return;
-      }
+//       // Minimum check
+//       if (rechargeAmount < RechargeLimitOfAgent) {
+//         setRechargeError(
+//           `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+//         );
+//         return;
+//       }
 
-      // Limit check
-      const transactionCheck = await checkActiveRechargeLimit(
-        identity?.userParentId,
-        rechargeAmount
-      );
+//       // Limit check
+//       const transactionCheck = await checkActiveRechargeLimit(
+//         identity?.userParentId,
+//         rechargeAmount
+//       );
 
-      if (!transactionCheck.success) {
-        setRechargeError(transactionCheck.message || "Recharge Limit Reached");
-        return;
-      }
+//       if (!transactionCheck.success) {
+//         setRechargeError(transactionCheck.message || "Recharge Limit Reached");
+//         return;
+//       }
 
-      setRechargeError("");
+//       setRechargeError("");
 
-      // -------------------------
-      // 🔥 CREATE FINIX PAYMENT LINK
-      // -------------------------
-      const response = await Parse.Cloud.run("createFinixPaymentLink", {
-        amount: rechargeAmount, // USD value your UI uses
-        remark: remark
-      });
+//       // -------------------------
+//       // 🔥 CREATE FINIX PAYMENT LINK
+//       // -------------------------
+//       const response = await Parse.Cloud.run("createFinixPaymentLink", {
+//         amount: rechargeAmount, // USD value your UI uses
+//         remark: remark
+//       });
 
-      if (!response.success) {
-        alert("Failed to create Finix Payment Link.");
-        return;
-      }
+//       if (!response.success) {
+//         alert("Failed to create Finix Payment Link.");
+//         return;
+//       }
 
-      // Save Transaction
-      const TransactionDetails = Parse.Object.extend("TransactionRecords");
-      const txn = new TransactionDetails();
-      const user = await Parse.User.current()?.fetch();
+//       // Save Transaction
+//       const TransactionDetails = Parse.Object.extend("TransactionRecords");
+//       const txn = new TransactionDetails();
+//       const user = await Parse.User.current()?.fetch();
 
-      txn.set("type", "recharge");
-      txn.set("gameId", "786");
-      txn.set("username", identity?.username || "");
-      txn.set("userId", identity?.objectId);
-      txn.set("transactionDate", new Date());
-      txn.set("transactionAmount", rechargeAmount);
-      txn.set("remark", remark);
-      txn.set("useWallet", false);
-      txn.set("userParentId", user?.get("userParentId") || "");
-      txn.set("status", 1); // Pending
-      txn.set("portal", "Finix");
-      txn.set("referralLink", response?.link_url);
-      txn.set("transactionIdFromStripe", response?.id);
-      txn.set("walletAddr", identity?.walletAddr);
+//       txn.set("type", "recharge");
+//       txn.set("gameId", "786");
+//       txn.set("username", identity?.username || "");
+//       txn.set("userId", identity?.objectId);
+//       txn.set("transactionDate", new Date());
+//       txn.set("transactionAmount", rechargeAmount);
+//       txn.set("remark", remark);
+//       txn.set("useWallet", false);
+//       txn.set("userParentId", user?.get("userParentId") || "");
+//       txn.set("status", 1); // Pending
+//       txn.set("portal", "Finix");
+//       txn.set("referralLink", response?.link_url);
+//       txn.set("transactionIdFromStripe", response?.id);
+//       txn.set("walletAddr", identity?.walletAddr);
 
-      await txn.save(null, { useMasterKey: true });
+//       await txn.save(null, { useMasterKey: true });
 
-      // 🌐 Redirect to Finix hosted link
-     // 1. Test if popup is allowed
-const testPopup = window.open("", "_blank", "width=1,height=1");
+//       // 🌐 Redirect to Finix hosted link
+//      // 1. Test if popup is allowed
+// const testPopup = window.open("", "_blank", "width=1,height=1");
 
-if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
-  // ❌ Popup blocked → show your existing popup-blocked dialog
-  setPopupBlocked(true);
-  setPopupDialogOpen(true);
-  return;
-}
+// if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
+//   // ❌ Popup blocked → show your existing popup-blocked dialog
+//   setPopupBlocked(true);
+//   setPopupDialogOpen(true);
+//   return;
+// }
 
-// 2. Popup allowed → close test popup
-testPopup.close();
+// // 2. Popup allowed → close test popup
+// testPopup.close();
 
-// 3. Save link for retry or reference later
-setStoredBuyUrl(response?.link_url);
+// // 3. Save link for retry or reference later
+// setStoredBuyUrl(response?.link_url);
 
-// 4. Actually open Finix link
-const popup = window.open(response?.link_url, "_blank");
+// // 4. Actually open Finix link
+// const popup = window.open(response?.link_url, "_blank");
 
-// 5. Detect again if popup fails
-if (!popup || popup.closed || typeof popup.closed === "undefined") {
-  setPopupBlocked(true);
-  setPopupDialogOpen(true);
-  return;
-}
+// // 5. Detect again if popup fails
+// if (!popup || popup.closed || typeof popup.closed === "undefined") {
+//   setPopupBlocked(true);
+//   setPopupDialogOpen(true);
+//   return;
+// }
 
-    } catch (error) {
-      console.error("Finix Payment Error:", error);
-      alert("Something went wrong with Finix Recharge.");
-    } finally {
-      setCheckingRechargeLimit(false);
-    }
-  }),
-  disabled:
-    identity?.isBlackListed ||
-    rechargeDisabled ||
-    checkingRechargeLimit ||
-    checkingEligibility,
-},
+//     } catch (error) {
+//       console.error("Finix Payment Error:", error);
+//       alert("Something went wrong with Finix Recharge.");
+//     } finally {
+//       setCheckingRechargeLimit(false);
+//     }
+//   }),
+//   disabled:
+//     identity?.isBlackListed ||
+//     rechargeDisabled ||
+//     checkingRechargeLimit ||
+//     checkingEligibility,
+// },
     {
       id: "CLKK",
       title: "CLKK",
@@ -788,6 +793,61 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
         } catch (err) {
           console.error("Stripe error:", err);
           alert("Something went wrong with Stripe Recharge.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "finix",
+      title: "Finix Card Payment",
+      description: "Secure card payment • No KYC needed",
+      subtext: "Direct card processing",
+      icon: <CreditCardIcon sx={{ color: "#6366F1", fontSize: 24 }} />,
+      color: "#6366F1", // Indigo color
+      hoverColor: "#EEF2FF", // Light indigo tint
+      paymentIcons: [visa, mastercard],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          // Validate minimum recharge
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          // Finix requires minimum $10
+          if (rechargeAmount < 10) {
+            setRechargeError("Finix payment requires a minimum of $10.");
+            return;
+          }
+
+          // Check limit
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError(""); // Clear old errors
+
+          // Open Finix Recharge Dialog
+          setFinixRechargeDialogOpen(true);
+        } catch (err) {
+          console.error("Finix error:", err);
+          alert("Something went wrong with Finix Recharge.");
         } finally {
           setCheckingRechargeLimit(false);
         }
@@ -2509,6 +2569,7 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
                   if (option.id === "authorizenet-charge" && !showAuthorizeNet) return false;
                   if (option.id === "fiserv" && !showFiserv) return false;
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
+                  if (option.id === "finix" && !showFinix) return false;
                   if (option.id === "commercehub" && !commerceHubEnabled) return false;
                   if (option.id === "seon" && !seonEnabled) return false;
                   if (option.id === "commercehubsdk" && !commerceHubEnabled) return false;
@@ -2916,6 +2977,11 @@ if (!popup || popup.closed || typeof popup.closed === "undefined") {
           remark: remark,
           paymentSource: paymentSource,
         }}
+      />
+      <FinixRechargeDialog
+        open={finixRechargeDialogOpen}
+        onClose={() => setFinixRechargeDialogOpen(false)}
+        handleRefresh={handleRefresh}
       />
       <SubmitKYCDialog
         open={submitKycDialogOpen}
