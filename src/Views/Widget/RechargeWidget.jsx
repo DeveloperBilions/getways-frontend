@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Stack,
@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Paper,
   Button,
+  Alert,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -45,6 +46,27 @@ const RechargeWidgetPopup = ({
   const [confirmedAmount, setConfirmedAmount] = useState(null);
   const [amountError, setAmountError] = useState("");
   const [currentActionType, setCurrentActionType] = useState(type || null);
+
+  // Finix payment form state
+  const [showFinixForm, setShowFinixForm] = useState(false);
+  const [finixFormInitialized, setFinixFormInitialized] = useState(false);
+  const [finixLoading, setFinixLoading] = useState(false);
+  const [finixError, setFinixError] = useState("");
+  const [finixSuccess, setFinixSuccess] = useState(false);
+  const finixFormRef = useRef(null);
+
+  // Finix config
+  const FINIX_APPLICATION_ID = process.env.REACT_APP_FINIX_APPLICATION_ID || "APfoMeGZfdKsWmcmjcLhHjER";
+  const FINIX_ENVIRONMENT = process.env.REACT_APP_FINIX_ENVIRONMENT || "sandbox";
+
+  // Initialize Finix PaymentForm when showFinixForm becomes true
+  // (must be above the early return to satisfy rules-of-hooks)
+  useEffect(() => {
+    if (showFinixForm && !finixFormInitialized) {
+      const timer = setTimeout(() => initializeFinixForm(), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [showFinixForm, finixFormInitialized]);
 
   if (!open) return null;
 
@@ -233,6 +255,12 @@ const RechargeWidgetPopup = ({
       // Commerce Hub SDK with Affirm, Paze, and card payment options
       const sdkUrl = `/commerce-hub-sdk?amount=${confirmedAmount}&userId=${userId}&type=AOG&remark=${encodeURIComponent(remark || "Recharge")}`;
       setIframeUrl(sdkUrl);
+    } else if(id === "finix-payment"){
+      // Show inline Finix tokenization form
+      setShowFinixForm(true);
+      setFinixError("");
+      setFinixFormInitialized(false);
+      setFinixSuccess(false);
     } else {
       onOptionClick(id, { userId, walletId, remark });
     }
@@ -351,6 +379,101 @@ const RechargeWidgetPopup = ({
     }
   };
 
+  const initializeFinixForm = () => {
+    if (finixFormInitialized) return;
+
+    if (!window.Finix) {
+      setFinixError("Payment library not loaded. Please refresh the page.");
+      return;
+    }
+
+    const container = document.getElementById("finix-widget-form-container");
+    if (!container) {
+      setTimeout(() => { if (!finixFormInitialized) initializeFinixForm(); }, 200);
+      return;
+    }
+
+    try {
+      const form = window.Finix.PaymentForm("finix-widget-form-container", FINIX_ENVIRONMENT, FINIX_APPLICATION_ID, {
+        paymentMethods: ["card"],
+        showAddress: true,
+        showLabels: true,
+        labels: {
+          cardNumber: "Card Number",
+          expirationDate: "Expiration Date",
+          securityCode: "CVV",
+          postalCode: "Postal Code",
+        },
+        showPlaceholders: true,
+        placeholders: {
+          cardNumber: "1234 5678 9012 3456",
+          expirationDate: "MM/YY",
+          securityCode: "123",
+          postalCode: "12345",
+        },
+        requiredFields: ["cardNumber", "expirationDate", "securityCode", "postalCode"],
+        onSubmit: async (error, response) => {
+          setFinixError("");
+          setFinixLoading(true);
+
+          if (error) {
+            setFinixError("Payment tokenization failed. Please check your card details.");
+            setFinixLoading(false);
+            return;
+          }
+          if (!response) {
+            setFinixError("Failed to process payment. Please check your card details and try again.");
+            setFinixLoading(false);
+            return;
+          }
+
+          const tokenData = response.data || response;
+          const token = tokenData.id;
+          if (!token) {
+            setFinixError("Failed to process payment. Please try again.");
+            setFinixLoading(false);
+            return;
+          }
+
+          // Call processFinixRecharge with AOG type
+          try {
+            const result = await Parse.Cloud.run("processFinixRecharge", {
+              token,
+              amount: parseFloat(confirmedAmount),
+              username: "",
+              remark: remark || "Recharge",
+              userId,
+              userParentId: "",
+              instrumentType: tokenData.instrument_type || "PAYMENT_CARD",
+              type: "AOG",
+              gc_coins,
+              sc_coins,
+            });
+
+            if (result?.success) {
+              setShowFinixForm(false);
+              setFinixFormInitialized(false);
+              setFinixSuccess(true);
+            } else {
+              setFinixError(result?.message || "Recharge failed. Please try again.");
+            }
+          } catch (err) {
+            console.error("Error processing Finix recharge:", err);
+            setFinixError(err.message || "An unexpected error occurred. Please try again.");
+          } finally {
+            setFinixLoading(false);
+          }
+        },
+      });
+
+      finixFormRef.current = form;
+      setFinixFormInitialized(true);
+    } catch (error) {
+      console.error("Error initializing Finix PaymentForm:", error);
+      setFinixError("Failed to initialize payment form. Please refresh and try again.");
+    }
+  };
+
   const paymentOptions = [
     // {
     //   id: "quick-debit",
@@ -402,7 +525,14 @@ const RechargeWidgetPopup = ({
       description: "Card • Affirm • Paze • 3D Secure",
       color: "#DC2626",
       hoverColor: "#FEE2E2",
-    }
+    },
+    {
+      id: "finix-payment",
+      title: "Finix Payment",
+      description: "Secure card payment • No KYC needed",
+      color: "#6366F1",
+      hoverColor: "#EEF2FF",
+    },
     // {
     //   id: "crypto",
     //   title: "Standard Recharge",
@@ -413,6 +543,8 @@ const RechargeWidgetPopup = ({
     // },
   ];
   const getHeaderTitle = () => {
+    if (finixSuccess) return "Payment Successful";
+    if (showFinixForm) return "Finix Payment";
     if (iframeUrl) return "Complete Recharge";
     if (actionType === "recharge" || actionType === "redeem") {
       return `Enter ${
@@ -498,10 +630,17 @@ const RechargeWidgetPopup = ({
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {(currentActionType || iframeUrl || actionType) && (
+            {(currentActionType || iframeUrl || actionType || showFinixForm || finixSuccess) && (
               <IconButton
                 onClick={() => {
-                  if (iframeUrl) {
+                  if (finixSuccess) {
+                    setFinixSuccess(false);
+                    if (onClose) onClose();
+                  } else if (showFinixForm) {
+                    setShowFinixForm(false);
+                    setFinixFormInitialized(false);
+                    setFinixError("");
+                  } else if (iframeUrl) {
                     setIframeUrl(null);
                   } else {
                     setConfirmedAmount(null);
@@ -720,6 +859,73 @@ const RechargeWidgetPopup = ({
                     </Box>
                   )}
                 </>
+              ) : finixSuccess ? (
+                <Box sx={{ p: 2, textAlign: "center" }}>
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" color="success.main" fontWeight={600} mb={1}>
+                      Payment Submitted Successfully!
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mb={2}>
+                      Your recharge of ${confirmedAmount} has been submitted and is being processed.
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      You will receive confirmation once the payment is verified (usually within 1-2 minutes).
+                    </Typography>
+                  </Box>
+                  {/* <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                      setFinixSuccess(false);
+                      if (onClose) onClose();
+                    }}
+                    sx={{ minWidth: 120 }}
+                  >
+                    Continue
+                  </Button> */}
+                </Box>
+              ) : showFinixForm ? (
+                <Box sx={{ p: 1 }}>
+                  <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                    Pay ${confirmedAmount} with Finix
+                  </Typography>
+                  {finixError && (
+                    <Alert severity="error" sx={{ mb: 1, py: 0.5, fontSize: "0.85rem" }}>
+                      {finixError}
+                    </Alert>
+                  )}
+                  {finixLoading ? (
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 4 }}>
+                      <CircularProgress size={32} sx={{ mb: 2 }} />
+                      <Typography variant="body2">Processing payment...</Typography>
+                    </Box>
+                  ) : (
+                    <>
+                      <Box
+                        id="finix-widget-form-container"
+                        sx={{
+                          minHeight: "200px",
+                          p: 1,
+                          border: "1px solid #dee2e6",
+                          borderRadius: "4px",
+                          mb: 1,
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          setShowFinixForm(false);
+                          setFinixFormInitialized(false);
+                          setFinixError("");
+                        }}
+                        sx={{ mt: 1 }}
+                      >
+                        ← Back to options
+                      </Button>
+                    </>
+                  )}
+                </Box>
               ) : (
                 <Stack spacing={2}>
                   {paymentOptions.map((option) => (
