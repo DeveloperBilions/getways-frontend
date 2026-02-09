@@ -660,29 +660,6 @@ const RechargeWidgetPopup = ({
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {(currentActionType || iframeUrl || actionType || showFinixForm || finixSuccess) && (
-              <IconButton
-                onClick={() => {
-                  if (finixSuccess) {
-                    setFinixSuccess(false);
-                    if (onClose) onClose();
-                  } else if (showFinixForm) {
-                    setShowFinixForm(false);
-                    setFinixFormInitialized(false);
-                    setFinixError("");
-                  } else if (iframeUrl) {
-                    setIframeUrl(null);
-                  } else {
-                    setConfirmedAmount(null);
-                    setAmount("");
-                    setCurrentActionType(null);
-                  }
-                }}
-                size="small"
-              >
-                ←
-              </IconButton>
-            )}
             <Typography variant="subtitle1" fontWeight={600}>
               {getHeaderTitle()}
             </Typography>
