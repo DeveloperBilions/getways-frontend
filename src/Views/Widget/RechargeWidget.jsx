@@ -58,6 +58,35 @@ const RechargeWidgetPopup = ({
   // Finix config
   const FINIX_APPLICATION_ID = process.env.REACT_APP_FINIX_APPLICATION_ID || "APfoMeGZfdKsWmcmjcLhHjER";
   const FINIX_ENVIRONMENT = process.env.REACT_APP_FINIX_ENVIRONMENT || "sandbox";
+  const FINIX_MERCHANT_ID = process.env.REACT_APP_FINIX_MERCHANT_ID || "MUeVMGsieX8Dny8dmVbMHTJ9";
+
+  // Finix fraud detection session
+  const [finixFraudSessionId, setFinixFraudSessionId] = useState(null);
+  const finixFraudSessionRef = useRef(null);
+
+  // Initialize Finix Auth for fraud detection when Finix form is shown
+  useEffect(() => {
+    if (showFinixForm && window.Finix && !finixFraudSessionRef.current) {
+      try {
+        const finixAuth = window.Finix.Auth(FINIX_ENVIRONMENT, FINIX_MERCHANT_ID, (sessionKey) => {
+          setFinixFraudSessionId(sessionKey);
+          finixFraudSessionRef.current = sessionKey;
+        });
+        // Fallback: get session key synchronously if callback didn't fire
+        setTimeout(() => {
+          if (!finixFraudSessionRef.current && finixAuth?.getSessionKey) {
+            const key = finixAuth.getSessionKey();
+            if (key) {
+              setFinixFraudSessionId(key);
+              finixFraudSessionRef.current = key;
+            }
+          }
+        }, 1000);
+      } catch (err) {
+        console.error("Finix Auth init error:", err);
+      }
+    }
+  }, [showFinixForm]);
 
   // Initialize Finix PaymentForm when showFinixForm becomes true
   // (must be above the early return to satisfy rules-of-hooks)
@@ -448,6 +477,7 @@ const RechargeWidgetPopup = ({
               type: "AOG",
               gc_coins,
               sc_coins,
+              fraud_session_id: finixFraudSessionRef.current || null,
             });
 
             if (result?.success) {

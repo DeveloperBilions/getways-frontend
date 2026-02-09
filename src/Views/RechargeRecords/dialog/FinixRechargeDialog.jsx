@@ -12,6 +12,7 @@ Parse.serverURL = process.env.REACT_APP_URL;
 // Finix config
 const FINIX_APPLICATION_ID = process.env.REACT_APP_FINIX_APPLICATION_ID || "APfoMeGZfdKsWmcmjcLhHjER";
 const FINIX_ENVIRONMENT = process.env.REACT_APP_FINIX_ENVIRONMENT || "sandbox";
+const FINIX_MERCHANT_ID = process.env.REACT_APP_FINIX_MERCHANT_ID || "MUeVMGsieX8Dny8dmVbMHTJ9";
 
 const FinixRechargeDialog = ({ open, onClose, handleRefresh }) => {
   const { identity } = useGetIdentity();
@@ -25,7 +26,9 @@ const FinixRechargeDialog = ({ open, onClose, handleRefresh }) => {
   const [redeemFees, setRedeemFees] = useState(0);
   const [minLimitLoading, setMinLimitLoading] = useState(false);
   const [formInitialized, setFormInitialized] = useState(false);
+  const [fraudSessionId, setFraudSessionId] = useState(null);
   const formRef = useRef(null);
+  const fraudSessionRef = useRef(null);
 
   // Refs for fresh values inside Finix onSubmit callback (avoids stale closures)
   const rechargeAmountRef = useRef("");
@@ -53,6 +56,8 @@ const FinixRechargeDialog = ({ open, onClose, handleRefresh }) => {
     setRemark("");
     setErrorMessage("");
     setFormInitialized(false);
+    setFraudSessionId(null);
+    fraudSessionRef.current = null;
   };
 
   useEffect(() => {
@@ -75,6 +80,30 @@ const FinixRechargeDialog = ({ open, onClose, handleRefresh }) => {
       resetFields();
     }
   }, [identity, open]);
+
+  // Initialize Finix Auth for fraud detection when modal opens
+  useEffect(() => {
+    if (open && window.Finix && !fraudSessionRef.current) {
+      try {
+        const finixAuth = window.Finix.Auth(FINIX_ENVIRONMENT, FINIX_MERCHANT_ID, (sessionKey) => {
+          setFraudSessionId(sessionKey);
+          fraudSessionRef.current = sessionKey;
+        });
+        // Fallback: get session key synchronously if callback didn't fire
+        setTimeout(() => {
+          if (!fraudSessionRef.current && finixAuth?.getSessionKey) {
+            const key = finixAuth.getSessionKey();
+            if (key) {
+              setFraudSessionId(key);
+              fraudSessionRef.current = key;
+            }
+          }
+        }, 1000);
+      } catch (err) {
+        console.error("Finix Auth init error:", err);
+      }
+    }
+  }, [open]);
 
   // Initialize Finix form after modal opens
   useEffect(() => {
@@ -131,6 +160,7 @@ const FinixRechargeDialog = ({ open, onClose, handleRefresh }) => {
         userId: currentIdentity.objectId,
         userParentId: currentIdentity.userParentId,
         instrumentType,
+        fraud_session_id: fraudSessionRef.current || null,
       });
 
       if (response?.success) {

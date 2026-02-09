@@ -18,7 +18,7 @@ const CommerceHubWidget = () => {
   // ==================== INTEGRATION TYPE CONFIGURATION ====================
   // Set to "REDIRECT" for Hosted Pages (full page redirect)
   // Set to "FRAME" for Hosted Components (embedded iframe)
-  const INTEGRATION_TYPE = "FRAME"; // Change to "FRAME" for iframe integration
+  const INTEGRATION_TYPE = "REDIRECT"; // Change to "FRAME" for iframe integration
   // ========================================================================
   
   const location = useLocation();
