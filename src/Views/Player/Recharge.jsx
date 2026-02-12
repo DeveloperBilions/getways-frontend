@@ -123,7 +123,8 @@ const Recharge = ({
   const [showFiserv, setShowFiserv] = useState(false);
   const [showFiservCheckout, setShowFiservCheckout] = useState(false);
   const [commerceHubEnabled, setCommerceHubEnabled] = useState(false);
-  const [showCommerceHub, setShowCommerceHub] = useState(false);
+  const [showCommerceHubPages, setShowCommerceHubPages] = useState(false);
+  const [showCommerceHubComponents, setShowCommerceHubComponents] = useState(false);
   const [seonEnabled, setSeonEnabled] = useState(false);
   const [showIDVerification, setShowIDVerification] = useState(false);
   // const [showCommerceHub, setShowCommerceHub] = useState(false);
@@ -213,16 +214,17 @@ const Recharge = ({
       const isAuthorizeNetAllowed = await isPaymentMethodAllowed(parentId, "authorizenet");
       const isFiservAllowed = await isPaymentMethodAllowed(parentId, "fiserv");
       const isFiservCheckoutAllowed = await isPaymentMethodAllowed(parentId, "fiservcheckout");
-      const isCommerceHubAllowed = await isPaymentMethodAllowed(parentId, "commercehub");
+      const isCommerceHubPagesAllowed = await isPaymentMethodAllowed(parentId, "commercehubpages");
       const isSeonAllowed = await isPaymentMethodAllowed(parentId, "seon");
       const isIDVerificationAllowed = await isPaymentMethodAllowed(parentId, "idverification");
       const isCommerceHubSDKAllowed =  await isPaymentMethodAllowed(parentId, "commercehubsdk");
+      const isCommerceHubComponentsAllowed = await isPaymentMethodAllowed(parentId, "commercehubcomponents");
       const isFinixAllowed = await isPaymentMethodAllowed(parentId, "finix");
       console.log("🔍 ID Verification Check:", {
         parentId,
         isIDVerificationAllowed,
         isSeonAllowed,
-        isCommerceHubAllowed
+        isCommerceHubPagesAllowed
       });
       
       setShowCoinbase(isCoinbaseAllowed);
@@ -236,21 +238,22 @@ const Recharge = ({
       setShowAuthorizeNet(isAuthorizeNetAllowed);
       setShowFiserv(isFiservAllowed);
       setShowFiservCheckout(isFiservCheckoutAllowed);
-      setCommerceHubEnabled(isCommerceHubAllowed);
+      setCommerceHubEnabled(isCommerceHubPagesAllowed);
       setSeonEnabled(isSeonAllowed);
       setShowIDVerification(isIDVerificationAllowed);
-      setCommerceHubEnabled(isCommerceHubAllowed || isCommerceHubSDKAllowed);
-      setShowCommerceHub(isCommerceHubAllowed);
+      setCommerceHubEnabled(isCommerceHubPagesAllowed || isCommerceHubSDKAllowed);
+      setShowCommerceHubPages(isCommerceHubPagesAllowed);
+      setShowCommerceHubComponents(isCommerceHubComponentsAllowed);
       setShowFinix(isFinixAllowed);
       console.log("✅ States Set:", {
         showIDVerification: isIDVerificationAllowed,
         seonEnabled: isSeonAllowed,
-        commerceHubEnabled: isCommerceHubAllowed
+        commerceHubEnabled: isCommerceHubPagesAllowed
       });
       
       // Debug logging for state setting
       console.log("🔧 Setting showFiservCheckout state to:", isFiservCheckoutAllowed);
-      console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubAllowed);
+      console.log("🔧 Setting commerceHubEnabled state to:", isCommerceHubPagesAllowed);
       console.log("🔧 Setting seonEnabled state to:", isSeonAllowed);
       console.log("🔧 Setting commerceHubSDK enabled state to:", isCommerceHubSDKAllowed);
     };
@@ -1366,9 +1369,9 @@ const Recharge = ({
         identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
     },
     {
-      id: "commercehub",
-      title: "Commerce Hub Payment",
-      description: "Secure payment • Powered by Fiserv",
+      id: "commercehubpages",
+      title: "Commerce Hub Hosted Pages",
+      description: "Secure payment • Redirect to Fiserv",
       subtext: "No KYC needed",
       icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
       color: "#0066CC", // Fiserv brand blue
@@ -1457,6 +1460,58 @@ const Recharge = ({
         } catch (err) {
           console.error("Commerce Hub SDK error:", err);
           setRechargeError(err.message || "Failed to open Commerce Hub SDK. Please try again.");
+        } finally {
+          setCheckingRechargeLimit(false);
+        }
+      }),
+      disabled:
+        identity?.isBlackListed || rechargeDisabled || checkingRechargeLimit || checkingEligibility,
+    },
+    {
+      id: "commercehubcomponents",
+      title: "Commerce Hub Hosted Components",
+      description: "Embedded checkout • Secure iframe payment",
+      subtext: "No KYC needed • 3D Secure available",
+      icon: <CreditCardIcon sx={{ color: "#0066CC", fontSize: 24 }} />,
+      color: "#0066CC",
+      hoverColor: "#E6F0FF",
+      paymentIcons: [visa, mastercard, Logo1],
+      onClick: debounce(async () => {
+        try {
+          if (!(await verifyPotBalance("recharge"))) return;
+          setCheckingRechargeLimit(true);
+
+          if (rechargeAmount < RechargeLimitOfAgent) {
+            setRechargeError(
+              `Minimum recharge amount must be greater than ${RechargeLimitOfAgent}`
+            );
+            return;
+          }
+
+          const transactionCheck = await checkActiveRechargeLimit(
+            identity?.userParentId,
+            rechargeAmount
+          );
+
+          if (!transactionCheck.success) {
+            setRechargeError(
+              transactionCheck.message || "Recharge Limit Reached"
+            );
+            return;
+          }
+
+          setRechargeError("");
+          
+          // Navigate to Commerce Hub Hosted Components (FRAME/iframe)
+          navigate("/commerce-hub-hosted-components", {
+            state: {
+              rechargeAmount,
+              remark,
+            },
+          });
+        } catch (err) {
+          console.error("Commerce Hub Hosted Components error:", err);
+          setRechargeError(err.message || "Failed to open Commerce Hub Hosted Components. Please try again.");
         } finally {
           setCheckingRechargeLimit(false);
         }
@@ -2570,8 +2625,9 @@ const Recharge = ({
                   if (option.id === "fiserv" && !showFiserv) return false;
                   if (option.id === "fiservcheckout" && !showFiservCheckout) return false;
                   if (option.id === "finix" && !showFinix) return false;
-                  if (option.id === "commercehub" && !commerceHubEnabled) return false;
+                  if (option.id === "commercehubpages" && !showCommerceHubPages) return false;
                   if (option.id === "seon" && !seonEnabled) return false;
+                  if (option.id === "commercehubcomponents" && !showCommerceHubComponents) return false;
                   if (option.id === "commercehubsdk" && !commerceHubEnabled) return false;
                   if (option.id === "idverification" && !showIDVerification) {
                     console.log("❌ IDVerification filtered - showIDVerification:", showIDVerification);

@@ -14,7 +14,15 @@ import { useGetIdentity } from "react-admin";
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-const CommerceHubWidget = () => {
+/**
+ * Commerce Hub Hosted Components Integration (iframe)
+ * 
+ * This component embeds the Fiserv payment form in an iframe on your page.
+ * For full page redirect, use CommerceHubHostedPages.jsx instead.
+ * 
+ * Documentation: https://developer.fiserv.com/product/CommerceHub/docs
+ */
+const CommerceHubHostedComponents = () => {
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -109,16 +117,17 @@ const CommerceHubWidget = () => {
     }
   }, [finalAmount, credentialsData, isWidgetFlow]);
 
-  // Step 3: Acquire credentials
+  // Step 3: Acquire credentials (using Hosted Components backend)
   const getCredentialsAndInitialize = async () => {
     try {
       setLoading(true);
       setError("");
 
-      console.log("🔑 Acquiring Commerce Hub credentials...");
+      console.log("🔑 Acquiring Commerce Hub credentials for Hosted Components...");
 
-      // Call backend to get security credentials
-      const response = await Parse.Cloud.run("commerceHubGetCredentials", {
+      // Call backend to initialize recharge and get security credentials
+      // Using commerceHubInitRecharge which is the Hosted Components specific function
+      const response = await Parse.Cloud.run("commerceHubInitRecharge", {
         amount: finalAmount,
         remark: remark,
         customerInfo: {
@@ -127,16 +136,31 @@ const CommerceHubWidget = () => {
         },
       });
 
-      if (!response.success || !response.sessionId) {
+      if (!response.success || !response.credentials?.sessionId) {
         throw new Error("Failed to get payment credentials");
       }
 
       console.log("✅ Credentials acquired:", response);
-      setCredentialsData(response);
+      
+      // Map the response to match expected credentialsData format
+      setCredentialsData({
+        sessionId: response.credentials.sessionId,
+        accessToken: response.credentials.accessToken,
+        amount: finalAmount,
+        transactionId: response.transactionId,
+        merchantTransactionId: response.merchantTransactionId,
+        publicKey: response.credentials.publicKey,
+        keyId: response.credentials.keyId,
+      });
 
       // Wait for SDK to be loaded before creating form
       if (sdkLoaded) {
-        createPaymentForm(response);
+        createPaymentForm({
+          sessionId: response.credentials.sessionId,
+          accessToken: response.credentials.accessToken,
+          amount: finalAmount,
+          transactionId: response.transactionId,
+        });
       }
     } catch (err) {
       console.error("Commerce Hub credentials error:", err);
@@ -145,7 +169,7 @@ const CommerceHubWidget = () => {
     }
   };
 
-  // Step 5: Create the payment form
+  // Step 5: Create the payment form (iframe)
   useEffect(() => {
     if (sdkLoaded && credentialsData && !formMounted) {
       createPaymentForm(credentialsData);
@@ -161,7 +185,7 @@ const CommerceHubWidget = () => {
         return;
       }
 
-      console.log("🎨 Creating Commerce Hub payment form...");
+      console.log("🎨 Creating Commerce Hub Hosted Components payment form (iframe)...");
 
       // Get environment
       const environment = process.env.REACT_APP_COMMERCE_HUB_ENVIRONMENT || "CERT";
@@ -196,8 +220,8 @@ const CommerceHubWidget = () => {
         pageVersion
       });
       
-      // Create hosted checkout form with REDIRECT integration (Hosted Pages)
-      // User will be redirected to Fiserv's hosted page and back on completion
+      // Create hosted checkout form with FRAME integration (Hosted Components)
+      // Payment form is embedded as an iframe on your page
       const formPromise = window.fiserv.components.hostedCheckout({
         credentials: {
           environment: environment,
@@ -209,30 +233,43 @@ const CommerceHubWidget = () => {
           pageVersion: pageVersion
         },
         integrationOptions: {
-          type: "REDIRECT",
-          onCompleteUrl: `${window.location.origin}/commerce-hub-success?transactionId=${credentials.transactionId}`
+          type: "FRAME",
+          parentElementId: "commerce-hub-checkout-form"
         }
       });
 
-      const formInstance = await formPromise;
-      console.log("📝 Form instance created:", formInstance);
+      // Handle FRAME integration (iframe)
+      formPromise
+        .then(() => {
+          console.log("✅ Commerce Hub FRAME form loaded successfully");
+          setFormMounted(true);
+          setLoading(false);
+          
+          // For iframe, we need to listen for postMessage events for completion
+          // The SDK will emit events when the user completes the payment
+        })
+        .catch((error) => {
+          console.error("❌ FRAME form error:", JSON.stringify(error));
+          setError(error.message || "Payment form error. Please try again.");
+          setLoading(false);
+        });
 
-      // Mount the form
-      formInstance.mount("#commerce-hub-checkout-form");
-      setFormMounted(true);
-      setLoading(false);
-
-      console.log("✅ Commerce Hub Hosted Pages form mounted successfully");
-
-      // Handle form events
-      formInstance.on("success", async (result) => {
-        console.log("💳 Form submitted successfully:", result);
-        handlePaymentCompletion(credentials);
-      });
-
-      formInstance.on("error", (error) => {
-        console.error("❌ Form error:", error);
-        setError(error.message || "Payment form error. Please try again.");
+      // Listen for payment completion events from the iframe
+      window.addEventListener("message", (event) => {
+        // Validate origin for security
+        if (event.origin.includes("fiservapps.com") || event.origin.includes("fiserv.com")) {
+          console.log("📨 Received message from Fiserv iframe:", event.data);
+          
+          if (event.data?.type === "PAYMENT_COMPLETE" || event.data?.cardCaptureResult === "SUCCESS") {
+            handlePaymentCompletion(credentials);
+          } else if (event.data?.cardCaptureResult === "FAILED") {
+            setError("Payment capture failed. Please try again.");
+            setPaymentStatus({
+              status: "failed",
+              reason: "Card capture failed",
+            });
+          }
+        }
       });
 
     } catch (err) {
@@ -249,15 +286,15 @@ const CommerceHubWidget = () => {
 
   const handlePaymentCompletion = async (credentials) => {
     try {
-      console.log("🔄 Processing payment...");
+      console.log("🔄 Processing payment via Hosted Components...");
 
-      // Step 6: Submit charges API request
-      const response = await Parse.Cloud.run("commerceHubProcessPayment", {
-        sessionId: credentials.sessionId,
-        transactionId: credentials.transactionId
+      // Step 6: Submit charges API request using Hosted Components backend
+      const response = await Parse.Cloud.run("commerceHubCompleteRecharge", {
+        transactionId: credentials.transactionId,
+        paymentToken: credentials.sessionId, // Use sessionId as payment token reference
       });
 
-      if (response.success && response.status === "APPROVED") {
+      if (response.success && response.status === "completed") {
         console.log("✅ Payment successful");
         
         setPaymentStatus({
@@ -357,7 +394,7 @@ const CommerceHubWidget = () => {
         </Box>
       )}
 
-      {/* Commerce Hub Form Container - Renders directly without any wrapper */}
+      {/* Commerce Hub Hosted Components Form Container (iframe) */}
       {!showSuccessAnimation && (
         <Box
           id="commerce-hub-checkout-form"
@@ -372,4 +409,4 @@ const CommerceHubWidget = () => {
   );
 };
 
-export default CommerceHubWidget;
+export default CommerceHubHostedComponents;

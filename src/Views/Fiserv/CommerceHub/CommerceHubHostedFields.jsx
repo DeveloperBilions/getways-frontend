@@ -92,7 +92,8 @@ const CommerceHubHostedFields = () => {
 
       console.log("🔑 Acquiring Commerce Hub credentials...");
 
-      const response = await Parse.Cloud.run("commerceHubGetCredentials", {
+      // Call Hosted Fields specific backend function (NOT Hosted Pages)
+      const response = await Parse.Cloud.run("commerceHubHostedFieldsGetCredentials", {
         amount: rechargeAmount,
         remark: remark,
         customerInfo: {
@@ -256,10 +257,10 @@ const CommerceHubHostedFields = () => {
       
       console.log("✅ Card data captured successfully:", JSON.stringify(captureResponse));
 
-      // Step 5: Submit API request to process payment
+      // Step 5: Submit API request to process payment using Hosted Fields backend
       console.log("🔄 Processing payment with backend...");
 
-      const response = await Parse.Cloud.run("commerceHubProcessPayment", {
+      const response = await Parse.Cloud.run("commerceHubHostedFieldsProcessPayment", {
         sessionId: credentialsData.sessionId,
         transactionId: credentialsData.transactionId
       });

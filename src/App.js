@@ -65,6 +65,7 @@ import FiservCheckoutFailure from "./Views/Fiserv/FiservCheckoutFailure";
 import FiservDisbursementWidget from "./Views/Fiserv/FiservDisbursement";
 import CommerceHubHostedPages from "./Views/Fiserv/CommerceHub/CommerceHubHostedPages";
 import CommerceHubHostedFields from "./Views/Fiserv/CommerceHub/CommerceHubHostedFields";
+import CommerceHubHostedComponents from "./Views/Fiserv/CommerceHub/CommerceHubHostedComponents";
 import SeonPaymentPage from "./Views/Player/SeonPaymentPage";
 import CommerceHubRecharge from "./Views/Fiserv/CommerceHub/CommerceHubRecharge";
 
@@ -73,7 +74,7 @@ function App() {
 
   useEffect(() => {
     if (process.env.REACT_APP_NODE_ENV === "production") {
-    clarity.init("remtta6418"); // Replace with your actual Clarity ID
+      clarity.init("remtta6418"); // Replace with your actual Clarity ID
     }
   }, []);
   useEffect(() => {
@@ -422,7 +423,7 @@ function App() {
                       </Authenticated>
                     }
                   />
-                <Route
+                  <Route
                     path="/stripe-payment"
                     element={
                       <Authenticated>
@@ -431,7 +432,7 @@ function App() {
                     }
                   />
 
-<Route
+                  <Route
                     path="/clkk-cashout"
                     element={
                       <Authenticated>
@@ -495,7 +496,7 @@ function App() {
                       </Authenticated>
                     }
                   /> */}
-                   {/* <Route
+                  {/* <Route
                     path="/commerce-hub-sdk"
                     element={
                       <Authenticated>
@@ -547,20 +548,45 @@ function App() {
           }
         }}
         <CustomRoutes noLayout>
-        <Route path="/" element={<RedirectByRole />} />
+          <Route path="/" element={<RedirectByRole />} />
           <Route path="/buyWert" element={<AutoWertWidget />} />
           <Route path="/recharge-widget" element={<RechargeWidgetPage />} />
           <Route path="/payarc-checkout" element={<CheckoutPayARCAOG />} />
           <Route path="/fiserv-payment" element={<FiservPaymentWidget />} />
-          <Route path="/fiserv-checkout-payment" element={<FiservCheckoutWidget />} />
-          <Route path="/fiserv-checkout-success" element={<FiservCheckoutSuccess />} />
-          <Route path="/fiserv-checkout-failure" element={<FiservCheckoutFailure />} />
-          <Route path="/fiserv-disbursement" element={<FiservDisbursementWidget />} />
-          <Route path="/commerce-hub-payment" element={<CommerceHubHostedPages />} />
-          <Route path="/commerce-hub-hosted-fields" element={<CommerceHubHostedFields />} />
+          <Route
+            path="/fiserv-checkout-payment"
+            element={<FiservCheckoutWidget />}
+          />
+          <Route
+            path="/fiserv-checkout-success"
+            element={<FiservCheckoutSuccess />}
+          />
+          <Route
+            path="/fiserv-checkout-failure"
+            element={<FiservCheckoutFailure />}
+          />
+          <Route
+            path="/fiserv-disbursement"
+            element={<FiservDisbursementWidget />}
+          />
+          <Route
+            path="/commerce-hub-payment"
+            element={<CommerceHubHostedPages />}
+          />
+          <Route
+            path="/commerce-hub-hosted-fields"
+            element={<CommerceHubHostedFields />}
+          />
+          <Route
+            path="/commerce-hub-hosted-components"
+            element={<CommerceHubHostedComponents />}
+          />
           <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}
-          <Route path="/total-liquor/checkout" element={<TotalLiquorEmbeddedCheckout />} />
+          <Route
+            path="/total-liquor/checkout"
+            element={<TotalLiquorEmbeddedCheckout />}
+          />
         </CustomRoutes>
       </Admin>
     </BrowserRouter>
