@@ -239,38 +239,26 @@ const CommerceHubHostedComponents = () => {
       });
 
       // Handle FRAME integration (iframe)
+      // Per docs: "On a successful capture an empty response is sent back from the SDK
+      // and the merchant can perform a subsequent API request."
+      // The .then() callback fires when card capture is successful - this is where
+      // we trigger the Step 6 charges API call
       formPromise
         .then(() => {
-          console.log("✅ Commerce Hub FRAME form loaded successfully");
+          console.log("✅ Commerce Hub FRAME card capture successful");
           setFormMounted(true);
           setLoading(false);
           
-          // For iframe, we need to listen for postMessage events for completion
-          // The SDK will emit events when the user completes the payment
+          // Step 6: Trigger charges API call on successful card capture
+          handlePaymentCompletion(credentials);
         })
         .catch((error) => {
           console.error("❌ FRAME form error:", JSON.stringify(error));
-          setError(error.message || "Payment form error. Please try again.");
-          setLoading(false);
+          // Per docs: "If a successful response is not received, best practice is to 
+          // still submit the transaction."
+          console.log("⚠️ Attempting to submit transaction despite error...");
+          handlePaymentCompletion(credentials);
         });
-
-      // Listen for payment completion events from the iframe
-      window.addEventListener("message", (event) => {
-        // Validate origin for security
-        if (event.origin.includes("fiservapps.com") || event.origin.includes("fiserv.com")) {
-          console.log("📨 Received message from Fiserv iframe:", event.data);
-          
-          if (event.data?.type === "PAYMENT_COMPLETE" || event.data?.cardCaptureResult === "SUCCESS") {
-            handlePaymentCompletion(credentials);
-          } else if (event.data?.cardCaptureResult === "FAILED") {
-            setError("Payment capture failed. Please try again.");
-            setPaymentStatus({
-              status: "failed",
-              reason: "Card capture failed",
-            });
-          }
-        }
-      });
 
     } catch (err) {
       console.error("Form creation error:", err);
