@@ -185,36 +185,6 @@ const CommerceHubHostedComponents = () => {
         return;
       }
 
-      // Wait for hCaptcha to be fully ready before initializing SDK
-      // This prevents the "should not render before js api is fully loaded" error
-      console.log("⏳ Waiting for hCaptcha to be fully ready...");
-      await new Promise((resolve) => {
-        const checkHCaptcha = setInterval(() => {
-          // Check both the flag AND the actual hcaptcha object
-          if (window.hcaptchaLoaded && window.hcaptcha && typeof window.hcaptcha.render === 'function') {
-            clearInterval(checkHCaptcha);
-            console.log("✅ hCaptcha fully ready (API loaded + render function available)");
-            resolve();
-          }
-        }, 100);
-        
-        // Timeout after 15 seconds
-        setTimeout(() => {
-          clearInterval(checkHCaptcha);
-          console.warn("⚠️ hCaptcha load timeout, proceeding anyway");
-          console.log("hCaptcha state:", { 
-            loaded: window.hcaptchaLoaded, 
-            exists: !!window.hcaptcha,
-            hasRender: !!(window.hcaptcha && window.hcaptcha.render)
-          });
-          resolve();
-        }, 15000);
-      });
-      
-      // Additional small delay to ensure hCaptcha API is fully initialized
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log("✅ Proceeding with SDK initialization after delay");
-
       console.log("🎨 Creating Commerce Hub Hosted Components payment form (iframe)...");
 
       // Get environment
