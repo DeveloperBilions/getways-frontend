@@ -107,6 +107,11 @@ const CommerceHubHostedFields = () => {
       }
 
       console.log("✅ Credentials acquired");
+      console.log("📦 Full credentials response:", JSON.stringify(response, null, 2));
+      console.log("🔑 accessToken:", response.accessToken ? response.accessToken.substring(0, 20) + '...' : 'MISSING');
+      console.log("🔑 publicKey:", response.publicKey ? response.publicKey.substring(0, 30) + '...' : 'MISSING');
+      console.log("🔑 keyId:", response.keyId || 'MISSING');
+      console.log("🔑 sessionId:", response.sessionId || 'MISSING');
       setCredentialsData(response);
 
     } catch (err) {
@@ -143,7 +148,19 @@ const CommerceHubHostedFields = () => {
         throw new Error("Missing API Key or Merchant ID configuration");
       }
 
-      // Initialize SDK with credentials
+      console.log("📋 SDK Init Parameters:", {
+        environment,
+        apiKey,
+        merchantId,
+        terminalId: "10000001",
+        hasAccessToken: !!credentialsData.accessToken,
+        hasPublicKey: !!credentialsData.publicKey,
+        hasKeyId: !!credentialsData.keyId,
+        accessToken: credentialsData.accessToken?.substring(0, 10) + "...",
+        keyId: credentialsData.keyId,
+      });
+
+      // Initialize SDK with credentials (Step 4 from documentation)
       await window.fiserv.init({
         environment: environment,
         accessToken: credentialsData.accessToken,
