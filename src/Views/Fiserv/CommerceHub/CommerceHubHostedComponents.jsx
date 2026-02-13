@@ -185,6 +185,28 @@ const CommerceHubHostedComponents = () => {
         return;
       }
 
+      // Wait for hCaptcha to be ready before initializing SDK
+      // This prevents the "should not render before js api is fully loaded" error
+      if (!window.hcaptchaLoaded) {
+        console.log("⏳ Waiting for hCaptcha to load...");
+        await new Promise((resolve) => {
+          const checkHCaptcha = setInterval(() => {
+            if (window.hcaptchaLoaded) {
+              clearInterval(checkHCaptcha);
+              console.log("✅ hCaptcha ready, proceeding with SDK initialization");
+              resolve();
+            }
+          }, 100);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkHCaptcha);
+            console.warn("⚠️ hCaptcha load timeout, proceeding anyway");
+            resolve();
+          }, 10000);
+        });
+      }
+
       console.log("🎨 Creating Commerce Hub Hosted Components payment form (iframe)...");
 
       // Get environment
