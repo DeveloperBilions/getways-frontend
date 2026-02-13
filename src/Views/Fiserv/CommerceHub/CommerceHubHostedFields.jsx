@@ -160,7 +160,7 @@ const CommerceHubHostedFields = () => {
         keyId: credentialsData.keyId,
       });
 
-      // Initialize SDK with credentials (Step 4 from documentation)
+      // Initialize SDK with credentials (Step 4 from Hosted Fields docs)
       await window.fiserv.init({
         environment: environment,
         accessToken: credentialsData.accessToken,
@@ -169,6 +169,7 @@ const CommerceHubHostedFields = () => {
         terminalId: "10000001",
         publicKey: credentialsData.publicKey,
         keyId: credentialsData.keyId,
+        additionalFrameAncestors: ["skynbliss.co"],
       });
 
       console.log("✅ SDK initialized successfully");
