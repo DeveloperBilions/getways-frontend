@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -9,334 +9,407 @@ import {
 import { Parse } from "parse";
 import { useLocation, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { useGetIdentity } from "react-admin";
 
 Parse.initialize(process.env.REACT_APP_APPID, process.env.REACT_APP_MASTER_KEY);
 Parse.serverURL = process.env.REACT_APP_URL;
 
-/**
- * Commerce Hub Hosted Components Integration (iframe)
- * 
- * This component embeds the Fiserv payment form in an iframe on your page.
- * For full page redirect, use CommerceHubHostedPages.jsx instead.
- * 
- * Documentation: https://developer.fiserv.com/product/CommerceHub/docs
- */
+// Constants
+const SDK_VERSION = "3.5.5";
+const SDK_URL = `https://commercehub-secure-data-capture.fiservapps.com/${SDK_VERSION}/checkout.js`;
+const SDK_SCRIPT_ID = "commercehub-sdk";
+
+// Single status enum replacing scattered boolean states
+const Status = Object.freeze({
+  LOADING_SDK: "LOADING_SDK",
+  ACQUIRING_CREDENTIALS: "ACQUIRING_CREDENTIALS",
+  MOUNTING_FORM: "MOUNTING_FORM",
+  READY: "READY",
+  PROCESSING: "PROCESSING",
+  SUCCESS: "SUCCESS",
+  ERROR: "ERROR",
+});
+
+const SUCCESS_REDIRECT_DELAY_MS = 3000;
+const DASHBOARD_ROUTE = "/playerDashboard";
+const INTEGRATION_TYPE = "FRAME";
+const CHECKOUT_CONTAINER_ID = "commerce-hub-checkout-form";
+
+// Structured frontend logger
+const log = (level, message, data) => {
+  const entry = { ts: new Date().toISOString(), level, message };
+  if (data) entry.data = data;
+  // eslint-disable-next-line no-console
+  console[level === "error" ? "error" : "log"]("[CommerceHub]", JSON.stringify(entry));
+};
+
+// Commerce Hub Hosted Components — embeds Fiserv payment form as iframe
 const CommerceHubHostedComponents = () => {
-  
   const location = useLocation();
   const navigate = useNavigate();
-  const { identity } = useGetIdentity();
-  
-  // Get data from URL query parameters (for widget) or navigation state (for regular flow)
-  const searchParams = new URLSearchParams(location.search);
-  const sessionIdFromUrl = searchParams.get('sessionId');
-  const accessTokenFromUrl = searchParams.get('accessToken');
-  const amountFromUrl = searchParams.get('amount');
-  const transactionIdFromUrl = searchParams.get('transactionId');
-  const merchantIdFromUrl = searchParams.get('merchantId');
-  
-  // Get recharge amount and remark from navigation state (regular flow)
-  const { rechargeAmount, remark } = location.state || {};
-  
-  // Use URL params if available (widget flow), otherwise use state (regular flow)
-  const isWidgetFlow = !!sessionIdFromUrl;
-  const finalAmount = isWidgetFlow ? parseFloat(amountFromUrl) : rechargeAmount;
-  
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [credentialsData, setCredentialsData] = useState(null);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
-  const [formMounted, setFormMounted] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
-  // Check if we have required data
+  // Flow detection: widget (URL params) vs regular (navigation state)
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
+  );
+  const isWidgetFlow = !!searchParams.get("sessionId");
+
+  const widgetParams = useMemo(() => {
+    if (!isWidgetFlow) return null;
+    return {
+      sessionId: searchParams.get("sessionId"),
+      accessToken: searchParams.get("accessToken"),
+      amount: searchParams.get("amount"),
+      transactionId: searchParams.get("transactionId"),
+      merchantId: searchParams.get("merchantId"),
+    };
+  }, [isWidgetFlow, searchParams]);
+
+  const { rechargeAmount, remark } = location.state || {};
+  const finalAmount = isWidgetFlow
+    ? parseFloat(widgetParams?.amount)
+    : rechargeAmount;
+
+  // Single state machine
+  const [status, setStatus] = useState(Status.LOADING_SDK);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [paymentResult, setPaymentResult] = useState(null);
+  const [credentialsData, setCredentialsData] = useState(null);
+
+  // Refs to prevent double-runs and enable cancellation
+  const formMountedRef = useRef(false);
+  const credentialsFetchedRef = useRef(false);
+  const cancelledRef = useRef(false);
+
+  // Redirect if no amount in regular flow
   useEffect(() => {
     if (!finalAmount && !isWidgetFlow) {
-      navigate("/playerDashboard");
+      navigate(DASHBOARD_ROUTE);
     }
   }, [finalAmount, isWidgetFlow, navigate]);
-  
-  // If widget flow with credentials from URL, set them directly
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (isWidgetFlow && sessionIdFromUrl && accessTokenFromUrl) {
-      setCredentialsData({
-        sessionId: sessionIdFromUrl,
-        accessToken: accessTokenFromUrl,
-        amount: parseFloat(amountFromUrl),
-        transactionId: transactionIdFromUrl,
-        merchantId: merchantIdFromUrl
-      });
-    }
-  }, [isWidgetFlow, sessionIdFromUrl, accessTokenFromUrl, amountFromUrl, transactionIdFromUrl, merchantIdFromUrl]);
-
-  // Step 4: Load SDK in browser
-  useEffect(() => {
-    const loadCommerceHubSDK = () => {
-      // Check if script already exists
-      if (document.getElementById("commercehub-sdk")) {
-        setSdkLoaded(true);
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.id = "commercehub-sdk";
-      // Latest Version 3.5.5 from documentation
-      script.src = "https://commercehub-secure-data-capture.fiservapps.com/3.5.5/checkout.js";
-      script.async = true;
-      
-      script.onload = () => {
-        console.log("✅ Commerce Hub SDK loaded (v3.5.5)");
-        setSdkLoaded(true);
-      };
-      
-      script.onerror = () => {
-        console.error("❌ Failed to load Commerce Hub SDK");
-        setError("Failed to load payment widget. Please refresh and try again.");
-      };
-
-      document.body.appendChild(script);
-    };
-
-    loadCommerceHubSDK();
-
     return () => {
-      // Cleanup on unmount
-      const script = document.getElementById("commercehub-sdk");
-      if (script) {
-        script.remove();
-      }
+      cancelledRef.current = true;
     };
   }, []);
 
-  // Initialize when component mounts (only for regular flow, not widget flow)
+  // STEP 4: Load SDK in browser
   useEffect(() => {
-    if (finalAmount && !credentialsData && !isWidgetFlow) {
-      getCredentialsAndInitialize();
-    }
-  }, [finalAmount, credentialsData, isWidgetFlow]);
+    const existing = document.getElementById(SDK_SCRIPT_ID);
 
-  // Step 3: Acquire credentials (using Hosted Components backend)
-  const getCredentialsAndInitialize = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      console.log("🔑 Acquiring Commerce Hub credentials for Hosted Components...");
-
-      // Call backend to initialize recharge and get security credentials
-      // Using commerceHubInitRecharge which is the Hosted Components specific function
-      const response = await Parse.Cloud.run("commerceHubInitRecharge", {
-        amount: finalAmount,
-        remark: remark,
-        customerInfo: {
-          name: Parse.User.current()?.get("username") || "Customer",
-          email: Parse.User.current()?.get("email") || undefined,
-        },
-      });
-
-      if (!response.success || !response.credentials?.sessionId) {
-        throw new Error("Failed to get payment credentials");
+    if (existing) {
+      if (window.fiserv?.components) {
+        if (status === Status.LOADING_SDK) {
+          setStatus(Status.ACQUIRING_CREDENTIALS);
+        }
+      } else {
+        const onLoad = () => {
+          if (!cancelledRef.current && status === Status.LOADING_SDK) {
+            setStatus(Status.ACQUIRING_CREDENTIALS);
+          }
+        };
+        const onError = () => {
+          if (!cancelledRef.current) {
+            setErrorMessage("Failed to load payment SDK. Please refresh the page.");
+            setStatus(Status.ERROR);
+          }
+        };
+        existing.addEventListener("load", onLoad);
+        existing.addEventListener("error", onError);
+        return () => {
+          existing.removeEventListener("load", onLoad);
+          existing.removeEventListener("error", onError);
+        };
       }
+      return;
+    }
 
-      console.log("✅ Credentials acquired:", response);
-      
-      // Map the response to match expected credentialsData format
-      setCredentialsData({
-        sessionId: response.credentials.sessionId,
-        accessToken: response.credentials.accessToken,
-        amount: finalAmount,
-        transactionId: response.transactionId,
-        merchantTransactionId: response.merchantTransactionId,
-        publicKey: response.credentials.publicKey,
-        keyId: response.credentials.keyId,
-      });
+    const script = document.createElement("script");
+    script.id = SDK_SCRIPT_ID;
+    script.src = SDK_URL;
+    script.async = true;
 
-      // Wait for SDK to be loaded before creating form
-      if (sdkLoaded) {
-        createPaymentForm({
+    script.onload = () => {
+      log("info", "SDK loaded", { version: SDK_VERSION });
+      if (!cancelledRef.current) {
+        setStatus(Status.ACQUIRING_CREDENTIALS);
+      }
+    };
+
+    script.onerror = () => {
+      log("error", "SDK load failed");
+      if (!cancelledRef.current) {
+        setErrorMessage("Failed to load payment SDK. Please refresh the page.");
+        setStatus(Status.ERROR);
+      }
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Widget flow: hydrate credentials from URL params
+  useEffect(() => {
+    if (!isWidgetFlow || !widgetParams?.sessionId || !widgetParams?.accessToken) return;
+    setCredentialsData({
+      sessionId: widgetParams.sessionId,
+      accessToken: widgetParams.accessToken,
+      amount: parseFloat(widgetParams.amount),
+      transactionId: widgetParams.transactionId,
+      merchantId: widgetParams.merchantId,
+    });
+  }, [isWidgetFlow, widgetParams]);
+
+  // STEP 3: Acquire credentials (regular flow only)
+  useEffect(() => {
+    if (
+      status !== Status.ACQUIRING_CREDENTIALS ||
+      isWidgetFlow ||
+      !finalAmount ||
+      credentialsFetchedRef.current
+    ) {
+      return;
+    }
+    credentialsFetchedRef.current = true;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        log("info", "Requesting credentials", { amount: finalAmount });
+
+        const user = Parse.User.current();
+        const response = await Parse.Cloud.run("commerceHubInitRecharge", {
+          amount: finalAmount,
+          remark,
+          customerInfo: {
+            name: user?.get("username") || "Customer",
+            email: user?.get("email") || undefined,
+          },
+        });
+
+        if (cancelled || cancelledRef.current) return;
+
+        if (!response.success || !response.credentials?.sessionId) {
+          throw new Error("Failed to obtain payment credentials");
+        }
+
+        log("info", "Credentials acquired", {
+          transactionId: response.transactionId,
+        });
+
+        setCredentialsData({
           sessionId: response.credentials.sessionId,
           accessToken: response.credentials.accessToken,
           amount: finalAmount,
           transactionId: response.transactionId,
+          merchantTransactionId: response.merchantTransactionId,
+          publicKey: response.credentials.publicKey,
+          keyId: response.credentials.keyId,
         });
-      }
-    } catch (err) {
-      console.error("Commerce Hub credentials error:", err);
-      setError(err.message || "Failed to initialize payment. Please try again.");
-      setLoading(false);
-    }
-  };
 
-  // Step 5: Create the payment form (iframe)
+        setStatus(Status.MOUNTING_FORM);
+      } catch (err) {
+        if (cancelled || cancelledRef.current) return;
+        log("error", "Credentials fetch failed", { message: err.message });
+        setErrorMessage(
+          err.message || "Failed to initialize payment. Please try again.",
+        );
+        setStatus(Status.ERROR);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, isWidgetFlow, finalAmount, remark]);
+
+  // Widget flow: transition to MOUNTING_FORM once SDK + credentials ready
   useEffect(() => {
-    if (sdkLoaded && credentialsData && !formMounted) {
-      createPaymentForm(credentialsData);
+    if (
+      isWidgetFlow &&
+      credentialsData &&
+      status === Status.ACQUIRING_CREDENTIALS
+    ) {
+      setStatus(Status.MOUNTING_FORM);
     }
-  }, [sdkLoaded, credentialsData, formMounted]);
+  }, [isWidgetFlow, credentialsData, status]);
 
-  const createPaymentForm = async (credentials) => {
-    try {
-      if (!window.fiserv || !window.fiserv.components) {
-        console.error("Fiserv SDK not available");
-        setError("Payment SDK not loaded. Please refresh the page.");
-        setLoading(false);
-        return;
-      }
+  // STEP 6: Submit charges API request
+  const handlePaymentCompletion = useCallback(
+    async (credentials) => {
+      if (cancelledRef.current) return;
+      setStatus(Status.PROCESSING);
 
-      console.log("🎨 Creating Commerce Hub Hosted Components payment form (iframe)...");
-
-      // Get environment
-      const environment = process.env.REACT_APP_COMMERCE_HUB_ENVIRONMENT || "CERT";
-      const apiKey = process.env.REACT_APP_COMMERCE_HUB_API_KEY;
-      const merchantId = process.env.REACT_APP_COMMERCE_HUB_MERCHANT_ID;
-      
-      // pageId and pageVersion MUST come from Checkout Configurator
-      const pageId = process.env.REACT_APP_COMMERCE_HUB_PAGE_ID;
-      const pageVersion = process.env.REACT_APP_COMMERCE_HUB_PAGE_VERSION;
-      
-      // Validate all required parameters
-      if (!apiKey) {
-        throw new Error("API Key is missing. Please configure REACT_APP_COMMERCE_HUB_API_KEY");
-      }
-      if (!credentials.accessToken) {
-        throw new Error("Access Token is missing from credentials");
-      }
-      if (!merchantId) {
-        throw new Error("Merchant ID is missing. Please configure REACT_APP_COMMERCE_HUB_MERCHANT_ID");
-      }
-      if (!pageId || !pageVersion) {
-        throw new Error("PageId and PageVersion are required. Please get these from Fiserv Checkout Configurator and add to .env file");
-      }
-      
-      console.log("📋 SDK Parameters:", {
-        environment,
-        apiKey,
-        accessToken: credentials.accessToken,
-        merchantId,
-        terminalId: "10000001",
-        pageId,
-        pageVersion
-      });
-      
-      // Create hosted checkout form with FRAME integration (Hosted Components)
-      // Payment form is embedded as an iframe on your page
-      const formPromise = window.fiserv.components.hostedCheckout({
-        credentials: {
-          environment: environment,
-          apiKey: apiKey,
-          accessToken: credentials.accessToken,
-          merchantId: merchantId,
-          terminalId: "10000001",
-          pageId: pageId,
-          pageVersion: pageVersion
-        },
-        integrationOptions: {
-          type: "FRAME",
-          parentElementId: "commerce-hub-checkout-form"
-        }
-      });
-
-      // Handle FRAME integration (iframe)
-      // Per docs: "On a successful capture an empty response is sent back from the SDK
-      // and the merchant can perform a subsequent API request."
-      // The .then() callback fires when card capture is successful - this is where
-      // we trigger the Step 6 charges API call
-      formPromise
-        .then(() => {
-          console.log("✅ Commerce Hub FRAME card capture successful");
-          setFormMounted(true);
-          setLoading(false);
-          
-          // Step 6: Trigger charges API call on successful card capture
-          handlePaymentCompletion(credentials);
-        })
-        .catch((error) => {
-          console.error("❌ FRAME form error:", JSON.stringify(error));
-          // Per docs: "If a successful response is not received, best practice is to 
-          // still submit the transaction."
-          console.log("⚠️ Attempting to submit transaction despite error...");
-          handlePaymentCompletion(credentials);
-        });
-
-    } catch (err) {
-      console.error("Form creation error:", err);
-      console.error("Error details:", {
-        name: err.name,
-        message: err.message,
-        stack: err.stack
-      });
-      setError(err.message || "Failed to create payment form. Please check configuration.");
-      setLoading(false);
-    }
-  };
-
-  const handlePaymentCompletion = async (credentials) => {
-    try {
-      console.log("🔄 Processing payment via Hosted Components...");
-
-      // Step 6: Submit charges API request using Hosted Components backend
-      const response = await Parse.Cloud.run("commerceHubCompleteRecharge", {
-        transactionId: credentials.transactionId,
-        paymentToken: credentials.sessionId, // Use sessionId as payment token reference
-      });
-
-      if (response.success && response.status === "completed") {
-        console.log("✅ Payment successful");
-        
-        setPaymentStatus({
-          status: "success",
-          amount: credentials.amount,
+      try {
+        log("info", "Submitting charges", {
           transactionId: credentials.transactionId,
         });
 
-        setShowSuccessAnimation(true);
-
-        // Redirect after 3 seconds
-        setTimeout(() => {
-          navigate("/playerDashboard");
-        }, 3000);
-      } else {
-        const errorMsg = response.message || "Payment was not approved";
-        setError(errorMsg);
-        setPaymentStatus({
-          status: "failed",
-          reason: errorMsg,
+        const response = await Parse.Cloud.run("commerceHubCompleteRecharge", {
+          transactionId: credentials.transactionId,
+          paymentToken: credentials.sessionId,
         });
-        console.log("❌ Payment not approved:", errorMsg);
+
+        if (cancelledRef.current) return;
+
+        if (response.success && response.status === "completed") {
+          log("info", "Payment successful", {
+            transactionId: credentials.transactionId,
+          });
+          setPaymentResult({
+            status: "success",
+            amount: credentials.amount,
+            transactionId: credentials.transactionId,
+          });
+          setStatus(Status.SUCCESS);
+        } else {
+          const msg = response.message || "Payment was not approved";
+          setErrorMessage(msg);
+          setPaymentResult({ status: "failed", reason: msg });
+          setStatus(Status.ERROR);
+        }
+      } catch (err) {
+        if (cancelledRef.current) return;
+        const msg = err.message || "Failed to process payment";
+        log("error", "Charges failed", { message: msg });
+        setErrorMessage(msg);
+        setPaymentResult({ status: "failed", reason: msg });
+        setStatus(Status.ERROR);
       }
-    } catch (err) {
-      console.error("❌ Payment processing error:", err);
-      setError(err.message || "Failed to process payment");
-      setPaymentStatus({
-        status: "failed",
-        reason: err.message || "Failed to process payment",
-      });
+    },
+    [],
+  );
+
+  // STEP 5: Create the payment form (iframe)
+  useEffect(() => {
+    if (
+      status !== Status.MOUNTING_FORM ||
+      !credentialsData ||
+      formMountedRef.current
+    ) {
+      return;
     }
-  };
+
+    if (!window.fiserv?.components) {
+      setErrorMessage("Payment SDK not loaded. Please refresh the page.");
+      setStatus(Status.ERROR);
+      return;
+    }
+
+    formMountedRef.current = true;
+
+    const environment =
+      process.env.REACT_APP_COMMERCE_HUB_ENVIRONMENT || "CERT";
+    const apiKey = process.env.REACT_APP_COMMERCE_HUB_API_KEY;
+    const merchantId = process.env.REACT_APP_COMMERCE_HUB_MERCHANT_ID;
+    const terminalId =
+      process.env.REACT_APP_COMMERCE_HUB_TERMINAL_ID || "10000001";
+    const pageId = process.env.REACT_APP_COMMERCE_HUB_PAGE_ID;
+    const pageVersion = process.env.REACT_APP_COMMERCE_HUB_PAGE_VERSION;
+
+    if (!apiKey || !merchantId || !pageId || !pageVersion) {
+      setErrorMessage(
+        "Payment configuration incomplete. Missing API key, merchant ID, page ID, or page version.",
+      );
+      setStatus(Status.ERROR);
+      return;
+    }
+
+    log("info", "Mounting hosted checkout form", { environment, pageId, pageVersion });
+
+    try {
+      const formPromise = window.fiserv.components.hostedCheckout({
+        credentials: {
+          environment,
+          apiKey,
+          accessToken: credentialsData.accessToken,
+          merchantId,
+          terminalId,
+          pageId,
+          pageVersion,
+        },
+        integrationOptions: {
+          type: INTEGRATION_TYPE,
+          parentElementId: CHECKOUT_CONTAINER_ID,
+        },
+      });
+
+      // Iframe renders immediately, show to user
+      setStatus(Status.READY);
+
+      // On successful capture an empty response is sent back, then submit charges
+      formPromise
+        .then(() => {
+          if (!cancelledRef.current) {
+            handlePaymentCompletion(credentialsData);
+          }
+        })
+        .catch(() => {
+          // Best practice: still submit the transaction even on error
+          if (!cancelledRef.current) {
+            handlePaymentCompletion(credentialsData);
+          }
+        });
+    } catch (err) {
+      log("error", "Form creation failed", { message: err.message });
+      setErrorMessage(
+        err.message || "Failed to create payment form. Please check configuration.",
+      );
+      setStatus(Status.ERROR);
+    }
+  }, [status, credentialsData, handlePaymentCompletion]);
+
+  // Redirect to dashboard on success
+  useEffect(() => {
+    if (status !== Status.SUCCESS) return;
+    const timer = setTimeout(
+      () => navigate(DASHBOARD_ROUTE),
+      SUCCESS_REDIRECT_DELAY_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [status, navigate]);
+
+  // Derived UI flags
+  const showLoader =
+    status === Status.LOADING_SDK ||
+    status === Status.ACQUIRING_CREDENTIALS ||
+    status === Status.MOUNTING_FORM ||
+    status === Status.PROCESSING;
+
+  const showError = status === Status.ERROR && !!errorMessage;
+  const showForm = status !== Status.SUCCESS;
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        width: "100%",
-      }}
-    >
-      {/* Success Animation */}
-      {showSuccessAnimation && (
+    <Box className="container-fluid py-4">
+      <Box display="flex" justifyContent="start" mb={2}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(DASHBOARD_ROUTE)}
+        >
+          Back
+        </Button>
+      </Box>
+
+      {status === Status.SUCCESS && (
         <Box
-          sx={{
-            textAlign: "center",
-            py: 6,
-          }}
+          sx={{ textAlign: "center", py: 6 }}
+          role="status"
+          aria-live="polite"
         >
           <Box
             sx={{
               width: 80,
               height: 80,
               borderRadius: "50%",
-              backgroundColor: "#10B981",
+              bgcolor: "#10B981",
               margin: "0 auto",
               display: "flex",
               alignItems: "center",
@@ -344,7 +417,7 @@ const CommerceHubHostedComponents = () => {
               mb: 3,
             }}
           >
-            <Typography variant="h3" sx={{ color: "#FFFFFF" }}>
+            <Typography variant="h3" sx={{ color: "#fff" }}>
               ✓
             </Typography>
           </Box>
@@ -357,39 +430,42 @@ const CommerceHubHostedComponents = () => {
         </Box>
       )}
 
-      {/* Loading State */}
-      {loading && !showSuccessAnimation && (
+      {showLoader && !showError && (
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            minHeight: "100vh",
+            minHeight: 300,
+            py: 6,
           }}
+          role="status"
+          aria-live="polite"
+          aria-label="Loading secure payment form"
         >
           <CircularProgress size={50} sx={{ color: "#0066CC" }} />
           <Typography variant="body1" sx={{ mt: 2, color: "#6B7280" }}>
-            Loading secure payment form...
+            {status === Status.PROCESSING
+              ? "Processing payment..."
+              : "Loading secure payment form..."}
           </Typography>
         </Box>
       )}
 
-      {/* Error Alert */}
-      {error && !showSuccessAnimation && (
-        <Box sx={{ p: 2 }}>
-          <Alert severity="error">{error}</Alert>
+      {showError && (
+        <Box sx={{ p: 2 }} role="alert">
+          <Alert severity="error">{errorMessage}</Alert>
         </Box>
       )}
 
-      {/* Commerce Hub Hosted Components Form Container (iframe) */}
-      {!showSuccessAnimation && (
+      {showForm && (
         <Box
-          id="commerce-hub-checkout-form"
+          id={CHECKOUT_CONTAINER_ID}
           sx={{
             width: "100%",
-            height: "100vh",
-            display: loading ? "none" : "block",
+            minHeight: 500,
+            display: status === Status.READY ? "block" : "none",
           }}
         />
       )}

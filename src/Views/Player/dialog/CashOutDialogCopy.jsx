@@ -12,7 +12,7 @@ import Close from "../../../Assets/icons/close.svg";
 import { isCashoutEnabledForAgent } from "../../../Utils/utils";
 import { useGetIdentity } from "react-admin";
 import { Alert ,Button} from "@mui/material";
-import CheckbookPaymentDialog from './CheckbookPaymentDialog'; 
+import CheckbookPaymentDialog from './CheckbookPaymentDialog';
 import Parse from "parse";
 import ClkkDialog from "../ClkkDialog";
 import FiservDisbursementDialog from "../../Fiserv/FiservDisbursementDialog";
@@ -23,8 +23,26 @@ const ALL_METHODS = {
   venmo: "Venmo",
   card: "Push To Card",
   clkk: "CLKK",
-  fiservpaypal: "fiservPaypal", // Fiserv Digital Disbursements - PayPal
-  fiservvenmo: "fiservVenmo",   // Fiserv Digital Disbursements - Venmo
+  fiservpaypal: "Fiserv PayPal", // Fiserv Digital Disbursements - PayPal
+  fiservvenmo: "Fiserv Venmo",   // Fiserv Digital Disbursements - Venmo
+  fiservdebit: "Fiserv Debit Card",  // Fiserv Digital Disbursements - Debit Card
+  fiservach: "Fiserv ACH",          // Fiserv Digital Disbursements - ACH
+  fiservrtp: "Fiserv RTP",          // Fiserv Digital Disbursements - Real-Time Payments
+  fiservcoinbase: "Fiserv Coinbase", // Fiserv Digital Disbursements - Coinbase
+  fiservvisaplus: "Fiserv Visa+",    // Fiserv Digital Disbursements - VisaPlus
+  fiservecheck: "Fiserv eCheck",     // Fiserv Digital Disbursements - Printable eCheck
+};
+
+// Maps fiserv keys to the method name used by FiservDisbursementDialog
+const FISERV_KEY_MAP = {
+  fiservpaypal: "paypal",
+  fiservvenmo: "venmo",
+  fiservdebit: "debit",
+  fiservach: "ach",
+  fiservrtp: "rtp",
+  fiservcoinbase: "coinbase",
+  fiservvisaplus: "visaplus",
+  fiservecheck: "echeck",
 };
 
 const CashOutModal = ({
@@ -47,9 +65,10 @@ const CashOutModal = ({
   const [selectedMethod, setSelectedMethod] = useState(""); // ✅ default empty
   const [clkkDialogOpen, setClkkDialogOpen] = useState(false);
   const [fiservDialogOpen, setFiservDialogOpen] = useState(false);
+  const [dbMethods, setDbMethods] = useState({});
 
   useEffect(() => {
-    setErrorMessage(""); 
+    setErrorMessage("");
   }, [open]);
 
   useEffect(() => {
@@ -64,6 +83,24 @@ const CashOutModal = ({
   const fetchAvailableMethods = async () => {
     if (!identity?.userParentId) return;
     try {
+      // Fetch DB methods and build a lookup by key
+      const dbMethodsMap = {};
+      try {
+        const methods = await Parse.Cloud.run("getCashoutMethods");
+        methods.forEach((m) => { dbMethodsMap[m.key] = m; });
+      } catch (dbErr) {
+        console.error("Error fetching DB cashout methods:", dbErr);
+      }
+      setDbMethods(dbMethodsMap);
+
+      // Merge DB methods into ALL_METHODS for the dropdown labels
+      const combinedMethods = { ...ALL_METHODS };
+      Object.keys(dbMethodsMap).forEach((key) => {
+        if (!combinedMethods[key]) {
+          combinedMethods[key] = dbMethodsMap[key].label;
+        }
+      });
+
       const q = new Parse.Query("Settings");
       q.startsWith("type", "allowedCashoutAgentsFor_");
       const results = await q.find({ useMasterKey: true });
@@ -74,14 +111,14 @@ const CashOutModal = ({
         if (ids.includes(identity.userParentId)) {
           const type = r.get("type");
           const key = type.replace("allowedCashoutAgentsFor_", "");
-          if (ALL_METHODS[key]) {
+          if (combinedMethods[key]) {
             allowed.push(key);
           }
         }
       });
 
       setAvailableMethods(allowed);
-      setSelectedMethod(""); // ✅ don’t auto-select
+      setSelectedMethod(""); // ✅ don't auto-select
     } catch (err) {
       console.error("Error fetching allowed cashout methods:", err);
     }
@@ -100,9 +137,16 @@ const CashOutModal = ({
 
     const amount = Number(balance);
 
-    if (selectedMethod === "giftcard") {
+    // Use DB min/max if available, otherwise fall back to hardcoded defaults
+    const dbInfo = dbMethods[selectedMethod];
+    if (dbInfo) {
+      const min = dbInfo.minAmount || 0;
+      const max = dbInfo.maxAmount || 10000;
+      if (min > 0 && amount < min) return `${ALL_METHODS[selectedMethod] || dbInfo.label} cashout must be at least $${min}.`;
+      if (max > 0 && amount > max) return `${ALL_METHODS[selectedMethod] || dbInfo.label} cashout cannot exceed $${max}.`;
+    } else if (selectedMethod === "giftcard") {
       if (amount < 15) return "Gift card cashout must be at least $15.";
-    } else if (["paypal", "venmo", "card", "clkk", "fiservpaypal", "fiservvenmo"].includes(selectedMethod)) {
+    } else if (["paypal", "venmo", "card", "clkk", "fiservpaypal", "fiservvenmo", "fiservdebit", "fiservach", "fiservrtp", "fiservcoinbase", "fiservvisaplus", "fiservecheck"].includes(selectedMethod)) {
       if (amount < 25) return `${ALL_METHODS[selectedMethod]} cashout must be at least $25.`;
       if (amount > 500) return `${ALL_METHODS[selectedMethod]} cashout cannot exceed $500.`;
     }
@@ -122,7 +166,7 @@ const CashOutModal = ({
     if (selectedMethod === "giftcard") {
       setIsGiftCardOpen(true);
       onClose();
-    } else if (selectedMethod === "fiservpaypal" || selectedMethod === "fiservvenmo") {
+    } else if (FISERV_KEY_MAP[selectedMethod] || dbMethods[selectedMethod]?.provider === "fiserv") {
       // Open Fiserv Digital Disbursements Dialog
       setFiservDialogOpen(true);
       onClose();
@@ -231,7 +275,7 @@ const CashOutModal = ({
                 <MenuItem value="">-- Select Method --</MenuItem>
                 {availableMethods.map((m) => (
                   <MenuItem key={m} value={m}>
-                    {ALL_METHODS[m] || m}
+                    {ALL_METHODS[m] || dbMethods[m]?.label || m}
                   </MenuItem>
                 ))}
               </Select>
@@ -293,7 +337,11 @@ const CashOutModal = ({
           handleCashoutRefresh();
         }}
         amount={balance}
-        method={selectedMethod === "fiservpaypal" ? "paypal" : "venmo"}
+        method={
+          dbMethods[selectedMethod]?.fiservKey ||
+          FISERV_KEY_MAP[selectedMethod] ||
+          "paypal"
+        }
         handleRefresh={handleCashoutRefresh}
       />
     </>

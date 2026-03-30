@@ -431,6 +431,14 @@ function App() {
                       </Authenticated>
                     }
                   />
+                  <Route
+                    path="/commerce-hub-hosted-components"
+                    element={
+                      <Authenticated>
+                        <CommerceHubHostedComponents />
+                      </Authenticated>
+                    }
+                  />
 
                   <Route
                     path="/clkk-cashout"
@@ -576,10 +584,6 @@ function App() {
           <Route
             path="/commerce-hub-hosted-fields"
             element={<CommerceHubHostedFields />}
-          />
-          <Route
-            path="/commerce-hub-hosted-components"
-            element={<CommerceHubHostedComponents />}
           />
           <Route path="/commerce-hub-sdk" element={<CommerceHubRecharge />} />
           {/* Total Liquor Embedded Checkout */}
